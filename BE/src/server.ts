@@ -1,13 +1,12 @@
 import express, { Application } from 'express';
 import { expressInit } from './confiigs/expressConfig';
-import { port } from './confiigs/index';
 import { routesInit } from './routes';
 
-const app: Application = express();
+export const startServer = async (): Promise<any> => {
+    const server: Application = express();
+    
+    expressInit(server);
+    routesInit(server);
 
-expressInit(app);
-routesInit(app);
-
-app.listen(port, () => console.log(`Listening on ${port}`));
-
-
+    return server;
+};

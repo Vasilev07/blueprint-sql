@@ -1,32 +1,32 @@
+version: '3.8'
 services:
-  app:
-    image: be
-    working_dir: /app
-    build: .
+  mysqldb:
+    image: mysql:5.7
+    restart: unless-stopped
+    env_file: ./BE/.env
     environment:
-      DB_CONNECTION: mongodb://mongo:27017/expenso
-    depends_on:
-      - mongo
+      - MYSQL_ROOT_PASSWORD=$MYSQLDB_ROOT_PASSWORD
+      - MYSQL_DATABASE=$MYSQLDB_DATABASE
     ports:
-      - 8080:8080
-    networks:
-      - nodeapp-network
-  mongo:
-    image: mongo:5.0.6
-    container_name: mongo
-#    command: [ "--replSet", "rs", "--bind_ip_all"]
-    ports:
-      - 27017:27017
-    networks:
-      - nodeapp-network
-    healthcheck:
-      test: test $$(echo "rs.initiate().ok || rs.status().ok" | mongo --port 27017 --quiet) -eq 1
-      interval: 10s
-      start_period: 30s
+      - $MYSQLDB_LOCAL_PORT:$MYSQLDB_DOCKER_PORT
     volumes:
-      - /var/docker/mongo/cnf:/etc/mongo
-      # - '/Users/gvasilev/projects/mongostorage/data/:/data/db'
-#   - /usr/local/etc:/etc/mongo
-networks:
-  nodeapp-network:
-    driver: bridge
+      - db:/var/lib/mysql
+  app:
+    depends_on:
+      - mysqldb
+    build: .
+    restart: unless-stopped
+    env_file: ./BE/.env
+    ports:
+      - $NODE_LOCAL_PORT:$NODE_DOCKER_PORT
+    environment:
+      - DB_HOST=mysqldb
+      - DB_USER=$MYSQLDB_USER
+      - DB_PASSWORD=$MYSQLDB_ROOT_PASSWORD
+      - DB_NAME=$MYSQLDB_DATABASE
+      - DB_PORT=$MYSQLDB_DOCKER_PORT
+    stdin_open: true
+    tty: true
+
+volumes: 
+  db:
