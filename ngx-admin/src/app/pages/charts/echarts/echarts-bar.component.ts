@@ -89,4 +89,5 @@ export class EchartsBarComponent implements AfterViewInit, OnDestroy {
   ngOnDestroy(): void {
     this.themeSubscription.unsubscribe();
   }
+  
 }
