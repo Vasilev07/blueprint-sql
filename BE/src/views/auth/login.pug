@@ -1,0 +1,23 @@
+mixin login()
+    #myModal2.modal.fade(role="dialog")
+        .modal-dialog.modal-lg
+            .modal-content
+                .modal-body
+                    .container
+                        h2 Login
+                        form#loginForm.form-horizontal(action='/login', method='POST')
+                            .form-group
+                                label.control-label.col-sm-2(for='username') Username:
+                                .col-sm-6
+                                    input#loginUsername.form-control(type='text', placeholder='Enter username', name='username')
+                            .form-group
+                                label.control-label.col-sm-2(for='psw') Password:
+                                .col-sm-6
+                                    input#loginPassword.form-control(type='password', placeholder='Enter Password', name='password')
+                            .form-group
+                                .col-sm-offset-2.col-sm-10
+                                    button.btn.btn-success(type='submit',value='Log In') Log In
+                                    p#loginErrorMsg
+                .modal-footer
+                    button.btn.btn-default(type="button", data-dismiss="modal")
+                        | Close

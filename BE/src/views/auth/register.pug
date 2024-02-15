@@ -1,0 +1,39 @@
+mixin register()
+    #myModal.modal.fade(role="dialog")
+        .modal-dialog.modal-lg
+            .modal-content
+                .modal-body
+                    .container
+                        h2.register-header Registration
+                        form#registerForm.form-horizontal(method='POST', action='/validate')
+                            .form-group
+                                label.control-label.col-sm-3(for='username') Username:
+                                .col-sm-6
+                                    input#username.form-control(type='text', placeholder='Enter username', name='username')
+                            .form-group
+                                label.control-label.col-sm-3(for='new-password') Password:
+                                .col-sm-6
+                                    input#password.form-control(type='password', placeholder='Enter Password', name='new-password')
+                            .form-group
+                                label.control-label.col-sm-3(for='re-password') Re-enter Password:
+                                .col-sm-6
+                                    input#re-password.form-control(type='password', placeholder='Enter Re-enter Password', name='re-password')
+                            .form-group
+                                label.control-label.col-sm-3(for='f_name') First Name:
+                                .col-sm-6
+                                    input#first_name.form-control(type='first_name', placeholder='Enter First Name', name='first_name')
+                            .form-group
+                                label.control-label.col-sm-3(for='l_name') Last Name:
+                                .col-sm-6
+                                    input#last_name.form-control(type='last_name', placeholder='Enter Last Name', name='last_name')
+                            .form-group
+                                label.control-label.col-sm-3(for='e-mail') Email:
+                                .col-sm-6
+                                    input#email.form-control(type='e-mail', placeholder='Enter Email', name='e-mail')
+                            .form-group
+                                .col-sm-offset-2.col-sm-10
+                                    button#register-submit.btn.btn-success(type='submit', value='Register') Register
+                                    p#registerErrorMsg
+                .modal-footer
+                    button.btn.btn-default(type="button", data-dismiss="modal")
+                        | Close

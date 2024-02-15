@@ -1,0 +1,35 @@
+include ../auth/register
+include ../auth/login
+
+mixin nav()
+    nav.navbar
+        .container-fluid
+            .navbar-header
+                //- a(href="/")
+                //-     img(src="/static/img/logo.png", alt="logo" )
+            ul.nav.navbar-nav.navbar-right
+                if !isAuthenticated
+                
+                    li
+                        a(href="#", data-toggle="modal", data-target="#myModal")
+                            i.fas.fa-user-plus.nav-icon
+                            | Sign up
+                    +register() 
+                    li
+                        a(href="#", data-toggle="modal", data-target="#myModal2")
+                            i.fas.fa-sign-in-alt.nav-icon
+                            | Login
+                    +login()
+                else
+                    li
+                        a(href="/index")
+                            i.fas.fa-user.nav-icon
+                            | Hello, #{user.username}
+                    li
+                        a(href="/create")
+                            i.fas.fa-plus-square.nav-icon
+                            | Create survey
+                    li
+                        a(href="/logout")
+                            i.fas.fa-sign-out-alt.nav-icon
+                            | Logout

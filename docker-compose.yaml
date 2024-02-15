@@ -1,0 +1,32 @@
+services:
+  app:
+    image: be
+    working_dir: /app
+    build: .
+    environment:
+      DB_CONNECTION: mongodb://mongo:27017/expenso
+    depends_on:
+      - mongo
+    ports:
+      - 8080:8080
+    networks:
+      - nodeapp-network
+  mongo:
+    image: mongo:5.0.6
+    container_name: mongo
+#    command: [ "--replSet", "rs", "--bind_ip_all"]
+    ports:
+      - 27017:27017
+    networks:
+      - nodeapp-network
+    healthcheck:
+      test: test $$(echo "rs.initiate().ok || rs.status().ok" | mongo --port 27017 --quiet) -eq 1
+      interval: 10s
+      start_period: 30s
+    volumes:
+      - /var/docker/mongo/cnf:/etc/mongo
+      # - '/Users/gvasilev/projects/mongostorage/data/:/data/db'
+#   - /usr/local/etc:/etc/mongo
+networks:
+  nodeapp-network:
+    driver: bridge
