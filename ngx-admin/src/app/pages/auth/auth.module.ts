@@ -17,7 +17,6 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { NgxLoginComponent } from './login/login.component';
 import { NgxRegisterComponent } from './register/register.component';
-import { HttpClientModule } from '@angular/common/http';
 
 @NgModule({
   declarations: [ NgxLoginComponent, NgxRegisterComponent ],
@@ -30,7 +29,6 @@ import { HttpClientModule } from '@angular/common/http';
     NbAlertModule,
     NbInputModule,
     NbButtonModule,
-    HttpClientModule,
   ]
 })
 export class AuthModule {

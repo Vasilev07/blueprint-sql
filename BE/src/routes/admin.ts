@@ -1,4 +1,4 @@
-import e, { Application } from "express";
+import { Application } from "express";
 import { AppDataSource } from "../data-source";
 import { Administrator } from "../entity/administrator";
 import { CryptoService } from "../services/crypto-service";
@@ -54,8 +54,8 @@ export const init = (app: Application) => {
             console.error('Error AppDataSource AppDataSource', error);
         }
 
-        console.log('user', admin);
+        const token = signForUser(admin);
         
-        res.json(admin);
+        res.json({ token });
     });
 };
