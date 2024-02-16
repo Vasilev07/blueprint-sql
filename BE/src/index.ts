@@ -1,4 +1,4 @@
-import { port } from "./confiigs";
+import { port } from "./configs";
 import { startServer } from "./server";
 
 startServer()
