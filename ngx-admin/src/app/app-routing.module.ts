@@ -9,6 +9,7 @@ import {
   NbResetPasswordComponent,
 } from '@nebular/auth';
 import { NgxLoginComponent } from './pages/auth/login/login.component';
+import { NgxRegisterComponent } from './pages/auth/register/register.component';
 
 export const routes: Routes = [
   {
@@ -32,7 +33,7 @@ export const routes: Routes = [
       },
       {
         path: 'register',
-        component: NbRegisterComponent,
+        component: NgxRegisterComponent,
         loadChildren: () => import('./pages/auth/auth.module').then(m => m.AuthModule),
       },
       {

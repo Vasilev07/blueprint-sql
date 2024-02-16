@@ -14,9 +14,10 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { NbAuthModule } from '@nebular/auth';
 import { NgxLoginComponent } from './login/login.component';
+import { NgxRegisterComponent } from './register/register.component';
 
 @NgModule({
-  declarations: [ NgxLoginComponent ],
+  declarations: [ NgxLoginComponent, NgxRegisterComponent ],
   imports: [
     FormsModule,
     CommonModule,
