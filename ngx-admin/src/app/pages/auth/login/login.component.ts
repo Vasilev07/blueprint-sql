@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { ChangeDetectorRef, Component, Input } from '@angular/core';
 import { Router } from '@angular/router';
 import { NbAuthJWTToken, NbAuthService, NbLoginComponent, NbTokenService } from '@nebular/auth';
+import { AuthService } from '../services/auth-service';
 
 @Component({
   selector: 'ngx-login',
@@ -17,16 +18,14 @@ export class NgxLoginComponent extends NbLoginComponent {
                 private readonly nbAuthService: NbAuthService,
                 private readonly cdr: ChangeDetectorRef,
                 public readonly router: Router,
-                private readonly tokenService: NbTokenService) {
+                private readonly authService: AuthService) {
         super(nbAuthService, {}, cdr, router);
     }
 
     login() {
         this.http.post('http://localhost:3001/login', this.user).subscribe((res) => {
             if (res['token'] !== undefined) {
-                this.tokenService.set(new NbAuthJWTToken(res['token'], 'email'));
-
-                this.router.navigate(['/pages/dashboard']);
+                this.authService.login(new NbAuthJWTToken(res['token'], 'email'));
             }
         });
     }

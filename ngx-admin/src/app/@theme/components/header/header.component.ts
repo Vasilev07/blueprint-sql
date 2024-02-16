@@ -6,6 +6,7 @@ import { UserData } from '../../../@core/data/users';
 import { LayoutService } from '../../../@core/utils';
 import { filter, map, takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
+import { AuthService } from '../../../pages/auth/services/auth-service';
 
 @Component({
   selector: 'ngx-header',
@@ -47,7 +48,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
               private userService: UserData,
               private layoutService: LayoutService,
               private breakpointService: NbMediaBreakpointsService,
-              private tokenService: NbTokenService,
+              private authService: AuthService,
               private nbMenuService: NbMenuService) {
   }
 
@@ -81,7 +82,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
       .subscribe(title => {
         if (title === 'Log out') {
           console.log('Log out');
-          this.tokenService.clear();
+          this.authService.logout();
         }
       });
   }
