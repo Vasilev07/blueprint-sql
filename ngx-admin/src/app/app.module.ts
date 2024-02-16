@@ -15,6 +15,7 @@ import {
   NbChatModule,
   NbDatepickerModule,
   NbDialogModule,
+  NbInputModule,
   NbMenuModule,
   NbSidebarModule,
   NbToastrModule,
