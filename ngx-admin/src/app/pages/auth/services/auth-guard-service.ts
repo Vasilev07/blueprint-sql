@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import { Router } from "@angular/router";
-import { NbAuthService, NbTokenService } from "@nebular/auth";
+import { NbTokenService } from "@nebular/auth";
 import { AuthService } from "./auth-service";
 
 @Injectable({
