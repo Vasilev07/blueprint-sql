@@ -6,25 +6,31 @@
 import { NgModule } from '@angular/core';
 
 import {
+    NbAlertModule,
     NbButtonModule,
+  NbCardModule,
   NbCheckboxModule,
   NbInputModule,
+  NbLayoutModule,
 } from '@nebular/theme';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { NbAuthModule } from '@nebular/auth';
 import { NgxLoginComponent } from './login/login.component';
 import { NgxRegisterComponent } from './register/register.component';
+import { HttpClientModule } from '@angular/common/http';
 
 @NgModule({
   declarations: [ NgxLoginComponent, NgxRegisterComponent ],
   imports: [
     FormsModule,
     CommonModule,
+    NbLayoutModule,
+    NbCardModule,
+    NbCheckboxModule,
+    NbAlertModule,
     NbInputModule,
-    NbAuthModule,
     NbButtonModule,
-    NbCheckboxModule
+    HttpClientModule,
   ]
 })
 export class AuthModule {
