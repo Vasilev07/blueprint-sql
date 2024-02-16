@@ -87,7 +87,7 @@
     "@angular/cli": "^15.2.10",
     "@angular/compiler-cli": "^15.2.10",
     "@angular/language-service": "15.2.10",
-    "@compodoc/compodoc": "1.0.1",
+    "@compodoc/compodoc": "1.1.23",
     "@fortawesome/fontawesome-free": "^5.2.0",
     "@types/d3-color": "1.0.5",
     "@types/jasmine": "~3.3.0",
