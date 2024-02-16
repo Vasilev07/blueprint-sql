@@ -20,7 +20,6 @@ import { AuthService } from "./auth-service";
 
     private checkAuth(): boolean {
       if (this.authService.isAuthenticated) {
-        
         return true;
       } else {
         // Redirect to the login page if the user is not authenticated
