@@ -48,13 +48,7 @@ import { HttpClientModule } from '@angular/common/http';
           token: {
             class: NbAuthJWTToken,
             key: 'token',
-          },
-          login: {
-            redirect: {
-              success: '/dashboard/',
-              failure: null, // stay on the same page
-            },
-          },
+          }
         })
       ],
       forms: {},

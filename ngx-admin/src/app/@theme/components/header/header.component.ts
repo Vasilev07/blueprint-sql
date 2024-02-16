@@ -1,12 +1,11 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { NbMediaBreakpointsService, NbMenuService, NbSidebarService, NbThemeService } from '@nebular/theme';
-import { NbAuthJWTToken, NbAuthService } from '@nebular/auth';
+import { NbAuthJWTToken, NbAuthService, NbTokenService } from '@nebular/auth';
 
 import { UserData } from '../../../@core/data/users';
 import { LayoutService } from '../../../@core/utils';
-import { map, takeUntil } from 'rxjs/operators';
+import { filter, map, takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
-import { log } from 'console';
 
 @Component({
   selector: 'ngx-header',
@@ -48,18 +47,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
               private userService: UserData,
               private layoutService: LayoutService,
               private breakpointService: NbMediaBreakpointsService,
-              private authService: NbAuthService) {
-    this.authService.onTokenChange()
-    .subscribe((token: NbAuthJWTToken) => {
-      console.log('token PAYLOAD', token.getPayload());
-
-      if (token.isValid()) {
-        this.user = token.getPayload(); // here we receive a payload from the token and assigns it to our `user` variable 
-        console.log('user', this.user);
-        
-      }
-      
-    });  
+              private tokenService: NbTokenService,
+              private nbMenuService: NbMenuService) {
   }
 
   ngOnInit() {
@@ -83,6 +72,18 @@ export class HeaderComponent implements OnInit, OnDestroy {
         takeUntil(this.destroy$),
       )
       .subscribe(themeName => this.currentTheme = themeName);
+
+      this.nbMenuService.onItemClick()
+      .pipe(
+        filter(({ tag }) => tag === 'my-context-menu'),
+        map(({ item: { title } }) => title),
+      )
+      .subscribe(title => {
+        if (title === 'Log out') {
+          console.log('Log out');
+          this.tokenService.clear();
+        }
+      });
   }
 
   ngOnDestroy() {
