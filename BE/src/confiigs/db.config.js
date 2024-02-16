@@ -4,11 +4,11 @@ module.exports = {
     PASSWORD: process.env.DB_PASSWORD,
     DB: process.env.DB_NAME,
     port: process.env.DB_PORT,
-    dialect: "mysql",
+    dialect: "postgres",
     pool: {
-        max: 5,
-        min: 0,
-        acquire: 30000,
-        idle: 10000
+      max: 5,
+      min: 0,
+      acquire: 30000,
+      idle: 10000
     }
-};
+  };
