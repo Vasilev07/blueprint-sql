@@ -3,7 +3,8 @@ import { expressInit } from './configs/expressConfig';
 import { routesInit } from './routes';
 import { AppDataSource } from './data-source';
 import swaggerUi from 'swagger-ui-express';
-import { swaggerSpec } from './swagger';
+
+const swaggerDocument = require('./swagger-output.json');
 
 export const startServer = async (): Promise<any> => {
 
@@ -19,7 +20,10 @@ export const startServer = async (): Promise<any> => {
     
     expressInit(server);
     routesInit(server);
-    server.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+    if (swaggerDocument) {
+        server.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+    }
 
     return server;
 };

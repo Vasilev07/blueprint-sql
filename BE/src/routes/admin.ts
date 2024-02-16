@@ -1,4 +1,4 @@
-import { Application } from "express";
+import { Application, Request, Response } from "express";
 import { AppDataSource } from "../data-source";
 import { Administrator } from "../entity/administrator";
 import { CryptoService } from "../services/crypto-service";
@@ -6,7 +6,7 @@ import { signForUser } from "../middleware/check-auth";
 
 export const init = (app: Application) => {
     
-    app.post('/login', async (req, res) => {
+    app.post('/login', async (req: Request, res: Response) => {
         const { email, password } = req.body;
 
         const admin = await AppDataSource.manager.findOne(Administrator, { where: { email } });
@@ -26,7 +26,7 @@ export const init = (app: Application) => {
         res.json({ token });
     });
 
-    app.post('/register', async (req, res) => {
+    app.post('/register', async (req: Request, res: Response) => {
         const isEmailAvailable = await AppDataSource.manager.findOne(Administrator, { where: { email: req.body.email } });
         console.log('isEmailAvailable', isEmailAvailable);
         console.log('req.body', req.body);

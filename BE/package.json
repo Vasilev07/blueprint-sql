@@ -5,6 +5,7 @@
     "main": "src/index.ts",
     "scripts": {
         "build": "tsc --build",
+        "swagger": "node src/swagger.js",
         "clean": "tsc --build --clean",
         "start:prod": "node dist/server.js",
         "test": "jest --coverage --forceExit",
