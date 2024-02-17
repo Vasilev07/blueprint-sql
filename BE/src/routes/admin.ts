@@ -1,20 +1,22 @@
 import { Application, Request, Response } from "express";
 import { AppDataSource } from "../data-source";
 import { Administrator } from "../entity/administrator";
-import { CryptoService } from "../services/crypto-service";
+import { cryptoService as cryptoService } from "../services/crypto-service";
 import { signForUser } from "../middleware/check-auth";
+import { administratorService } from "../services/users-service";
+import { AdministratorDTO } from "../models/administrator-dto";
 
 export const init = (app: Application) => {
     app.post('/login', async (req: Request, res: Response) => {
         const { email, password } = req.body;
 
-        const admin = await AppDataSource.manager.findOne(Administrator, { where: { email } });
+        const admin = await administratorService.findOneByEmail(email);
 
         if (!admin) {
             return res.status(401).json({ error: 'Invalid email or password' });
         }
 
-        const passwordMatch = await CryptoService.comparePasswords(password, admin.password);
+        const passwordMatch = await cryptoService.comparePasswords(password, admin.password);
 
         if (!passwordMatch) {
             return res.status(401).json({ error: 'Authentication failed' });
@@ -22,40 +24,18 @@ export const init = (app: Application) => {
 
         const token = signForUser(admin);
 
-        res.json({ token });
+        return res.json({ token });
     });
 
     app.post('/register', async (req: Request, res: Response) => {
-        const isEmailAvailable = await AppDataSource.manager.findOne(Administrator, { where: { email: req.body.email } });
-        console.log('isEmailAvailable', isEmailAvailable);
-        console.log('req.body', req.body);
+        const dto: AdministratorDTO = req.body;
         
-        if (isEmailAvailable !== null && isEmailAvailable !== undefined) {
-            throw new Error('Email already in use');
-        }
-
-        if (req.body.password !== req.body.confirmPassword) {
-            throw new Error('Passwords do not match');
-        }
-    
-        const password = await CryptoService.hashPassword(req.body.password);
-        
-        const names = req.body.fullName.split(' ');
-
-        const admin: Administrator = new Administrator();
-        admin.email = req.body.email;
-        admin.password = password;
-        admin.firstname = names[0];
-        admin.lastname = names[names.length - 1];
-
         try {
-            await AppDataSource.manager.save(admin);
+           const token = await administratorService.register(dto);
+        
+           return res.json({ token });
         } catch (error) {
             console.error('Error AppDataSource AppDataSource', error);
-        }
-
-        const token = signForUser(admin);
-        
-        res.json({ token });
+        }       
     });
 };
