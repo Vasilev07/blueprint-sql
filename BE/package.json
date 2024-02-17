@@ -6,6 +6,7 @@
     "scripts": {
         "build": "tsc --build",
         "swagger": "node src/swagger.js",
+        "api-generate": "node src/api-generate.js",
         "clean": "tsc --build --clean",
         "start:prod": "node dist/server.js",
         "test": "jest --coverage --forceExit",

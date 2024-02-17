@@ -5,7 +5,6 @@ import { CryptoService } from "../services/crypto-service";
 import { signForUser } from "../middleware/check-auth";
 
 export const init = (app: Application) => {
-    
     app.post('/login', async (req: Request, res: Response) => {
         const { email, password } = req.body;
 

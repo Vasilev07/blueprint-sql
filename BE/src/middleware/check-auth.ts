@@ -15,6 +15,5 @@ export const checkAuth = (request: any, response: Response, next: NextFunction) 
 };
 
 export const signForUser = (admin: Administrator) => {
-    console.log('admin', admin);
     return sign({ name: admin.lastname, email: admin.email }, 'secred', { expiresIn: '1h' });
 };
