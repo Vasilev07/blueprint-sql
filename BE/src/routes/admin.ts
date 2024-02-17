@@ -3,7 +3,7 @@ import { AppDataSource } from "../data-source";
 import { Administrator } from "../entity/administrator";
 import { cryptoService as cryptoService } from "../services/crypto-service";
 import { signForUser } from "../middleware/check-auth";
-import { administratorService } from "../services/users-service";
+import { administratorService } from "../services/administrator-service";
 import { AdministratorDTO } from "../models/administrator-dto";
 
 export const init = (app: Application) => {
