@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { LocalDataSource } from 'ng2-smart-table';
 
 import { SmartTableData } from '../../../@core/data/smart-table';
@@ -55,9 +55,16 @@ export class SmartTableComponent {
 
   source: LocalDataSource = new LocalDataSource();
 
+  @Input() data: any;
+
   constructor(private service: SmartTableData) {
-    const data = this.service.getData();
-    this.source.load(data);
+  }
+
+  ngOnChanges() {
+    if (this.data) {
+      console.log('reloaded', this.data);
+      this.load(this.data);
+    }
   }
 
   onDeleteConfirm(event): void {
@@ -66,5 +73,9 @@ export class SmartTableComponent {
     } else {
       event.confirm.reject();
     }
+  }
+
+  load(data) {
+    this.source.load(data);
   }
 }

@@ -15,6 +15,11 @@ const routes: Routes = [{
       component: ECommerceComponent,
     },
     {
+      path: 'users',
+      loadChildren: () => import('./users/users.module')
+        .then(m => m.UsersModule),
+    },
+    {
       path: 'iot-dashboard',
       component: DashboardComponent,
     },

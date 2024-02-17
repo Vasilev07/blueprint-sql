@@ -6,12 +6,12 @@ export const MENU_ITEMS: NbMenuItem[] = [
     icon: 'shopping-cart-outline',
     link: '/pages/dashboard',
     home: true,
-  }
-  // {
-  //   title: 'IoT Dashboard',
-  //   icon: 'home-outline',
-  //   link: '/pages/iot-dashboard',
-  // },
+  },
+  {
+    title: 'Users',
+    icon: 'home-outline',
+    link: '/pages/users',
+  },
   // {
   //   title: 'FEATURES',
   //   group: true,

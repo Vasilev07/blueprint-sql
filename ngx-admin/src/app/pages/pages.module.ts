@@ -7,8 +7,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { ECommerceModule } from './e-commerce/e-commerce.module';
 import { PagesRoutingModule } from './pages-routing.module';
 import { MiscellaneousModule } from './miscellaneous/miscellaneous.module';
-import { FormsModule } from '@angular/forms';
-import { NgxLoginComponent } from './auth/login/login.component';
+import { UsersModule } from './users/users.module';
 
 @NgModule({
   imports: [
@@ -17,7 +16,8 @@ import { NgxLoginComponent } from './auth/login/login.component';
     NbMenuModule,
     DashboardModule,
     ECommerceModule,
-    MiscellaneousModule
+    MiscellaneousModule,
+    UsersModule
   ],
   declarations: [
     PagesComponent
