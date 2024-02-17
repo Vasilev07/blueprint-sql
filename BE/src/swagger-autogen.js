@@ -1,4 +1,9 @@
-const swaggerAutogen = require('swagger-autogen')({openapi: '3.0.0'});
+const swaggerAutogen = require('swagger-autogen')({
+  openapi: '3.0.0',
+  autoHeaders: true,
+  autoQuery: true,
+  autoBody:true
+});
 
 const doc = {
   info: {
@@ -8,7 +13,7 @@ const doc = {
   },
   servers: [
     {
-      url: 'http://localhost:3000/',              // by default: 'http://localhost:3000'
+      url: 'http://localhost:3001/',              // by default: 'http://localhost:3000'
       description: 'Local Server'       // by default: ''
     },
     // { ... }

@@ -34,7 +34,12 @@ const findOneByEmail = async (email: string) => {
     return signForUser(savedAdmin);
  };
 
+ export const getAll = async () => {
+    return await AppDataSource.manager.find(Administrator);
+ };
+
 export const administratorService = {
     findOneByEmail,
+    getAll,
     register
 };

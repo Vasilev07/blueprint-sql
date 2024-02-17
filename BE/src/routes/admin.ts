@@ -1,22 +1,21 @@
 import { Application, Request, Response } from "express";
-import { AppDataSource } from "../data-source";
-import { Administrator } from "../entity/administrator";
 import { cryptoService as cryptoService } from "../services/crypto-service";
-import { signForUser } from "../middleware/check-auth";
+import { checkAuth, signForUser } from "../middleware/check-auth";
 import { administratorService } from "../services/administrator-service";
 import { AdministratorDTO } from "../models/administrator-dto";
+import { AdministratorLoginDTO } from "../models/administrator-login-dto";
 
 export const init = (app: Application) => {
     app.post('/login', async (req: Request, res: Response) => {
-        const { email, password } = req.body;
+        const dto: AdministratorLoginDTO = req.body;
 
-        const admin = await administratorService.findOneByEmail(email);
+        const admin = await administratorService.findOneByEmail(dto.email);
 
         if (!admin) {
             return res.status(401).json({ error: 'Invalid email or password' });
         }
 
-        const passwordMatch = await cryptoService.comparePasswords(password, admin.password);
+        const passwordMatch = await cryptoService.comparePasswords(dto.password, admin.password);
 
         if (!passwordMatch) {
             return res.status(401).json({ error: 'Authentication failed' });
@@ -29,13 +28,19 @@ export const init = (app: Application) => {
 
     app.post('/register', async (req: Request, res: Response) => {
         const dto: AdministratorDTO = req.body;
-        
+
         try {
-           const token = await administratorService.register(dto);
-        
-           return res.json({ token });
+            const token = await administratorService.register(dto);
+
+            return res.json({ token });
         } catch (error) {
             console.error('Error AppDataSource AppDataSource', error);
-        }       
+        }
+    });
+
+    app.get('/all', checkAuth, async (req: Request, res: Response) => {
+        const admins = await administratorService.getAll();
+
+        return res.json(admins);
     });
 };

@@ -11,7 +11,7 @@ const options = {
         },
     },
     apis: [
-        JSON.parse(JSON.stringify(swaggerSpec))
+        './routes/'
     ], // files containing annotations as above
 };
 console.log('KZL', JSON.parse(JSON.stringify(swaggerSpec)));

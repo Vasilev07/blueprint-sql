@@ -6,7 +6,7 @@
     "scripts": {
         "build": "tsc --build",
         "swagger": "node src/swagger.js",
-        "api-generate-spec": "node src/api-generate.js",
+        "api-generate-spec": "node ./src/swagger-autogen.js",
         "api-generate-services": "ng-openapi-gen --input ./src/swagger-output.json --output ../ngx-admin/src/app/api/",
         "clean": "tsc --build --clean",
         "start:prod": "node dist/server.js",
