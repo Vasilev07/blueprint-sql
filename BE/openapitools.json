@@ -7,7 +7,7 @@
     "generators": {
       "v3.0": {
         "generatorName": "typescript-angular",
-        "output": "#{cwd}/output/v2.0/#{ext}/#{name}",
+        "output": "#{cwd}/output/v3.0/#{ext}/#{name}",
         "additionalProperties": {
           "ngVersion": "17.2.0",
           "npmName": "restClient",
