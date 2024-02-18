@@ -7,7 +7,7 @@
         "build": "tsc --build",
         "swagger": "node src/swagger.js",
         "api-generate-spec": "node ./src/swagger-autogen.js",
-        "api-generate-services": "ng-openapi-gen --input ./src/swagger-output.json --output ../ngx-admin/src/app/api/",
+        "api-generate-services": "openapi-generator-cli generate -i ./src/swagger-output.json",
         "clean": "tsc --build --clean",
         "start:prod": "node dist/server.js",
         "test": "jest --coverage --forceExit",

@@ -4,6 +4,7 @@ import { checkAuth, signForUser } from "../middleware/check-auth";
 import { administratorService } from "../services/administrator-service";
 import { AdministratorDTO } from "../models/administrator-dto";
 import { AdministratorLoginDTO } from "../models/administrator-login-dto";
+import { Administrator } from "../entity/administrator";
 
 export const init = (app: Application) => {
     app.post('/login', async (req: Request, res: Response) => {
@@ -39,7 +40,7 @@ export const init = (app: Application) => {
     });
 
     app.get('/all', checkAuth, async (req: Request, res: Response) => {
-        const admins = await administratorService.getAll();
+        const admins: Administrator[] = await administratorService.getAll();
 
         return res.json(admins);
     });
