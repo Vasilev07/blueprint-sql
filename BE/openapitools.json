@@ -2,11 +2,11 @@
   "$schema": "./node_modules/@openapitools/openapi-generator-cli/config.schema.json",
   "spaces": 2,
   "generator-cli": {
-    "version": "7.3.0",
+    "version": "4.3.1",
     "storageDir": "../ngx-admin/src/app/api",
     "generators": {
       "v3.0": {
-        "generatorName": "typescript-fetch",
+        "generatorName": "typescript-angular",
         "output": "#{cwd}/output/v2.0/#{ext}/#{name}",
         "additionalProperties": {
           "ngVersion": "17.2.0",
