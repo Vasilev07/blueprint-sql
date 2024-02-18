@@ -7,7 +7,7 @@
         "build": "tsc --build",
         "swagger": "node src/swagger.js",
         "api-generate-spec": "node ./src/swagger-autogen.js",
-        "api-generate-services": "openapi-generator-cli generate -g typescript-angular -i ./src/swagger-output.json",
+        "api-generate-services": "openapi-generator-cli generate -g typescript-angular -i ./src/swagger-output.json -o ./dist --additional-properties=npmName=restClient,supportsES6=true,npmVersion=8.19.4,withInterfaces=true",
         "clean": "tsc --build --clean",
         "start:prod": "node dist/server.js",
         "test": "jest --coverage --forceExit",

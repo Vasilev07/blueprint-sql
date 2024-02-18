@@ -1,15 +1,14 @@
 {
   "$schema": "./node_modules/@openapitools/openapi-generator-cli/config.schema.json",
-  "spaces": 2,
+  "spaces": 4,
   "generator-cli": {
-    "version": "4.3.1",
-    "storageDir": "../ngx-admin/src/app/api",
+    "version": "5.3.1",
+    "storageDir": "./dist",
     "generators": {
       "v3.0": {
         "generatorName": "typescript-angular",
-        "output": "#{cwd}/output/v3.0/#{ext}/#{name}",
+        "output": "./dist/output/v3.0/",
         "additionalProperties": {
-          "ngVersion": "17.2.0",
           "npmName": "restClient",
           "supportsES6": "true",
           "npmVersion": "8.19.4",
