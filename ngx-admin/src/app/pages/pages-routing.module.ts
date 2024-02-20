@@ -17,8 +17,7 @@ const routes: Routes = [{
     {
       path: 'users',
       loadChildren: () => import('./users/users.module')
-        .then(m => m.UsersModule),
-      pathMatch: 'full',
+        .then(m => m.UsersModule)
     },
     {
       path: 'iot-dashboard',

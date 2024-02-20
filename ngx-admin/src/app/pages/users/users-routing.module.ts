@@ -8,5 +8,6 @@ const routes: Routes = [
     component: UsersComponent
   }
 ];
+console.log('users routing');
 
 export const routing = RouterModule.forChild(routes);
