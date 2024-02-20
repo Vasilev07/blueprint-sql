@@ -8,7 +8,6 @@ import { ECommerceModule } from './e-commerce/e-commerce.module';
 import { PagesRoutingModule } from './pages-routing.module';
 import { MiscellaneousModule } from './miscellaneous/miscellaneous.module';
 import { UsersModule } from './users/users.module';
-import { RouterModule } from '@angular/router';
 
 @NgModule({
   imports: [

@@ -3,8 +3,7 @@ import { UsersComponent } from "./users.component";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { CommonModule } from "@angular/common";
 import { TablesModule } from "../tables/tables.module";
-import { routing } from "./users-routing.module";
-import { RouterModule } from "@angular/router";
+import { UsersRoutingModule } from "./users-routing.module";
 import { ThemeModule } from "../../@theme/theme.module";
 
 @NgModule({
@@ -15,8 +14,7 @@ import { ThemeModule } from "../../@theme/theme.module";
         FormsModule,
         CommonModule,
         TablesModule,
-        RouterModule,
-        routing
+        UsersRoutingModule
     ],
     declarations: [
         UsersComponent
