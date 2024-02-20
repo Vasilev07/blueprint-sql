@@ -20,6 +20,9 @@
   "paths": {
     "/login": {
       "post": {
+        "tags": [
+          "Admin"
+        ],
         "description": "",
         "responses": {
           "200": {
@@ -50,6 +53,9 @@
     },
     "/register": {
       "post": {
+        "tags": [
+          "Admin"
+        ],
         "description": "",
         "responses": {
           "200": {
@@ -60,6 +66,9 @@
     },
     "/all": {
       "get": {
+        "tags": [
+          "Admin"
+        ],
         "description": "",
         "parameters": [
           {

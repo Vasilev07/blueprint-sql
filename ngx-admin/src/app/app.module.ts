@@ -14,7 +14,6 @@ import {
   NbChatModule,
   NbDatepickerModule,
   NbDialogModule,
-  NbInputModule,
   NbMenuModule,
   NbSidebarModule,
   NbToastrModule,
@@ -22,6 +21,7 @@ import {
 } from '@nebular/theme';
 import { NbAuthJWTToken, NbAuthModule, NbPasswordAuthStrategy } from '@nebular/auth';
 import { HttpClientModule } from '@angular/common/http';
+import { ApiModule } from './api';
 
 @NgModule({
   declarations: [AppComponent],
@@ -53,6 +53,7 @@ import { HttpClientModule } from '@angular/common/http';
       ],
       forms: {},
     }),
+    ApiModule
   ],
   bootstrap: [AppComponent],
 })

@@ -9,7 +9,7 @@ import { Administrator } from "../entity/administrator";
 export const init = (app: Application) => {
     app.post('/login', async (req: Request, res: Response) => {
         const dto: AdministratorLoginDTO = req.body;
-
+        // #swagger.tags = ['Admin']
         const admin = await administratorService.findOneByEmail(dto.email);
 
         if (!admin) {
@@ -28,6 +28,7 @@ export const init = (app: Application) => {
     });
 
     app.post('/register', async (req: Request, res: Response) => {
+        // #swagger.tags = ['Admin']
         const dto: AdministratorDTO = req.body;
 
         try {
@@ -40,8 +41,10 @@ export const init = (app: Application) => {
     });
 
     app.get('/all', checkAuth, async (req: Request, res: Response) => {
+        // #swagger.tags = ['Admin']
         const admins: Administrator[] = await administratorService.getAll();
-
+        console.log('admins', admins);
+        
         return res.json(admins);
     });
 };
