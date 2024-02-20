@@ -4,6 +4,7 @@ import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { CommonModule } from "@angular/common";
 import { UsersRoutingModule } from "./users-routing.module";
 import { ThemeModule } from "../../@theme/theme.module";
+import { TablesModule } from "../tables/tables.module";
 
 @NgModule({
     imports: [
@@ -12,7 +13,8 @@ import { ThemeModule } from "../../@theme/theme.module";
         ThemeModule,
         FormsModule,
         CommonModule,
-        UsersRoutingModule
+        TablesModule,
+        UsersRoutingModule,
     ],
     declarations: [
         UsersComponent
