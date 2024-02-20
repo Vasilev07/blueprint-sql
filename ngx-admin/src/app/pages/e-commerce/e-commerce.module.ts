@@ -1,13 +1,13 @@
 import { NgModule } from '@angular/core';
 import {
-  NbButtonModule,
-  NbCardModule,
-  NbProgressBarModule,
-  NbTabsetModule,
-  NbUserModule,
-  NbIconModule,
-  NbSelectModule,
-  NbListModule,
+    NbButtonModule,
+    NbCardModule,
+    NbProgressBarModule,
+    NbTabsetModule,
+    NbUserModule,
+    NbIconModule,
+    NbSelectModule,
+    NbListModule,
 } from '@nebular/theme';
 import { NgxEchartsModule } from 'ngx-echarts';
 import { NgxChartsModule } from '@swimlane/ngx-charts';
@@ -32,13 +32,13 @@ import { TrafficCardsHeaderComponent } from './traffic-reveal-card/traffic-cards
 import { TrafficBackCardComponent } from './traffic-reveal-card/back-side/traffic-back-card.component';
 import { TrafficBarChartComponent } from './traffic-reveal-card/back-side/traffic-bar-chart.component';
 import {
-  ECommerceVisitorsAnalyticsComponent,
+    ECommerceVisitorsAnalyticsComponent,
 } from './visitors-analytics/visitors-analytics.component';
 import {
-  ECommerceVisitorsAnalyticsChartComponent,
+    ECommerceVisitorsAnalyticsChartComponent,
 } from './visitors-analytics/visitors-analytics-chart/visitors-analytics-chart.component';
 import {
-  ECommerceVisitorsStatisticsComponent,
+    ECommerceVisitorsStatisticsComponent,
 } from './visitors-analytics/visitors-statistics/visitors-statistics.component';
 import { ECommerceLegendChartComponent } from './legend-chart/legend-chart.component';
 import { ECommerceUserActivityComponent } from './user-activity/user-activity.component';
@@ -57,57 +57,57 @@ import { EarningCardFrontComponent } from './earning-card/front-side/earning-car
 import { EarningLiveUpdateChartComponent } from './earning-card/front-side/earning-live-update-chart.component';
 
 @NgModule({
-  imports: [
-    ThemeModule,
-    NbCardModule,
-    NbUserModule,
-    NbButtonModule,
-    NbIconModule,
-    NbTabsetModule,
-    NbSelectModule,
-    NbListModule,
-    ChartModule,
-    NbProgressBarModule,
-    NgxEchartsModule,
-    NgxChartsModule,
-    LeafletModule,
-  ],
-  declarations: [
-    ECommerceComponent,
-    StatsCardFrontComponent,
-    StatsAreaChartComponent,
-    StatsBarAnimationChartComponent,
-    ProfitCardComponent,
-    ECommerceChartsPanelComponent,
-    ChartPanelHeaderComponent,
-    ChartPanelSummaryComponent,
-    OrdersChartComponent,
-    ProfitChartComponent,
-    StatsCardBackComponent,
-    TrafficRevealCardComponent,
-    TrafficBarChartComponent,
-    TrafficFrontCardComponent,
-    TrafficBackCardComponent,
-    TrafficBarComponent,
-    TrafficCardsHeaderComponent,
-    CountryOrdersComponent,
-    CountryOrdersMapComponent,
-    CountryOrdersChartComponent,
-    ECommerceVisitorsAnalyticsComponent,
-    ECommerceVisitorsAnalyticsChartComponent,
-    ECommerceVisitorsStatisticsComponent,
-    ECommerceLegendChartComponent,
-    ECommerceUserActivityComponent,
-    ECommerceProgressSectionComponent,
-    SlideOutComponent,
-    EarningCardComponent,
-    EarningCardFrontComponent,
-    EarningCardBackComponent,
-    EarningPieChartComponent,
-    EarningLiveUpdateChartComponent,
-  ],
-  providers: [
-    CountryOrdersMapService,
-  ],
+    imports: [
+        ThemeModule,
+        NbCardModule,
+        NbUserModule,
+        NbButtonModule,
+        NbIconModule,
+        NbTabsetModule,
+        NbSelectModule,
+        NbListModule,
+        ChartModule,
+        NbProgressBarModule,
+        NgxEchartsModule,
+        NgxChartsModule,
+        LeafletModule,
+    ],
+    declarations: [
+        ECommerceComponent,
+        StatsCardFrontComponent,
+        StatsAreaChartComponent,
+        StatsBarAnimationChartComponent,
+        ProfitCardComponent,
+        ECommerceChartsPanelComponent,
+        ChartPanelHeaderComponent,
+        ChartPanelSummaryComponent,
+        OrdersChartComponent,
+        ProfitChartComponent,
+        StatsCardBackComponent,
+        TrafficRevealCardComponent,
+        TrafficBarChartComponent,
+        TrafficFrontCardComponent,
+        TrafficBackCardComponent,
+        TrafficBarComponent,
+        TrafficCardsHeaderComponent,
+        CountryOrdersComponent,
+        CountryOrdersMapComponent,
+        CountryOrdersChartComponent,
+        ECommerceVisitorsAnalyticsComponent,
+        ECommerceVisitorsAnalyticsChartComponent,
+        ECommerceVisitorsStatisticsComponent,
+        ECommerceLegendChartComponent,
+        ECommerceUserActivityComponent,
+        ECommerceProgressSectionComponent,
+        SlideOutComponent,
+        EarningCardComponent,
+        EarningCardFrontComponent,
+        EarningCardBackComponent,
+        EarningPieChartComponent,
+        EarningLiveUpdateChartComponent,
+    ],
+    providers: [
+        CountryOrdersMapService,
+    ],
 })
 export class ECommerceModule { }

@@ -5,12 +5,12 @@ import { TrafficChartData } from '../data/traffic-chart';
 @Injectable()
 export class TrafficChartService extends TrafficChartData {
 
-  private data: number[] = [
-    300, 520, 435, 530,
-    730, 620, 660, 860,
-  ];
+    private data: number[] = [
+        300, 520, 435, 530,
+        730, 620, 660, 860,
+    ];
 
-  getTrafficChartData(): Observable<number[]> {
-    return observableOf(this.data);
-  }
+    getTrafficChartData(): Observable<number[]> {
+        return observableOf(this.data);
+    }
 }

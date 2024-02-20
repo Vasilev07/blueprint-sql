@@ -7,6 +7,6 @@ import { CalendarKitMonthCellComponent } from './month-cell/month-cell.component
     styleUrls: ['calendar-kit.component.scss'],
 })
 export class CalendarKitFullCalendarShowcaseComponent {
-  month = new Date();
-  monthCellComponent = CalendarKitMonthCellComponent;
+    month = new Date();
+    monthCellComponent = CalendarKitMonthCellComponent;
 }

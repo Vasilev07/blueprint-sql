@@ -10,25 +10,25 @@ import { TypographyComponent } from './typography/typography.component';
 import { SearchComponent } from './search-fields/search-fields.component';
 
 const components = [
-  UiFeaturesComponent,
-  GridComponent,
-  IconsComponent,
-  TypographyComponent,
-  SearchComponent,
+    UiFeaturesComponent,
+    GridComponent,
+    IconsComponent,
+    TypographyComponent,
+    SearchComponent,
 ];
 
 @NgModule({
-  imports: [
-    NbCardModule,
-    NbPopoverModule,
-    NbSearchModule,
-    NbIconModule,
-    NbAlertModule,
-    ThemeModule,
-    UiFeaturesRoutingModule,
-  ],
-  declarations: [
-    ...components,
-  ],
+    imports: [
+        NbCardModule,
+        NbPopoverModule,
+        NbSearchModule,
+        NbIconModule,
+        NbAlertModule,
+        ThemeModule,
+        UiFeaturesRoutingModule,
+    ],
+    declarations: [
+        ...components,
+    ],
 })
 export class UiFeaturesModule { }

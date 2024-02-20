@@ -5,8 +5,8 @@ import { NbAuthService, NbRegisterComponent } from '@nebular/auth';
 import { error } from 'console';
 
 @Component({
-  selector: 'ngx-register',
-  templateUrl: './register.component.html',
+    selector: 'ngx-register',
+    templateUrl: './register.component.html',
 })
 export class NgxRegisterComponent extends NbRegisterComponent {
     errors: string[] = [];

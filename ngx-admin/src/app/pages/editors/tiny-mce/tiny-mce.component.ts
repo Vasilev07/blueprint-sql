@@ -1,8 +1,8 @@
 import { Component } from '@angular/core';
 
 @Component({
-  selector: 'ngx-tiny-mce-page',
-  template: `
+    selector: 'ngx-tiny-mce-page',
+    template: `
     <nb-card>
       <nb-card-header>
         Tiny MCE

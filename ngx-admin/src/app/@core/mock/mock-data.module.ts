@@ -23,43 +23,43 @@ import { VisitorsAnalyticsService } from './visitors-analytics.service';
 import { SecurityCamerasService } from './security-cameras.service';
 
 const SERVICES = [
-  UserService,
-  ElectricityService,
-  SmartTableService,
-  UserActivityService,
-  OrdersChartService,
-  ProfitChartService,
-  TrafficListService,
-  PeriodsService,
-  EarningService,
-  OrdersProfitChartService,
-  TrafficBarService,
-  ProfitBarAnimationChartService,
-  TemperatureHumidityService,
-  SolarService,
-  TrafficChartService,
-  StatsBarService,
-  CountryOrderService,
-  StatsProgressBarService,
-  VisitorsAnalyticsService,
-  SecurityCamerasService,
+    UserService,
+    ElectricityService,
+    SmartTableService,
+    UserActivityService,
+    OrdersChartService,
+    ProfitChartService,
+    TrafficListService,
+    PeriodsService,
+    EarningService,
+    OrdersProfitChartService,
+    TrafficBarService,
+    ProfitBarAnimationChartService,
+    TemperatureHumidityService,
+    SolarService,
+    TrafficChartService,
+    StatsBarService,
+    CountryOrderService,
+    StatsProgressBarService,
+    VisitorsAnalyticsService,
+    SecurityCamerasService,
 ];
 
 @NgModule({
-  imports: [
-    CommonModule,
-  ],
-  providers: [
-    ...SERVICES,
-  ],
+    imports: [
+        CommonModule,
+    ],
+    providers: [
+        ...SERVICES,
+    ],
 })
 export class MockDataModule {
-  static forRoot(): ModuleWithProviders<MockDataModule> {
-    return {
-      ngModule: MockDataModule,
-      providers: [
-        ...SERVICES,
-      ],
-    };
-  }
+    static forRoot(): ModuleWithProviders<MockDataModule> {
+        return {
+            ngModule: MockDataModule,
+            providers: [
+                ...SERVICES,
+            ],
+        };
+    }
 }

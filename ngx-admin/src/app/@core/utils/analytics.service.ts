@@ -7,26 +7,26 @@ declare const ga: any;
 
 @Injectable()
 export class AnalyticsService {
-  private enabled: boolean;
+    private enabled: boolean;
 
-  constructor(private location: Location, private router: Router) {
-    this.enabled = false;
-  }
-
-  trackPageViews() {
-    if (this.enabled) {
-      this.router.events.pipe(
-        filter((event) => event instanceof NavigationEnd),
-      )
-        .subscribe(() => {
-          ga('send', {hitType: 'pageview', page: this.location.path()});
-        });
+    constructor(private location: Location, private router: Router) {
+        this.enabled = false;
     }
-  }
 
-  trackEvent(eventName: string) {
-    if (this.enabled) {
-      ga('send', 'event', eventName);
+    trackPageViews() {
+        if (this.enabled) {
+            this.router.events.pipe(
+                filter((event) => event instanceof NavigationEnd),
+            )
+                .subscribe(() => {
+                    ga('send', {hitType: 'pageview', page: this.location.path()});
+                });
+        }
     }
-  }
+
+    trackEvent(eventName: string) {
+        if (this.enabled) {
+            ga('send', 'event', eventName);
+        }
+    }
 }

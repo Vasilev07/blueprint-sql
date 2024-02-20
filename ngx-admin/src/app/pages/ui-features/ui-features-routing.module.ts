@@ -8,25 +8,25 @@ import { TypographyComponent } from './typography/typography.component';
 import { SearchComponent } from './search-fields/search-fields.component';
 
 const routes: Routes = [{
-  path: '',
-  component: UiFeaturesComponent,
-  children: [ {
-    path: 'grid',
-    component: GridComponent,
-  }, {
-    path: 'icons',
-    component: IconsComponent,
-  }, {
-    path: 'typography',
-    component: TypographyComponent,
-  }, {
-    path: 'search-fields',
-    component: SearchComponent,
-  }],
+    path: '',
+    component: UiFeaturesComponent,
+    children: [ {
+        path: 'grid',
+        component: GridComponent,
+    }, {
+        path: 'icons',
+        component: IconsComponent,
+    }, {
+        path: 'typography',
+        component: TypographyComponent,
+    }, {
+        path: 'search-fields',
+        component: SearchComponent,
+    }],
 }];
 
 @NgModule({
-  imports: [RouterModule.forChild(routes)],
-  exports: [RouterModule],
+    imports: [RouterModule.forChild(routes)],
+    exports: [RouterModule],
 })
 export class UiFeaturesRoutingModule { }

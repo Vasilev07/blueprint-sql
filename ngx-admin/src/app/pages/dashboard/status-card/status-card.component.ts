@@ -1,9 +1,9 @@
 import { Component, Input } from '@angular/core';
 
 @Component({
-  selector: 'ngx-status-card',
-  styleUrls: ['./status-card.component.scss'],
-  template: `
+    selector: 'ngx-status-card',
+    styleUrls: ['./status-card.component.scss'],
+    template: `
     <nb-card (click)="on = !on" [ngClass]="{'off': !on}">
       <div class="icon-container">
         <div class="icon status-{{ type }}">

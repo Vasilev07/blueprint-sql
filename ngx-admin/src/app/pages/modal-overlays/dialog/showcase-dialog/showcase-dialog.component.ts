@@ -2,9 +2,9 @@ import { Component, Input } from '@angular/core';
 import { NbDialogRef } from '@nebular/theme';
 
 @Component({
-  selector: 'ngx-showcase-dialog',
-  templateUrl: 'showcase-dialog.component.html',
-  styleUrls: ['showcase-dialog.component.scss'],
+    selector: 'ngx-showcase-dialog',
+    templateUrl: 'showcase-dialog.component.html',
+    styleUrls: ['showcase-dialog.component.scss'],
 })
 export class ShowcaseDialogComponent {
 
@@ -13,6 +13,6 @@ export class ShowcaseDialogComponent {
   constructor(protected ref: NbDialogRef<ShowcaseDialogComponent>) {}
 
   dismiss() {
-    this.ref.close();
+      this.ref.close();
   }
 }

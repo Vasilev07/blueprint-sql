@@ -3,34 +3,34 @@ import { PieChart, EarningData } from '../../../../@core/data/earning';
 import { takeWhile } from 'rxjs/operators';
 
 @Component({
-  selector: 'ngx-earning-card-back',
-  styleUrls: ['./earning-card-back.component.scss'],
-  templateUrl: './earning-card-back.component.html',
+    selector: 'ngx-earning-card-back',
+    styleUrls: ['./earning-card-back.component.scss'],
+    templateUrl: './earning-card-back.component.html',
 })
 export class EarningCardBackComponent implements OnDestroy {
-  private alive = true;
+    private alive = true;
 
-  earningPieChartData: PieChart[];
-  name: string;
-  color: string;
-  value: number;
-  defaultSelectedCurrency: string = 'Bitcoin';
+    earningPieChartData: PieChart[];
+    name: string;
+    color: string;
+    value: number;
+    defaultSelectedCurrency: string = 'Bitcoin';
 
-  constructor(private earningService: EarningData ) {
-    this.earningService.getEarningPieChartData()
-      .pipe(takeWhile(() => this.alive))
-      .subscribe((earningPieChartData) => {
-        this.earningPieChartData = earningPieChartData;
-      });
-  }
+    constructor(private earningService: EarningData ) {
+        this.earningService.getEarningPieChartData()
+            .pipe(takeWhile(() => this.alive))
+            .subscribe((earningPieChartData) => {
+                this.earningPieChartData = earningPieChartData;
+            });
+    }
 
-  changeChartInfo(pieData: {value: number; name: string; color: any}) {
-    this.value = pieData.value;
-    this.name = pieData.name;
-    this.color = pieData.color;
-  }
+    changeChartInfo(pieData: {value: number; name: string; color: any}) {
+        this.value = pieData.value;
+        this.name = pieData.name;
+        this.color = pieData.color;
+    }
 
-  ngOnDestroy() {
-    this.alive = false;
-  }
+    ngOnDestroy() {
+        this.alive = false;
+    }
 }

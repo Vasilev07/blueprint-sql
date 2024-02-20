@@ -5,9 +5,9 @@ import { StateService } from './state.service';
 import { SeoService } from './seo.service';
 
 export {
-  LayoutService,
-  AnalyticsService,
-  PlayerService,
-  SeoService,
-  StateService,
+    LayoutService,
+    AnalyticsService,
+    PlayerService,
+    SeoService,
+    StateService,
 };

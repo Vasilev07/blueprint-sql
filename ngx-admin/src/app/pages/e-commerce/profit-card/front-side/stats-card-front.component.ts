@@ -3,21 +3,21 @@ import { ProfitBarAnimationChartData } from '../../../../@core/data/profit-bar-a
 import { takeWhile } from 'rxjs/operators';
 
 @Component({
-  selector: 'ngx-stats-card-front',
-  styleUrls: ['./stats-card-front.component.scss'],
-  templateUrl: './stats-card-front.component.html',
+    selector: 'ngx-stats-card-front',
+    styleUrls: ['./stats-card-front.component.scss'],
+    templateUrl: './stats-card-front.component.html',
 })
 export class StatsCardFrontComponent {
 
-  private alive = true;
+    private alive = true;
 
-  linesData: { firstLine: number[]; secondLine: number[] };
+    linesData: { firstLine: number[]; secondLine: number[] };
 
-  constructor(private profitBarAnimationChartService: ProfitBarAnimationChartData) {
-    this.profitBarAnimationChartService.getChartData()
-      .pipe(takeWhile(() => this.alive))
-      .subscribe((linesData) => {
-        this.linesData = linesData;
-      });
-  }
+    constructor(private profitBarAnimationChartService: ProfitBarAnimationChartData) {
+        this.profitBarAnimationChartService.getChartData()
+            .pipe(takeWhile(() => this.alive))
+            .subscribe((linesData) => {
+                this.linesData = linesData;
+            });
+    }
 }

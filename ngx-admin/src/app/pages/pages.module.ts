@@ -9,17 +9,17 @@ import { PagesRoutingModule } from './pages-routing.module';
 import { MiscellaneousModule } from './miscellaneous/miscellaneous.module';
 
 @NgModule({
-  imports: [
-    ThemeModule,
-    NbMenuModule,
-    DashboardModule,
-    ECommerceModule,
-    MiscellaneousModule,
-    PagesRoutingModule
-  ],
-  declarations: [
-    PagesComponent
-  ],
+    imports: [
+        ThemeModule,
+        NbMenuModule,
+        DashboardModule,
+        ECommerceModule,
+        MiscellaneousModule,
+        PagesRoutingModule
+    ],
+    declarations: [
+        PagesComponent
+    ],
 })
 export class PagesModule {
 }

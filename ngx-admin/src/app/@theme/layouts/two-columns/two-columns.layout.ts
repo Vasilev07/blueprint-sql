@@ -1,9 +1,9 @@
 import { Component } from '@angular/core';
 
 @Component({
-  selector: 'ngx-two-columns-layout',
-  styleUrls: ['./two-columns.layout.scss'],
-  template: `
+    selector: 'ngx-two-columns-layout',
+    styleUrls: ['./two-columns.layout.scss'],
+    template: `
     <nb-layout windowMode>
       <nb-layout-header fixed>
         <ngx-header></ngx-header>

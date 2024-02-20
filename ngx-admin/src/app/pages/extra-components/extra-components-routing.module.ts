@@ -10,39 +10,39 @@ import { ChatComponent } from './chat/chat.component';
 import { CalendarKitFullCalendarShowcaseComponent } from './calendar-kit/calendar-kit.component';
 
 const routes: Routes = [{
-  path: '',
-  component: ExtraComponentsComponent,
-  children: [
-    {
-      path: 'calendar',
-      component: CalendarComponent,
-    },
-    {
-      path: 'progress-bar',
-      component: ProgressBarComponent,
-    },
-    {
-      path: 'spinner',
-      component: SpinnerComponent,
-    },
-    {
-      path: 'alert',
-      component: AlertComponent,
-    },
-    {
-      path: 'calendar-kit',
-      component: CalendarKitFullCalendarShowcaseComponent,
-    },
-    {
-      path: 'chat',
-      component: ChatComponent,
-    },
-  ],
+    path: '',
+    component: ExtraComponentsComponent,
+    children: [
+        {
+            path: 'calendar',
+            component: CalendarComponent,
+        },
+        {
+            path: 'progress-bar',
+            component: ProgressBarComponent,
+        },
+        {
+            path: 'spinner',
+            component: SpinnerComponent,
+        },
+        {
+            path: 'alert',
+            component: AlertComponent,
+        },
+        {
+            path: 'calendar-kit',
+            component: CalendarKitFullCalendarShowcaseComponent,
+        },
+        {
+            path: 'chat',
+            component: ChatComponent,
+        },
+    ],
 }];
 
 @NgModule({
-  imports: [RouterModule.forChild(routes)],
-  exports: [RouterModule],
+    imports: [RouterModule.forChild(routes)],
+    exports: [RouterModule],
 })
 export class ExtraComponentsRoutingModule {
 }

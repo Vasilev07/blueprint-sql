@@ -1,0 +1,37 @@
+{
+  "plugins": [
+    "@typescript-eslint"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "rules": {
+    "max-len": [
+      "error",
+      {
+        "code": 140,
+        "ignorePattern": "^import"
+      }
+    ],
+    "implicit-arrow-linebreak": "off",
+    "no-underscore-dangle": 0,
+    "import/no-unresolved": 0,
+    "indent": [
+      "error",
+      4
+    ],
+    "no-undef": "off",
+    "no-return-await": "off",
+    "import/prefer-default-export": "off",
+    "import/extensions": "off",
+    // "no-unused-vars": ["error", { "vars": "all", "args": "after-used", "ignoreRestSiblings": false }],
+    "no-unused-vars": "off",
+    "@typescript-eslint/no-unused-vars": [
+      "error"
+    ],
+    "linebreak-style": [
+      "error",
+      "unix"
+    ],
+    "global-require": "off",
+    "import/no-dynamic-require": "off"
+  }
+}

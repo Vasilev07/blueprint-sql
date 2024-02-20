@@ -8,10 +8,10 @@ import { NgModule } from '@angular/core';
 import {
     NbAlertModule,
     NbButtonModule,
-  NbCardModule,
-  NbCheckboxModule,
-  NbInputModule,
-  NbLayoutModule,
+    NbCardModule,
+    NbCheckboxModule,
+    NbInputModule,
+    NbLayoutModule,
 } from '@nebular/theme';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -19,17 +19,17 @@ import { NgxLoginComponent } from './login/login.component';
 import { NgxRegisterComponent } from './register/register.component';
 
 @NgModule({
-  declarations: [ NgxLoginComponent, NgxRegisterComponent ],
-  imports: [
-    FormsModule,
-    CommonModule,
-    NbLayoutModule,
-    NbCardModule,
-    NbCheckboxModule,
-    NbAlertModule,
-    NbInputModule,
-    NbButtonModule,
-  ]
+    declarations: [ NgxLoginComponent, NgxRegisterComponent ],
+    imports: [
+        FormsModule,
+        CommonModule,
+        NbLayoutModule,
+        NbCardModule,
+        NbCheckboxModule,
+        NbAlertModule,
+        NbInputModule,
+        NbButtonModule,
+    ]
 })
 export class AuthModule {
 }

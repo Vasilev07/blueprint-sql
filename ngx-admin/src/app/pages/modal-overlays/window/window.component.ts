@@ -3,9 +3,9 @@ import { NbWindowService } from '@nebular/theme';
 import { WindowFormComponent } from './window-form/window-form.component';
 
 @Component({
-  selector: 'ngx-window',
-  templateUrl: 'window.component.html',
-  styleUrls: ['window.component.scss'],
+    selector: 'ngx-window',
+    templateUrl: 'window.component.html',
+    styleUrls: ['window.component.scss'],
 })
 export class WindowComponent {
 
@@ -15,29 +15,29 @@ export class WindowComponent {
   constructor(private windowService: NbWindowService) {}
 
   openWindow(contentTemplate) {
-    this.windowService.open(
-      contentTemplate,
-      {
-        title: 'Window content from template',
-        context: {
-          text: 'some text to pass into template',
-        },
-      },
-    );
+      this.windowService.open(
+          contentTemplate,
+          {
+              title: 'Window content from template',
+              context: {
+                  text: 'some text to pass into template',
+              },
+          },
+      );
   }
 
   openWindowForm() {
-    this.windowService.open(WindowFormComponent, { title: `Window` });
+      this.windowService.open(WindowFormComponent, { title: `Window` });
   }
 
   openWindowWithoutBackdrop() {
-    this.windowService.open(
-      this.disabledEscTemplate,
-      {
-        title: 'Window without backdrop',
-        hasBackdrop: false,
-        closeOnEsc: false,
-      },
-    );
+      this.windowService.open(
+          this.disabledEscTemplate,
+          {
+              title: 'Window without backdrop',
+              hasBackdrop: false,
+              closeOnEsc: false,
+          },
+      );
   }
 }

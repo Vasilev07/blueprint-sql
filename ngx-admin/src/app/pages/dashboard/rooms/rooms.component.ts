@@ -3,9 +3,9 @@ import { NbThemeService, NbMediaBreakpoint, NbMediaBreakpointsService } from '@n
 import { map } from 'rxjs/operators';
 
 @Component({
-  selector: 'ngx-rooms',
-  styleUrls: ['./rooms.component.scss'],
-  template: `
+    selector: 'ngx-rooms',
+    styleUrls: ['./rooms.component.scss'],
+    template: `
     <nb-card [size]="breakpoint.width >= breakpoints.sm ? 'giant' : ''">
       <nb-icon icon="arrow-ios-downward" pack="eva"
                (click)="collapse()"
@@ -20,7 +20,7 @@ import { map } from 'rxjs/operators';
 export class RoomsComponent implements OnDestroy {
 
   @HostBinding('class.expanded')
-  private expanded: boolean;
+    private expanded: boolean;
   private selected: number;
 
   isDarkTheme: boolean;
@@ -33,45 +33,45 @@ export class RoomsComponent implements OnDestroy {
   constructor(private themeService: NbThemeService,
               private breakpointService: NbMediaBreakpointsService) {
 
-    this.breakpoints = this.breakpointService.getBreakpointsMap();
-    this.themeSubscription = this.themeService.onMediaQueryChange()
-      .subscribe(([, newValue]) => {
-        this.breakpoint = newValue;
-      });
+      this.breakpoints = this.breakpointService.getBreakpointsMap();
+      this.themeSubscription = this.themeService.onMediaQueryChange()
+          .subscribe(([, newValue]) => {
+              this.breakpoint = newValue;
+          });
 
-    this.themeChangeSubscription = this.themeService.onThemeChange()
-      .pipe(map(({ name }) => name === 'cosmic' || name === 'dark'))
-      .subscribe((isDark: boolean) => this.isDarkTheme = isDark);
+      this.themeChangeSubscription = this.themeService.onThemeChange()
+          .pipe(map(({ name }) => name === 'cosmic' || name === 'dark'))
+          .subscribe((isDark: boolean) => this.isDarkTheme = isDark);
   }
 
   select(roomNumber) {
-    if (this.isSelected(roomNumber)) {
-      this.expand();
-    } else {
-      this.collapse();
-    }
+      if (this.isSelected(roomNumber)) {
+          this.expand();
+      } else {
+          this.collapse();
+      }
 
-    this.selected = roomNumber;
+      this.selected = roomNumber;
   }
 
   expand() {
-    this.expanded = true;
+      this.expanded = true;
   }
 
   collapse() {
-    this.expanded = false;
+      this.expanded = false;
   }
 
   isCollapsed() {
-    return !this.expanded;
+      return !this.expanded;
   }
 
   private isSelected(roomNumber): boolean {
-    return this.selected === roomNumber;
+      return this.selected === roomNumber;
   }
 
   ngOnDestroy() {
-    this.themeSubscription.unsubscribe();
-    this.themeChangeSubscription.unsubscribe();
+      this.themeSubscription.unsubscribe();
+      this.themeChangeSubscription.unsubscribe();
   }
 }

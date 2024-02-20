@@ -1,18 +1,18 @@
 import { NgModule } from '@angular/core';
 import {
-  NbActionsModule,
-  NbAlertModule,
-  NbButtonModule,
-  NbCalendarKitModule,
-  NbCalendarModule,
-  NbCalendarRangeModule,
-  NbCardModule,
-  NbChatModule,
-  NbIconModule,
-  NbProgressBarModule,
-  NbSelectModule,
-  NbSpinnerModule,
-  NbTabsetModule,
+    NbActionsModule,
+    NbAlertModule,
+    NbButtonModule,
+    NbCalendarKitModule,
+    NbCalendarModule,
+    NbCalendarRangeModule,
+    NbCardModule,
+    NbChatModule,
+    NbIconModule,
+    NbProgressBarModule,
+    NbSelectModule,
+    NbSpinnerModule,
+    NbTabsetModule,
 } from '@nebular/theme';
 
 import { ThemeModule } from '../../@theme/theme.module';
@@ -26,7 +26,7 @@ import { SpinnerSizesComponent } from './spinner/spinner-sizes/spinner-sizes.com
 import { SpinnerColorComponent } from './spinner/spinner-color/spinner-color.component';
 import { SpinnerComponent } from './spinner/spinner.component';
 import {
-  InteractiveProgressBarComponent,
+    InteractiveProgressBarComponent,
 } from './progress-bar/interactive-progress-bar/interactive-progress-bar.component';
 import { ProgressBarComponent } from './progress-bar/progress-bar.component';
 import { AlertComponent } from './alert/alert.component';
@@ -39,48 +39,48 @@ import { CalendarKitFullCalendarShowcaseComponent } from './calendar-kit/calenda
 import { CalendarKitMonthCellComponent } from './calendar-kit/month-cell/month-cell.component';
 
 const COMPONENTS = [
-  ExtraComponentsComponent,
-  AlertComponent,
-  ProgressBarComponent,
-  InteractiveProgressBarComponent,
-  SpinnerComponent,
-  SpinnerColorComponent,
-  SpinnerSizesComponent,
-  SpinnerInButtonsComponent,
-  SpinnerInTabsComponent,
-  CalendarComponent,
-  DayCellComponent,
-  ChatComponent,
-  NebularFormInputsComponent,
-  NebularSelectComponent,
-  CalendarKitFullCalendarShowcaseComponent,
-  CalendarKitMonthCellComponent,
+    ExtraComponentsComponent,
+    AlertComponent,
+    ProgressBarComponent,
+    InteractiveProgressBarComponent,
+    SpinnerComponent,
+    SpinnerColorComponent,
+    SpinnerSizesComponent,
+    SpinnerInButtonsComponent,
+    SpinnerInTabsComponent,
+    CalendarComponent,
+    DayCellComponent,
+    ChatComponent,
+    NebularFormInputsComponent,
+    NebularSelectComponent,
+    CalendarKitFullCalendarShowcaseComponent,
+    CalendarKitMonthCellComponent,
 ];
 
 const MODULES = [
-  NbAlertModule,
-  NbActionsModule,
-  NbButtonModule,
-  NbCalendarModule,
-  NbCalendarKitModule,
-  NbCalendarRangeModule,
-  NbCardModule,
-  NbChatModule,
-  NbIconModule,
-  NbProgressBarModule,
-  NbSelectModule,
-  NbSpinnerModule,
-  NbTabsetModule,
-  ThemeModule,
-  ExtraComponentsRoutingModule,
+    NbAlertModule,
+    NbActionsModule,
+    NbButtonModule,
+    NbCalendarModule,
+    NbCalendarKitModule,
+    NbCalendarRangeModule,
+    NbCardModule,
+    NbChatModule,
+    NbIconModule,
+    NbProgressBarModule,
+    NbSelectModule,
+    NbSpinnerModule,
+    NbTabsetModule,
+    ThemeModule,
+    ExtraComponentsRoutingModule,
 ];
 
 @NgModule({
-  imports: [
-    ...MODULES,
-  ],
-  declarations: [
-    ...COMPONENTS,
-  ],
+    imports: [
+        ...MODULES,
+    ],
+    declarations: [
+        ...COMPONENTS,
+    ],
 })
 export class ExtraComponentsModule { }

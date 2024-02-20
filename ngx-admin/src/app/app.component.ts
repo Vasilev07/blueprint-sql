@@ -9,16 +9,16 @@ import { SeoService } from './@core/utils/seo.service';
 import { NbAuthService } from '@nebular/auth';
 
 @Component({
-  selector: 'ngx-app',
-  template: '<router-outlet></router-outlet>',
+    selector: 'ngx-app',
+    template: '<router-outlet></router-outlet>',
 })
 export class AppComponent implements OnInit {
 
-  constructor(private analytics: AnalyticsService, private seoService: SeoService, private authService: NbAuthService) {
-  }
+    constructor(private analytics: AnalyticsService, private seoService: SeoService, private authService: NbAuthService) {
+    }
 
-  ngOnInit(): void {
-    this.analytics.trackPageViews();
-    this.seoService.trackCanonicalChanges();
-  }
+    ngOnInit(): void {
+        this.analytics.trackPageViews();
+        this.seoService.trackCanonicalChanges();
+    }
 }
