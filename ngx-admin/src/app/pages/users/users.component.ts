@@ -6,17 +6,17 @@ import { AdminService } from "../../api";
     templateUrl: './users.component.html',
 })
 export class UsersComponent implements OnInit {
+    users: any = [];
+
     constructor(private adminService: AdminService) {
         console.log('users');
     }
-    
+
     ngOnInit(): void {
         console.log('users');
-        
-        this.adminService.allGet().subscribe(console.log);
-        // throw new Error("Method not implemented.");
+
+        this.adminService.allGet().subscribe((users) => {
+            this.users = users;
+        });
     }
-    users: any = [];
-
-
 }
