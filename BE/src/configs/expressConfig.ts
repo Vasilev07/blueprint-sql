@@ -3,7 +3,7 @@ import { Application } from 'express';
 const path = require('path');
 
 const express = require('express');
-// eslint-disable-next-line import/no-extraneous-dependencies
+// eslint-disable-next-lin
 const bodyParser = require('body-parser');
 const cors = require('cors');
 
