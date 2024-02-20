@@ -48,6 +48,7 @@ const COMPONENTS = [
     TooltipComponent,
 ];
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const ENTRY_COMPONENTS = [
     ShowcaseDialogComponent,
     DialogNamePromptComponent,

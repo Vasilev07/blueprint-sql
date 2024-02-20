@@ -2,7 +2,7 @@ import { Inject, Injectable, Injector } from '@angular/core';
 import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
-import { NB_AUTH_TOKEN_INTERCEPTOR_FILTER, NbAuthService, NbAuthToken } from '@nebular/auth';
+import { NB_AUTH_TOKEN_INTERCEPTOR_FILTER, NbAuthToken } from '@nebular/auth';
 import { AuthService } from './auth-service';
 
 @Injectable()
@@ -28,7 +28,7 @@ export class JWTInterceptor implements HttpInterceptor {
                 return next.handle(req);
             }),
         )
-        // } 
+        // }
         // else {
         // Request is sent to server without authentication so that the client code
         // receives the 401/403 error and can act as desired ('session expired', redirect to login, aso)

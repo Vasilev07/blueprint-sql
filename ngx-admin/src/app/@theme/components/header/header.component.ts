@@ -1,6 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { NbMediaBreakpointsService, NbMenuService, NbSidebarService, NbThemeService } from '@nebular/theme';
-import { NbAuthJWTToken, NbAuthService, NbTokenService } from '@nebular/auth';
 
 import { UserData } from '../../../@core/data/users';
 import { LayoutService } from '../../../@core/utils';
@@ -14,7 +13,7 @@ import { AuthService } from '../../../pages/auth/services/auth-service';
     templateUrl: './header.component.html',
 })
 export class HeaderComponent implements OnInit, OnDestroy {
-  
+
     private destroy$: Subject<void> = new Subject<void>();
     userPictureOnly: boolean = false;
     user: any = {};

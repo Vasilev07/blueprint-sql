@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
-import { ChangeDetectorRef, Component, Input } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { Router } from '@angular/router';
-import { NbAuthJWTToken, NbAuthService, NbLoginComponent, NbTokenService } from '@nebular/auth';
+import { NbAuthJWTToken, NbAuthService, NbLoginComponent } from '@nebular/auth';
 import { AuthService } from '../services/auth-service';
 
 @Component({

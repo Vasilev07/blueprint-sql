@@ -16,6 +16,7 @@ export class TypographyComponent implements OnDestroy {
 
         this.breakpoints = this.breakpointService.getBreakpointsMap();
         this.themeSubscription = this.themeService.onMediaQueryChange()
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             .subscribe(([oldValue, newValue]) => {
                 this.breakpoint = newValue;
             });

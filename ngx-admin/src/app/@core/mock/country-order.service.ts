@@ -23,6 +23,7 @@ export class CountryOrderService extends CountryOrderData {
         return observableOf(this.countriesCategories);
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     getCountriesCategoriesData(country: string): Observable<number[]> {
         return observableOf(this.generateRandomData(this.countriesCategoriesLength));
     }

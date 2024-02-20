@@ -57,6 +57,7 @@ export class TemperatureDraggerComponent implements AfterViewInit, OnChanges {
   }
 
   @HostListener('window:resize', ['$event'])
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onResize(event) {
       this.invalidate();
   }

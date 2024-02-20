@@ -56,6 +56,7 @@ export class EarningService extends EarningData {
         this.currentValue = Math.random() * 1000;
 
         return Array.from(Array(elementsNumber))
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             .map(item => this.generateRandomLiveChartData());
     }
 

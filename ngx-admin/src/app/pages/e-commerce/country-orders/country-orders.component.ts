@@ -41,6 +41,7 @@ export class CountryOrdersComponent implements OnInit, OnDestroy {
     ngOnInit() {
         this.themeService.onMediaQueryChange()
             .pipe(takeWhile(() => this.alive))
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             .subscribe(([oldValue, newValue]) => {
                 this.breakpoint = newValue;
             });

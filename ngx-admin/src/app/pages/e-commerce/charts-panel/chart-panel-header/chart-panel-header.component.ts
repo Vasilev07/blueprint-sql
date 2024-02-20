@@ -36,6 +36,7 @@ export class ChartPanelHeaderComponent implements OnDestroy {
       this.breakpoints = this.breakpointService.getBreakpointsMap();
       this.themeService.onMediaQueryChange()
           .pipe(takeWhile(() => this.alive))
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           .subscribe(([oldValue, newValue]) => {
               this.breakpoint = newValue;
           });

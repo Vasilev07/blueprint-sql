@@ -2,7 +2,6 @@ import { HttpClient } from '@angular/common/http';
 import { ChangeDetectorRef, Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { NbAuthService, NbRegisterComponent } from '@nebular/auth';
-import { error } from 'console';
 
 @Component({
     selector: 'ngx-register',
