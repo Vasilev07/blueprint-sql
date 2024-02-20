@@ -4,9 +4,9 @@ import { NbAuthJWTToken, NbTokenService } from "@nebular/auth";
 
 @Injectable({
     providedIn: 'root'
-  })
-  export class AuthService {
-    constructor(private tokenService: NbTokenService, private router: Router) {}
+})
+export class AuthService {
+    constructor(private tokenService: NbTokenService, private router: Router) { }
 
     isAuthenticated: boolean = false;
 
@@ -25,5 +25,4 @@ import { NbAuthJWTToken, NbTokenService } from "@nebular/auth";
         this.isAuthenticated = false;
         this.router.navigate(['/auth/login']);
     }
-    
-  }
+}
