@@ -2,9 +2,9 @@ import { RouterModule, Routes } from '@angular/router';
 import { NgModule } from '@angular/core';
 
 import { PagesComponent } from './pages.component';
-import { DashboardComponent } from './dashboard/dashboard.component';
 import { ECommerceComponent } from './e-commerce/e-commerce.component';
 import { NotFoundComponent } from './miscellaneous/not-found/not-found.component';
+import { log } from 'console';
 
 const routes: Routes = [{
   path: '',
@@ -16,8 +16,11 @@ const routes: Routes = [{
     },
     {
       path: 'users',
-      loadChildren: () => import('./users/users.module')
-        .then(m => m.UsersModule),
+      loadChildren: () => import('./users/users.module').then(m => {
+        console.log('users module THEN');
+        
+        return m.UsersModule
+      }),
     },
     {
       path: '',

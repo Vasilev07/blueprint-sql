@@ -9,7 +9,6 @@ const routes: Routes = [
     component: UsersComponent,
   }
 ];
-console.log('users routing');
 
 @NgModule({
     imports: [RouterModule.forChild(routes)],

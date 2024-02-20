@@ -21,7 +21,4 @@ import { ThemeModule } from "../../@theme/theme.module";
     ]
 })
 export class UsersModule {
-    constructor() {
-        console.log('users module');
-    }
 }
