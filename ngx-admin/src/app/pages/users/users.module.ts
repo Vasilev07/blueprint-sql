@@ -13,7 +13,6 @@ import { ThemeModule } from "../../@theme/theme.module";
         ThemeModule,
         FormsModule,
         CommonModule,
-        TablesModule,
         UsersRoutingModule
     ],
     declarations: [

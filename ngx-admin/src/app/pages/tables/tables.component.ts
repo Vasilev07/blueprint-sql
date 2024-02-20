@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 
 @Component({
   selector: 'ngx-tables',
-  template: `<div></div>`,
+  template: `<router-outlet></router-outlet>`,
 })
 export class TablesComponent {
 }
