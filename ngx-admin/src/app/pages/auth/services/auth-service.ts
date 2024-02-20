@@ -16,6 +16,10 @@ import { NbAuthJWTToken, NbTokenService } from "@nebular/auth";
         this.router.navigate(['/pages/dashboard']);
     }
 
+    getToken() {
+        return this.tokenService.get();
+    }
+
     logout() {
         this.tokenService.clear();
         this.isAuthenticated = false;
