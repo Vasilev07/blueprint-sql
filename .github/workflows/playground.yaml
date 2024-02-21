@@ -1,0 +1,25 @@
+name: Integration (Automatic)
+
+on: [push]
+
+jobs:
+  markdown-lint:
+    name: markdown lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: npx markdownlint-cli **/*.md
+  lint-be:
+    needs: [ markdown-lint ]
+    name: BE lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+      - run: echo ${GITHUB_WORKSPACE}
+      - run: npm install
+        working-directory: ./BE
+      - run: npm run lint
+        working-directory: ./BE
