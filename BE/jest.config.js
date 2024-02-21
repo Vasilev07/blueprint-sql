@@ -169,7 +169,10 @@ export default {
     // testURL: "http://localhost",
 
     // Setting this value to "fake" allows the use of fake timers for functions such as "setTimeout"
-    // timers: "real",
+    fakeTimers: {
+        enableGlobally: true,
+        legacyFakeTimers: true,
+    },
 
     // A map from regular expressions to paths to transformers
     // transform: undefined,
@@ -184,7 +187,7 @@ export default {
     // for them unmockedModulePathPatterns: undefined,
 
     // Indicates whether each individual test should be reported during the run
-    // verbose: undefined,
+    verbose: true,
 
     // An array of regexp patterns that are matched against all source file paths before re-running tests in watch mode
     // watchPathIgnorePatterns: [],
