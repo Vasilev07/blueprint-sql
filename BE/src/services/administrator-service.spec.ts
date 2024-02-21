@@ -1,8 +1,11 @@
-import { TestDataSource } from '../data-source';
+import { EntityManager } from 'typeorm';
+import { createTestDB } from '../configs/test-db-config';
+import { Administrator } from '../entity/administrator';
 
 describe('AdministratorService', () => {
     beforeEach(async () => {
-        await TestDataSource.initialize();
+        const db: EntityManager = await createTestDB();
+        db.insert(Administrator, {})
     });
 
     it('should be defined', () => {

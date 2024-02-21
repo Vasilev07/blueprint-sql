@@ -1,5 +1,5 @@
 import "reflect-metadata"
-import { DataSource } from "typeorm"
+import { DataSource, DataSourceOptions } from "typeorm"
 import { Administrator } from "./entity/administrator"
 
 export const AppDataSource = new DataSource({
@@ -15,8 +15,7 @@ export const AppDataSource = new DataSource({
     migrations: [],
     subscribers: [],
 });
-
-export const TestDataSource = new DataSource({
+export const TestDataSourceOptions: DataSourceOptions = {
     type: "postgres",
     host: "0.0.0.0",
     port: 5433,
@@ -28,4 +27,5 @@ export const TestDataSource = new DataSource({
     entities: [Administrator],
     migrations: [],
     subscribers: [],
-});
+};
+export const TestDataSource = new DataSource(TestDataSourceOptions);
