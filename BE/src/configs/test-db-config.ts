@@ -1,22 +1,6 @@
-import { DataSource, DataSourceOptions, EntityManager } from "typeorm";
+import { DataSource, EntityManager } from "typeorm";
 import { PostgreSqlContainer, StartedPostgreSqlContainer } from "@testcontainers/postgresql";
 import { Administrator } from "../entity/administrator";
-
-const buildDataSourceOptions = (database: string, username: string, password: string): DataSourceOptions => {
-    return {
-        type: "postgres",
-        host: "0.0.0.0",
-        port: 5433,
-        username,
-        password,
-        database,
-        synchronize: true,
-        logging: false,
-        entities: [Administrator],
-        migrations: [],
-        subscribers: [],
-    }
-};
 
 export interface TestDBConnection {
     em: EntityManager;
@@ -24,21 +8,33 @@ export interface TestDBConnection {
 }
 
 export const createTestDB = async (): Promise<TestDBConnection> => {
-    const container = await new PostgreSqlContainer()
-        .withDatabase("bookstore-test")
-        .withUsername("postgres")
-        .withPassword("123456")
-        .start();
+    try {
+        const container = await new PostgreSqlContainer().start();
+        console.log('Test database started');
 
-    const TestDataSource = new DataSource(
-        buildDataSourceOptions(container.getDatabase(), container.getUsername(), container.getPassword())
-    );
+        const TestDataSource = new DataSource(
+            {
+                type: "postgres",
+                host: container.getHost(),
+                port: container.getPort(),
+                username: container.getUsername(),
+                password: container.getPassword(),
+                database: container.getDatabase(),
+                synchronize: true,
+                logging: false,
+                entities: [Administrator],
+                migrations: [],
+                subscribers: [],
+            }
+        );
+        await TestDataSource.initialize();
 
-    await TestDataSource.initialize();
+        console.log('Test database created');
 
-    console.log('Test database created');
-
-    return { em: TestDataSource.manager, container };
+        return { em: TestDataSource.manager, container };
+    } catch (error) {
+        throw new Error(`Error starting test database: ${error}`);
+    }
 };
 
 export const clearDatabase = async (db: EntityManager, container: StartedPostgreSqlContainer) => {

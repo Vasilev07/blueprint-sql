@@ -1,12 +1,12 @@
 import { EntityManager } from 'typeorm';
-import { clearDatabase, createTestDB } from '../configs/test-db-config';
+import { createTestDB } from '../configs/test-db-config';
 import { Administrator } from '../entity/administrator';
 
 describe('AdministratorService', () => {
     let db: EntityManager;
 
     beforeEach(async () => {
-        db = await createTestDB();
+        const { em } = await createTestDB();
 
         const testAdmin = new Administrator();
         testAdmin.email = 'test@gmail.com';
@@ -14,7 +14,7 @@ describe('AdministratorService', () => {
         testAdmin.firstname = 'TestFirstName';
         testAdmin.lastname = 'TestFamily';
 
-        await db.insert(Administrator, testAdmin);
+        await em.insert(Administrator, testAdmin);
     });
 
     afterEach(async () => {
