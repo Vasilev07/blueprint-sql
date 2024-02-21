@@ -23,3 +23,18 @@ jobs:
         working-directory: ./BE
       - run: npm run lint
         working-directory: ./BE
+  test-be:
+    needs: [ lint-be ]
+    name: BE tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+      - name: Setup Nodejs 16
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16.13'
+      - run: npm install
+        working-directory: ./BE
+      - run: npm run test
+        working-directory: ./BE
