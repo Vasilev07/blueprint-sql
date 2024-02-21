@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: pwd && ls -la && npx markdownlint-cli **/*.md --ignore-path /ngx-admin
+      - run: pwd && ls -la && npx markdownlint-cli **/*.md --ignore-path ./ngx-admin
   lint-be:
     needs: [ markdown-lint ]
     name: BE lint
