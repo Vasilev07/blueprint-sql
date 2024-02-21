@@ -30,3 +30,5 @@ nvm install 14 && cd BE && npm i
 ```shell
 nvm install 16 && cd BE && npm i
 ```
+
+![Alt text](image.png)
