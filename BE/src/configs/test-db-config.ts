@@ -9,7 +9,16 @@ export interface TestDBConnection {
 
 export const createTestDB = async (): Promise<TestDBConnection> => {
     try {
-        const container = await new PostgreSqlContainer().start();
+        debugger;
+        const container = await new PostgreSqlContainer("postgres:alpine").start();
+
+        const stream = await container.logs();
+        stream
+            .on("data", line => console.log(line))
+            .on("err", line => console.error(line))
+            .on("end", () => console.log("Stream closed"));
+        debugger;
+
         console.log('Test database started');
 
         const TestDataSource = new DataSource(
