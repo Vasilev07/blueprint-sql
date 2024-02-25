@@ -20,10 +20,12 @@ export class NgxLoginComponent extends NbLoginComponent {
                 public readonly router: Router,
                 private readonly authService: AuthService) {
         super(nbAuthService, {}, cdr, router);
+        console.log('Login component');
+
     }
 
     login() {
-        this.http.post('http://localhost:3001/login', this.user).subscribe((res) => {
+        this.http.post('http://0.0.0.0:3001/login', this.user).subscribe((res) => {
             if (res['token'] !== undefined) {
                 this.authService.login(new NbAuthJWTToken(res['token'], 'email'));
             }

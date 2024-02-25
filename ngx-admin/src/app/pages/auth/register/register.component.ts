@@ -21,7 +21,7 @@ export class NgxRegisterComponent extends NbRegisterComponent {
     }
 
     register() {
-        this.http.post('http://localhost:3001/register', this.user).subscribe((res) => {
+        this.http.post('http://0.0.0.0:3001/register', this.user).subscribe((res) => {
             console.log('Response: ', res);
         });
     }
