@@ -12,6 +12,13 @@ export const createTestDB = async (): Promise<TestDBConnection> => {
         debugger;
         const container = await new PostgreSqlContainer("postgres:alpine").start();
 
+        // .withHealthCheck({
+        //     test: 'pg_isready -U postgres',
+        //     interval: new Duration(2, TemporalUnit.SECONDS),
+        //     timeout: new Duration(5, TemporalUnit.SECONDS),
+        //     retries: 3,
+        //   })
+
         const stream = await container.logs();
         stream
             .on("data", line => console.log(line))
