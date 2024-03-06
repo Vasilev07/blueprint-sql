@@ -13,7 +13,7 @@ const doc = {
   },
   servers: [
     {
-      url: 'http://localhost:3001/',              // by default: 'http://localhost:3000'
+      url: 'http://0.0.0.0:3001/',              // by default: 'http://localhost:3000'
       description: 'Local Server'       // by default: ''
     },
     // { ... }
@@ -32,7 +32,7 @@ const doc = {
 const outputFile = './swagger-output.json';
 const routes = ['./routes/*.ts'];
 
-/* NOTE: If you are using the express Router, you must pass in the 'routes' only the 
+/* NOTE: If you are using the express Router, you must pass in the 'routes' only the
 root file where the route starts, such as index.js, app.js, routes.js, etc ... */
 
 swaggerAutogen(outputFile, routes, doc);
