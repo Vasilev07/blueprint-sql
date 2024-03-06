@@ -1,57 +1,49 @@
-import { DataSource, EntityManager } from "typeorm";
-import { PostgreSqlContainer, StartedPostgreSqlContainer } from "@testcontainers/postgresql";
-import { Administrator } from "../entity/administrator";
+import { StartedPostgreSqlContainer } from "@testcontainers/postgresql";
+import { EntityManager } from "typeorm";
+import { AppTestDataSource } from "../data-source";
+import { Client } from "pg";
 
-export interface TestDBConnection {
-    em: EntityManager;
-    container: StartedPostgreSqlContainer;
+const DB_NAME = "integration-test";
+
+export const createTestDB = async (): Promise<void> => {
+    await AppTestDataSource.initialize()
+        .then(async () => {
+            console.log("Data source initialized");
+        })
+        .catch(async (error) => {
+            if (error.code === '3D000') {
+                await createDatabaseIfNotExists();
+                //TODO ->  MIGHT LEAD TO RECURSIVE CALL createTestDB -> should have a limit of retries
+                await createTestDB();
+            } else {
+                console.error("Error creating database:", error);
+                throw error;
+            }
+        });
 }
 
-export const createTestDB = async (): Promise<TestDBConnection> => {
-    try {
-        debugger;
-        const container = await new PostgreSqlContainer("postgres:alpine").start();
+const createDatabaseIfNotExists = async () => {
+    const client = new Client({
+        host: '0.0.0.0',
+        user: 'postgres',
+        password: '123456',
+        port: 5433,
+    });
 
-        // .withHealthCheck({
-        //     test: 'pg_isready -U postgres',
-        //     interval: new Duration(2, TemporalUnit.SECONDS),
-        //     timeout: new Duration(5, TemporalUnit.SECONDS),
-        //     retries: 3,
-        //   })
+    await client.connect();
 
-        const stream = await container.logs();
-        stream
-            .on("data", line => console.log(line))
-            .on("err", line => console.error(line))
-            .on("end", () => console.log("Stream closed"));
-        debugger;
+    const res = await client.query(`SELECT datname FROM pg_catalog.pg_database WHERE datname = '${DB_NAME}'`);
 
-        console.log('Test database started');
-
-        const TestDataSource = new DataSource(
-            {
-                type: "postgres",
-                host: container.getHost(),
-                port: container.getPort(),
-                username: container.getUsername(),
-                password: container.getPassword(),
-                database: container.getDatabase(),
-                synchronize: true,
-                logging: false,
-                entities: [Administrator],
-                migrations: [],
-                subscribers: [],
-            }
-        );
-        await TestDataSource.initialize();
-
-        console.log('Test database created');
-
-        return { em: TestDataSource.manager, container };
-    } catch (error) {
-        throw new Error(`Error starting test database: ${error}`);
+    if (res.rowCount === 0) {
+        console.log(`${DB_NAME} database not found, creating it.`);
+        await client.query(`CREATE DATABASE "${DB_NAME}";`);
+        console.log(`created database ${DB_NAME}.`);
+    } else {
+        console.log(`${DB_NAME} database already exists.`);
     }
-};
+
+    await client.end();
+}
 
 export const clearDatabase = async (db: EntityManager, container: StartedPostgreSqlContainer) => {
     await db.connection.destroy();
