@@ -1,5 +1,6 @@
 import { Component, OnInit } from "@angular/core";
 import { AdminService } from "../../api";
+import { log } from "console";
 
 @Component({
     selector: 'ngx-users',
@@ -17,6 +18,12 @@ export class UsersComponent implements OnInit {
 
         this.adminService.allGet().subscribe((users) => {
             this.users = users;
+            console.log(this.users);
+
         });
+    }
+
+    onAddNewUserConfirm(event): void {
+        console.log('event in user', event);
     }
 }

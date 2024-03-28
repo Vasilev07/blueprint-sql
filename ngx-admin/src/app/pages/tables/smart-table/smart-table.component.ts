@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { LocalDataSource } from 'ng2-smart-table';
 
 import { SmartTableData } from '../../../@core/data/smart-table';
@@ -47,27 +47,41 @@ export class SmartTableComponent {
 
     source: LocalDataSource = new LocalDataSource();
 
-  @Input() data: any;
+    @Input() data: any;
 
-  constructor(private service: SmartTableData) {
-  }
+    @Output()
+    public readonly createConfirm: EventEmitter<any> = new EventEmitter();
 
-  ngOnChanges() {
-      if (this.data) {
-          console.log('reloaded', this.data);
-          this.load(this.data);
-      }
-  }
+    constructor(private service: SmartTableData) {
+    }
 
-  onDeleteConfirm(event): void {
-      if (window.confirm('Are you sure you want to delete?')) {
-          event.confirm.resolve();
-      } else {
-          event.confirm.reject();
-      }
-  }
+    ngOnChanges() {
+        if (this.data) {
+            console.log('reloaded', this.data);
+            this.load(this.data);
+        }
+    }
 
-  load(data) {
-      this.source.load(data);
-  }
+    onDeleteConfirm(event): void {
+        if (window.confirm('Are you sure you want to delete?')) {
+            event.confirm.resolve();
+        } else {
+            event.confirm.reject();
+        }
+    }
+
+    load(data) {
+        this.source.load(data);
+    }
+
+    onCreateConfirm(event) {
+        console.log('HOHOHO', event);
+
+        this.createConfirm.emit(event);
+    }
+
+    create(event): void {
+        console.log(event);
+
+    }
 }
