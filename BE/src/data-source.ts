@@ -5,9 +5,9 @@ import { Administrator } from "./entity/administrator";
 export const AppDataSource = new DataSource({
     type: "postgres",
     host: "0.0.0.0",
-    port: 5433,
+    port: 5432,
     username: "postgres",
-    password: "123456",
+    password: "postgres",
     database: "bookstore",
     synchronize: true,
     logging: false,
@@ -19,9 +19,9 @@ export const AppDataSource = new DataSource({
 export const AppTestDataSource = new DataSource({
     type: "postgres",
     host: "0.0.0.0",
-    port: 5433,
+    port: 5432,
     username: "postgres",
-    password: "123456",
+    password: "postgres",
     database: "integration-test",
     synchronize: true,
     logging: false,

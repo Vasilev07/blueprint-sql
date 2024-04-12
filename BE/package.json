@@ -10,7 +10,7 @@
         "api-generate-services": "openapi-generator-cli generate -g typescript-angular -i ./src/swagger-output.json -o ../ngx-admin/src/app/api --additional-properties=npmName=restClient,supportsES6=true,npmVersion=8.19.4,withInterfaces=true",
         "clean": "pwd && tsc --build --clean",
         "start:prod": "node dist/server.js",
-        "test": "jest --coverage --forceExit",
+        "test": "jest --coverage --forceExit --runInBand",
         "dev": "nodemon --config nodemon.json src/index.ts",
         "dev:debug": "nodemon --config nodemon.json --inspect-brk src/index.ts",
         "lint": "eslint . --ext .ts",
