@@ -1,7 +1,7 @@
-import { StartedPostgreSqlContainer } from "@testcontainers/postgresql";
-import { EntityManager } from "typeorm";
+import { DataSource } from "typeorm";
 import { AppTestDataSource } from "../data-source";
 import { Client } from "pg";
+import { Administrator } from "../entity/administrator";
 
 const DB_NAME = "integration-test";
 
@@ -21,6 +21,12 @@ export const createTestDB = async (): Promise<void> => {
             }
         });
 }
+
+export const clearDatabase = async (db: DataSource) => {
+    await db.dropDatabase();
+    await db.manager.connection.destroy();
+    console.log('Test database cleared');
+};
 
 const createDatabaseIfNotExists = async () => {
     const client = new Client({
@@ -45,8 +51,3 @@ const createDatabaseIfNotExists = async () => {
     await client.end();
 }
 
-export const clearDatabase = async (db: EntityManager, container: StartedPostgreSqlContainer) => {
-    await db.connection.destroy();
-    await container.stop();
-    console.log('Test database cleared');
-};
