@@ -37,7 +37,12 @@ jobs:
       - name: postgres
         uses: ikalnytskyi/action-setup-postgres@v5
         with:
+          working-directory: ./BE
           host: 0.0.0.0
+          port: 5432
+          username: postgres
+          password: postgres
+          database: integration-test
       - run: npm install
         working-directory: ./BE
       - run: npm run test
