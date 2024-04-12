@@ -31,8 +31,8 @@ const createDatabaseIfNotExists = async () => {
     const client = new Client({
         host: '0.0.0.0',
         user: 'postgres',
-        password: '123456',
-        port: 5433,
+        password: 'postgres',
+        port: 5432,
     });
 
     await client.connect();
