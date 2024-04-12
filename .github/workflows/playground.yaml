@@ -36,6 +36,8 @@ jobs:
           node-version: '16.13'
       - name: postgres
         uses: ikalnytskyi/action-setup-postgres@v5
+        with:
+          host: 0.0.0.0
       - run: npm install
         working-directory: ./BE
       - run: npm run test
