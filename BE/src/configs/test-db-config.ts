@@ -1,7 +1,6 @@
 import { DataSource } from "typeorm";
 import { AppTestDataSource } from "../data-source";
 import { Client } from "pg";
-import { Administrator } from "../entity/administrator";
 
 const DB_NAME = "integration-test";
 
