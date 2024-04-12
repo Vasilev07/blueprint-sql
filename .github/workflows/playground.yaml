@@ -42,7 +42,7 @@ jobs:
           port: 5432
           username: postgres
           password: postgres
-          database: integration-test
+          database: postgres
       - run: npm install
         working-directory: ./BE
       - run: npm run test
