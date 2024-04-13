@@ -1,5 +1,5 @@
 import { AppDataSource } from "../data-source";
-import { Administrator } from "../entity/administrator";
+import { Administrator } from "../entity/administrator.entity";
 import { signForUser } from "../middleware/check-auth";
 import { AdministratorDTO } from "../models/administrator-dto";
 import { cryptoService } from "./crypto-service";

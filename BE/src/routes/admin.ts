@@ -4,7 +4,8 @@ import { checkAuth, signForUser } from "../middleware/check-auth";
 import { administratorService } from "../services/administrator-service";
 import { AdministratorDTO } from "../models/administrator-dto";
 import { AdministratorLoginDTO } from "../models/administrator-login-dto";
-import { Administrator } from "../entity/administrator";
+import { Administrator } from "../entity/administrator.entity";
+import { Controller, Get, Post, Body } from '@nestjs/common';
 
 export const init = (app: Application) => {
     app.post('/login', async (req: Request, res: Response) => {
@@ -44,7 +45,19 @@ export const init = (app: Application) => {
         // #swagger.tags = ['Admin']
         const admins: Administrator[] = await administratorService.getAll();
         console.log('admins', admins);
-        
+
         return res.json(admins);
     });
 };
+
+
+@Controller('/auth')
+export class AuthController {
+    @Get('/all')
+    async getAllAdministrators(): Promise<any[]> {
+        const admins: Administrator[] = await administratorService.getAll();
+        console.log('admins', admins);
+
+        return admins;
+    }
+}

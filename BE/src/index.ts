@@ -1,11 +1,12 @@
-import { port } from "./configs";
+import { AppModule } from "./app.module";
 import { startServer } from "./server";
+import { NestFactory } from '@nestjs/core';
 
 startServer()
-    .then((app: any) => {
+    .then(async () => {
+        const app = await NestFactory.create(AppModule);
         const hostname = '0.0.0.0';
-        const server = app.listen(port, hostname, () => console.log(`Listening on ${hostname}:${port}`));
-        server.keepAliveTimeout = 65000;
+        await app.listen(hostname);
         console.log('Server successfully started');
     })
     .catch((error: Error) => {

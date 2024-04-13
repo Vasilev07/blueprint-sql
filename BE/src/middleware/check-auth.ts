@@ -1,6 +1,6 @@
 import { NextFunction, Response } from 'express';
 import { verify, sign } from 'jsonwebtoken';
-import { Administrator } from '../entity/administrator';
+import { Administrator } from '../entity/administrator.entity';
 
 export const checkAuth = (request: any, response: Response, next: NextFunction) => {
     const token = request.headers.authorization?.split(' ')[1] as any;
