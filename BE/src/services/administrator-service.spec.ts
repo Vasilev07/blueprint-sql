@@ -1,6 +1,8 @@
 import { DataSource, EntityManager } from 'typeorm';
 import { clearDatabase, createTestDB } from '../configs/test-db-config';
+
 import { Administrator } from '../entity/administrator.entity';
+
 import { AppTestDataSource } from '../data-source';
 
 describe('AdministratorService', () => {
