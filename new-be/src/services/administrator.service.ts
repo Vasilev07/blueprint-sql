@@ -51,4 +51,8 @@ export class AdministratorService {
             where: { email },
         });
     }
+
+    async getAll() {
+        return await this.entityManager.find(Administrator);
+    }
 }
