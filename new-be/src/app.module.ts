@@ -4,6 +4,7 @@ import { AppService } from "./app.service";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { Administrator } from "./entities/administrator.entity";
 import { AdminModule } from "./controllers/admin/admin.module";
+import { DevtoolsModule } from "@nestjs/devtools-integration";
 
 @Module({
     imports: [
@@ -21,6 +22,9 @@ import { AdminModule } from "./controllers/admin/admin.module";
             subscribers: [],
         }),
         AdminModule,
+        DevtoolsModule.register({
+            http: process.env.NODE_ENV !== "production",
+        }),
     ],
     controllers: [AppController],
     providers: [AppService],
