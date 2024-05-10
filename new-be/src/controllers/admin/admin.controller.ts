@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Post } from "@nestjs/common";
+import { Administrator } from "src/entities/administrator.entity";
 import { AuthMiddleware } from "src/middlewares/auth.middleware";
 import { AdministratorDTO } from "src/models/administrator-dto";
 import { AdministratorLoginDTO } from "src/models/administrator-login-dto";
@@ -14,7 +15,7 @@ export class AdminController {
     ) {}
 
     @Get("/all")
-    async getAll(): Promise<any> {
+    async getAll(): Promise<Administrator[]> {
         return await this.administratorService.getAll();
     }
 
