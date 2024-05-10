@@ -1,6 +1,5 @@
 import { Component, OnInit } from "@angular/core";
-import { AdminService } from "../../api";
-import { log } from "console";
+import { DefaultService } from "../../../typescript-api-client/src/clients/default.service";
 
 @Component({
     selector: 'ngx-users',
@@ -9,14 +8,14 @@ import { log } from "console";
 export class UsersComponent implements OnInit {
     users: any = [];
 
-    constructor(private adminService: AdminService) {
+    constructor(private adminService: DefaultService) {
         console.log('users');
     }
 
     ngOnInit(): void {
         console.log('users');
 
-        this.adminService.allGet().subscribe((users) => {
+        this.adminService.getAll().subscribe((users) => {
             this.users = users;
             console.log(this.users);
 

@@ -26,7 +26,7 @@ async function bootstrap() {
             clientGeneratorOptions: {
                 enabled: true,
                 type: "typescript-angular",
-                outputFolderPath: "../typescript-api-client/src",
+                outputFolderPath: "../ngx-admin/src/typescript-api-client/src",
                 additionalProperties:
                     "apiPackage=clients,modelPackage=models,withoutPrefixEnums=true,withSeparateModelsAndApi=true",
                 openApiFilePath: "./openapi.json", // or ./openapi.json
