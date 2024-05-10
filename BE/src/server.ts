@@ -15,9 +15,9 @@ export const startServer = async (): Promise<any> => {
         .catch((err) => {
             console.error("Error during Data Source initialization", err);
         });
-    
+
     const server: Application = express();
-    
+
     expressInit(server);
     routesInit(server);
 
