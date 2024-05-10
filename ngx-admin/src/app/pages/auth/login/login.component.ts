@@ -25,7 +25,7 @@ export class NgxLoginComponent extends NbLoginComponent {
     }
 
     login() {
-        this.http.post('http://0.0.0.0:3001/login', this.user).subscribe((res) => {
+        this.http.post('http://localhost:3000/auth/login', this.user).subscribe((res) => {
             if (res['token'] !== undefined) {
                 this.authService.login(new NbAuthJWTToken(res['token'], 'email'));
             }

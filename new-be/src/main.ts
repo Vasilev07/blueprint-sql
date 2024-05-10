@@ -8,6 +8,8 @@ async function bootstrap() {
         snapshot: true,
     });
 
+    app.enableCors({ origin: "http://localhost:4200" });
+
     await OpenApiNestFactory.configure(
         app,
         new DocumentBuilder()
@@ -28,7 +30,7 @@ async function bootstrap() {
                 type: "typescript-angular",
                 outputFolderPath: "../ngx-admin/src/typescript-api-client/src",
                 additionalProperties:
-                    "apiPackage=clients,modelPackage=models,withoutPrefixEnums=true,withSeparateModelsAndApi=true",
+                    "apiPackage=clients,modelPackage=models,withoutPrefixEnums=true,withSeparateModelsAndApi=true,ngVersion=16.2.12",
                 openApiFilePath: "./openapi.json", // or ./openapi.json
                 skipValidation: true, // optional, false by default
             },
