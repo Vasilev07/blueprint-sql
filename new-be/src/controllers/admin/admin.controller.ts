@@ -23,9 +23,11 @@ export class AdminController {
     async login(
         @Body() administratorLoginDTO: AdministratorLoginDTO,
     ): Promise<any> {
+        console.log(administratorLoginDTO);
         const admin = await this.administratorService.findOneByEmail(
             administratorLoginDTO.email,
         );
+        console.log("admin", admin);
 
         if (!admin) {
             throw new Error("Invalid email or password");
@@ -40,9 +42,7 @@ export class AdminController {
             throw new Error("Invalid email or password");
         }
 
-        const token = this.authMiddleware.signForUser(admin);
-
-        return token;
+        return { token: this.authMiddleware.signForUser(admin) };
     }
 
     @Post("/register")
