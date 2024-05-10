@@ -1,6 +1,6 @@
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
-import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+import { DocumentBuilder } from "@nestjs/swagger";
 import { OpenApiNestFactory } from "nest-openapi-tools";
 
 async function bootstrap() {
@@ -25,7 +25,7 @@ async function bootstrap() {
             },
             clientGeneratorOptions: {
                 enabled: true,
-                type: "typescript-axios",
+                type: "typescript-angular",
                 outputFolderPath: "../typescript-api-client/src",
                 additionalProperties:
                     "apiPackage=clients,modelPackage=models,withoutPrefixEnums=true,withSeparateModelsAndApi=true",
@@ -37,19 +37,6 @@ async function bootstrap() {
             operationIdFactory: (c: string, method: string) => method,
         },
     );
-
-    const config = new DocumentBuilder()
-        .setTitle("BluePrintSQL API")
-        .setDescription("Demo Admin App")
-        .setVersion("1.0")
-        .addTag("dev")
-        .addBearerAuth()
-        .build();
-    const document = SwaggerModule.createDocument(app, config);
-    console.log("document", document);
-
-    SwaggerModule.setup("api", app, document);
-
     await app.listen(3000);
 }
 bootstrap();
