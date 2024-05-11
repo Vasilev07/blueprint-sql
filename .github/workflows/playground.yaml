@@ -60,6 +60,20 @@ jobs:
         working-directory: ./BE
       - run: npm run test
         working-directory: ./BE
+  lint-new-be:
+    needs: [ markdown-lint ]
+    name: New BE lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '20.12.2'
+      - run: echo ${GITHUB_WORKSPACE}
+      - run: npm install
+        working-directory: ./new-be
+      - run: npm run lint
+        working-directory: ./new-be
   test-new-be:
     needs: [ lint-be ]
     name: new-be tests
