@@ -49,10 +49,15 @@ export class TestDBInitiator {
                 `SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '${this.testDatabase}';`,
             );
         }
-        await dropDatabase({
-            options: this.dbOptions,
-            initialDatabase: this.initialDatabase,
-        });
+
+        try {
+            await dropDatabase({
+                options: this.dbOptions,
+                initialDatabase: this.initialDatabase,
+            });
+        } catch (error) {
+            console.error("Error dropping database", error);
+        }
 
         console.log("✓ Done. Test database is dropped ✓\n");
     }
