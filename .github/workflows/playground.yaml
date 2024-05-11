@@ -60,3 +60,40 @@ jobs:
         working-directory: ./BE
       - run: npm run test
         working-directory: ./BE
+  test-new-be:
+    needs: [ lint-be ]
+    name: new-be tests
+    runs-on: ubuntu-latest
+    services:
+        postgres:
+          image: postgres
+          env: 
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: postgres
+          options: >-
+            --health-cmd pg_isready
+            --health-interval 10s
+            --health-timeout 5s
+            --health-retries 5
+          ports:
+            - 5432:5432
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+      - name: Setup Nodejs 16
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.12.2'
+      # - name: postgres
+      #   uses: ikalnytskyi/action-setup-postgres@v5
+      #   with:
+      #     working-directory: ./BE
+      #     host: 0.0.0.0
+      #     port: 5432
+      #     username: postgres
+      #     password: postgres
+      #     database: postgres
+      - run: npm install
+        working-directory: ./new-be
+      - run: npm run test:e2e
+        working-directory: ./new-be
