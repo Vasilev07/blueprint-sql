@@ -24,7 +24,7 @@ import { AppService } from "./app.service";
                     port: 5432,
                     username: "postgres",
                     password: "postgres",
-                    database: !isTesting
+                    database: isTesting
                         ? "blueprint-sql"
                         : "blueprint-sql-test",
                     synchronize: true,

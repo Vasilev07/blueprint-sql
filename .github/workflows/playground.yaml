@@ -110,4 +110,11 @@ jobs:
       - run: npm install
         working-directory: ./new-be
       - run: npm run test:e2e
-        working-directory: ./new-be
+        env: 
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: blueprint-sql-test
+          POSTGRESDB_LOCAL_PORT: 5432
+          POSTGRESDB_DOCKER_PORT: 5432
+          NODE_ENV: test
+          DB_HOST: 0.0.0.0
