@@ -22,12 +22,12 @@ export class TestDBInitiator {
     }
 
     async createDatabase() {
-        await this.dropDatabase();
+        // await this.dropDatabase();
         console.log(`Creating test database '${this.dbOptions.database}'`);
         await createDatabase({
             options: this.dbOptions,
             initialDatabase: this.initialDatabase,
-            ifNotExist: false,
+            ifNotExist: true,
         });
         const dataSource = await createTestDataSource(this.dbOptions);
 
