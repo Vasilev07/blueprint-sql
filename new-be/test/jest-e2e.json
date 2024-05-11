@@ -4,6 +4,10 @@
   "testEnvironment": "node",
   "testRegex": ".e2e-spec.ts$",
   "transform": {
-    "^.+\\.(t|j)s$": "ts-jest"
-  }
+    "^.+\\.(t|j)s$": ["ts-jest", { "useESM": true }]
+  },
+  "extensionsToTreatAsEsm": [".ts"],
+  "globalSetup": "<rootDir>/config/setup.ts",
+  "globalTeardown": "<rootDir>/config/teardown.ts",
+  "openHandlesTimeout": 10000
 }
