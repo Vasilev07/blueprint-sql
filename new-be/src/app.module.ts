@@ -1,30 +1,41 @@
 import { Module } from "@nestjs/common";
-import { AppController } from "./app.controller";
-import { AppService } from "./app.service";
+import { ConfigModule, ConfigService } from "@nestjs/config";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import { Administrator } from "./entities/administrator.entity";
+import { AppController } from "./app.controller";
 import { AdminModule } from "./controllers/admin/admin.module";
-import { DevtoolsModule } from "@nestjs/devtools-integration";
+import { Administrator } from "./entities/administrator.entity";
+import { AppService } from "./app.service";
 
 @Module({
     imports: [
-        TypeOrmModule.forRoot({
-            type: "postgres",
-            host: "0.0.0.0",
-            port: 5432,
-            username: "postgres",
-            password: "postgres",
-            database: "blueprint-sql",
-            synchronize: true,
-            logging: false,
-            entities: [Administrator],
-            migrations: [],
-            subscribers: [],
+        ConfigModule.forRoot({
+            isGlobal: true,
+        }),
+        TypeOrmModule.forRootAsync({
+            inject: [ConfigService],
+            useFactory: (configService: ConfigService) => {
+                const isTesting = configService.get("NODE_ENV") === "test";
+                console.log("isTesting", isTesting);
+                console.log("NODE_ENV", configService.get("NODE_ENV"));
+
+                return {
+                    type: "postgres",
+                    host: "0.0.0.0",
+                    port: 5432,
+                    username: "postgres",
+                    password: "postgres",
+                    database: !isTesting
+                        ? "blueprint-sql"
+                        : "blueprint-sql-test",
+                    synchronize: true,
+                    logging: false,
+                    entities: [Administrator],
+                    migrations: [],
+                    subscribers: [],
+                };
+            },
         }),
         AdminModule,
-        DevtoolsModule.register({
-            http: process.env.NODE_ENV !== "production",
-        }),
     ],
     controllers: [AppController],
     providers: [AppService],

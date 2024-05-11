@@ -4,3 +4,4 @@ dist
 swagger-output.json
 tmp
 coverage
+openapi.json
