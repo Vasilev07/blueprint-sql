@@ -1,10 +1,10 @@
 import { INestApplication } from "@nestjs/common";
 import { Test, TestingModule } from "@nestjs/testing";
-import { AppModule } from "../../src/app.module";
 import { createTestDataSource } from "src/config/db.config";
 import { AdministratorService } from "src/services/administrator.service";
-import { TestDBInitiator } from "test/config.e2e";
 import { DataSource } from "typeorm";
+import { AppModule } from "src/app.module";
+import { TestDBInitiator } from "../config.e2e";
 
 describe("AdminController (e2e)", () => {
     let app: INestApplication;

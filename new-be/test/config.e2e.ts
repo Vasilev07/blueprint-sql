@@ -13,7 +13,7 @@ export class TestDBInitiator {
         this.configService = new ConfigService();
         const config = getConfig(this.configService);
         console.log("config", config);
-        
+
         this.initialDatabase = config.database;
         this.dbOptions = {
             ...config,

@@ -1,12 +1,10 @@
 import { Module } from "@nestjs/common";
-import { AppController } from "./app.controller";
-import { AppService } from "./app.service";
-import { TypeOrmModule } from "@nestjs/typeorm";
-import { Administrator } from "./entities/administrator.entity";
-import { AdminModule } from "./controllers/admin/admin.module";
-import { DevtoolsModule } from "@nestjs/devtools-integration";
 import { ConfigModule, ConfigService } from "@nestjs/config";
-import { getConfig } from "./config/db.config";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { AppController } from "./app.controller";
+import { AdminModule } from "./controllers/admin/admin.module";
+import { Administrator } from "./entities/administrator.entity";
+import { AppService } from "./app.service";
 
 @Module({
     imports: [
