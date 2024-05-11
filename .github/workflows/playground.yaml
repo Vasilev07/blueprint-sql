@@ -47,15 +47,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '16.13'
-      # - name: postgres
-      #   uses: ikalnytskyi/action-setup-postgres@v5
-      #   with:
-      #     working-directory: ./BE
-      #     host: 0.0.0.0
-      #     port: 5432
-      #     username: postgres
-      #     password: postgres
-      #     database: postgres
       - run: npm install
         working-directory: ./BE
       - run: npm run test
@@ -98,15 +89,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '20.12.2'
-      # - name: postgres
-      #   uses: ikalnytskyi/action-setup-postgres@v5
-      #   with:
-      #     working-directory: ./BE
-      #     host: 0.0.0.0
-      #     port: 5432
-      #     username: postgres
-      #     password: postgres
-      #     database: postgres
       - run: npm install
         working-directory: ./new-be
       - run: npm run test:e2e
