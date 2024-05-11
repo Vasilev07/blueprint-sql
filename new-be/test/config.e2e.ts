@@ -22,18 +22,19 @@ export class TestDBInitiator {
     }
 
     async createDatabase() {
-        // await this.dropDatabase();
+        await this.dropDatabase();
         console.log(`Creating test database '${this.dbOptions.database}'`);
         await createDatabase({
             options: this.dbOptions,
             initialDatabase: this.initialDatabase,
-            ifNotExist: true,
+            ifNotExist: false,
         });
-        const dataSource = await createTestDataSource(this.dbOptions);
 
+        // TODO Implement this function for running migrations
+        // const dataSource = await createTestDataSource(this.dbOptions);
         // console.log("Running migrations");
         // dataSource.runMigrations({ transaction: "all" });
-        await dataSource.destroy();
+        // await dataSource.destroy();
 
         console.log("✓ Done. Test database is ready to accept connections ✓\n");
     }
@@ -50,14 +51,10 @@ export class TestDBInitiator {
             );
         }
 
-        try {
-            await dropDatabase({
-                options: this.dbOptions,
-                initialDatabase: this.initialDatabase,
-            });
-        } catch (error) {
-            console.error("Error dropping database", error);
-        }
+        await dropDatabase({
+            options: this.dbOptions,
+            initialDatabase: this.initialDatabase,
+        });
 
         console.log("✓ Done. Test database is dropped ✓\n");
     }
