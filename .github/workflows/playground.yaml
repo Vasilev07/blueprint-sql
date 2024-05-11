@@ -24,7 +24,7 @@ jobs:
       - run: npm run lint
         working-directory: ./BE
   test-be:
-    needs: [ lint-be ]
+    needs: [ markdown-lint ]
     name: BE tests
     runs-on: ubuntu-latest
     services:
@@ -66,7 +66,7 @@ jobs:
       - run: npm run lint
         working-directory: ./new-be
   test-new-be:
-    needs: [ lint-be ]
+    needs: [ markdown-lint ]
     name: new-be tests
     runs-on: ubuntu-latest
     services:
