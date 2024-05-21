@@ -5,6 +5,8 @@ dotenv.config();
 
 module.exports = async () => {
     console.log("\n\nSetup test environment");
-    globalThis.databaseConfig = new TestDBInitiator();
-    await globalThis.databaseConfig.createDatabase();
+    const initiator = new TestDBInitiator();
+
+    globalThis.databaseConfig = initiator;
+    await initiator.createDatabase();
 };

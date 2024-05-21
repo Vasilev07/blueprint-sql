@@ -1,6 +1,6 @@
+import { Client } from "pg";
 import { DataSource } from "typeorm";
 import { AppTestDataSource } from "../data-source";
-import { Client } from "pg";
 
 const DB_NAME = "integration-test";
 
