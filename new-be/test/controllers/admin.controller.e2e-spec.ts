@@ -32,15 +32,16 @@ describe("AdminController (e2e)", () => {
     });
 
     afterAll(async () => {
+        await databaseConfig.dropDatabase();
         await dataSource.destroy();
         await app.close();
-    });
+    }, 10000);
 
     it("/ (GET)", async () => {
         const administratorDTO = {
-            email: "gvasilev@hedgeserv.com",
-            password: "123456",
             fullName: "Georgi Vasilev",
+            email: "georgevasilev10117@gmail.com",
+            password: "123456",
             confirmPassword: "123456",
         };
         await administratorService.register(administratorDTO);
