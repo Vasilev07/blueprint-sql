@@ -9,48 +9,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: pwd && ls -la && npx markdownlint-cli **/*.md
-  lint-be:
-    needs: [ markdown-lint ]
-    name: BE lint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v3
-        with:
-          node-version: '14'
-      - run: echo ${GITHUB_WORKSPACE}
-      - run: npm install
-        working-directory: ./BE
-      - run: npm run lint
-        working-directory: ./BE
-  test-be:
-    needs: [ markdown-lint ]
-    name: BE tests
-    runs-on: ubuntu-latest
-    services:
-        postgres:
-          image: postgres
-          env: 
-            POSTGRES_USER: postgres
-            POSTGRES_PASSWORD: postgres
-          options: >-
-            --health-cmd pg_isready
-            --health-interval 10s
-            --health-timeout 5s
-            --health-retries 5
-          ports:
-            - 5432:5432
-    steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v2
-      - name: Setup Nodejs 16
-        uses: actions/setup-node@v3
-        with:
-          node-version: '16.13'
-      - run: npm install
-        working-directory: ./BE
-      - run: npm run test
-        working-directory: ./BE
   lint-new-be:
     needs: [ markdown-lint ]
     name: New BE lint

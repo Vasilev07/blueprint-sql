@@ -31,27 +31,11 @@ export class TestDBInitiator {
         });
         console.log("db", db);
 
-        // TODO Implement this function for running migrations
-        // const dataSource = await createTestDataSource(this.dbOptions);
-        // console.log("Running migrations");
-        // dataSource.runMigrations({ transaction: "all" });
-        // await dataSource.destroy();
-
         console.log("✓ Done. Test database is ready to accept connections ✓\n");
     }
 
-    async dropDatabase(dropAll = false) {
-        dropAll;
+    async dropDatabase() {
         console.log(`Dropping test database '${this.testDatabase}'`);
-        // if (dropAll) {
-        //     const ds = await createTestDataSource({
-        //         ...this.dbOptions,
-        //         database: this.initialDatabase,
-        //     });
-        //     await ds.query(
-        //         `SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '${this.testDatabase}';`,
-        //     );
-        // }
 
         await dropDatabase({
             options: this.dbOptions,

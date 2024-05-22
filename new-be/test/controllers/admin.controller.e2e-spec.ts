@@ -5,6 +5,9 @@ import { AdministratorService } from "src/services/administrator.service";
 import { DataSource } from "typeorm";
 import { AppModule } from "src/app.module";
 import { TestDBInitiator } from "../config.e2e";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { ConfigService } from "@nestjs/config";
+import { Administrator } from "src/entities/administrator.entity";
 
 describe("AdminController (e2e)", () => {
     let app: INestApplication;
@@ -12,16 +15,43 @@ describe("AdminController (e2e)", () => {
     let dataSource: DataSource;
     let databaseConfig: TestDBInitiator;
 
-    // let cryptoService: CryptoService;
-    // let authMiddleware: AuthMiddleware;
-    // let httpServer: any;
-
     beforeAll(async () => {
         databaseConfig = new TestDBInitiator();
         dataSource = await createTestDataSource(databaseConfig.dbOptions);
 
         const moduleFixture: TestingModule = await Test.createTestingModule({
-            imports: [AppModule],
+            imports: [
+                TypeOrmModule.forRootAsync({
+                    inject: [ConfigService],
+                    useFactory: (configService: ConfigService) => {
+                        const isTesting =
+                            configService.get("NODE_ENV") === "test";
+                        console.log("isTesting", isTesting);
+                        console.log("NODE_ENV", configService.get("NODE_ENV"));
+                        console.log(
+                            "after tests start",
+                            configService.get("DATABASE_URL"),
+                        );
+
+                        return {
+                            type: "postgres",
+                            host: "0.0.0.0",
+                            port: 5432,
+                            username: "postgres",
+                            password: "postgres",
+                            database: isTesting
+                                ? "blueprint-sql"
+                                : "blueprint-sql-test",
+                            synchronize: true,
+                            logging: false,
+                            entities: [Administrator],
+                            migrations: [],
+                            subscribers: [],
+                        };
+                    },
+                }),
+                AppModule,
+            ],
         }).compile();
 
         app = moduleFixture.createNestApplication();

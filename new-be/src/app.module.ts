@@ -17,6 +17,10 @@ import { AppService } from "./app.service";
                 const isTesting = configService.get("NODE_ENV") === "test";
                 console.log("isTesting", isTesting);
                 console.log("NODE_ENV", configService.get("NODE_ENV"));
+                console.log(
+                    "after tests start",
+                    configService.get("DATABASE_URL"),
+                );
 
                 return {
                     type: "postgres",
