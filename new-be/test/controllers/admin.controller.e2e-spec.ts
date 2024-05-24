@@ -42,7 +42,8 @@ describe("AdminController (e2e)", () => {
         await app.close();
     }, 10000);
 
-    it.only("register", async () => {
+    it("register", async () => {
+        debugger;
         const administratorDTO = {
             fullName: "Georgi Vasilev",
             email: "georgevasile11v07@gmail.com",
