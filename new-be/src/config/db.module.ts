@@ -1,7 +1,7 @@
-import { Module } from "@nestjs/common";
-import { ConfigModule, ConfigService } from "@nestjs/config";
-import { TypeOrmModule } from "@nestjs/typeorm";
-import { Administrator } from "src/entities/administrator.entity";
+import {Module} from "@nestjs/common";
+import {ConfigModule, ConfigService} from "@nestjs/config";
+import {TypeOrmModule} from "@nestjs/typeorm";
+import {Administrator} from "src/entities/administrator.entity";
 
 @Module({
     imports: [
@@ -23,8 +23,8 @@ import { Administrator } from "src/entities/administrator.entity";
                     username: "postgres",
                     password: "postgres",
                     database: isTesting
-                        ? "blueprint-sql"
-                        : "blueprint-sql-test",
+                        ? "blueprint-sql-test"
+                        : "blueprint-sql",
                     synchronize: true,
                     logging: true,
                     entities: [Administrator],
@@ -37,4 +37,5 @@ import { Administrator } from "src/entities/administrator.entity";
     controllers: [],
     providers: [],
 })
-export class DbModule {}
+export class DbModule {
+}
