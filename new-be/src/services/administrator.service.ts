@@ -14,6 +14,7 @@ export class AdministratorService {
 
     async register(dto: AdministratorDTO) {
         const isEmailAvailable = await this.findOneByEmail(dto.email);
+        console.log("isEmailAvailable", isEmailAvailable);
 
         if (isEmailAvailable !== null && isEmailAvailable !== undefined) {
             throw new Error("Email already in use");

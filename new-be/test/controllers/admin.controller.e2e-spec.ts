@@ -1,27 +1,22 @@
 import { INestApplication } from "@nestjs/common";
 import { Test, TestingModule } from "@nestjs/testing";
-import { createTestDataSource } from "src/config/db.config";
-import { AdministratorService } from "src/services/administrator.service";
-import { DataSource } from "typeorm";
+import { TypeOrmModule } from "@nestjs/typeorm";
 import { AppModule } from "src/app.module";
-import { TestDBInitiator } from "../config.e2e";
+import { DbModule } from "src/config/db.module";
+import { Administrator } from "src/entities/administrator.entity";
+import { AdministratorService } from "src/services/administrator.service";
 
 describe("AdminController (e2e)", () => {
     let app: INestApplication;
     let administratorService: AdministratorService;
-    let dataSource: DataSource;
-    let databaseConfig: TestDBInitiator;
-
-    // let cryptoService: CryptoService;
-    // let authMiddleware: AuthMiddleware;
-    // let httpServer: any;
 
     beforeAll(async () => {
-        databaseConfig = new TestDBInitiator();
-        dataSource = await createTestDataSource(databaseConfig.dbOptions);
-
         const moduleFixture: TestingModule = await Test.createTestingModule({
-            imports: [AppModule],
+            imports: [
+                AppModule,
+                DbModule,
+                TypeOrmModule.forFeature([Administrator]),
+            ],
         }).compile();
 
         app = moduleFixture.createNestApplication();
@@ -32,15 +27,15 @@ describe("AdminController (e2e)", () => {
     });
 
     afterAll(async () => {
-        await dataSource.destroy();
         await app.close();
-    });
+    }, 10000);
 
-    it("/ (GET)", async () => {
+    it("register", async () => {
+        debugger;
         const administratorDTO = {
-            email: "gvasilev@hedgeserv.com",
-            password: "123456",
             fullName: "Georgi Vasilev",
+            email: "georgevasile11v007@gmail.com",
+            password: "123456",
             confirmPassword: "123456",
         };
         await administratorService.register(administratorDTO);

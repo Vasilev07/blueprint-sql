@@ -14,7 +14,34 @@
             "program": "${workspaceFolder}/BE/src/data-source.ts",
             "outFiles": [
                 "${workspaceFolder}/**/*.js"
-            ]
+            ],
+            "runtimeExecutable": "/Users/georgevasilev/.nvm/versions/node/v20.12.2/bin/node"
+        },
+        {
+            "name": "Debug Jest Tests",
+            "type": "node",
+            "request": "launch",
+            "runtimeArgs": ["--inspect-brk", "${workspaceRoot}/new-be/node_modules/.bin/jest", "--runInBand", "--coverage", "false", "--config",
+            "${workspaceFolder}/new-be/test/jest-e2e.json"],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+            // "program": "${workspaceFolder}/new-be/node_modules/.bin/ts-jest",
+            "runtimeExecutable": "/Users/georgevasilev/.nvm/versions/node/v20.12.2/bin/node",
+            "outFiles": [
+                "${workspaceFolder}/new-be/dist/**/*.js"
+            ],
+            "cwd": "${workspaceFolder}/new-be/test",
+            "windows": {
+                "runtimeArgs": [
+                    "--inspect-brk",
+                    "${workspaceRoot}/new-be/node_modules/jest/bin/jest",
+                    "--runInBand",
+                    "--config",
+                    "${workspaceFolder}/new-be/test/jest-e2e.json"
+                ]
+            },
+            "sourceMaps": true,
+            "envFile": "${workspaceFolder}/new-be/.env"
         }
     ]
 }
