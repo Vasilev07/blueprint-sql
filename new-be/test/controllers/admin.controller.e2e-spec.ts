@@ -5,13 +5,10 @@ import { AppModule } from "src/app.module";
 import { DbModule } from "src/config/db.module";
 import { Administrator } from "src/entities/administrator.entity";
 import { AdministratorService } from "src/services/administrator.service";
-import { DataSource } from "typeorm";
 
 describe("AdminController (e2e)", () => {
     let app: INestApplication;
     let administratorService: AdministratorService;
-    let dataSource: DataSource;
-
 
     beforeAll(async () => {
         const moduleFixture: TestingModule = await Test.createTestingModule({

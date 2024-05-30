@@ -1,10 +1,7 @@
-import { Test, TestingModule } from "@nestjs/testing";
 import { INestApplication } from "@nestjs/common";
-import * as request from "supertest";
+import { Test, TestingModule } from "@nestjs/testing";
 import { AppModule } from "src/app.module";
-import { DataSource } from "typeorm";
-import { TestDBInitiator } from "./config.e2e";
-import { createTestDataSource } from "src/config/db.config";
+import * as request from "supertest";
 
 describe("AppController (e2e)", () => {
     let app: INestApplication;
