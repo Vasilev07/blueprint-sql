@@ -4,7 +4,7 @@ import { Product } from "./product.entity";
 export enum OrderStatus {
     PENDING = "pending",
     COMPLETED = "completed",
-    CALCELLED = "cancelled",
+    CANCELED = "canceled",
 }
 
 @Entity()
