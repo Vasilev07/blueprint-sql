@@ -1,7 +1,14 @@
+<<<<<<< HEAD
 import { Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { TypeOrmModule, TypeOrmModuleOptions } from "@nestjs/typeorm";
 import { Administrator } from "src/entities/administrator.entity";
+=======
+import {Module} from "@nestjs/common";
+import {ConfigModule, ConfigService} from "@nestjs/config";
+import {TypeOrmModule} from "@nestjs/typeorm";
+import {Administrator} from "src/entities/administrator.entity";
+>>>>>>> origin/new-be-IT-github-actions
 
 export interface DatabaseConfig {
     host: string;
@@ -44,4 +51,5 @@ export interface DatabaseConfig {
     controllers: [],
     providers: [],
 })
-export class DbModule {}
+export class DbModule {
+}
