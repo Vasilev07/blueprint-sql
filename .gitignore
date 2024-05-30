@@ -1,3 +1,4 @@
 .env
 node_modules
 typescript-api-client
+.idea

@@ -1,7 +1,16 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
-import { TypeOrmModule } from "@nestjs/typeorm";
+import { TypeOrmModule, TypeOrmModuleOptions } from "@nestjs/typeorm";
 import { Administrator } from "src/entities/administrator.entity";
+
+export interface DatabaseConfig {
+    host: string;
+    port: number;
+    database: string;
+    username: string;
+    password: string;
+    logging: boolean;
+}
 
 @Module({
     imports: [
@@ -18,19 +27,17 @@ import { Administrator } from "src/entities/administrator.entity";
 
                 return {
                     type: "postgres",
-                    host: "0.0.0.0",
-                    port: 5432,
-                    username: "postgres",
-                    password: "postgres",
-                    database: isTesting
-                        ? "blueprint-sql"
-                        : "blueprint-sql-test",
+                    host: process.env.DB_HOST || "0.0.0.0",
+                    port: process.env.DB_PORT || 5432,
+                    username: process.env.DB_USERNAME || "postgres",
+                    password: process.env.DB_PASSWORD || "postgres",
+                    database: process.env.DB_DATABASE || "blueprint-sql",
                     synchronize: true,
-                    logging: true,
+                    logging: false,
                     entities: [Administrator],
                     migrations: [],
                     subscribers: [],
-                };
+                } as DatabaseConfig;
             },
         }),
     ],

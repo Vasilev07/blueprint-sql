@@ -1,26 +1,19 @@
 import { INestApplication } from "@nestjs/common";
 import { Test, TestingModule } from "@nestjs/testing";
+import { TypeOrmModule } from "@nestjs/typeorm";
 import { AppModule } from "src/app.module";
-import { createTestDataSource } from "src/config/db.config";
+import { DbModule } from "src/config/db.module";
+import { Administrator } from "src/entities/administrator.entity";
 import { AdministratorService } from "src/services/administrator.service";
 import { DataSource } from "typeorm";
-import { TestDBInitiator } from "../config.e2e";
-import { DbModule } from "src/config/db.module";
-import { TypeOrmModule } from "@nestjs/typeorm";
-import { Administrator } from "src/entities/administrator.entity";
 
 describe("AdminController (e2e)", () => {
     let app: INestApplication;
     let administratorService: AdministratorService;
     let dataSource: DataSource;
-    let databaseConfig: TestDBInitiator;
+
 
     beforeAll(async () => {
-        databaseConfig = new TestDBInitiator();
-        console.log("db options in test", databaseConfig.dbOptions);
-
-        dataSource = await createTestDataSource(databaseConfig.dbOptions);
-
         const moduleFixture: TestingModule = await Test.createTestingModule({
             imports: [
                 AppModule,
@@ -37,8 +30,6 @@ describe("AdminController (e2e)", () => {
     });
 
     afterAll(async () => {
-        await databaseConfig.dropDatabase();
-        await dataSource.destroy();
         await app.close();
     }, 10000);
 
@@ -46,7 +37,7 @@ describe("AdminController (e2e)", () => {
         debugger;
         const administratorDTO = {
             fullName: "Georgi Vasilev",
-            email: "georgevasile11v07@gmail.com",
+            email: "georgevasile11v007@gmail.com",
             password: "123456",
             confirmPassword: "123456",
         };

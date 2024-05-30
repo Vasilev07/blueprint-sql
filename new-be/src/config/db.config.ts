@@ -29,6 +29,8 @@ export async function createTestDataSource(
     dbOptions: PostgresConnectionOptions,
 ) {
     const dataSource = new DataSource(dbOptions);
+
     await dataSource.initialize();
+    console.log("dataSource", dataSource);
     return dataSource;
 }
