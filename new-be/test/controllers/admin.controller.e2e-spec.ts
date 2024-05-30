@@ -31,7 +31,6 @@ describe("AdminController (e2e)", () => {
     }, 10000);
 
     it("register", async () => {
-        debugger;
         const administratorDTO = {
             fullName: "Georgi Vasilev",
             email: "georgevasile11v007@gmail.com",
