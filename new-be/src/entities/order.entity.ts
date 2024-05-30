@@ -1,4 +1,5 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Product } from "./product.entity";
 
 export enum OrderStatus {
     PENDING = "pending",
@@ -21,5 +22,6 @@ export class Order {
     @Column({ type: "int", width: 200 })
     total: number;
 
-    @OneToMany(() => CSSMathProduct, (prodcut) => prodcut.order);
+    @OneToMany(() => Product, (prodcut) => prodcut.order)
+    products: Product[];
 }
