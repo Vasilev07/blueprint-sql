@@ -5,7 +5,7 @@ import { EntityManager } from "typeorm";
 export class OrderService {
     constructor(private entityManager: EntityManager) {}
 
-    async createOrder() {
+    async createOrder(OrderDTO: OrderDTO) {
         this.entityManager.save();
         // Create order
     }
