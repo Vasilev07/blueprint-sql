@@ -14,7 +14,9 @@ import { NbAuthService } from '@nebular/auth';
 })
 export class AppComponent implements OnInit {
 
-    constructor(private analytics: AnalyticsService, private seoService: SeoService, private authService: NbAuthService) {
+    constructor(private analytics: AnalyticsService,
+        private seoService: SeoService,
+        private authService: NbAuthService) {
     }
 
     ngOnInit(): void {
