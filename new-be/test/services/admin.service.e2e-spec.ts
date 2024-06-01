@@ -6,7 +6,7 @@ import { DbModule } from "src/config/db.module";
 import { Administrator } from "src/entities/administrator.entity";
 import { AdministratorService } from "src/services/administrator.service";
 
-describe("AdminController (e2e)", () => {
+describe("Admin Service (e2e)", () => {
     let app: INestApplication;
     let administratorService: AdministratorService;
 
@@ -30,7 +30,7 @@ describe("AdminController (e2e)", () => {
         await app.close();
     }, 10000);
 
-    it("register", async () => {
+    test("register", async () => {
         const administratorDTO = {
             fullName: "Georgi Vasilev",
             email: "georgevasile11v007@gmail.com",
