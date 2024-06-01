@@ -1,23 +1,23 @@
-import { Component, OnInit } from "@angular/core";
-import { DefaultService } from "../../../typescript-api-client/src/clients/default.service";
+import { Component, OnInit } from '@angular/core';
+import { DefaultService } from '../../../typescript-api-client/src/clients/default.service';
 
 @Component({
     selector: 'ngx-users',
-    templateUrl: './users.component.html',
+    templateUrl: './users.component.html'
 })
 export class UsersComponent implements OnInit {
     users: any = [];
 
     constructor(private adminService: DefaultService) {
-        console.log('users');
+        // console.log('users');
     }
 
     ngOnInit(): void {
-        console.log('users');
+        // console.log('users');
 
         this.adminService.getAll().subscribe((users) => {
             this.users = users;
-            console.log(this.users);
+            console.log(this.users, 'this users');
 
         });
     }
