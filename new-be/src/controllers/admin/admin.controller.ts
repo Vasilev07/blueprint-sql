@@ -1,12 +1,13 @@
 import { Body, Controller, Get, Post } from "@nestjs/common";
-import { Administrator } from "src/entities/administrator.entity";
 import { AuthMiddleware } from "src/middlewares/auth.middleware";
 import { AdministratorDTO } from "src/models/administrator-dto";
 import { AdministratorLoginDTO } from "src/models/administrator-login-dto";
 import { AdministratorService } from "src/services/administrator.service";
 import { CryptoService } from "src/services/crypto.service";
+import { ApiTags } from "@nestjs/swagger";
 
-@Controller("/auth")
+@Controller(`/auth`)
+@ApiTags("Admin")
 export class AdminController {
     constructor(
         private administratorService: AdministratorService,
@@ -15,7 +16,7 @@ export class AdminController {
     ) {}
 
     @Get("/all")
-    async getAll(): Promise<Administrator[]> {
+    async getAll(): Promise<AdministratorDTO[]> {
         return await this.administratorService.getAll();
     }
 

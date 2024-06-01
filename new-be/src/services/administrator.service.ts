@@ -58,12 +58,11 @@ export class AdministratorService {
         });
     }
 
-    async getAll() {
-        const users: Administrator[] =
-            await this.entityManager.find(Administrator);
+    async getAll(): Promise<AdministratorDTO[]> {
+        const users = await this.entityManager.find(Administrator);
 
-        return users.map((user: Administrator): void => {
-            mapper.map(user, Administrator, AdministratorDTO);
+        return users.map((user: Administrator) => {
+            return mapper.map(user, Administrator, AdministratorDTO);
         });
     }
 }

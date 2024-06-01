@@ -1,24 +1,22 @@
 import { Component, OnInit } from '@angular/core';
-import { DefaultService } from '../../../typescript-api-client/src/clients/default.service';
+import { AdministratorDTO } from '../../../typescript-api-client/src/models/administratorDTO';
+import { AdminService } from '../../../typescript-api-client/src/clients/admin.service';
 
 @Component({
     selector: 'ngx-users',
     templateUrl: './users.component.html'
 })
 export class UsersComponent implements OnInit {
-    users: any = [];
+    users: AdministratorDTO[] = [];
 
-    constructor(private adminService: DefaultService) {
+    constructor(private adminService: AdminService) {
         // console.log('users');
     }
 
     ngOnInit(): void {
-        // console.log('users');
-
-        this.adminService.getAll().subscribe((users) => {
+        this.adminService.getAll().subscribe((users: AdministratorDTO[]) => {
             this.users = users;
             console.log(this.users, 'this users');
-
         });
     }
 

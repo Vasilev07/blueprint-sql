@@ -22,8 +22,8 @@ describe("Mapper", () => {
     });
     it("should map Administrator to AdministratorDTO", () => {
         const admin: Administrator = new Administrator();
-        admin.firstname = "John";
-        admin.lastname = "Doe";
+        admin.firstname = "Cesare";
+        admin.lastname = "Paciotti";
         admin.email = "gdimov@gmail.com";
         admin.password = "password";
 
@@ -33,7 +33,7 @@ describe("Mapper", () => {
             AdministratorDTO,
         );
 
-        expect(adminDto.fullName).toBe("John Doe");
+        expect(adminDto.fullName).toBe("Cesare Paciotti");
         expect(adminDto.email).toBe("gdimov@gmail.com");
         expect(adminDto.confirmPassword).toBe("password");
     });
