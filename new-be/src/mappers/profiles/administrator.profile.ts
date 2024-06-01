@@ -13,8 +13,11 @@ export const AdministratorProfile: MappingProfile = (mapper) => {
         Administrator,
         AdministratorDTO,
         forMember(
-            (dto) => dto.fullName,
-            mapFrom((entity) => entity.firstname + " " + entity.lastname),
+            (dto: AdministratorDTO) => dto.fullName,
+            mapFrom(
+                (entity: Administrator): string =>
+                    entity.firstname + " " + entity.lastname,
+            ),
         ),
         forMember(
             (dto: AdministratorDTO) => dto.confirmPassword,

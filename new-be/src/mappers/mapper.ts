@@ -7,7 +7,6 @@ import {
 } from "@automapper/core";
 import { classes } from "@automapper/classes";
 import { Administrator } from "../entities/administrator.entity";
-import { AdministratorDTO } from "../models/administrator-dto";
 import { AdministratorProfile } from "./profiles/administrator.profile";
 
 export const mapper = createMapper({
@@ -16,7 +15,6 @@ export const mapper = createMapper({
 createMap(
     mapper,
     Administrator,
-    AdministratorDTO,
     namingConventions(new CamelCaseNamingConvention()),
 );
 

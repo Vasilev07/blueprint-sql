@@ -33,7 +33,7 @@ describe("Mapper", () => {
             AdministratorDTO,
         );
 
-        // expect(adminDto.fullName).toBe("John Doe");
+        expect(adminDto.fullName).toBe("John Doe");
         expect(adminDto.email).toBe("gdimov@gmail.com");
         expect(adminDto.confirmPassword).toBe("password");
     });
