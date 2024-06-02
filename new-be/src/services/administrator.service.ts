@@ -30,6 +30,7 @@ export class AdministratorService {
         const hashedPassword = await this.cryptoService.hashPassword(
             dto.password,
         );
+        
 
         adminToSave.email = dto.email;
         adminToSave.password = hashedPassword;
