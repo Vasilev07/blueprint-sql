@@ -12,5 +12,8 @@ export class ProductDTO {
     weight: number;
 
     @ApiProperty()
-    order: OrderDTO;
+    order?: OrderDTO;
+
+    @ApiProperty()
+    price: number;
 }

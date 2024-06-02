@@ -3,10 +3,12 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { AppModule } from "src/app.module";
 import { DbModule } from "src/config/db.module";
-import { Order } from "src/entities/order.entity";
+import { Order, OrderStatus } from "src/entities/order.entity";
+import { OrderDTO } from "src/models/order-dto";
+import { ProductDTO } from "src/models/product-dto";
 import { OrderService } from "src/services/order.service";
 
-describe("Name of the group", () => {
+describe("Order Service (e2e)", () => {
     let app: INestApplication;
     let orderService: OrderService;
 
@@ -21,7 +23,31 @@ describe("Name of the group", () => {
         await app.init();
     });
 
-    test("should save order and corresponding entities", () => {
-        orderService.createOrder({});
+    test("should save order and corresponding entities", async () => {
+        const product: ProductDTO = {
+            id: undefined,
+            weight: 10,
+            name: "Product 1",
+            price: 100,
+        };
+        const orderToSave: OrderDTO = {
+            id: undefined,
+            status: OrderStatus.PENDING,
+            total: 100,
+            products: [product],
+        };
+
+        const orderFromDB = await orderService.createOrder(orderToSave);
+
+        expect(orderFromDB).toBeDefined();
+        expect(orderFromDB.id).toBeDefined();
+        expect(orderFromDB.status).toBe(OrderStatus.PENDING);
+        expect(orderFromDB.total).toBe(100);
+        expect(orderFromDB.products).toBeDefined();
+        expect(orderFromDB.products.length).toBe(1);
+        expect(orderFromDB.products[0].id).toBeDefined();
+        expect(orderFromDB.products[0].name).toBe("Product 1");
+        expect(orderFromDB.products[0].weight).toBe(10);
+        expect(orderFromDB.products[0].price).toBe(100);
     });
 });

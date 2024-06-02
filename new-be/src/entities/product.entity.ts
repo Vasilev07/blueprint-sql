@@ -14,4 +14,7 @@ export class Product {
 
     @ManyToOne(() => Order, (order) => order.products)
     order: Order;
+
+    @Column("int")
+    price: number;
 }
