@@ -1,0 +1,14 @@
+POST http://localhost:3000/order/create
+Content-Type: application/json
+
+{
+  "status": "pending",
+  "total": 100,
+  "products": [
+    {
+      "name": "Product 1",
+      "weight": 10,
+      "price": 10
+    }
+  ]
+}
