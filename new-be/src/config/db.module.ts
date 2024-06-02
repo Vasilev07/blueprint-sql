@@ -2,6 +2,8 @@ import { Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { Administrator } from "src/entities/administrator.entity";
+import { Order } from "src/entities/order.entity";
+import { Product } from "src/entities/product.entity";
 
 export interface DatabaseConfig {
     host: string;
@@ -34,7 +36,7 @@ export interface DatabaseConfig {
                     database: process.env.DB_DATABASE || "blueprint-sql",
                     synchronize: true,
                     logging: false,
-                    entities: [Administrator],
+                    entities: [Administrator, Order, Product],
                     migrations: [],
                     subscribers: [],
                 } as DatabaseConfig;
