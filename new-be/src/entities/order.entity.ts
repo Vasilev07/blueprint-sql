@@ -22,6 +22,6 @@ export class Order {
     @Column({ type: "int", width: 200 })
     total: number;
 
-    @OneToMany(() => Product, (product) => product.order)
+    @OneToMany(() => Product, (product) => product.order, { cascade: true })
     products: Product[];
 }
