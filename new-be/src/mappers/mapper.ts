@@ -1,21 +1,10 @@
-import {
-    addProfile,
-    CamelCaseNamingConvention,
-    createMap,
-    createMapper,
-    namingConventions,
-} from "@automapper/core";
+import { addProfile, createMapper, Mapper } from "@automapper/core";
 import { classes } from "@automapper/classes";
-import { Administrator } from "../entities/administrator.entity";
-import { AdministratorProfile } from "./profiles/administrator.profile";
+import { AdministratorProfile } from "./profiles/administrator.profile"; //TODO think of way to make it a class that is injectable and register the profiles from the profile files
 
-export const mapper = createMapper({
+//TODO think of way to make it a class that is injectable and register the profiles from the profile files
+export const mapper: Mapper = createMapper({
     strategyInitializer: classes(),
 });
-createMap(
-    mapper,
-    Administrator,
-    namingConventions(new CamelCaseNamingConvention()),
-);
 
 addProfile(mapper, AdministratorProfile);
