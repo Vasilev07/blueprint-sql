@@ -6,7 +6,7 @@ import { AdministratorService } from "src/services/administrator.service";
 import { CryptoService } from "src/services/crypto.service";
 import { ApiTags } from "@nestjs/swagger";
 
-@Controller(`/auth`)
+@Controller("/auth")
 @ApiTags("Admin")
 export class AdminController {
     constructor(
