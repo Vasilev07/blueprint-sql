@@ -5,6 +5,7 @@ import { DbModule } from "./config/db.module";
 import { AdminModule } from "./controllers/admin/admin.module";
 import { classes } from "@automapper/classes";
 import { AutomapperModule } from "@automapper/nestjs";
+import { OrderModule } from "./controllers/order/order.module";
 
 @Module({
     imports: [
@@ -12,6 +13,7 @@ import { AutomapperModule } from "@automapper/nestjs";
             strategyInitializer: classes(),
         }),
         DbModule,
+        OrderModule,
         AdminModule,
     ],
     controllers: [AppController],

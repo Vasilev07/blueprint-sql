@@ -1,0 +1,24 @@
+{
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "server": "0.0.0.0",
+            "port": 5432,
+            "driver": "PostgreSQL",
+            "name": "blueprint-sql",
+            "database": "blueprint-sql",
+            "username": "postgres",
+            "password": "postgres"
+        },
+        {
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 5432,
+            "driver": "PostgreSQL",
+            "name": "blueprint-sql-test",
+            "database": "blueprint-sql-test",
+            "username": "postgres",
+            "password": "postgres"
+        }
+    ]
+}
