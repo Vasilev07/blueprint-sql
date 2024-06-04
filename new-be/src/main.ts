@@ -2,6 +2,7 @@ import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { DocumentBuilder } from "@nestjs/swagger";
 import { OpenApiNestFactory } from "nest-openapi-tools";
+import { BE_PORT } from "./constants";
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule, {
@@ -15,6 +16,7 @@ async function bootstrap() {
         new DocumentBuilder()
             .setTitle("My API")
             .setDescription("An API to do awesome things")
+            .addServer(`http://localhost:${BE_PORT}`)
             .addBearerAuth(),
         {
             webServerOptions: {
@@ -41,4 +43,5 @@ async function bootstrap() {
     );
     await app.listen(3000);
 }
+
 bootstrap();

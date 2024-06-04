@@ -1,9 +1,9 @@
-import { Component, OnInit } from "@angular/core";
-import { DefaultService } from "../../../typescript-api-client/src/clients/default.service";
+import { Component, OnInit } from '@angular/core';
+import { DefaultService } from '../../../typescript-api-client/src/clients/default.service';
 
 @Component({
     selector: 'ngx-users',
-    templateUrl: './users.component.html',
+    templateUrl: './users.component.html'
 })
 export class UsersComponent implements OnInit {
     users: any = [];
