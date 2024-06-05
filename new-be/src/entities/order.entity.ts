@@ -1,5 +1,6 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Product } from "./product.entity";
+import { AutoMap } from "@automapper/classes";
 
 export enum OrderStatus {
     PENDING = "pending",
@@ -10,6 +11,7 @@ export enum OrderStatus {
 @Entity()
 export class Order {
     @PrimaryGeneratedColumn()
+    @AutoMap()
     id: number;
 
     @Column({
@@ -17,11 +19,14 @@ export class Order {
         enum: OrderStatus,
         default: OrderStatus.PENDING,
     })
+    @AutoMap()
     status: OrderStatus;
 
     @Column({ type: "int", width: 200 })
+    @AutoMap()
     total: number;
 
     @OneToMany(() => Product, (product) => product.order, { cascade: true })
+    @AutoMap(() => Product)
     products: Product[];
 }
