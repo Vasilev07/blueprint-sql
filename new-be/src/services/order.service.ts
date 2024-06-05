@@ -3,15 +3,18 @@ import { Order } from "src/entities/order.entity";
 import { Product } from "src/entities/product.entity";
 import { OrderDTO } from "src/models/order-dto";
 import { EntityManager } from "typeorm";
+import { Mapper } from "@automapper/core";
 
 @Injectable()
 export class OrderService {
-    constructor(private entityManager: EntityManager) {}
+    constructor(
+        private entityManager: EntityManager,
+        private mapper: Mapper,
+    ) {}
 
     async createOrder(orderDTO: OrderDTO): Promise<OrderDTO> {
         try {
             // TODO REFACTOR WHEN MAPPERS ARE MERGED
-            const orderToSave = new Order();
 
             const products: Product[] = orderDTO.products.map((product) => {
                 const currentProduct = new Product();
@@ -23,10 +26,7 @@ export class OrderService {
                 return currentProduct;
             });
 
-            orderToSave.id = orderDTO.id;
-            orderToSave.status = orderDTO.status;
-            orderToSave.total = orderDTO.total;
-            orderToSave.products = products;
+            const orderToSave = this.mapper.map(orderDTO, OrderDTO, Order);
 
             const savedEntity = await this.entityManager.save(orderToSave);
 
