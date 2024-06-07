@@ -4,18 +4,16 @@ import { AdministratorDTO } from "src/models/administrator-dto";
 import { sign } from "jsonwebtoken";
 import { CryptoService } from "./crypto.service";
 import { EntityManager } from "typeorm";
-import { mapper } from "../mappers/mapper";
-import { addProfile } from "@automapper/core";
-import { AdministratorProfile } from "../mappers/profiles/administrator.profile";
+import { Mapper } from "@automapper/core";
+import { InjectMapper } from "@automapper/nestjs";
 
 @Injectable()
 export class AdministratorService {
     constructor(
         private cryptoService: CryptoService,
         private entityManager: EntityManager,
-    ) {
-        addProfile(mapper, AdministratorProfile);
-    }
+        @InjectMapper() private mapper: Mapper,
+    ) {}
 
     async register(dto: AdministratorDTO) {
         const isEmailAvailable = await this.findOneByEmail(dto.email);
@@ -62,7 +60,7 @@ export class AdministratorService {
         const users = await this.entityManager.find(Administrator);
 
         return users.map((user: Administrator) => {
-            return mapper.map(user, Administrator, AdministratorDTO);
+            return this.mapper.map(user, Administrator, AdministratorDTO);
         });
     }
 }
