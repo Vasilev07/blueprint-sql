@@ -28,6 +28,8 @@ describe("Order Service (e2e)", () => {
         await app.init();
     }, 10000);
 
+    afterEach(async () => {});
+
     test("should save order and corresponding entities", async () => {
         const product: ProductDTO = {
             id: undefined,
@@ -56,5 +58,36 @@ describe("Order Service (e2e)", () => {
         expect(orderFromDB.products[0].name).toBe("Product 1");
         expect(orderFromDB.products[0].weight).toBe(10);
         expect(orderFromDB.products[0].price).toBe(100);
+    });
+
+    test("should get orders", async () => {
+        const product: ProductDTO = {
+            id: undefined,
+            weight: 10,
+            name: "Product 1",
+            price: 100,
+        };
+        const orderToSave: OrderDTO = {
+            id: undefined,
+            status: OrderStatus.PENDING,
+            total: 100,
+            products: [product],
+        };
+
+        await orderService.createOrder(orderToSave);
+
+        const orders: OrderDTO[] = await orderService.getOrders();
+
+        expect(orders).toBeDefined();
+        expect(orders.length).toBe(1);
+        expect(orders[0].id).toBeDefined();
+        expect(orders[0].status).toBe(OrderStatus.PENDING);
+        expect(orders[0].total).toBe(100);
+        expect(orders[0].products).toBeDefined();
+        expect(orders[0].products.length).toBe(1);
+        expect(orders[0].products[0].id).toBeDefined();
+        expect(orders[0].products[0].name).toBe("Product 1");
+        expect(orders[0].products[0].weight).toBe(10);
+        expect(orders[0].products[0].price).toBe(100);
     });
 });

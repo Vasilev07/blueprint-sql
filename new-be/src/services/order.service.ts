@@ -24,8 +24,15 @@ export class OrderService {
         }
     }
 
-    async getOrder() {
-        // Get order
+    async getOrders() {
+        try {
+            const orders: Order[] = await this.entityManager.find(Order);
+            return orders.map((order) =>
+                this.mapper.map(order, Order, OrderDTO),
+            );
+        } catch (error) {
+            throw new Error("Error creating order" + error);
+        }
     }
 
     async updateOrder() {
