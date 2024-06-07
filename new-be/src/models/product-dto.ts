@@ -3,7 +3,7 @@ import { OrderDTO } from "./order-dto";
 
 export class ProductDTO {
     @ApiProperty()
-    id: number;
+    id?: number;
 
     @ApiProperty()
     name: string;

@@ -6,7 +6,7 @@ import { AutoMap } from "@automapper/classes";
 export class OrderDTO {
     @ApiProperty()
     @AutoMap()
-    id: number;
+    id?: number;
 
     @ApiProperty()
     @AutoMap()
@@ -17,6 +17,6 @@ export class OrderDTO {
     total: number;
 
     @ApiProperty()
-    @AutoMap()
+    @AutoMap(() => [ProductDTO])
     products: ProductDTO[];
 }

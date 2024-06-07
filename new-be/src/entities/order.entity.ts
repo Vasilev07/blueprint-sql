@@ -12,7 +12,7 @@ export enum OrderStatus {
 export class Order {
     @PrimaryGeneratedColumn()
     @AutoMap()
-    id: number;
+    id?: number;
 
     @Column({
         type: "enum",
@@ -27,6 +27,6 @@ export class Order {
     total: number;
 
     @OneToMany(() => Product, (product) => product.order, { cascade: true })
-    @AutoMap(() => Product)
+    @AutoMap(() => [Product])
     products: Product[];
 }

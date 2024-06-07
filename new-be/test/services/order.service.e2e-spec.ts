@@ -42,7 +42,8 @@ describe("Order Service (e2e)", () => {
             products: [product],
         };
 
-        const orderFromDB = await orderService.createOrder(orderToSave);
+        const orderFromDB: OrderDTO =
+            await orderService.createOrder(orderToSave);
 
         expect(orderFromDB).toBeDefined();
         expect(orderFromDB.id).toBeDefined();
