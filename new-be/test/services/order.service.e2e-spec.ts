@@ -8,10 +8,14 @@ import { Product } from "src/entities/product.entity";
 import { OrderDTO } from "src/models/order-dto";
 import { ProductDTO } from "src/models/product-dto";
 import { OrderService } from "src/services/order.service";
+import { DataSource } from "typeorm";
+import { QueryRunner } from "typeorm/query-runner/QueryRunner";
 
 describe("Order Service (e2e)", () => {
     let app: INestApplication;
     let orderService: OrderService;
+    let queryRunner: QueryRunner;
+    let dataSource: DataSource;
 
     beforeAll(async () => {
         const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -24,11 +28,32 @@ describe("Order Service (e2e)", () => {
 
         app = moduleFixture.createNestApplication();
         orderService = moduleFixture.get<OrderService>(OrderService);
+        dataSource = moduleFixture.get(DataSource);
+        queryRunner = dataSource.createQueryRunner();
+        await queryRunner.connect();
 
         await app.init();
     }, 10000);
 
-    afterEach(async () => {});
+    beforeEach(async () => {
+        await queryRunner.startTransaction();
+    });
+
+    afterEach(async () => {
+        try {
+            await dataSource.query(`SELECT pg_terminate_backend(pid)
+                                             FROM pg_stat_activity
+                                             WHERE datname = 'blueprint-sql-test'`);
+            // await queryRunner.dropDatabase("blueprint-sql-test");
+            await queryRunner.rollbackTransaction();
+            const orders = await orderService.getOrders();
+            console.log(orders);
+        } catch (e) {
+            console.error(e);
+        }
+        await queryRunner.release();
+        // await queryRunner.clearDatabase("blueprint-sql-test");
+    });
 
     test("should save order and corresponding entities", async () => {
         const product: ProductDTO = {
@@ -44,6 +69,12 @@ describe("Order Service (e2e)", () => {
             products: [product],
         };
 
+        if (queryRunner.isTransactionActive) {
+            console.log(
+                "queryRunner.isTransactionActive",
+                queryRunner.isTransactionActive,
+            );
+        }
         const orderFromDB: OrderDTO =
             await orderService.createOrder(orderToSave);
 
