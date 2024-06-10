@@ -28,9 +28,7 @@ describe("Order Service (e2e)", () => {
 
         await app.init();
     }, 10000);
-
-    beforeEach(async () => {});
-
+    
     afterEach(async () => {
         try {
             const ds = app.get(DataSource);
