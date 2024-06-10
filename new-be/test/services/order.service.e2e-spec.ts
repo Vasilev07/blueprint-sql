@@ -9,7 +9,6 @@ import { OrderDTO } from "src/models/order-dto";
 import { ProductDTO } from "src/models/product-dto";
 import { OrderService } from "src/services/order.service";
 import { DataSource } from "typeorm";
-import { QueryRunner } from "typeorm/query-runner/QueryRunner";
 
 describe("Order Service (e2e)", () => {
     let app: INestApplication;
