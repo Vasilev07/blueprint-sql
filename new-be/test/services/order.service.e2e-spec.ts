@@ -77,16 +77,13 @@ describe("Order Service (e2e)", () => {
             name: "Product 1",
             price: 100,
         };
-
-        await productService.createProduct(product);
-
         const orderToSave: OrderDTO = {
             id: undefined,
             status: OrderStatus.PENDING,
             total: 100,
             products: [product],
         };
-
+        await productService.createProduct(product);
         await orderService.createOrder(orderToSave);
 
         const orders: OrderDTO[] = await orderService.getOrdersWithProducts();
