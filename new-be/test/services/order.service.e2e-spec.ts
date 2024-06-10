@@ -13,7 +13,6 @@ import { DataSource } from "typeorm";
 describe("Order Service (e2e)", () => {
     let app: INestApplication;
     let orderService: OrderService;
-    let dataSource: DataSource;
 
     beforeAll(async () => {
         const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -26,7 +25,6 @@ describe("Order Service (e2e)", () => {
 
         app = moduleFixture.createNestApplication();
         orderService = moduleFixture.get<OrderService>(OrderService);
-        dataSource = moduleFixture.get(DataSource);
 
         await app.init();
     }, 10000);
