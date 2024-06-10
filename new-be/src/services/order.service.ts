@@ -9,7 +9,7 @@ import { InjectMapper } from "@automapper/nestjs";
 export class OrderService {
     private orderRepository: Repository<Order>;
     constructor(
-        private entityManager: EntityManager,
+        entityManager: EntityManager,
         @InjectMapper() private mapper: Mapper,
     ) {
         this.orderRepository = entityManager.getRepository(Order);
@@ -27,7 +27,7 @@ export class OrderService {
         }
     }
 
-    async getOrders() {
+    async getOrders(): Promise<OrderDTO[]> {
         try {
             const orders: Order[] = await this.orderRepository.find();
             return orders.map((order) =>
@@ -39,7 +39,7 @@ export class OrderService {
     }
 
     // TODO think of a more generic way of fetching relations
-    async getOrdersWithProducts() {
+    async getOrdersWithProducts(): Promise<OrderDTO[]> {
         try {
             const ordersWithProducts = await this.orderRepository.find({
                 relations: {
@@ -54,11 +54,11 @@ export class OrderService {
         }
     }
 
-    async updateOrder() {
+    async updateOrder(): Promise<void> {
         // Update order
     }
 
-    async deleteOrder() {
+    async deleteOrder(): Promise<void> {
         // Delete order
     }
 }
