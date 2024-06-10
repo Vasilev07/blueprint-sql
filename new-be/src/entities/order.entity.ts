@@ -26,7 +26,10 @@ export class Order {
     @AutoMap()
     total: number;
 
-    @OneToMany(() => Product, (product) => product.order, { cascade: true })
+    @OneToMany(() => Product, (product) => product.order, {
+        cascade: true,
+        onDelete: "CASCADE",
+    })
     @AutoMap(() => [Product])
     products: Product[];
 }

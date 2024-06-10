@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { OrderDTO } from "./order-dto";
-import {AutoMap} from "@automapper/classes";
+import { AutoMap } from "@automapper/classes";
 
 export class ProductDTO {
     @AutoMap()

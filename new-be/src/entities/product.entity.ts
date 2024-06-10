@@ -16,7 +16,7 @@ export class Product {
     @AutoMap()
     weight: number;
 
-    @ManyToOne(() => Order, (order) => order.products)
+    @ManyToOne(() => Order, (order) => order.products, { onDelete: "CASCADE" })
     @AutoMap(() => Order)
     order: Order;
 

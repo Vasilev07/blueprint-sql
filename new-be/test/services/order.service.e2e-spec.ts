@@ -8,6 +8,7 @@ import { Product } from "src/entities/product.entity";
 import { OrderDTO } from "src/models/order-dto";
 import { ProductDTO } from "src/models/product-dto";
 import { OrderService } from "src/services/order.service";
+import { DataSource } from "typeorm";
 
 describe("Order Service (e2e)", () => {
     let app: INestApplication;
@@ -28,7 +29,17 @@ describe("Order Service (e2e)", () => {
         await app.init();
     }, 10000);
 
-    afterEach(async () => {});
+    beforeEach(async () => {});
+
+    afterEach(async () => {
+        try {
+            const ds = app.get(DataSource);
+            await ds.createQueryBuilder().delete().from(Order).execute();
+            await ds.createQueryBuilder().delete().from(Product).execute();
+        } catch (e) {
+            console.error(e);
+        }
+    });
 
     test("should save order and corresponding entities", async () => {
         const product: ProductDTO = {
@@ -76,7 +87,7 @@ describe("Order Service (e2e)", () => {
 
         await orderService.createOrder(orderToSave);
 
-        const orders: OrderDTO[] = await orderService.getOrders();
+        const orders: OrderDTO[] = await orderService.getOrdersWithProducts();
 
         expect(orders).toBeDefined();
         expect(orders.length).toBe(1);
