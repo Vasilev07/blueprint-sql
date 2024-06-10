@@ -35,6 +35,23 @@ export class OrderService {
         }
     }
 
+    // TODO think of a more generic way of fetching relations
+    async getOrdersWithProducts() {
+        try {
+            const orderRepository = this.entityManager.getRepository(Order);
+            const ordersWithProducts = await orderRepository.find({
+                relations: {
+                    products: true,
+                },
+            });
+            return ordersWithProducts.map((order) =>
+                this.mapper.map(order, Order, OrderDTO),
+            );
+        } catch (error) {
+            throw new Error("Error creating order" + error);
+        }
+    }
+
     async updateOrder() {
         // Update order
     }

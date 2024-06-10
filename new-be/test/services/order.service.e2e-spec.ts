@@ -14,7 +14,6 @@ import { QueryRunner } from "typeorm/query-runner/QueryRunner";
 describe("Order Service (e2e)", () => {
     let app: INestApplication;
     let orderService: OrderService;
-    let queryRunner: QueryRunner;
     let dataSource: DataSource;
 
     beforeAll(async () => {
@@ -29,30 +28,20 @@ describe("Order Service (e2e)", () => {
         app = moduleFixture.createNestApplication();
         orderService = moduleFixture.get<OrderService>(OrderService);
         dataSource = moduleFixture.get(DataSource);
-        queryRunner = dataSource.createQueryRunner();
-        await queryRunner.connect();
 
         await app.init();
     }, 10000);
 
-    beforeEach(async () => {
-        await queryRunner.startTransaction();
-    });
+    beforeEach(async () => {});
 
     afterEach(async () => {
         try {
-            await dataSource.query(`SELECT pg_terminate_backend(pid)
-                                             FROM pg_stat_activity
-                                             WHERE datname = 'blueprint-sql-test'`);
-            // await queryRunner.dropDatabase("blueprint-sql-test");
-            await queryRunner.rollbackTransaction();
-            const orders = await orderService.getOrders();
-            console.log(orders);
+            const ds = app.get(DataSource);
+            await ds.createQueryBuilder().delete().from(Order).execute();
+            await ds.createQueryBuilder().delete().from(Product).execute();
         } catch (e) {
             console.error(e);
         }
-        await queryRunner.release();
-        // await queryRunner.clearDatabase("blueprint-sql-test");
     });
 
     test("should save order and corresponding entities", async () => {
@@ -69,12 +58,6 @@ describe("Order Service (e2e)", () => {
             products: [product],
         };
 
-        if (queryRunner.isTransactionActive) {
-            console.log(
-                "queryRunner.isTransactionActive",
-                queryRunner.isTransactionActive,
-            );
-        }
         const orderFromDB: OrderDTO =
             await orderService.createOrder(orderToSave);
 
@@ -107,7 +90,7 @@ describe("Order Service (e2e)", () => {
 
         await orderService.createOrder(orderToSave);
 
-        const orders: OrderDTO[] = await orderService.getOrders();
+        const orders: OrderDTO[] = await orderService.getOrdersWithProducts();
 
         expect(orders).toBeDefined();
         expect(orders.length).toBe(1);
