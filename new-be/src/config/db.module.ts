@@ -35,7 +35,7 @@ export interface DatabaseConfig {
                     password: process.env.DB_PASSWORD || "postgres",
                     database: process.env.DB_DATABASE || "blueprint-sql",
                     synchronize: true,
-                    logging: false,
+                    logging: true,
                     entities: [Administrator, Order, Product],
                     migrations: [],
                     subscribers: [],

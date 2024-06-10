@@ -6,7 +6,14 @@ Content-Type: application/json
   "total": 100,
   "products": [
     {
-      "name": "Product 1",
+      "id": 5,
+      "name": "Product 5",
+      "weight": 10,
+      "price": 10
+    },
+    {
+      "id": 4,
+      "name": "Product 5",
       "weight": 10,
       "price": 10
     }

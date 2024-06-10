@@ -16,7 +16,7 @@ export class ProductDTO {
     weight: number;
 
     @AutoMap(() => OrderDTO)
-    @ApiProperty()
+    @ApiProperty({ type: () => OrderDTO })
     order?: OrderDTO;
 
     @AutoMap()

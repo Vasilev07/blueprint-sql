@@ -9,10 +9,12 @@ import { OrderDTO } from "src/models/order-dto";
 import { ProductDTO } from "src/models/product-dto";
 import { OrderService } from "src/services/order.service";
 import { DataSource } from "typeorm";
+import { ProductService } from "../../src/services/product.service";
 
 describe("Order Service (e2e)", () => {
     let app: INestApplication;
     let orderService: OrderService;
+    let productService: ProductService;
 
     beforeAll(async () => {
         const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -25,10 +27,11 @@ describe("Order Service (e2e)", () => {
 
         app = moduleFixture.createNestApplication();
         orderService = moduleFixture.get<OrderService>(OrderService);
+        productService = moduleFixture.get<ProductService>(ProductService);
 
         await app.init();
     }, 10000);
-    
+
     afterEach(async () => {
         try {
             const ds = app.get(DataSource);
@@ -71,11 +74,14 @@ describe("Order Service (e2e)", () => {
 
     test("should get orders", async () => {
         const product: ProductDTO = {
-            id: undefined,
+            id: 1,
             weight: 10,
             name: "Product 1",
             price: 100,
         };
+
+        await productService.createProduct(product);
+
         const orderToSave: OrderDTO = {
             id: undefined,
             status: OrderStatus.PENDING,
