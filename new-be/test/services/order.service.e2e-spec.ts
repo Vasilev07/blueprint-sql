@@ -9,10 +9,12 @@ import { OrderDTO } from "src/models/order-dto";
 import { ProductDTO } from "src/models/product-dto";
 import { OrderService } from "src/services/order.service";
 import { DataSource } from "typeorm";
+import { ProductService } from "../../src/services/product.service";
 
 describe("Order Service (e2e)", () => {
     let app: INestApplication;
     let orderService: OrderService;
+    let productService: ProductService;
 
     beforeAll(async () => {
         const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -25,11 +27,10 @@ describe("Order Service (e2e)", () => {
 
         app = moduleFixture.createNestApplication();
         orderService = moduleFixture.get<OrderService>(OrderService);
+        productService = moduleFixture.get<ProductService>(ProductService);
 
         await app.init();
     }, 10000);
-
-    beforeEach(async () => {});
 
     afterEach(async () => {
         try {
@@ -41,7 +42,7 @@ describe("Order Service (e2e)", () => {
         }
     });
 
-    test("should save order and corresponding entities", async () => {
+    test("should save order", async () => {
         const product: ProductDTO = {
             id: undefined,
             weight: 10,
@@ -58,22 +59,20 @@ describe("Order Service (e2e)", () => {
         const orderFromDB: OrderDTO =
             await orderService.createOrder(orderToSave);
 
+        const productsFromDb: ProductDTO[] = await productService.getProducts();
+
         expect(orderFromDB).toBeDefined();
         expect(orderFromDB.id).toBeDefined();
         expect(orderFromDB.status).toBe(OrderStatus.PENDING);
         expect(orderFromDB.total).toBe(100);
         expect(orderFromDB.products).toBeDefined();
         expect(orderFromDB.products.length).toBe(1);
-        // TODO check why ID is not returned
-        // expect(orderFromDB.products[0].id).toBeDefined();
-        expect(orderFromDB.products[0].name).toBe("Product 1");
-        expect(orderFromDB.products[0].weight).toBe(10);
-        expect(orderFromDB.products[0].price).toBe(100);
+        expect(productsFromDb.length).toBe(0);
     });
 
     test("should get orders", async () => {
         const product: ProductDTO = {
-            id: undefined,
+            id: 1,
             weight: 10,
             name: "Product 1",
             price: 100,
@@ -84,7 +83,7 @@ describe("Order Service (e2e)", () => {
             total: 100,
             products: [product],
         };
-
+        await productService.createProduct(product);
         await orderService.createOrder(orderToSave);
 
         const orders: OrderDTO[] = await orderService.getOrdersWithProducts();
