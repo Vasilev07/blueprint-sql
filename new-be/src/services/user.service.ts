@@ -1,21 +1,21 @@
 import { Injectable } from "@nestjs/common";
-import { Administrator } from "src/entities/administrator.entity";
-import { AdministratorDTO } from "src/models/administrator-dto";
+import { UserDTO } from "src/models/user-d-t-o";
 import { sign } from "jsonwebtoken";
 import { CryptoService } from "./crypto.service";
 import { EntityManager } from "typeorm";
 import { Mapper } from "@automapper/core";
 import { InjectMapper } from "@automapper/nestjs";
+import { User } from "../entities/user.entity";
 
 @Injectable()
-export class AdministratorService {
+export class UserService {
     constructor(
         private cryptoService: CryptoService,
         private entityManager: EntityManager,
         @InjectMapper() private mapper: Mapper,
     ) {}
 
-    async register(dto: AdministratorDTO) {
+    async register(dto: UserDTO) {
         const isEmailAvailable = await this.findOneByEmail(dto.email);
         console.log("isEmailAvailable", isEmailAvailable);
 
@@ -29,7 +29,7 @@ export class AdministratorService {
 
         const names = dto.fullName.split(" ");
 
-        const adminToSave: Administrator = new Administrator();
+        const adminToSave: User = new User();
         const hashedPassword = await this.cryptoService.hashPassword(
             dto.password,
         );
@@ -44,23 +44,23 @@ export class AdministratorService {
         return this.signForUser(savedAdmin);
     }
 
-    signForUser = (admin: Administrator) => {
+    signForUser = (admin: User) => {
         return sign({ name: admin.lastname, email: admin.email }, "secred", {
             expiresIn: "1h",
         });
     };
 
     async findOneByEmail(email: string) {
-        return await this.entityManager.findOne(Administrator, {
+        return await this.entityManager.findOne(User, {
             where: { email },
         });
     }
 
-    async getAll(): Promise<AdministratorDTO[]> {
-        const users = await this.entityManager.find(Administrator);
+    async getAll(): Promise<UserDTO[]> {
+        const users = await this.entityManager.find(User);
 
-        return users.map((user: Administrator) => {
-            return this.mapper.map(user, Administrator, AdministratorDTO);
+        return users.map((user: User) => {
+            return this.mapper.map(user, User, UserDTO);
         });
     }
 }

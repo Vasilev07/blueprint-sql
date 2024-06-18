@@ -1,34 +1,32 @@
 import { Body, Controller, Get, Post } from "@nestjs/common";
 import { AuthMiddleware } from "src/middlewares/auth.middleware";
-import { AdministratorDTO } from "src/models/administrator-dto";
+import { UserDTO } from "src/models/user-d-t-o";
 import { AdministratorLoginDTO } from "src/models/administrator-login-dto";
-import { AdministratorService } from "src/services/administrator.service";
+import { UserService } from "src/services/user.service";
 import { CryptoService } from "src/services/crypto.service";
 import { ApiTags } from "@nestjs/swagger";
 
 @Controller("/auth")
 @ApiTags("Admin")
-export class AdminController {
+export class UserController {
     constructor(
-        private administratorService: AdministratorService,
+        private userService: UserService,
         private cryptoService: CryptoService,
         private authMiddleware: AuthMiddleware,
     ) {}
 
     @Get("/all")
-    async getAll(): Promise<AdministratorDTO[]> {
-        return await this.administratorService.getAll();
+    async getAll(): Promise<UserDTO[]> {
+        return await this.userService.getAll();
     }
 
     @Post("/login")
     async login(
         @Body() administratorLoginDTO: AdministratorLoginDTO,
     ): Promise<any> {
-        console.log(administratorLoginDTO);
-        const admin = await this.administratorService.findOneByEmail(
+        const admin = await this.userService.findOneByEmail(
             administratorLoginDTO.email,
         );
-        console.log("admin", admin);
 
         if (!admin) {
             throw new Error("Invalid email or password");
@@ -47,9 +45,9 @@ export class AdminController {
     }
 
     @Post("/register")
-    async register(@Body() administratorDTO: AdministratorDTO): Promise<any> {
+    async register(@Body() administratorDTO: UserDTO): Promise<any> {
         try {
-            return await this.administratorService.register(administratorDTO);
+            return await this.userService.register(administratorDTO);
         } catch (error) {
             console.error("Error registering admin.", error);
         }

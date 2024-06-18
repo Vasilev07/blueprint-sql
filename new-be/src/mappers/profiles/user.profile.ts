@@ -1,11 +1,11 @@
 import { createMap, forMember, mapFrom, Mapper } from "@automapper/core";
-import { AdministratorDTO } from "../../models/administrator-dto";
-import { Administrator } from "../../entities/administrator.entity";
+import { UserDTO } from "../../models/user-d-t-o";
+import { User } from "../../entities/user.entity";
 import { Injectable } from "@nestjs/common";
 import { AutomapperProfile, InjectMapper } from "@automapper/nestjs";
 
 @Injectable()
-export class AdministratorProfile extends AutomapperProfile {
+export class UserProfile extends AutomapperProfile {
     constructor(@InjectMapper() mapper: Mapper) {
         super(mapper);
     }
@@ -14,18 +14,18 @@ export class AdministratorProfile extends AutomapperProfile {
         return (mapper) => {
             createMap(
                 mapper,
-                Administrator,
-                AdministratorDTO,
+                User,
+                UserDTO,
                 forMember(
-                    (dto: AdministratorDTO) => dto.fullName,
+                    (dto: UserDTO) => dto.fullName,
                     mapFrom(
-                        (entity: Administrator): string =>
+                        (entity: User): string =>
                             entity.firstname + " " + entity.lastname,
                     ),
                 ),
                 forMember(
-                    (dto: AdministratorDTO) => dto.confirmPassword,
-                    mapFrom((entity: Administrator) => entity.password),
+                    (dto: UserDTO) => dto.confirmPassword,
+                    mapFrom((entity: User) => entity.password),
                 ),
             );
         };

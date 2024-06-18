@@ -1,6 +1,6 @@
 import { Injectable, NestMiddleware } from "@nestjs/common";
 import { verify, sign } from "jsonwebtoken";
-import { Administrator } from "src/entities/administrator.entity";
+import { User } from "src/entities/user.entity";
 
 @Injectable()
 export class AuthMiddleware implements NestMiddleware {
@@ -17,8 +17,8 @@ export class AuthMiddleware implements NestMiddleware {
         next();
     }
 
-    signForUser(admin: Administrator) {
-        return sign({ name: admin.lastname, email: admin.email }, "secred", {
+    signForUser(user: User) {
+        return sign({ name: user.lastname, email: user.email }, "secred", {
             expiresIn: "1h",
         });
     }
