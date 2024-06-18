@@ -1,8 +1,9 @@
 import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 import { AutoMap } from "@automapper/classes";
+import { Role } from "../enums/role.enum";
 
 @Entity()
-export class Administrator {
+export class User {
     @PrimaryGeneratedColumn()
     id: number;
 
@@ -21,4 +22,12 @@ export class Administrator {
     @Column("text")
     @AutoMap()
     email: string;
+
+    @Column({
+        type: "enum",
+        enum: Role,
+        array: true,
+        default: [Role.User],
+    })
+    public roles: Role[];
 }

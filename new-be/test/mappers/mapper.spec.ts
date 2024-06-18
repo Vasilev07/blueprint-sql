@@ -1,5 +1,5 @@
-import { Administrator } from "../../src/entities/administrator.entity";
-import { AdministratorDTO } from "../../src/models/administrator-dto";
+import { Administrator } from "../../src/entities/user.entity";
+import { UserDTO } from "../../src/models/user-d-t-o";
 import { mapper } from "../../src/mappers/mapper";
 import {
     addProfile,
@@ -14,7 +14,7 @@ describe("Mapper", () => {
         createMap(
             mapper,
             Administrator,
-            AdministratorDTO,
+            UserDTO,
             namingConventions(new CamelCaseNamingConvention()),
         );
 
@@ -27,11 +27,7 @@ describe("Mapper", () => {
         admin.email = "gdimov@gmail.com";
         admin.password = "password";
 
-        const adminDto: AdministratorDTO = mapper.map(
-            admin,
-            Administrator,
-            AdministratorDTO,
-        );
+        const adminDto: UserDTO = mapper.map(admin, Administrator, UserDTO);
 
         expect(adminDto.fullName).toBe("Cesare Paciotti");
         expect(adminDto.email).toBe("gdimov@gmail.com");
