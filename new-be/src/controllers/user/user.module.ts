@@ -5,7 +5,7 @@ import { UserController } from "./user.controller";
 import { UserService } from "src/services/user.service";
 import { CryptoService } from "src/services/crypto.service";
 import { AuthMiddleware } from "src/middlewares/auth.middleware";
-import { AdministratorProfile } from "../../mappers/profiles/administrator.profile";
+import { UserProfile } from "../../mappers/profiles/user.profile";
 
 @Module({
     imports: [TypeOrmModule.forFeature([User])],
@@ -15,7 +15,7 @@ import { AdministratorProfile } from "../../mappers/profiles/administrator.profi
         UserService,
         CryptoService,
         AuthMiddleware,
-        AdministratorProfile,
+        UserProfile,
     ],
 })
 export class UserModule {}

@@ -5,7 +5,7 @@ import { Injectable } from "@nestjs/common";
 import { AutomapperProfile, InjectMapper } from "@automapper/nestjs";
 
 @Injectable()
-export class AdministratorProfile extends AutomapperProfile {
+export class UserProfile extends AutomapperProfile {
     constructor(@InjectMapper() mapper: Mapper) {
         super(mapper);
     }
