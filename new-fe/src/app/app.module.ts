@@ -1,30 +1,23 @@
-/**
- * @license
- * Copyright Akveo. All Rights Reserved.
- * Licensed under the MIT License. See License.txt in the project root for license information.
- */
+import {NgModule} from '@angular/core';
 import {BrowserModule} from '@angular/platform-browser';
-import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
-import {CUSTOM_ELEMENTS_SCHEMA, NgModule} from '@angular/core';
-import {AppComponent} from './app.component';
+
 import {AppRoutingModule} from './app-routing.module';
-import {ButtonModule} from 'primeng/button';
-import {RouterModule} from '@angular/router';
-import {HttpClientModule} from '@angular/common/http';
+import {AppComponent} from './app.component';
+import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
+import {AppLayoutModule} from "./layout/app.layout.module";
 
 @NgModule({
-  declarations: [AppComponent],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA],
+  declarations: [
+    AppComponent
+  ],
   imports: [
     BrowserModule,
-    BrowserAnimationsModule,
-    ButtonModule,
-    RouterModule,
     AppRoutingModule,
-    HttpClientModule,
+    BrowserAnimationsModule,
+    AppLayoutModule
   ],
-  exports: [AppRoutingModule, RouterModule],
-  bootstrap: [AppComponent],
+  providers: [],
+  bootstrap: [AppComponent]
 })
 export class AppModule {
 }

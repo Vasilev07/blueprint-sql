@@ -1,40 +1,16 @@
-import {ExtraOptions, RouterModule, Routes} from '@angular/router';
 import {NgModule} from '@angular/core';
-import {LoginComponent} from './login/login.component';
-import {LandingComponent} from './landing/landing.component';
-import {DashboardComponent} from './dashboard/dashboard.component';
+import {RouterModule, Routes} from '@angular/router';
+import {AppLayoutComponent} from "./layout/app.layout.component";
 
-export const routes: Routes = [
+const routes: Routes = [
   {
-    path: '',
-    component: DashboardComponent
-  },
-  {
-    path: 'auth',
-    component: LoginComponent,
-    children: [
-      {
-        path: '',
-        component: LandingComponent
-      },
-      {
-        path: 'login',
-        component: LoginComponent,
-      },
-    ],
-  },
-  {path: '', redirectTo: 'pages', pathMatch: 'full'},
-  {path: '**', redirectTo: 'pages'},
+    path: '', component: AppLayoutComponent
+  }
 ];
-
-const config: ExtraOptions = {
-  useHash: false,
-  // enableTracing: true,
-};
 
 @NgModule({
   imports: [RouterModule.forRoot(routes)],
-  exports: [RouterModule],
+  exports: [RouterModule]
 })
 export class AppRoutingModule {
 }

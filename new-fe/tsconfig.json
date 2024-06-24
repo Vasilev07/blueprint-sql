@@ -1,8 +1,13 @@
+/* To learn more about Typescript configuration file: https://www.typescriptlang.org/docs/handbook/tsconfig-json.html. */
+/* To learn more about Angular compiler options: https://angular.dev/reference/configs/angular-compiler-options. */
 {
   "compileOnSave": false,
   "compilerOptions": {
-    "allowSyntheticDefaultImports": true,
-    "outDir": "./dist/out-tsc",
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "paths": {
+      "tslib" : ["path/to/node_modules/tslib/tslib.d.ts"]
+    },
     "strict": true,
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
@@ -13,14 +18,10 @@
     "sourceMap": true,
     "declaration": false,
     "experimentalDecorators": true,
-    "moduleResolution": "bundler",
-    "importHelpers": true,
-    "target": "ES2022",
-    "module": "ES2022",
-    "types": [
-      "jasmine",
-      "jest"
-    ],
+    "moduleResolution": "node",
+    "importHelpers": false,
+    "target": "es5",
+    "module": "commonjs",
     "useDefineForClassFields": false,
     "lib": [
       "ES2022",
@@ -32,12 +33,5 @@
     "strictInjectionParameters": true,
     "strictInputAccessModifiers": true,
     "strictTemplates": true
-  },
-  "include": [
-    "src/**/*.spec.ts",
-    "src/**/*.ts"
-  ],
-  "exclude": [
-    "./out-tsc/app"
-  ]
+  }
 }
