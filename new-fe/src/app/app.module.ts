@@ -5,10 +5,11 @@ import {AppRoutingModule} from './app-routing.module';
 import {AppComponent} from './app.component';
 import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
 import {AppLayoutModule} from "./layout/app.layout.module";
+import {ProductService} from "./services/product.service";
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
   ],
   imports: [
     BrowserModule,
@@ -16,7 +17,7 @@ import {AppLayoutModule} from "./layout/app.layout.module";
     BrowserAnimationsModule,
     AppLayoutModule
   ],
-  providers: [],
+  providers: [ProductService],
   bootstrap: [AppComponent]
 })
 export class AppModule {
