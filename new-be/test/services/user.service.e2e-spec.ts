@@ -8,7 +8,7 @@ import { UserService } from "src/services/user.service";
 
 describe("Admin Service (e2e)", () => {
     let app: INestApplication;
-    let administratorService: UserService;
+    let userService: UserService;
 
     beforeAll(async () => {
         const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -16,7 +16,7 @@ describe("Admin Service (e2e)", () => {
         }).compile();
 
         app = moduleFixture.createNestApplication();
-        administratorService = moduleFixture.get<UserService>(UserService);
+        userService = moduleFixture.get<UserService>(UserService);
 
         await app.init();
     });
@@ -26,17 +26,17 @@ describe("Admin Service (e2e)", () => {
     }, 10000);
 
     test("register", async () => {
-        const administratorDTO = {
+        const userDto = {
             fullName: "Georgi Vasilev",
             email: "georgevasile11v007@gmail.com",
             password: "123456",
             confirmPassword: "123456",
         };
-        await administratorService.register(administratorDTO);
+        await userService.register(userDto);
 
-        const allAdministrators = await administratorService.getAll();
+        const allUsers = await userService.getAll();
 
-        expect(allAdministrators.length).toBe(1);
-        expect(allAdministrators[0].email).toBe(administratorDTO.email);
+        expect(allUsers.length).toBe(1);
+        expect(allUsers[0].email).toBe(userDto.email);
     });
 });

@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Post } from "@nestjs/common";
 import { AuthMiddleware } from "src/middlewares/auth.middleware";
-import { UserDTO } from "src/models/user-d-t-o";
+import { UserDto } from "src/models/user-dto";
 import { AdministratorLoginDTO } from "src/models/administrator-login-dto";
 import { UserService } from "src/services/user.service";
 import { CryptoService } from "src/services/crypto.service";
@@ -16,7 +16,7 @@ export class UserController {
     ) {}
 
     @Get("/all")
-    async getAll(): Promise<UserDTO[]> {
+    async getAll(): Promise<UserDto[]> {
         return await this.userService.getAll();
     }
 
@@ -48,9 +48,9 @@ export class UserController {
     }
 
     @Post("/register")
-    async register(@Body() administratorDTO: UserDTO): Promise<any> {
+    async register(@Body() userDTO: UserDto): Promise<any> {
         try {
-            return await this.userService.register(administratorDTO);
+            return await this.userService.register(userDTO);
         } catch (error) {
             console.error("Error registering admin.", error);
         }
