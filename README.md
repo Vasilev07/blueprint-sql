@@ -11,7 +11,9 @@ This project has one purpose -> startup project with all things configured, like
 - Monitoring Tools
 - Good Practices implemented
 
-![Alt text](image.png)
+![img_1.png](img_1.png)
+
+![img.png](img.png)
 
 ### Development
 
@@ -26,13 +28,13 @@ Tips&Tricks: Install `nvm` (Node Version Manager)
 #### BE
 
 ```shell
-nvm install 14 && cd BE && npm i
+cd new-be && npm i
 ```
 
-#### ngx-admin
+#### FE
 
 ```shell
-nvm install 16 && cd BE && npm i
+cd new-fe && npm i
 ```
 
 #### DB
