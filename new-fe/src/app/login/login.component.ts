@@ -1,5 +1,6 @@
 import { Component } from "@angular/core";
 import { LayoutService } from "src/app/layout/service/app.layout.service";
+import { AuthService } from "../services/auth.service";
 
 @Component({
     selector: "app-login",
@@ -18,7 +19,16 @@ import { LayoutService } from "src/app/layout/service/app.layout.service";
 export class LoginComponent {
     valCheck: string[] = ["remember"];
 
+    username!: string;
     password!: string;
 
-    constructor(public layoutService: LayoutService) {}
+    constructor(
+        public layoutService: LayoutService,
+        private authService: AuthService,
+    ) {}
+
+    public login(): void {
+        // TODO extract that in separate service -> use the service created from BE
+        this.authService.login();
+    }
 }

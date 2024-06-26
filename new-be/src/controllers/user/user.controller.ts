@@ -41,7 +41,10 @@ export class UserController {
             throw new Error("Invalid email or password");
         }
 
-        return { token: this.authMiddleware.signForUser(admin) };
+        const token = this.authMiddleware.signForUser(admin);
+
+        console.log("token", token);
+        return { token, expiresIn: 3600 };
     }
 
     @Post("/register")

@@ -6,6 +6,13 @@ import { AppComponent } from "./app.component";
 import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
 import { AppLayoutModule } from "./layout/app.layout.module";
 import { ProductService } from "./services/product.service";
+import { AuthService } from "./services/auth.service";
+import { JwtModule } from "@auth0/angular-jwt";
+import { AuthGuard } from "./services/auth.guard";
+
+export function tokenGetter() {
+    return localStorage.getItem("id_token");
+}
 
 @NgModule({
     declarations: [AppComponent],
@@ -14,8 +21,15 @@ import { ProductService } from "./services/product.service";
         AppRoutingModule,
         BrowserAnimationsModule,
         AppLayoutModule,
+        JwtModule.forRoot({
+            config: {
+                tokenGetter: tokenGetter,
+                allowedDomains: ["example.com"],
+                disallowedRoutes: ["http://example.com/examplebadroute/"],
+            },
+        }),
     ],
-    providers: [ProductService],
+    providers: [ProductService, AuthService, AuthGuard],
     bootstrap: [AppComponent],
 })
 export class AppModule {}
