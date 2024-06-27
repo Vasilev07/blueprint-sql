@@ -7,7 +7,7 @@ import { CryptoService } from "src/services/crypto.service";
 import { ApiTags } from "@nestjs/swagger";
 
 @Controller("/auth")
-@ApiTags("Admin")
+@ApiTags("User")
 export class UserController {
     constructor(
         private userService: UserService,
@@ -43,7 +43,6 @@ export class UserController {
 
         const token = this.authMiddleware.signForUser(admin);
 
-        console.log("token", token);
         return { token, expiresIn: 3600 };
     }
 
