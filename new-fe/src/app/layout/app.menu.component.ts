@@ -1,5 +1,4 @@
-import { OnInit } from "@angular/core";
-import { Component } from "@angular/core";
+import { Component, OnInit } from "@angular/core";
 import { LayoutService } from "./service/app.layout.service";
 
 @Component({
@@ -11,7 +10,7 @@ export class AppMenuComponent implements OnInit {
 
     constructor(public layoutService: LayoutService) {}
 
-    ngOnInit() {
+    ngOnInit(): void {
         this.model = [
             {
                 label: "Home",
@@ -20,6 +19,11 @@ export class AppMenuComponent implements OnInit {
                         label: "Dashboard",
                         icon: "pi pi-fw pi-home",
                         routerLink: ["/"],
+                    },
+                    {
+                        label: "Products",
+                        icon: "pi pi-fw pi-table",
+                        routerLink: ["/products"],
                     },
                 ],
             },

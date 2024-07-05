@@ -31,10 +31,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
     ngOnInit() {
         this.initChart();
-        this.productService
-            .getProductsSmall()
-            .then((data) => (this.products = data));
-
         this.items = [
             { label: "Add New", icon: "pi pi-fw pi-plus" },
             { label: "Remove", icon: "pi pi-fw pi-minus" },

@@ -1,5 +1,6 @@
 import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
+import { ProductDTO } from "../../typescript-api-client/src/models/productDTO";
 
 @Injectable({
     providedIn: "root",
@@ -15,7 +16,7 @@ export class ProductService {
             .then((data) => data);
     }
 
-    getProducts() {
+    getProducts(): Promise<ProductDTO[]> {
         return this.http
             .get<any>("assets/demo/data/products.json")
             .toPromise()
