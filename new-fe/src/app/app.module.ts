@@ -5,7 +5,6 @@ import { AppRoutingModule } from "./app-routing.module";
 import { AppComponent } from "./app.component";
 import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
 import { AppLayoutModule } from "./layout/app.layout.module";
-import { ProductService } from "./services/product.service";
 import { AuthService } from "./services/auth.service";
 import { JwtModule } from "@auth0/angular-jwt";
 import { AuthGuard } from "./services/auth.guard";
@@ -29,7 +28,7 @@ export function tokenGetter() {
             },
         }),
     ],
-    providers: [ProductService, AuthService, AuthGuard],
+    providers: [AuthService, AuthGuard],
     bootstrap: [AppComponent],
 })
 export class AppModule {}
