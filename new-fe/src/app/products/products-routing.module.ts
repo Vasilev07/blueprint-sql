@@ -4,9 +4,7 @@ import { ProductsComponent } from "./products.component";
 
 @NgModule({
     imports: [
-        RouterModule.forChild([
-            { path: "products", component: ProductsComponent },
-        ]),
+        RouterModule.forChild([{ path: "", component: ProductsComponent }]),
     ],
     exports: [RouterModule],
 })
