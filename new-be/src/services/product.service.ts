@@ -18,9 +18,13 @@ export class ProductService {
 
     async createProduct(product: ProductDTO): Promise<ProductDTO> {
         try {
-            const productToSave = this.mapper.map(product, ProductDTO, Product);
+            const productToSave: Product = this.mapper.map(
+                product,
+                ProductDTO,
+                Product,
+            );
 
-            const productFromDB =
+            const productFromDB: Product =
                 await this.productRepository.save(productToSave);
 
             return this.mapper.map(productFromDB, Product, ProductDTO);

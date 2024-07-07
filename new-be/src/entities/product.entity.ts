@@ -16,11 +16,14 @@ export class Product {
     @AutoMap()
     weight: number;
 
-    @ManyToOne(() => Order, (order) => order.products, { onDelete: "CASCADE" })
+    @ManyToOne(() => Order, (order) => order.products, {
+        onDelete: "CASCADE",
+        onUpdate: "CASCADE",
+    })
     @AutoMap(() => Order)
     order: Order;
 
-    @Column("int")
+    @Column("decimal", { precision: 10, scale: 2 })
     @AutoMap()
     price: number;
 }
