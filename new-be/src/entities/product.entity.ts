@@ -18,7 +18,6 @@ export class Product {
 
     @ManyToOne(() => Order, (order) => order.products, {
         onDelete: "CASCADE",
-        onUpdate: "CASCADE",
         nullable: true,
     })
     @AutoMap(() => Order)
