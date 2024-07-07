@@ -19,9 +19,10 @@ export class Product {
     @ManyToOne(() => Order, (order) => order.products, {
         onDelete: "CASCADE",
         onUpdate: "CASCADE",
+        nullable: true,
     })
     @AutoMap(() => Order)
-    order: Order;
+    order?: Order | null;
 
     @Column("decimal", { precision: 10, scale: 2 })
     @AutoMap()

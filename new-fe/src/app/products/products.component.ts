@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit } from "@angular/core";
 import { ProductDTO } from "../../typescript-api-client/src/models/productDTO";
 import { HttpClient } from "@angular/common/http";
-import { Subject } from "rxjs";
+import { Subject, takeUntil } from "rxjs";
 import { ConfirmationService, MessageService } from "primeng/api";
 import { LayoutService } from "../layout/service/app.layout.service";
 
@@ -11,68 +11,7 @@ import { LayoutService } from "../layout/service/app.layout.service";
 })
 export class ProductsComponent implements OnInit, OnDestroy {
     product: ProductDTO | undefined = undefined;
-    products: ProductDTO[] = [
-        {
-            id: 1,
-            name: "Product 1",
-            weight: 1,
-            price: 10.99,
-            order: {
-                id: 1,
-                status: "PENDING",
-                total: 10.99,
-                products: [],
-            },
-        },
-        {
-            id: 2,
-            name: "Product 2",
-            weight: 2,
-            price: 20.99,
-            order: {
-                id: 2,
-                status: "PENDING",
-                total: 20.99,
-                products: [],
-            },
-        },
-        {
-            id: 3,
-            name: "Product 3",
-            weight: 3,
-            price: 30.99,
-            order: {
-                id: 3,
-                status: "PENDING",
-                total: 30.99,
-                products: [],
-            },
-        },
-        {
-            id: 4,
-            name: "Product 4",
-            weight: 4,
-            price: 40.99,
-            order: {
-                id: 4,
-                status: "PENDING",
-                total: 40.99,
-                products: [],
-            },
-        },
-        {
-            id: 5,
-            name: "Product 5",
-            weight: 5,
-            price: 50.99,
-            order: {
-                id: 5,
-                status: "PENDING",
-                total: 50.99,
-                products: [],
-            },
-        },
-    ];
+    products: ProductDTO[] = [];
     selectedProducts: ProductDTO[] = [];
     submitted: boolean = false;
     productDialog: boolean = false;
@@ -87,12 +26,12 @@ export class ProductsComponent implements OnInit, OnDestroy {
     ) {}
 
     ngOnInit(): void {
-        // this.http
-        //     .get<ProductDTO[]>("http://localhost:3000/products")
-        //     .pipe(takeUntil(this.ngUnsubscribe))
-        //     .subscribe((products: ProductDTO[]) => {
-        //         this.products = products;
-        //     });
+        this.http
+            .get<ProductDTO[]>("http://localhost:3000/products")
+            .pipe(takeUntil(this.ngUnsubscribe))
+            .subscribe((products: ProductDTO[]) => {
+                this.products = products;
+            });
 
         this.statuses = [
             { label: "INSTOCK", value: "instock" },
@@ -201,18 +140,5 @@ export class ProductsComponent implements OnInit, OnDestroy {
         }
 
         return index;
-    }
-
-    getSeverity(status: string) {
-        switch (status) {
-            case "INSTOCK":
-                return "success";
-            case "LOWSTOCK":
-                return "warning";
-            case "OUTOFSTOCK":
-                return "danger";
-            default:
-                return undefined;
-        }
     }
 }
