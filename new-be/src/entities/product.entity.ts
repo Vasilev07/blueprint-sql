@@ -12,7 +12,7 @@ export class Product {
     @AutoMap()
     name: string;
 
-    @Column("int")
+    @Column({ type: "decimal", precision: 10, scale: 2 })
     @AutoMap()
     weight: number;
 
