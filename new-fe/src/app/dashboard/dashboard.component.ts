@@ -2,7 +2,6 @@ import { Component, OnDestroy, OnInit } from "@angular/core";
 import { MenuItem } from "primeng/api";
 import { debounceTime, Subscription } from "rxjs";
 import { LayoutService } from "src/app/layout/service/app.layout.service";
-import { ProductService } from "../services/product.service";
 
 @Component({
     templateUrl: "./dashboard.component.html",
@@ -18,10 +17,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
     subscription!: Subscription;
 
-    constructor(
-        private productService: ProductService,
-        public layoutService: LayoutService,
-    ) {
+    constructor(public layoutService: LayoutService) {
         this.subscription = this.layoutService.configUpdate$
             .pipe(debounceTime(25))
             .subscribe(() => {

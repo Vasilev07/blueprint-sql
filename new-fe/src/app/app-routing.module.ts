@@ -2,6 +2,7 @@ import { NgModule } from "@angular/core";
 import { RouterModule, Routes } from "@angular/router";
 import { AppLayoutComponent } from "./layout/app.layout.component";
 import { AuthGuard } from "./services/auth.guard";
+import { ProductsComponent } from "./products/products.component";
 
 const routes: Routes = [
     {
@@ -21,6 +22,7 @@ const routes: Routes = [
                     import("./products/products.module").then(
                         (m) => m.ProductsModule,
                     ),
+                component: ProductsComponent,
             },
         ],
         canActivate: [AuthGuard],
