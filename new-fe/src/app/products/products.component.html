@@ -24,6 +24,7 @@
     [value]="products"
     [rows]="10"
     [paginator]="true"
+    [rowsPerPageOptions]="[5,10,20,50]"
     [globalFilterFields]="['name', 'country.name', 'representative.name', 'status']"
     [tableStyle]="{ 'min-width': '75rem' }"
     [(selection)]="selectedProducts"
@@ -41,12 +42,13 @@
           Name
           <p-sortIcon field="name"/>
         </th>
-        <th>
-          Image
-        </th>
         <th pSortableColumn="price">
           Price
           <p-sortIcon field="price"/>
+        </th>
+        <th pSortableColumn="weight">
+          Weight
+          <p-sortIcon field="weight"/>
         </th>
         <th></th>
       </tr>
