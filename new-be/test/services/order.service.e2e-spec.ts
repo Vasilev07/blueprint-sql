@@ -97,7 +97,7 @@ describe("Order Service (e2e)", () => {
         expect(orders[0].products.length).toBe(1);
         expect(orders[0].products[0].id).toBeDefined();
         expect(orders[0].products[0].name).toBe("Product 1");
-        expect(orders[0].products[0].weight).toBe(10);
-        expect(orders[0].products[0].price).toBe(100);
+        expect(orders[0].products[0].weight).toBe("10.00");
+        expect(orders[0].products[0].price).toBe("100.00");
     });
 });

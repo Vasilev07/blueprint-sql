@@ -12,15 +12,18 @@ export class Product {
     @AutoMap()
     name: string;
 
-    @Column("int")
+    @Column({ type: "decimal", precision: 10, scale: 2 })
     @AutoMap()
     weight: number;
 
-    @ManyToOne(() => Order, (order) => order.products, { onDelete: "CASCADE" })
+    @ManyToOne(() => Order, (order) => order.products, {
+        onDelete: "CASCADE",
+        nullable: true,
+    })
     @AutoMap(() => Order)
-    order: Order;
+    order?: Order | null;
 
-    @Column("int")
+    @Column("decimal", { precision: 10, scale: 2 })
     @AutoMap()
     price: number;
 }

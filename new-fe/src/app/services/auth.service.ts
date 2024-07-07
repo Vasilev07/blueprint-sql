@@ -9,7 +9,7 @@ export class AuthService {
     constructor(
         private readonly http: HttpClient,
         private jwtHelper: JwtHelperService,
-        private rourer: Router,
+        private router: Router,
     ) {}
 
     login(): void {
@@ -20,7 +20,7 @@ export class AuthService {
             })
             .subscribe((res) => {
                 this.setSession(res);
-                this.rourer.navigate(["/"]);
+                this.router.navigate(["/"]);
             });
     }
 

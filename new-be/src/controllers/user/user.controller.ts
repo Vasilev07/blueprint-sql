@@ -1,10 +1,11 @@
 import { Body, Controller, Get, Post } from "@nestjs/common";
 import { AuthMiddleware } from "src/middlewares/auth.middleware";
 import { UserDto } from "src/models/user-dto";
-import { AdministratorLoginDTO } from "src/models/administrator-login-dto";
+import { UserLoginDTO } from "src/models/user-login-d-t-o";
 import { UserService } from "src/services/user.service";
 import { CryptoService } from "src/services/crypto.service";
 import { ApiTags } from "@nestjs/swagger";
+import { User } from "../../entities/user.entity";
 
 @Controller("/auth")
 @ApiTags("User")
@@ -21,10 +22,8 @@ export class UserController {
     }
 
     @Post("/login")
-    async login(
-        @Body() administratorLoginDTO: AdministratorLoginDTO,
-    ): Promise<any> {
-        const admin = await this.userService.findOneByEmail(
+    async login(@Body() administratorLoginDTO: UserLoginDTO): Promise<any> {
+        const admin: User = await this.userService.findOneByEmail(
             administratorLoginDTO.email,
         );
 
