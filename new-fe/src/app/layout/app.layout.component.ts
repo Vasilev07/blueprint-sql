@@ -60,10 +60,10 @@ export class AppLayoutComponent implements OnDestroy {
                         "click",
                         (event) => {
                             const isOutsideClicked = !(
-                                this.appTopbar.menu.nativeElement.isSameNode(
+                                this.appTopbar.tobBarMenu.nativeElement.isSameNode(
                                     event.target,
                                 ) ||
-                                this.appTopbar.menu.nativeElement.contains(
+                                this.appTopbar.tobBarMenu.nativeElement.contains(
                                     event.target,
                                 ) ||
                                 this.appTopbar.topbarMenuButton.nativeElement.isSameNode(

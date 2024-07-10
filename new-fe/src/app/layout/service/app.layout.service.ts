@@ -1,4 +1,4 @@
-import { Injectable, effect, signal } from "@angular/core";
+import { effect, Injectable, signal } from "@angular/core";
 import { Subject } from "rxjs";
 
 export interface AppConfig {
@@ -27,8 +27,8 @@ export class LayoutService {
         ripple: false,
         inputStyle: "outlined",
         menuMode: "static",
-        colorScheme: "light",
-        theme: "lara-light-indigo",
+        colorScheme: "dark",
+        theme: "lara-dark-indigo",
         scale: 14,
     };
 
@@ -135,6 +135,7 @@ export class LayoutService {
 
         this.replaceThemeLink(newHref);
     }
+
     replaceThemeLink(href: string) {
         const id = "theme-css";
         const themeLink = <HTMLLinkElement>document.getElementById(id);
