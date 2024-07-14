@@ -15,7 +15,7 @@ export class ThemeService {
         console.log(this.document);
 
         if (themeLink) {
-            themeLink.href = theme + ".scss";
+            themeLink.href = theme + ".css";
         }
     }
 }

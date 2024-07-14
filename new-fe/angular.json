@@ -39,6 +39,17 @@
               }
             ],
             "styles": [
+              "src/styles.scss",
+              {
+                "input": "src/app/dark-theme.scss",
+                "bundleName": "dark-theme",
+                "inject": false
+              },
+              {
+                "input": "src/app/light-theme.scss",
+                "bundleName": "light-theme",
+                "inject": false
+              },
               {
                 "input": "src/app/dark-theme.scss",
                 "bundleName": "dark-theme",
@@ -49,7 +60,7 @@
                 "bundleName": "light-theme",
                 "inject": false
               }
-            ],\
+            ],
             "scripts": []
           },
           "configurations": {
