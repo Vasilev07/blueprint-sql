@@ -41,22 +41,12 @@
             "styles": [
               "src/styles.scss",
               {
-                "input": "src/app/dark-theme.scss",
+                "input": "src/assets/css/dark-theme.css",
                 "bundleName": "dark-theme",
                 "inject": false
               },
               {
-                "input": "src/app/light-theme.scss",
-                "bundleName": "light-theme",
-                "inject": false
-              },
-              {
-                "input": "src/app/dark-theme.scss",
-                "bundleName": "dark-theme",
-                "inject": false
-              },
-              {
-                "input": "src/app/light-theme.scss",
+                "input": "src/assets/css/light-theme.css",
                 "bundleName": "light-theme",
                 "inject": false
               }
@@ -118,13 +108,14 @@
               }
             ],
             "styles": [
+              "src/styles.scss",
               {
-                "input": "src/app/dark-theme.scss",
+                "input": "src/assets/css/dark-theme.css",
                 "bundleName": "dark-theme",
                 "inject": false
               },
               {
-                "input": "src/app/light-theme.scss",
+                "input": "src/assets/css/light-theme.css",
                 "bundleName": "light-theme",
                 "inject": false
               }
