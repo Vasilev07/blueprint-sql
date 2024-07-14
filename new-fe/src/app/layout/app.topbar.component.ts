@@ -73,12 +73,10 @@ export class AppTopBarComponent implements OnInit {
     }
 
     private toggleLightTheme(): void {
-        console.log("Light theme");
         this.themeService.switchTheme(this.themes[1].id);
     }
 
     private toggleDarkTheme(): void {
-        console.log("Dark theme");
         this.themeService.switchTheme(this.themes[0].id);
     }
 }

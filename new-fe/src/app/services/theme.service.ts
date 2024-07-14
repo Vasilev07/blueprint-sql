@@ -12,8 +12,6 @@ export class ThemeService {
             "app-theme",
         ) as HTMLLinkElement;
 
-        console.log(this.document);
-
         if (themeLink) {
             themeLink.href = theme + ".css";
         }
