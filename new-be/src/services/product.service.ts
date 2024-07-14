@@ -4,6 +4,7 @@ import { InjectMapper } from "@automapper/nestjs";
 import { Mapper } from "@automapper/core";
 import { ProductDTO } from "../models/product-dto";
 import { Product } from "../entities/product.entity";
+import { CategoryType } from "../enums/categories.enum";
 
 @Injectable()
 export class ProductService {
@@ -36,11 +37,29 @@ export class ProductService {
     async getProducts(): Promise<ProductDTO[]> {
         try {
             const products: Product[] = await this.productRepository.find();
-            return products.map((product) =>
+            return products.map((product: Product) =>
                 this.mapper.map(product, Product, ProductDTO),
             );
         } catch (e) {
             throw new Error("Error fetching products");
+        }
+    }
+
+    async getProductsByCategoryType(
+        categoryType: CategoryType,
+    ): Promise<ProductDTO[]> {
+        try {
+            const products: Product[] = await this.productRepository.find({
+                where: { category: { type: categoryType } },
+                relations: ["category"],
+            });
+            return products.map((product: Product) =>
+                this.mapper.map(product, Product, ProductDTO),
+            );
+        } catch (error) {
+            throw new Error(
+                "Error fetching products by category type: " + error.message,
+            );
         }
     }
 }

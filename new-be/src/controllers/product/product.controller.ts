@@ -1,7 +1,8 @@
-import { Body, Controller, Get, Post } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post } from "@nestjs/common";
 import { ProductDTO } from "../../models/product-dto";
 import { ProductService } from "../../services/product.service";
 import { ApiTags } from "@nestjs/swagger";
+import { CategoryType } from "../../enums/categories.enum";
 
 @Controller("/products")
 @ApiTags("User")
@@ -15,6 +16,13 @@ export class ProductController {
         } catch (error) {
             throw new Error("Error getting products" + error);
         }
+    }
+
+    @Get("/category/type/:categoryType")
+    async getProductsByCategoryType(
+        @Param("categoryType") categoryType: CategoryType,
+    ): Promise<ProductDTO[]> {
+        return this.productService.getProductsByCategoryType(categoryType);
     }
 
     @Post("/create")
