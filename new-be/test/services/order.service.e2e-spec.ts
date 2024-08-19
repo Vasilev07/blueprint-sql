@@ -2,7 +2,6 @@ import { INestApplication } from "@nestjs/common";
 import { Test, TestingModule } from "@nestjs/testing";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { AppModule } from "src/app.module";
-import { DbModule } from "src/config/db.module";
 import { Order, OrderStatus } from "src/entities/order.entity";
 import { Product } from "src/entities/product.entity";
 import { OrderDTO } from "src/models/order-dto";
@@ -18,11 +17,7 @@ describe("Order Service (e2e)", () => {
 
     beforeAll(async () => {
         const moduleFixture: TestingModule = await Test.createTestingModule({
-            imports: [
-                AppModule,
-                DbModule,
-                TypeOrmModule.forFeature([Order, Product]),
-            ],
+            imports: [AppModule, TypeOrmModule.forFeature([Order, Product])],
         }).compile();
 
         app = moduleFixture.createNestApplication();
