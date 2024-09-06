@@ -9,7 +9,7 @@ export const dataSourceOptions: DataSourceOptions = {
     database: process.env.DB_DATABASE || "blueprint-sql",
     logging: true,
     entities: ["dist/entities/*.entity{.ts,.js}"],
-    migrations: ["src/migrations/*.js"],
+    migrations: ["src/migrations/*{.ts,.js}"],
 };
 
 const dataSource: DataSource = new DataSource(dataSourceOptions);
