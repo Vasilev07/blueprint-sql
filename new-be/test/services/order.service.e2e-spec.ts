@@ -7,8 +7,8 @@ import { Product } from "src/entities/product.entity";
 import { OrderDTO } from "src/models/order-dto";
 import { ProductDTO } from "src/models/product-dto";
 import { OrderService } from "src/services/order.service";
-import { DataSource } from "typeorm";
 import { ProductService } from "../../src/services/product.service";
+import dataSource from "../../src/config/data-source";
 
 describe("Order Service (e2e)", () => {
     let app: INestApplication;
@@ -16,6 +16,7 @@ describe("Order Service (e2e)", () => {
     let productService: ProductService;
 
     beforeAll(async () => {
+        await dataSource.initialize();
         const moduleFixture: TestingModule = await Test.createTestingModule({
             imports: [AppModule, TypeOrmModule.forFeature([Order, Product])],
         }).compile();
@@ -27,11 +28,22 @@ describe("Order Service (e2e)", () => {
         await app.init();
     }, 10000);
 
+    afterAll(async () => {
+        await dataSource.destroy();
+    });
+
     afterEach(async () => {
         try {
-            const ds = app.get(DataSource);
-            await ds.createQueryBuilder().delete().from(Order).execute();
-            await ds.createQueryBuilder().delete().from(Product).execute();
+            await dataSource
+                .createQueryBuilder()
+                .delete()
+                .from(Order)
+                .execute();
+            await dataSource
+                .createQueryBuilder()
+                .delete()
+                .from(Product)
+                .execute();
         } catch (e) {
             console.error(e);
         }
