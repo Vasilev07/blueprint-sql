@@ -3,7 +3,7 @@ import { EntityManager, Repository } from "typeorm";
 import { InjectMapper } from "@automapper/nestjs";
 import { Mapper } from "@automapper/core";
 import { ProductDTO } from "../models/product-dto";
-import { Product } from "../entities/product.entity";
+import { Product } from "@entities/product.entity";
 import { CategoryType } from "../enums/categories.enum";
 
 @Injectable()
@@ -56,10 +56,8 @@ export class ProductService {
             return products.map((product: Product) =>
                 this.mapper.map(product, Product, ProductDTO),
             );
-        } catch (error) {
-            throw new Error(
-                "Error fetching products by category type: " + error.message,
-            );
+        } catch (e) {
+            throw new Error("Error fetching products by category type");
         }
     }
 }

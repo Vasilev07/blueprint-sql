@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, Post } from "@nestjs/common";
 import { ProductDTO } from "../../models/product-dto";
-import { ProductService } from "../../services/product.service";
+import { ProductService } from "@services/product.service";
 import { ApiTags } from "@nestjs/swagger";
 import { CategoryType } from "../../enums/categories.enum";
 

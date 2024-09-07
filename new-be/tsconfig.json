@@ -9,7 +9,23 @@
     "target": "ES2021",
     "sourceMap": true,
     "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
     "baseUrl": "./",
+    "paths": {
+      "@entities/*": [
+        "src/entities/*"
+      ],
+      "@services/*": [
+        "src/services/*"
+      ],
+      "@middlewares/*": [
+        "src/middlewares/*"
+      ],
+      "@mappers/*": [
+        "src/mappers/*"
+      ]
+    },
     "incremental": true,
     "skipLibCheck": true,
     "strictNullChecks": false,
@@ -17,5 +33,11 @@
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false
-  }
+  },
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

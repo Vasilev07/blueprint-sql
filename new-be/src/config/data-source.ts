@@ -2,6 +2,7 @@ import { DataSource, DataSourceOptions } from "typeorm";
 import { Order } from "../entities/order.entity";
 import { Product } from "../entities/product.entity";
 import { User } from "../entities/user.entity";
+import { Category } from "../entities/category.entity";
 
 export const dataSourceOptions: DataSourceOptions = {
     type: "postgres",
@@ -10,8 +11,8 @@ export const dataSourceOptions: DataSourceOptions = {
     username: process.env.DB_USERNAME || "postgres",
     password: process.env.DB_PASSWORD || "postgres",
     database: process.env.DB_DATABASE || "blueprint-sql",
-    logging: true,
-    entities: [Order, Product, User],
+    logging: ["query", "error"],
+    entities: [Order, Product, User, Category],
     migrations: ["src/migrations/*{.ts,.js}"],
     synchronize: true,
 };
