@@ -2,14 +2,13 @@ import { INestApplication } from "@nestjs/common";
 import { Test, TestingModule } from "@nestjs/testing";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { AppModule } from "src/app.module";
-import { DbModule } from "src/config/db.module";
 import { Order, OrderStatus } from "src/entities/order.entity";
 import { Product } from "src/entities/product.entity";
 import { OrderDTO } from "src/models/order-dto";
 import { ProductDTO } from "src/models/product-dto";
 import { OrderService } from "src/services/order.service";
-import { DataSource } from "typeorm";
 import { ProductService } from "../../src/services/product.service";
+import dataSource from "../../src/config/data-source";
 
 describe("Order Service (e2e)", () => {
     let app: INestApplication;
@@ -17,12 +16,10 @@ describe("Order Service (e2e)", () => {
     let productService: ProductService;
 
     beforeAll(async () => {
+        await dataSource.initialize();
+        await dataSource.runMigrations();
         const moduleFixture: TestingModule = await Test.createTestingModule({
-            imports: [
-                AppModule,
-                DbModule,
-                TypeOrmModule.forFeature([Order, Product]),
-            ],
+            imports: [AppModule, TypeOrmModule.forFeature([Order, Product])],
         }).compile();
 
         app = moduleFixture.createNestApplication();
@@ -32,11 +29,18 @@ describe("Order Service (e2e)", () => {
         await app.init();
     }, 10000);
 
+    afterAll(async () => {
+        await dataSource.destroy();
+    });
+
     afterEach(async () => {
         try {
-            const ds = app.get(DataSource);
-            await ds.createQueryBuilder().delete().from(Order).execute();
-            await ds.createQueryBuilder().delete().from(Product).execute();
+            try {
+                await dataSource.manager.delete(Order, {});
+                await dataSource.manager.delete(Product, {});
+            } catch (e) {
+                console.error(e);
+            }
         } catch (e) {
             console.error(e);
         }
