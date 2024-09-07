@@ -5,7 +5,7 @@ import { CryptoService } from "./crypto.service";
 import { EntityManager } from "typeorm";
 import { Mapper } from "@automapper/core";
 import { InjectMapper } from "@automapper/nestjs";
-import { User } from "../entities/user.entity";
+import { User } from "@entities/user.entity";
 
 @Injectable()
 export class UserService {
