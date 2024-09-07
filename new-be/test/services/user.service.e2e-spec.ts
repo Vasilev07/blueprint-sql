@@ -2,7 +2,6 @@ import { INestApplication } from "@nestjs/common";
 import { Test, TestingModule } from "@nestjs/testing";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { AppModule } from "src/app.module";
-import { DbModule } from "src/config/db.module";
 import { User } from "src/entities/user.entity";
 import { UserService } from "src/services/user.service";
 
@@ -12,7 +11,7 @@ describe("Admin Service (e2e)", () => {
 
     beforeAll(async () => {
         const moduleFixture: TestingModule = await Test.createTestingModule({
-            imports: [AppModule, DbModule, TypeOrmModule.forFeature([User])],
+            imports: [AppModule, TypeOrmModule.forFeature([User])],
         }).compile();
 
         app = moduleFixture.createNestApplication();
