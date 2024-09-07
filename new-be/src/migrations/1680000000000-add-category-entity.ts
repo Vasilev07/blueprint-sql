@@ -1,4 +1,5 @@
 import { MigrationInterface, QueryRunner, Table } from "typeorm";
+import { CategoryType } from "../enums/categories.enum";
 
 export class AddCategoryEntity1680000000000 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
@@ -21,12 +22,12 @@ export class AddCategoryEntity1680000000000 implements MigrationInterface {
                         name: "type",
                         type: "enum",
                         enum: [
-                            "rings",
-                            "pendants",
-                            "bracelets",
-                            "earrings",
-                            "necklaces",
-                            "watches",
+                            CategoryType.RINGS,
+                            CategoryType.PENDANTS,
+                            CategoryType.BRACELETS,
+                            CategoryType.EARRINGS,
+                            CategoryType.NECKLACES,
+                            CategoryType.WATCHES,
                         ],
                     },
                 ],

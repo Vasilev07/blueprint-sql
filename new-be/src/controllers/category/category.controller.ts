@@ -1,4 +1,4 @@
-import { Controller } from "@nestjs/common";
+import { Controller, Post } from "@nestjs/common";
 import { CategoryService } from "@services/category.service";
 import { ApiTags } from "@nestjs/swagger";
 
@@ -7,5 +7,8 @@ import { ApiTags } from "@nestjs/swagger";
 export class CategoryController {
     constructor(private readonly categoryService: CategoryService) {}
 
-    // Add your controller methods here
+    @Post()
+    async createCategory() {
+        return await this.categoryService.createCategory();
+    }
 }

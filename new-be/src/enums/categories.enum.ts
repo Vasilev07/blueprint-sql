@@ -6,3 +6,9 @@ export enum CategoryType {
     NECKLACES = "necklaces",
     WATCHES = "watches",
 }
+
+export enum CategoryGender {
+    MEN = "men",
+    WOMEN = "women",
+    UNISEX = "unisex",
+}

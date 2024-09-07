@@ -10,5 +10,7 @@ export class CategoryService {
         private readonly categoryRepository: Repository<Category>,
     ) {}
 
-    // Add your service methods here
+    async createCategory() {
+        return Promise.resolve(undefined);
+    }
 }
