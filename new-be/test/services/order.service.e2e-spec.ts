@@ -17,6 +17,7 @@ describe("Order Service (e2e)", () => {
 
     beforeAll(async () => {
         await dataSource.initialize();
+        await dataSource.runMigrations();
         const moduleFixture: TestingModule = await Test.createTestingModule({
             imports: [AppModule, TypeOrmModule.forFeature([Order, Product])],
         }).compile();
@@ -34,16 +35,12 @@ describe("Order Service (e2e)", () => {
 
     afterEach(async () => {
         try {
-            await dataSource
-                .createQueryBuilder()
-                .delete()
-                .from(Order)
-                .execute();
-            await dataSource
-                .createQueryBuilder()
-                .delete()
-                .from(Product)
-                .execute();
+            try {
+                await dataSource.manager.delete(Order, {});
+                await dataSource.manager.delete(Product, {});
+            } catch (e) {
+                console.error(e);
+            }
         } catch (e) {
             console.error(e);
         }
