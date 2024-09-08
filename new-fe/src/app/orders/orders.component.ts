@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, WritableSignal } from "@angular/core";
+import { Component, OnDestroy, OnInit } from "@angular/core";
 import { ProductDTO } from "../../typescript-api-client/src/models/productDTO";
 import { HttpClient } from "@angular/common/http";
 import { Subject, takeUntil } from "rxjs";

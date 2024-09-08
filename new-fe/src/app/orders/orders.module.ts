@@ -17,6 +17,7 @@ import { ToastModule } from "primeng/toast";
 import { ToolbarModule } from "primeng/toolbar";
 import { ConfirmDialogModule } from "primeng/confirmdialog";
 import { DialogModule } from "primeng/dialog";
+import {ConfirmationService, MessageService} from "primeng/api";
 
 @NgModule({
     imports: [
@@ -39,5 +40,6 @@ import { DialogModule } from "primeng/dialog";
         DialogModule,
     ],
     declarations: [OrdersComponent],
+    providers: [ConfirmationService, MessageService],
 })
 export class OrdersModule {}
