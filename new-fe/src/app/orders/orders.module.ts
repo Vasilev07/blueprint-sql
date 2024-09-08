@@ -17,7 +17,7 @@ import { ToastModule } from "primeng/toast";
 import { ToolbarModule } from "primeng/toolbar";
 import { ConfirmDialogModule } from "primeng/confirmdialog";
 import { DialogModule } from "primeng/dialog";
-import {ConfirmationService, MessageService} from "primeng/api";
+import { ConfirmationService, MessageService } from "primeng/api";
 
 @NgModule({
     imports: [
