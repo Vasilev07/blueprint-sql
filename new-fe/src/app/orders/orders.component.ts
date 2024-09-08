@@ -25,7 +25,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
 
     ngOnInit(): void {
         this.http
-            .get<OrderDTO[]>("http://localhost:3000/orders")
+            .get<OrderDTO[]>("http://localhost:3000/order")
             .pipe(takeUntil(this.ngUnsubscribe))
             .subscribe((orders: OrderDTO[]) => {
                 this.orders = orders;
