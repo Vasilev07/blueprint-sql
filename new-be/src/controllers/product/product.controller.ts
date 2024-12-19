@@ -1,36 +1,13 @@
-import { Body, Controller, Get, Param, Post } from "@nestjs/common";
-import { ProductDTO } from "../../models/product-dto";
-import { ProductService } from "@services/product.service";
 import { ApiTags } from "@nestjs/swagger";
-import { CategoryType } from "../../enums/categories.enum";
+import { Controller, Get } from "@nestjs/common";
 
-@Controller("/products")
-@ApiTags("User")
+@Controller("/product")
+@ApiTags("Product")
 export class ProductController {
-    constructor(private readonly productService: ProductService) {}
+    constructor() {}
 
-    @Get("")
-    async getProducts(): Promise<ProductDTO[]> {
-        try {
-            return await this.productService.getProducts();
-        } catch (error) {
-            throw new Error("Error getting products" + error);
-        }
-    }
-
-    @Get("/category/type/:categoryType")
-    async getProductsByCategoryType(
-        @Param("categoryType") categoryType: CategoryType,
-    ): Promise<ProductDTO[]> {
-        return this.productService.getProductsByCategoryType(categoryType);
-    }
-
-    @Post("/create")
-    async createOrder(@Body() productDTO: ProductDTO): Promise<ProductDTO> {
-        try {
-            return await this.productService.createProduct(productDTO);
-        } catch (error) {
-            throw new Error("Error creating order" + error);
-        }
+    @Get()
+    async getAll() {
+        return "Get all products";
     }
 }

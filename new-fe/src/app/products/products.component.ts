@@ -1,9 +1,12 @@
 import { Component, OnDestroy, OnInit } from "@angular/core";
-import { ProductDTO } from "../../typescript-api-client/src/models/productDTO";
 import { HttpClient } from "@angular/common/http";
 import { Subject, takeUntil } from "rxjs";
 import { ConfirmationService, MessageService } from "primeng/api";
 import { LayoutService } from "../layout/service/app.layout.service";
+import { ProductDTO } from "../../typescript-api-client/src/models/productDTO";
+import { OrderService } from "../../typescript-api-client/src/clients/order.service";
+import { log } from "@angular-devkit/build-angular/src/builders/ssr-dev-server";
+import { OrderDTO } from "../../typescript-api-client/src/models/orderDTO";
 
 @Component({
     templateUrl: "./products.component.html",
@@ -16,6 +19,8 @@ export class ProductsComponent implements OnInit, OnDestroy {
     submitted: boolean = false;
     productDialog: boolean = false;
     statuses!: any[];
+    visible: boolean = false;
+
     private readonly ngUnsubscribe: Subject<void> = new Subject<void>();
 
     constructor(
@@ -23,6 +28,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
         private readonly confirmationService: ConfirmationService,
         private readonly messageService: MessageService,
         public layoutService: LayoutService,
+        public orderService: OrderService,
     ) {}
 
     ngOnInit(): void {
@@ -48,7 +54,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
     openNew() {
         this.product = undefined;
         this.submitted = false;
-        this.productDialog = true;
+        this.visible = true;
     }
 
     deleteSelectedProducts() {
@@ -73,7 +79,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
 
     editProduct(product: ProductDTO) {
         this.product = { ...product };
-        this.productDialog = true;
+        this.visible = true;
     }
 
     deleteProduct(product: ProductDTO) {
@@ -103,6 +109,16 @@ export class ProductsComponent implements OnInit, OnDestroy {
 
     saveProduct() {
         this.submitted = true;
+
+        const product = {
+            id: undefined,
+            name: "pending",
+            weight: 20,
+            price: 25,
+            category: "test",
+        };
+
+        this.orderService.(product).subscribe(console.log);
 
         if (this.product?.name?.trim()) {
             if (this.product.id) {

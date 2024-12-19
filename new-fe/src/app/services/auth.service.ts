@@ -15,7 +15,7 @@ export class AuthService {
     login(): void {
         this.http
             .post("http://localhost:3000/auth/login", {
-                username: "admin",
+                username: "admin@gmail.com",
                 password: "admin",
             })
             .subscribe((res) => {

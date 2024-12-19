@@ -19,6 +19,7 @@ export class ProductService {
 
     async createProduct(product: ProductDTO): Promise<ProductDTO> {
         try {
+            console.log(product);
             const productToSave: Product = this.mapper.map(
                 product,
                 ProductDTO,

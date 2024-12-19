@@ -1,4 +1,10 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import {
+    Column,
+    Entity,
+    JoinTable,
+    ManyToMany,
+    PrimaryGeneratedColumn,
+} from "typeorm";
 import { Product } from "./product.entity";
 import { AutoMap } from "@automapper/classes";
 
@@ -26,9 +32,8 @@ export class Order {
     @AutoMap()
     total: number;
 
-    @OneToMany(() => Product, (product) => product.order, {
-        onDelete: "CASCADE",
-    })
+    @ManyToMany(() => Product)
+    @JoinTable()
     @AutoMap(() => [Product])
     products: Product[];
 }

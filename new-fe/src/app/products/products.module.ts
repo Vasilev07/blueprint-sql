@@ -17,6 +17,8 @@ import { ToastModule } from "primeng/toast";
 import { ToolbarModule } from "primeng/toolbar";
 import { ConfirmDialogModule } from "primeng/confirmdialog";
 import { DialogModule } from "primeng/dialog";
+import { InputTextModule } from "primeng/inputtext";
+import { Ripple } from "primeng/ripple";
 
 @NgModule({
     imports: [
@@ -37,6 +39,8 @@ import { DialogModule } from "primeng/dialog";
         ToolbarModule,
         ConfirmDialogModule,
         DialogModule,
+        InputTextModule,
+        Ripple,
     ],
     declarations: [ProductsComponent],
 })

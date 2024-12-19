@@ -5,10 +5,10 @@ import { UserModule } from "./controllers/user/user.module";
 import { classes } from "@automapper/classes";
 import { AutomapperModule } from "@automapper/nestjs";
 import { OrderModule } from "./controllers/order/order.module";
-import { ProductModule } from "./controllers/product/product.module";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { dataSourceOptions } from "./config/data-source";
 import { CategoryModule } from "./controllers/category/category.module";
+import {ProductModule} from "./controllers/product/product.module";
 
 @Module({
     imports: [
@@ -18,8 +18,8 @@ import { CategoryModule } from "./controllers/category/category.module";
         TypeOrmModule.forRoot(dataSourceOptions),
         OrderModule,
         UserModule,
-        ProductModule,
         CategoryModule,
+        ProductModule,
     ],
     controllers: [AppController],
     providers: [AppService],
