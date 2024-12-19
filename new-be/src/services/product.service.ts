@@ -28,7 +28,7 @@ export class ProductService {
 
             const productFromDB: Product =
                 await this.productRepository.save(productToSave);
-
+            console.log(productFromDB, "productFromDB");
             return this.mapper.map(productFromDB, Product, ProductDTO);
         } catch (e) {
             throw new Error("Product failed to save!");
@@ -49,9 +49,10 @@ export class ProductService {
     async getProductsByCategoryType(
         categoryType: CategoryType,
     ): Promise<ProductDTO[]> {
+        categoryType;
         try {
             const products: Product[] = await this.productRepository.find({
-                where: { category: { type: categoryType } },
+                // where: { category: { type: categoryType } },
                 relations: ["category"],
             });
             return products.map((product: Product) =>

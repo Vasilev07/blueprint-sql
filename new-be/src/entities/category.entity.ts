@@ -20,7 +20,7 @@ export class Category {
     @AutoMap()
     type: CategoryType;
 
-    @OneToMany(() => Product, (product) => product.category)
-    @AutoMap(() => [Product])
-    products: Product[];
+    // @OneToMany(() => Product, (product) => product.category)
+    // @AutoMap(() => [Product])
+    // products: Product[];
 }

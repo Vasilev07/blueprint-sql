@@ -1,5 +1,5 @@
 import { NgModule } from "@angular/core";
-import { FormsModule } from "@angular/forms";
+import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import { ChartModule } from "primeng/chart";
 import { MenuModule } from "primeng/menu";
 import { StyleClassModule } from "primeng/styleclass";
@@ -41,6 +41,7 @@ import { Ripple } from "primeng/ripple";
         DialogModule,
         InputTextModule,
         Ripple,
+        ReactiveFormsModule,
     ],
     declarations: [ProductsComponent],
 })

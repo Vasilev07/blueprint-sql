@@ -20,9 +20,9 @@ export class Product {
     @AutoMap()
     price: number;
 
-    @ManyToOne(() => Category, (category) => category.products, {
-        onDelete: "CASCADE",
-    })
-    @AutoMap(() => Category)
-    category: Category;
+    // @ManyToOne(() => Category, (category) => category.products, {
+    //     onDelete: "CASCADE",
+    // })
+    // @AutoMap(() => Category)
+    // category: Category;
 }
