@@ -5,7 +5,7 @@ module.exports = {
     tsconfigRootDir: __dirname,
     sourceType: 'module',
   },
-  plugins: ['@typescript-eslint/eslint-plugin'],
+  plugins: ['@typescript-eslint/eslint-plugin', 'jest'],
   extends: [
     'plugin:@typescript-eslint/recommended',
     'plugin:prettier/recommended',
@@ -13,7 +13,7 @@ module.exports = {
   root: true,
   env: {
     node: true,
-    jest: true,
+    "jest/globals": true,
   },
   ignorePatterns: ['.eslintrc.js'],
   rules: {

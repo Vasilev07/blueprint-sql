@@ -35,7 +35,9 @@
     "noFallthroughCasesInSwitch": false
   },
   "include": [
-    "src/**/*.ts"
+    "src/**/*.ts",
+    "test/**/*.ts",
+    ".eslintrc.js"
   ],
   "exclude": [
     "node_modules"
