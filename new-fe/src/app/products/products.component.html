@@ -93,61 +93,26 @@
     </ng-template>
   </p-table>
 
-  <p-dialog
-    [(visible)]="productDialog"
-    [style]="{ width: '450px' }"
-    header="Product Details"
-    [modal]="true"
-    styleClass="p-fluid">
-    <ng-template pTemplate="content">
-      <div class="field">
-        <label for="name">Name</label>
-        <input
-          type="text"
-          pInputText
-          id="name"
-          [(ngModel)]="product!.name"
-          required
-          autofocus/>
-        <small class="p-error" *ngIf="submitted && !product!.name">
-          Name is required.
-        </small>
+  <p-dialog header="Edit Profile" [modal]="true" [(visible)]="visible" [style]="{ width: '25rem' }">
+    <form [formGroup]="productForm">
+      <span class="p-text-secondary block mb-8">Update your information.</span>
+      <div class="flex items-center gap-4 mb-4">
+        <label for="name" class="font-semibold w-24">Name</label>
+        <input formControlName="name" pInputText id="name" class="flex-auto" autocomplete="off" />
       </div>
-
-      <div class="formgrid grid">
-        <div class="field col">
-          <label for="price">Price</label>
-          <p-inputNumber
-            id="price"
-            [(ngModel)]="product!.price"
-            mode="currency"
-            currency="USD"
-            locale="en-US"/>
-        </div>
-        <div class="field col">
-          <label for="weight">Weight</label>
-          <p-inputNumber
-            id="weight"
-            [(ngModel)]="product!.weight"/>
-        </div>
+      <div class="flex items-center gap-4 mb-8">
+        <label for="weight" class="font-semibold w-24">Weight</label>
+        <input formControlName="weight" pInputText id="weight" class="flex-auto" autocomplete="off" />
       </div>
-    </ng-template>
+      <div class="flex items-center gap-4 mb-8">
+        <label for="price" class="font-semibold w-24">Price</label>
+        <input formControlName="price" pInputText id="price" class="flex-auto" autocomplete="off" />
+      </div>
+      <div class="flex justify-end gap-2">
+        <p-button label="Cancel" severity="secondary" (click)="visible = false" />
+        <p-button label="Save" (click)="saveProduct()" />
+      </div>
+    </form>
 
-    <ng-template pTemplate="footer">
-      <p-button
-        pRipple
-        label="Cancel"
-        icon="pi pi-times"
-        [text]="true"
-        (click)="hideDialog()"/>
-      <p-button
-        pRipple
-        label="Save"
-        icon="pi pi-check"
-        [text]="true"
-        (click)="saveProduct()"/>
-    </ng-template>
   </p-dialog>
-
-  <p-confirmDialog [style]="{ width: '450px' }"/>
 </div>

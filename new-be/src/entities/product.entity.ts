@@ -1,6 +1,6 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
-import { Order } from "./order.entity";
 import { AutoMap } from "@automapper/classes";
+import { Category } from "./category.entity";
 
 @Entity()
 export class Product {
@@ -16,14 +16,13 @@ export class Product {
     @AutoMap()
     weight: number;
 
-    @ManyToOne(() => Order, (order) => order.products, {
-        onDelete: "CASCADE",
-        nullable: true,
-    })
-    @AutoMap(() => Order)
-    order?: Order | null;
-
     @Column("decimal", { precision: 10, scale: 2 })
     @AutoMap()
     price: number;
+
+    // @ManyToOne(() => Category, (category) => category.products, {
+    //     onDelete: "CASCADE",
+    // })
+    // @AutoMap(() => Category)
+    // category: Category;
 }

@@ -5,7 +5,7 @@ import { UserLoginDTO } from "src/models/user-login-d-t-o";
 import { UserService } from "src/services/user.service";
 import { CryptoService } from "src/services/crypto.service";
 import { ApiTags } from "@nestjs/swagger";
-import { User } from "../../entities/user.entity";
+import { User } from "@entities/user.entity";
 
 @Controller("/auth")
 @ApiTags("User")

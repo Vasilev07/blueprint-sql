@@ -1,25 +1,26 @@
+import { ApiTags } from "@nestjs/swagger";
 import { Body, Controller, Get, Post } from "@nestjs/common";
 import { ProductDTO } from "../../models/product-dto";
-import { ProductService } from "../../services/product.service";
-import { ApiTags } from "@nestjs/swagger";
+import { ProductService } from "@services/product.service";
 
-@Controller("/products")
-@ApiTags("User")
+@Controller("/product")
+@ApiTags("Product")
 export class ProductController {
-    constructor(private readonly productService: ProductService) {}
+    constructor(public productService: ProductService) {}
 
-    @Get("")
-    async getProducts(): Promise<ProductDTO[]> {
+    @Get()
+    async getAll() {
         try {
             return await this.productService.getProducts();
         } catch (error) {
-            throw new Error("Error getting products" + error);
+            throw new Error("Error creating order" + error);
         }
     }
 
     @Post("/create")
-    async createOrder(@Body() productDTO: ProductDTO): Promise<ProductDTO> {
+    async createProduct(@Body() productDTO: ProductDTO): Promise<ProductDTO> {
         try {
+            console.log(productDTO, "productDTO");
             return await this.productService.createProduct(productDTO);
         } catch (error) {
             throw new Error("Error creating order" + error);

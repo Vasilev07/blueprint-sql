@@ -1,5 +1,5 @@
 import { NgModule } from "@angular/core";
-import { FormsModule } from "@angular/forms";
+import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import { ChartModule } from "primeng/chart";
 import { MenuModule } from "primeng/menu";
 import { StyleClassModule } from "primeng/styleclass";
@@ -17,6 +17,8 @@ import { ToastModule } from "primeng/toast";
 import { ToolbarModule } from "primeng/toolbar";
 import { ConfirmDialogModule } from "primeng/confirmdialog";
 import { DialogModule } from "primeng/dialog";
+import { InputTextModule } from "primeng/inputtext";
+import { Ripple } from "primeng/ripple";
 
 @NgModule({
     imports: [
@@ -37,6 +39,9 @@ import { DialogModule } from "primeng/dialog";
         ToolbarModule,
         ConfirmDialogModule,
         DialogModule,
+        InputTextModule,
+        Ripple,
+        ReactiveFormsModule,
     ],
     declarations: [ProductsComponent],
 })

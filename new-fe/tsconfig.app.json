@@ -4,12 +4,29 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "./out-tsc/app",
-    "types": []
+    "types": [],
+    "paths": {
+      "@entities/*": [
+        "src/entities/*"
+      ],
+      "@services/*": [
+        "src/services/*"
+      ],
+      "@mappers/*": [
+        "src/mappers/*"
+      ]
+    }
   },
   "files": [
     "src/main.ts"
   ],
   "include": [
     "src/**/*.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "**/*.spec.ts",
+    "**/*.test.ts",
+    "**/*.tsbuildinfo"
   ]
 }
