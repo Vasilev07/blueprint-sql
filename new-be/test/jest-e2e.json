@@ -1,17 +1,34 @@
 {
-    "moduleFileExtensions": ["js", "json", "ts"],
+    "moduleFileExtensions": [
+        "js",
+        "json",
+        "ts"
+    ],
     "rootDir": ".",
     "testEnvironment": "node",
     "testRegex": ".*\\.e2e-spec\\.ts$",
     "transform": {
-        "^.+\\.(t|j)s$": ["ts-jest", { "useESM": true }]
+        "^.+\\.(t|j)s$": [
+            "ts-jest",
+            {
+                "useESM": true
+            }
+        ]
     },
     "collectCoverage": true,
-    "extensionsToTreatAsEsm": [".ts"],
+    "extensionsToTreatAsEsm": [
+        ".ts"
+    ],
     "globalSetup": "<rootDir>/config/setup.ts",
     "globalTeardown": "<rootDir>/config/teardown.ts",
     "openHandlesTimeout": 10000,
     "moduleNameMapper": {
-        "^src/(.*)$": "<rootDir>/../src/$1"
+        "^src/(.*)$": "<rootDir>/../src/$1",
+        "^@services/(.*)$": "<rootDir>/../src/services/$1",
+        "^@mappers/(.*)$": "<rootDir>/../src/mappers/$1",
+        "^@entities/(.*)$": "<rootDir>/../src/entities/$1",
+        "^@controllers/(.*)$": "<rootDir>/../src/controllers/$1",
+        "^@models/(.*)$": "<rootDir>/../src/models/$1",
+        "^@middlewares/(.*)$": "<rootDir>/../src/middlewares/$1"
     }
 }
