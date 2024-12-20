@@ -19,4 +19,12 @@ export class OrderDTO {
     @ApiProperty()
     @AutoMap(() => [ProductDTO])
     products: ProductDTO[];
+
+    @ApiProperty()
+    @AutoMap()
+    created_at: Date;
+
+    @ApiProperty()
+    @AutoMap()
+    updated_at: Date;
 }
