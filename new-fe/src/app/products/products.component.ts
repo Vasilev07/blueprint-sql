@@ -36,18 +36,13 @@ export class ProductsComponent implements OnInit, OnDestroy {
     ) {}
 
     ngOnInit(): void {
-        this.http
-            .get<ProductDTO[]>("http://localhost:3000/products")
+        this.productService
+            .getAll()
             .pipe(takeUntil(this.ngUnsubscribe))
-            .subscribe((products: ProductDTO[]) => {
+            .subscribe((products) => {
+                console.log("products", products);
                 this.products = products;
             });
-
-        // this.statuses = [
-        //     { label: "INSTOCK", value: "instock" },
-        //     { label: "LOWSTOCK", value: "lowstock" },
-        //     { label: "OUTOFSTOCK", value: "outofstock" },
-        // ];
     }
 
     ngOnDestroy() {
@@ -118,6 +113,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
                 next: (product) => {
                     console.log("product", product);
                     this.product = product;
+                    this.products = [...this.products, product];
                 },
                 complete: () => {
                     this.messageService.add({
@@ -126,6 +122,8 @@ export class ProductsComponent implements OnInit, OnDestroy {
                         detail: "Product Updated",
                         life: 3000,
                     });
+
+                    this.hideDialog();
                 },
             });
     }
