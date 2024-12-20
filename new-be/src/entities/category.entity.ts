@@ -1,6 +1,5 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 import { AutoMap } from "@automapper/classes";
-import { Product } from "./product.entity";
 import { CategoryType } from "../enums/categories.enum";
 
 @Entity()
