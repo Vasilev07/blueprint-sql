@@ -12,12 +12,13 @@ import { FormBuilder, FormGroup, Validators } from "@angular/forms";
     providers: [MessageService, ConfirmationService],
 })
 export class ProductsComponent implements OnInit, OnDestroy {
-    product: ProductDTO | undefined = undefined;
-    products: ProductDTO[] = [];
-    selectedProducts: ProductDTO[] = [];
-    statuses!: any[];
-    visible: boolean = false;
-    productForm: FormGroup<any> = this.fb.group({
+    public product: ProductDTO | undefined = undefined;
+    public products: ProductDTO[] = [];
+    public selectedProducts: ProductDTO[] = [];
+    public statuses!: any[];
+    public visible: boolean = false;
+    public isEdit: boolean = false;
+    public productForm: FormGroup<any> = this.fb.group({
         name: ["", Validators.required],
         weight: ["", Validators.required],
         price: ["", Validators.required],
@@ -25,7 +26,6 @@ export class ProductsComponent implements OnInit, OnDestroy {
     });
 
     private readonly ngUnsubscribe: Subject<void> = new Subject<void>();
-    private isEdit: boolean = false;
 
     constructor(
         private readonly http: HttpClient,
@@ -36,7 +36,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
         public fb: FormBuilder,
     ) {}
 
-    ngOnInit(): void {
+    public ngOnInit(): void {
         this.productService
             .getAll()
             .pipe(takeUntil(this.ngUnsubscribe))
@@ -46,17 +46,17 @@ export class ProductsComponent implements OnInit, OnDestroy {
             });
     }
 
-    ngOnDestroy() {
+    public ngOnDestroy() {
         this.ngUnsubscribe.next();
         this.ngUnsubscribe.complete();
     }
 
-    openNew() {
+    public openNew() {
         this.product = undefined;
         this.visible = true;
     }
 
-    deleteSelectedProducts() {
+    public deleteSelectedProducts() {
         this.confirmationService.confirm({
             message: "Are you sure you want to delete the selected products?",
             header: "Confirm",
@@ -76,7 +76,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
         });
     }
 
-    deleteProduct(product: ProductDTO) {
+    public deleteProduct(product: ProductDTO) {
         this.confirmationService.confirm({
             message: "Are you sure you want to delete " + product.name + "?",
             header: "Confirm",
@@ -96,18 +96,18 @@ export class ProductsComponent implements OnInit, OnDestroy {
         });
     }
 
-    hideDialog() {
+    public hideDialog() {
         this.isEdit = false;
         this.visible = false;
     }
 
-    saveProduct() {
+    public saveProduct() {
         this.isEdit
             ? this.editProduct(this.productForm.getRawValue())
             : this.createProduct(this.productForm.getRawValue());
     }
 
-    createProduct(product: ProductDTO) {
+    public createProduct(product: ProductDTO) {
         this.productService.createProduct(product).subscribe({
             next: (product: ProductDTO) => {
                 this.product = product;
@@ -126,7 +126,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
         });
     }
 
-    editProduct(product: ProductDTO) {
+    public editProduct(product: ProductDTO) {
         this.isEdit = true;
         this.visible = true;
         this.product = { ...product };
