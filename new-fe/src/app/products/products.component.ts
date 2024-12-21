@@ -76,13 +76,6 @@ export class ProductsComponent implements OnInit, OnDestroy {
         });
     }
 
-    editProduct(product: ProductDTO) {
-        this.product = { ...product };
-        this.productForm.patchValue(product);
-        this.isEdit = true;
-        this.visible = true;
-    }
-
     deleteProduct(product: ProductDTO) {
         this.confirmationService.confirm({
             message: "Are you sure you want to delete " + product.name + "?",
@@ -104,17 +97,47 @@ export class ProductsComponent implements OnInit, OnDestroy {
     }
 
     hideDialog() {
+        this.isEdit = false;
         this.visible = false;
     }
 
     saveProduct() {
-        console.log(this.productForm.getRawValue(), "this.productForm.value");
+        this.isEdit
+            ? this.editProduct(this.productForm.getRawValue())
+            : this.createProduct(this.productForm.getRawValue());
+    }
+
+    createProduct(product: ProductDTO) {
+        this.productService.createProduct(product).subscribe({
+            next: (product: ProductDTO) => {
+                this.product = product;
+                this.products = [...this.products, product];
+            },
+            complete: () => {
+                this.messageService.add({
+                    severity: "success",
+                    summary: "Successful",
+                    detail: "Product Created",
+                    life: 3000,
+                });
+
+                this.hideDialog();
+            },
+        });
+    }
+
+    editProduct(product: ProductDTO) {
+        this.isEdit = true;
+        this.visible = true;
+        this.product = { ...product };
+        this.productForm.patchValue(product);
 
         this.productService
-            .createProduct(this.productForm.getRawValue() as ProductDTO)
+            .updateProduct(product)
+            .pipe(takeUntil(this.ngUnsubscribe))
             .subscribe({
-                next: (product) => {
-                    console.log("product", product);
+                next: () => {
+                    // TODO Check that
                     this.product = product;
                     this.products = [...this.products, product];
                 },
