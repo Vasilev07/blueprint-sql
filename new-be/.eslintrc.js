@@ -1,7 +1,7 @@
 module.exports = {
   parser: '@typescript-eslint/parser',
   parserOptions: {
-    project: 'tsconfig.json',
+    project: ['./tsconfig.json', './test/tsconfig.test.json'],
     tsconfigRootDir: __dirname,
     sourceType: 'module',
   },
@@ -10,6 +10,7 @@ module.exports = {
     'plugin:@typescript-eslint/recommended',
     'plugin:prettier/recommended',
   ],
+  // files: ["src/**/*.ts", "test/**/*.ts"],
   root: true,
   env: {
     node: true,

@@ -62,4 +62,9 @@ export class ProductService {
             throw new Error("Error fetching products by category type");
         }
     }
+
+    async updateProduct(productDTO: ProductDTO) {
+        console.log(productDTO, "productDTO");
+        return undefined;
+    }
 }

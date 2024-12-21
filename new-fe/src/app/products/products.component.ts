@@ -25,6 +25,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
     });
 
     private readonly ngUnsubscribe: Subject<void> = new Subject<void>();
+    private isEdit: boolean = false;
 
     constructor(
         private readonly http: HttpClient,
@@ -77,6 +78,8 @@ export class ProductsComponent implements OnInit, OnDestroy {
 
     editProduct(product: ProductDTO) {
         this.product = { ...product };
+        this.productForm.patchValue(product);
+        this.isEdit = true;
         this.visible = true;
     }
 

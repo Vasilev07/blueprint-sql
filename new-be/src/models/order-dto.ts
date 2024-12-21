@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { OrderStatus } from "src/entities/order.entity";
 import { ProductDTO } from "./product-dto";
 import { AutoMap } from "@automapper/classes";
@@ -16,9 +16,9 @@ export class OrderDTO {
     @AutoMap()
     total: number;
 
-    @ApiProperty()
+    @ApiPropertyOptional()
     @AutoMap(() => [ProductDTO])
-    products: ProductDTO[];
+    products?: ProductDTO[];
 
     @ApiProperty()
     @AutoMap()

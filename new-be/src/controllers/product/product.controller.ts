@@ -1,5 +1,5 @@
 import { ApiTags } from "@nestjs/swagger";
-import { Body, Controller, Get, Post } from "@nestjs/common";
+import { Body, Controller, Get, Post, Put } from "@nestjs/common";
 import { ProductDTO } from "../../models/product-dto";
 import { ProductService } from "@services/product.service";
 
@@ -13,7 +13,7 @@ export class ProductController {
         try {
             return await this.productService.getProducts();
         } catch (error) {
-            throw new Error("Error creating order" + error);
+            throw new Error("Error getting products" + error);
         }
     }
 
@@ -23,7 +23,16 @@ export class ProductController {
             console.log(productDTO, "productDTO");
             return await this.productService.createProduct(productDTO);
         } catch (error) {
-            throw new Error("Error creating order" + error);
+            throw new Error("Error creating product" + error);
+        }
+    }
+
+    @Put(":id")
+    async updateProduct(@Body() productDTO: ProductDTO): Promise<ProductDTO> {
+        try {
+            return await this.productService.updateProduct(productDTO);
+        } catch (error) {
+            throw new Error("Error updating product" + error);
         }
     }
 }

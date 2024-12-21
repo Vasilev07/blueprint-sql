@@ -1,9 +1,9 @@
 import { INestApplication } from "@nestjs/common";
 import { Test, TestingModule } from "@nestjs/testing";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import { AppModule } from "src/app.module";
-import { User } from "src/entities/user.entity";
-import { UserService } from "src/services/user.service";
+import { UserService } from "../../src/services/user.service";
+import { AppModule } from "../../src/app.module";
+import { User } from "../../src/entities/user.entity";
 
 describe("Admin Service (e2e)", () => {
     let app: INestApplication;

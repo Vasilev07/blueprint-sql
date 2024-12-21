@@ -35,5 +35,5 @@ export class Order {
     @ManyToMany(() => Product)
     @JoinTable()
     @AutoMap(() => [Product])
-    products: Product[];
+    products?: Product[];
 }

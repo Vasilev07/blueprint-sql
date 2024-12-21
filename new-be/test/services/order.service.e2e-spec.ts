@@ -1,14 +1,14 @@
 import { INestApplication } from "@nestjs/common";
 import { Test, TestingModule } from "@nestjs/testing";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import { AppModule } from "src/app.module";
-import { Order, OrderStatus } from "src/entities/order.entity";
-import { Product } from "src/entities/product.entity";
-import { OrderDTO } from "src/models/order-dto";
-import { ProductDTO } from "src/models/product-dto";
-import { OrderService } from "src/services/order.service";
 import { ProductService } from "../../src/services/product.service";
 import dataSource from "../../src/config/data-source";
+import { OrderService } from "../../src/services/order.service";
+import { AppModule } from "../../src/app.module";
+import { Product } from "../../src/entities/product.entity";
+import { Order, OrderStatus } from "../../src/entities/order.entity";
+import { ProductDTO } from "../../src/models/product-dto";
+import { OrderDTO } from "../../src/models/order-dto";
 
 describe("Order Service (e2e)", () => {
     let app: INestApplication;
