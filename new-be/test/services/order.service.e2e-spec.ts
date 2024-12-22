@@ -53,11 +53,14 @@ describe("Order Service (e2e)", () => {
             name: "Product 1",
             price: 100,
         };
+        const productFromDB: ProductDTO =
+            await productService.createProduct(product);
+
         const orderToSave: OrderDTO = {
             id: undefined,
             status: OrderStatus.PENDING,
             total: 100,
-            products: [product],
+            products: [productFromDB],
             created_at: new Date(),
             updated_at: new Date(),
         };
@@ -73,28 +76,33 @@ describe("Order Service (e2e)", () => {
         expect(orderFromDB.total).toBe(100);
         expect(orderFromDB.products).toBeDefined();
         expect(orderFromDB.products.length).toBe(1);
-        expect(productsFromDb.length).toBe(0);
+        expect(productsFromDb.length).toBe(1);
     });
 
     test("should get orders", async () => {
         const product: ProductDTO = {
-            id: 1,
+            id: undefined,
             weight: 10,
             name: "Product 1",
             price: 100,
         };
+        const savedProduct = await productService.createProduct(product);
+
+        console.log(await productService.getProducts(), "products");
+
         const orderToSave: OrderDTO = {
             id: undefined,
             status: OrderStatus.PENDING,
             total: 100,
-            products: [product],
+            products: [savedProduct],
             created_at: new Date(),
             updated_at: new Date(),
         };
-        await productService.createProduct(product);
-        await orderService.createOrder(orderToSave);
+        const savedOrder = await orderService.createOrder(orderToSave);
+        console.log(savedOrder, "savedOrder");
 
         const orders: OrderDTO[] = await orderService.getOrdersWithProducts();
+        console.log(orders, "orders");
 
         expect(orders).toBeDefined();
         expect(orders.length).toBe(1);

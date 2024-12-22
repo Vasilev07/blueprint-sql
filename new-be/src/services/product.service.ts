@@ -46,6 +46,20 @@ export class ProductService {
         }
     }
 
+    async updateProduct(productDTO: ProductDTO) {
+        // TODO that should be transactional
+        // Maybe locking is also a good idea
+        try {
+            await this.productRepository.update(productDTO.id, productDTO);
+
+            return await this.productRepository.findOneBy({
+                id: productDTO.id,
+            });
+        } catch (error) {
+            throw new Error("Error updating product" + error);
+        }
+    }
+
     async getProductsByCategoryType(
         categoryType: CategoryType,
     ): Promise<ProductDTO[]> {
@@ -61,10 +75,5 @@ export class ProductService {
         } catch (e) {
             throw new Error("Error fetching products by category type");
         }
-    }
-
-    async updateProduct(productDTO: ProductDTO) {
-        console.log(productDTO, "productDTO");
-        return undefined;
     }
 }

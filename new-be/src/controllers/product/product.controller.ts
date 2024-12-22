@@ -20,7 +20,6 @@ export class ProductController {
     @Post("/create")
     async createProduct(@Body() productDTO: ProductDTO): Promise<ProductDTO> {
         try {
-            console.log(productDTO, "productDTO");
             return await this.productService.createProduct(productDTO);
         } catch (error) {
             throw new Error("Error creating product" + error);

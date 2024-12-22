@@ -15,13 +15,7 @@ export class Product {
     @AutoMap()
     weight: number;
 
-    @Column("decimal", { precision: 10, scale: 2 })
+    @Column({ type: "decimal", precision: 10, scale: 2 })
     @AutoMap()
     price: number;
-
-    // @ManyToOne(() => Category, (category) => category.products, {
-    //     onDelete: "CASCADE",
-    // })
-    // @AutoMap(() => Category)
-    // category: Category;
 }

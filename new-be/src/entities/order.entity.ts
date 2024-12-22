@@ -33,7 +33,10 @@ export class Order {
     total: number;
 
     @ManyToMany(() => Product)
-    @JoinTable()
+    @JoinTable({
+        name: "order_products",
+        joinColumn: { name: "order_id", referencedColumnName: "id" },
+    })
     @AutoMap(() => [Product])
     products?: Product[];
 }

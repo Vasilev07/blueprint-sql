@@ -70,4 +70,29 @@ describe("Order Service (e2e)", () => {
         expect(products[0].id).toBeDefined();
         expect(products[1].id).toBeDefined();
     });
+
+    test("should update product", async () => {
+        const productToSave1 = {
+            id: undefined,
+            name: "Product 1",
+            price: 100,
+            weight: 10,
+        };
+        const savedProduct = await productService.createProduct(productToSave1);
+
+        const productToUpdate = {
+            id: savedProduct.id,
+            name: "Product 1 Updated",
+            price: 200,
+            weight: 20,
+        };
+        const updatedProduct =
+            await productService.updateProduct(productToUpdate);
+
+        expect(updatedProduct).toBeDefined();
+        expect(updatedProduct.id).toBe(savedProduct.id);
+        expect(updatedProduct.name).toBe("Product 1 Updated");
+        expect(updatedProduct.price).toBe("200.00");
+        expect(updatedProduct.weight).toBe("20.00");
+    });
 });
