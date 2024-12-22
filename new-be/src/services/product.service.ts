@@ -46,6 +46,22 @@ export class ProductService {
         }
     }
 
+    async updateProduct(productDTO: ProductDTO) {
+        // TODO that should be transactional
+        // Maybe locking is also a good idea
+        try {
+            await this.productRepository.update(productDTO.id, productDTO);
+
+            const product = await this.productRepository.findOneBy({
+                id: productDTO.id,
+            });
+
+            return this.mapper.map(product, Product, ProductDTO);
+        } catch (error) {
+            throw new Error("Error updating product" + error);
+        }
+    }
+
     async getProductsByCategoryType(
         categoryType: CategoryType,
     ): Promise<ProductDTO[]> {

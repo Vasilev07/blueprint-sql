@@ -46,6 +46,7 @@ export class OrderService {
                     products: true,
                 },
             });
+            console.log(ordersWithProducts, "ordersWithProducts");
             return ordersWithProducts.map((order) =>
                 this.mapper.map(order, Order, OrderDTO),
             );

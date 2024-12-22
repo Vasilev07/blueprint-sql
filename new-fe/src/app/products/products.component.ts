@@ -12,16 +12,17 @@ import { FormBuilder, FormGroup, Validators } from "@angular/forms";
     providers: [MessageService, ConfirmationService],
 })
 export class ProductsComponent implements OnInit, OnDestroy {
-    product: ProductDTO | undefined = undefined;
-    products: ProductDTO[] = [];
-    selectedProducts: ProductDTO[] = [];
-    statuses!: any[];
-    visible: boolean = false;
-    productForm: FormGroup<any> = this.fb.group({
+    public product: ProductDTO | undefined = undefined;
+    public products: ProductDTO[] = [];
+    public selectedProducts: ProductDTO[] = [];
+    public statuses!: any[];
+    public visible: boolean = false;
+    public isEdit: boolean = false;
+    public productForm: FormGroup<any> = this.fb.group({
         name: ["", Validators.required],
         weight: ["", Validators.required],
         price: ["", Validators.required],
-        category: ["", Validators.required],
+        // category: ["", Validators.required],
     });
 
     private readonly ngUnsubscribe: Subject<void> = new Subject<void>();
@@ -35,7 +36,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
         public fb: FormBuilder,
     ) {}
 
-    ngOnInit(): void {
+    public ngOnInit(): void {
         this.productService
             .getAll()
             .pipe(takeUntil(this.ngUnsubscribe))
@@ -45,17 +46,17 @@ export class ProductsComponent implements OnInit, OnDestroy {
             });
     }
 
-    ngOnDestroy() {
+    public ngOnDestroy() {
         this.ngUnsubscribe.next();
         this.ngUnsubscribe.complete();
     }
 
-    openNew() {
+    public openNew() {
         this.product = undefined;
         this.visible = true;
     }
 
-    deleteSelectedProducts() {
+    public deleteSelectedProducts() {
         this.confirmationService.confirm({
             message: "Are you sure you want to delete the selected products?",
             header: "Confirm",
@@ -75,12 +76,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
         });
     }
 
-    editProduct(product: ProductDTO) {
-        this.product = { ...product };
-        this.visible = true;
-    }
-
-    deleteProduct(product: ProductDTO) {
+    public deleteProduct(product: ProductDTO) {
         this.confirmationService.confirm({
             message: "Are you sure you want to delete " + product.name + "?",
             header: "Confirm",
@@ -100,18 +96,55 @@ export class ProductsComponent implements OnInit, OnDestroy {
         });
     }
 
-    hideDialog() {
+    public hideDialog() {
+        this.isEdit = false;
         this.visible = false;
     }
 
-    saveProduct() {
-        console.log(this.productForm.getRawValue(), "this.productForm.value");
+    public saveProduct() {
+        this.isEdit
+            ? this.updateProduct({
+                  id: this.product?.id,
+                  ...this.productForm.getRawValue(),
+              })
+            : this.createProduct(this.productForm.getRawValue());
+    }
 
+    public createProduct(product: ProductDTO) {
+        this.productService.createProduct(product).subscribe({
+            next: (product: ProductDTO) => {
+                this.product = product;
+                this.products = [...this.products, product];
+            },
+            complete: () => {
+                this.messageService.add({
+                    severity: "success",
+                    summary: "Successful",
+                    detail: "Product Created",
+                    life: 3000,
+                });
+
+                this.hideDialog();
+            },
+        });
+    }
+
+    public editProduct(product: ProductDTO) {
+        this.isEdit = true;
+        this.visible = true;
+        this.product = { ...product };
+        this.productForm.patchValue(product);
+        console.log("product", product);
+    }
+
+    public updateProduct(product: ProductDTO) {
+        console.log("product before http call", product);
         this.productService
-            .createProduct(this.productForm.getRawValue() as ProductDTO)
+            .updateProduct(product.id!.toString(), product)
+            .pipe(takeUntil(this.ngUnsubscribe))
             .subscribe({
-                next: (product) => {
-                    console.log("product", product);
+                next: () => {
+                    // TODO Check that
                     this.product = product;
                     this.products = [...this.products, product];
                 },
