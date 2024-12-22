@@ -1,5 +1,5 @@
 import { ApiTags } from "@nestjs/swagger";
-import { Body, Controller, Get, Post, Put } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, Put } from "@nestjs/common";
 import { ProductDTO } from "../../models/product-dto";
 import { ProductService } from "@services/product.service";
 
@@ -27,7 +27,10 @@ export class ProductController {
     }
 
     @Put(":id")
-    async updateProduct(@Body() productDTO: ProductDTO): Promise<ProductDTO> {
+    async updateProduct(
+        @Param("id") id: string,
+        @Body() productDTO: ProductDTO,
+    ): Promise<ProductDTO> {
         try {
             return await this.productService.updateProduct(productDTO);
         } catch (error) {

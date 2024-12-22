@@ -22,7 +22,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
         name: ["", Validators.required],
         weight: ["", Validators.required],
         price: ["", Validators.required],
-        category: ["", Validators.required],
+        // category: ["", Validators.required],
     });
 
     private readonly ngUnsubscribe: Subject<void> = new Subject<void>();
@@ -103,7 +103,10 @@ export class ProductsComponent implements OnInit, OnDestroy {
 
     public saveProduct() {
         this.isEdit
-            ? this.editProduct(this.productForm.getRawValue())
+            ? this.updateProduct({
+                  id: this.product?.id,
+                  ...this.productForm.getRawValue(),
+              })
             : this.createProduct(this.productForm.getRawValue());
     }
 
@@ -131,10 +134,13 @@ export class ProductsComponent implements OnInit, OnDestroy {
         this.visible = true;
         this.product = { ...product };
         this.productForm.patchValue(product);
-      console.log("product", product);
+        console.log("product", product);
+    }
 
+    public updateProduct(product: ProductDTO) {
+        console.log("product before http call", product);
         this.productService
-            .updateProduct(product)
+            .updateProduct(product.id!.toString(), product)
             .pipe(takeUntil(this.ngUnsubscribe))
             .subscribe({
                 next: () => {
