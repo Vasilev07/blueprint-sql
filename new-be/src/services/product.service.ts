@@ -52,9 +52,11 @@ export class ProductService {
         try {
             await this.productRepository.update(productDTO.id, productDTO);
 
-            return await this.productRepository.findOneBy({
+            const product = await this.productRepository.findOneBy({
                 id: productDTO.id,
             });
+
+            return this.mapper.map(product, Product, ProductDTO);
         } catch (error) {
             throw new Error("Error updating product" + error);
         }

@@ -80,6 +80,11 @@ describe("Order Service (e2e)", () => {
         };
         const savedProduct = await productService.createProduct(productToSave1);
 
+        expect(savedProduct).toBeDefined();
+        expect(savedProduct.name).toBe("Product 1");
+        expect(savedProduct.price).toBe(100);
+        expect(savedProduct.weight).toBe(10);
+
         const productToUpdate = {
             id: savedProduct.id,
             name: "Product 1 Updated",
