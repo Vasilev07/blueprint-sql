@@ -131,6 +131,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
         this.visible = true;
         this.product = { ...product };
         this.productForm.patchValue(product);
+      console.log("product", product);
 
         this.productService
             .updateProduct(product)
