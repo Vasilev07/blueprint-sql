@@ -62,6 +62,15 @@ export class ProductService {
         }
     }
 
+    async deleteProduct(id: number) {
+        try {
+            // TODO we do nothing with Orders referencing it
+            await this.productRepository.delete(id);
+        } catch (error) {
+            throw new Error("Error deleting product" + error);
+        }
+    }
+
     async getProductsByCategoryType(
         categoryType: CategoryType,
     ): Promise<ProductDTO[]> {
