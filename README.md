@@ -15,6 +15,10 @@ This project has one purpose -> startup project with all things configured, like
 
 ![img.png](img.png)
 
+![img_2.png](img_2.png)
+
+![img_3.png](img_3.png)
+
 ### Development
 
 In order to be able to run the project you will need NodeJS and NPM installed.

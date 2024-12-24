@@ -7,7 +7,7 @@ import { AppModule } from "../../src/app.module";
 import { Order } from "../../src/entities/order.entity";
 import { Product } from "../../src/entities/product.entity";
 
-describe("Order Service (e2e)", () => {
+describe("Product Service (e2e)", () => {
     let app: INestApplication;
     let productService: ProductService;
 
@@ -99,5 +99,37 @@ describe("Order Service (e2e)", () => {
         expect(updatedProduct.name).toBe("Product 1 Updated");
         expect(updatedProduct.price).toBe("200.00");
         expect(updatedProduct.weight).toBe("20.00");
+    });
+
+    test("should delete product", async () => {
+        const productToSave1 = {
+            id: undefined,
+            name: "Product 1",
+            price: 100,
+            weight: 10,
+        };
+        const savedProduct1 =
+            await productService.createProduct(productToSave1);
+
+        const productToSave2 = {
+            id: undefined,
+            name: "Product 1",
+            price: 100,
+            weight: 10,
+        };
+        const savedProduct2 =
+            await productService.createProduct(productToSave2);
+
+        const productsBeforeDelete = await productService.getProducts();
+
+        expect(productsBeforeDelete).toBeDefined();
+        expect(productsBeforeDelete.length).toBe(2);
+
+        await productService.deleteProduct(savedProduct2.id.toString());
+
+        const productsAfterDelete = await productService.getProducts();
+        expect(productsAfterDelete).toBeDefined();
+        expect(productsAfterDelete.length).toBe(1);
+        expect(productsAfterDelete[0].id).toBe(savedProduct1.id);
     });
 });

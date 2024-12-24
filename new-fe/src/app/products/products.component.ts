@@ -77,21 +77,30 @@ export class ProductsComponent implements OnInit, OnDestroy {
     }
 
     public deleteProduct(product: ProductDTO) {
+        console.log("product", product);
         this.confirmationService.confirm({
             message: "Are you sure you want to delete " + product.name + "?",
             header: "Confirm",
             icon: "pi pi-exclamation-triangle",
             accept: () => {
-                this.products = this.products.filter(
-                    (val) => val.id !== product.id,
-                );
-                this.product = undefined;
-                this.messageService.add({
-                    severity: "success",
-                    summary: "Successful",
-                    detail: "Product Deleted",
-                    life: 3000,
-                });
+                this.productService
+                    .deleteProduct(product.id!.toString())
+                    .subscribe({
+                        next: () => {
+                            this.products = this.products.filter(
+                                (val) => val.id !== product.id,
+                            );
+                            this.product = undefined;
+                        },
+                        complete: () => {
+                            this.messageService.add({
+                                severity: "success",
+                                summary: "Successful",
+                                detail: "Product Deleted",
+                                life: 3000,
+                            });
+                        },
+                    });
             },
         });
     }
@@ -159,5 +168,9 @@ export class ProductsComponent implements OnInit, OnDestroy {
                     this.hideDialog();
                 },
             });
+    }
+
+    test() {
+        console.log("test");
     }
 }

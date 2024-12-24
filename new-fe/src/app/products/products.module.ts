@@ -19,6 +19,7 @@ import { ConfirmDialogModule } from "primeng/confirmdialog";
 import { DialogModule } from "primeng/dialog";
 import { InputTextModule } from "primeng/inputtext";
 import { Ripple } from "primeng/ripple";
+import { ConfirmationService } from "primeng/api";
 
 @NgModule({
     imports: [
@@ -44,5 +45,6 @@ import { Ripple } from "primeng/ripple";
         ReactiveFormsModule,
     ],
     declarations: [ProductsComponent],
+    providers: [ConfirmationService],
 })
 export class ProductsModule {}

@@ -1,5 +1,5 @@
 import { ApiTags } from "@nestjs/swagger";
-import { Body, Controller, Get, Param, Post, Put } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post, Put } from "@nestjs/common";
 import { ProductDTO } from "../../models/product-dto";
 import { ProductService } from "@services/product.service";
 
@@ -35,6 +35,15 @@ export class ProductController {
             return await this.productService.updateProduct(productDTO);
         } catch (error) {
             throw new Error("Error updating product" + error);
+        }
+    }
+
+    @Delete(":id")
+    async deleteProduct(@Param("id") id: string) {
+        try {
+            return await this.productService.deleteProduct(id);
+        } catch (error) {
+            throw new Error("Error deleting product" + error);
         }
     }
 }
