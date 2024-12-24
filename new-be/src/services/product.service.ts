@@ -62,7 +62,7 @@ export class ProductService {
         }
     }
 
-    async deleteProduct(id: number) {
+    async deleteProduct(id: string) {
         try {
             // TODO we do nothing with Orders referencing it
             await this.productRepository.delete(id);

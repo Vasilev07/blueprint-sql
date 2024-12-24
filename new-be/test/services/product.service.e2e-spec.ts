@@ -7,7 +7,7 @@ import { AppModule } from "../../src/app.module";
 import { Order } from "../../src/entities/order.entity";
 import { Product } from "../../src/entities/product.entity";
 
-describe("Order Service (e2e)", () => {
+describe("Product Service (e2e)", () => {
     let app: INestApplication;
     let productService: ProductService;
 
