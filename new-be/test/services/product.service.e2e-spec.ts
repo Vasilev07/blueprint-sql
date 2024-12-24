@@ -125,7 +125,7 @@ describe("Product Service (e2e)", () => {
         expect(productsBeforeDelete).toBeDefined();
         expect(productsBeforeDelete.length).toBe(2);
 
-        await productService.deleteProduct(savedProduct2.id);
+        await productService.deleteProduct(savedProduct2.id.toString());
 
         const productsAfterDelete = await productService.getProducts();
         expect(productsAfterDelete).toBeDefined();
