@@ -2,7 +2,6 @@ import { Component, OnDestroy, OnInit } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { Subject, takeUntil } from "rxjs";
 import { ConfirmationService, MessageService } from "primeng/api";
-import { LayoutService } from "../layout/service/app.layout.service";
 import { ProductDTO } from "../../typescript-api-client/src/models/productDTO";
 import { ProductService } from "../../typescript-api-client/src/clients/product.service";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
@@ -31,8 +30,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
         private readonly http: HttpClient,
         private readonly confirmationService: ConfirmationService,
         private readonly messageService: MessageService,
-        public layoutService: LayoutService,
-        public productService: ProductService,
+        private productService: ProductService,
         public fb: FormBuilder,
     ) {}
 

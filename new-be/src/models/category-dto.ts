@@ -1,17 +1,24 @@
-import { CategoryGender, CategoryType } from "../enums/categories.enum";
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { AutoMap } from "@automapper/classes";
 
 export class CategoryDTO {
-    @ApiProperty()
+    @ApiPropertyOptional()
     @AutoMap()
     id?: number;
 
     @ApiProperty()
     @AutoMap()
-    gender: CategoryGender;
+    name: string;
 
     @ApiProperty()
     @AutoMap()
-    type: CategoryType;
+    description: string;
+
+    @ApiPropertyOptional()
+    @AutoMap(() => CategoryDTO)
+    parent?: CategoryDTO;
+
+    @ApiPropertyOptional()
+    @AutoMap(() => [CategoryDTO])
+    children?: CategoryDTO[];
 }
