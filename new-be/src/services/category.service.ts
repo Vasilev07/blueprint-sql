@@ -24,4 +24,10 @@ export class CategoryService {
 
         return this.mapper.map(savedCategory, Category, CategoryDTO);
     }
+
+    async getCategories(): Promise<CategoryDTO[]> {
+        const categories = await this.categoryRepository.find();
+
+        return this.mapper.mapArray(categories, Category, CategoryDTO);
+    }
 }

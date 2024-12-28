@@ -95,7 +95,6 @@
 
   <p-dialog header="{{ isEdit ? 'Edit' : 'Create'}} Product" [modal]="true" [(visible)]="visible" [style]="{ width: '25rem' }">
     <form [formGroup]="productForm">
-      <span class="p-text-secondary block mb-8">Update your information.</span>
       <div class="flex items-center gap-4 mb-4">
         <label for="name" class="font-semibold w-24">Name</label>
         <input formControlName="name" pInputText id="name" class="flex-auto" autocomplete="off" />

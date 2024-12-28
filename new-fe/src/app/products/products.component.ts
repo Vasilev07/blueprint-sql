@@ -38,9 +38,11 @@ export class ProductsComponent implements OnInit, OnDestroy {
         this.productService
             .getAll()
             .pipe(takeUntil(this.ngUnsubscribe))
-            .subscribe((products) => {
-                console.log("products", products);
-                this.products = products;
+            .subscribe({
+                next: (products) => {
+                    console.log("products", products);
+                    this.products = products;
+                },
             });
     }
 
