@@ -5,7 +5,6 @@ import { AppModule } from "../../src/app.module";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { Category } from "../../src/entities/category.entity";
 import { DataSource } from "typeorm";
-import { Product } from "../../src/entities/product.entity";
 
 describe("Order Service (e2e)", () => {
     let app: INestApplication;
