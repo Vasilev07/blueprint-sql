@@ -153,7 +153,8 @@ export class ProductsComponent implements OnInit, OnDestroy {
             .updateProduct(product.id!.toString(), product)
             .pipe(takeUntil(this.ngUnsubscribe))
             .subscribe({
-                next: () => {
+                next: (productFromDb) => {
+                    productFromDb;
                     // TODO Check that
                     this.product = product;
                     this.products = [...this.products, product];

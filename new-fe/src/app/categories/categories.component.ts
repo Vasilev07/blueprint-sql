@@ -55,7 +55,32 @@ export class CategoriesComponent implements OnInit, OnDestroy {
 
     public deleteSelectedCategories() {}
 
-    public deleteCategory(category: CategoryDTO) {}
+    public deleteCategory(category: CategoryDTO) {
+        this.confirmationService.confirm({
+            message: "Are you sure you want to delete " + category.name + "?",
+            header: "Confirm",
+            icon: "pi pi-exclamation-triangle",
+            accept: () => {
+                this.categoryService
+                    .deleteCategory(category.id!.toString())
+                    .pipe(takeUntil(this.ngUnsubscribe))
+                    .subscribe({
+                        next: () => {
+                            this.messageService.add({
+                                severity: "success",
+                                summary: "Successful",
+                                detail: "Product Deleted",
+                                life: 3000,
+                            });
+
+                            this.categories = this.categories.filter(
+                                (val) => val.id !== category.id,
+                            );
+                        },
+                    });
+            },
+        });
+    }
 
     public hideDialog() {
         this.isEdit = false;
@@ -107,6 +132,27 @@ export class CategoriesComponent implements OnInit, OnDestroy {
 
     public updateCategory(category: CategoryDTO) {
         console.log(category, "category");
+        this.categoryService
+            .updateCategory(category.id!.toString(), category)
+            .pipe(takeUntil(this.ngUnsubscribe))
+            .subscribe({
+                next: (categoryFromDb) => {
+                    categoryFromDb;
+                    // TODO Check that
+                    this.category = category;
+                    this.categories = [...this.categories, category];
+                },
+                complete: () => {
+                    this.messageService.add({
+                        severity: "success",
+                        summary: "Successful",
+                        detail: "Product Updated",
+                        life: 3000,
+                    });
+
+                    this.hideDialog();
+                },
+            });
     }
 
     test() {

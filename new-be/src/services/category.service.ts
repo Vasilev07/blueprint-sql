@@ -54,4 +54,12 @@ export class CategoryService {
             throw new Error("Error updating category");
         }
     }
+
+    async deleteCategory(id: string): Promise<void> {
+        try {
+            await this.categoryRepository.delete(id);
+        } catch (e) {
+            throw new Error("Error deleting category");
+        }
+    }
 }

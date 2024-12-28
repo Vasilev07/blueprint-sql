@@ -112,4 +112,41 @@ describe("Category Service (e2e)", () => {
             "Some test descriptive description 1 Updated",
         );
     });
+
+    test("should delete category", async () => {
+        const categoryToSave1 = {
+            id: undefined,
+            name: "Category 1",
+            description: "Some test descriptive description 1",
+            parent: undefined,
+            children: undefined,
+        };
+
+        const savedCategory1 =
+            await categoryService.createCategory(categoryToSave1);
+
+        const categoryToSave2 = {
+            id: undefined,
+            name: "Category 2",
+            description: "Some test descriptive description 1",
+            parent: undefined,
+            children: undefined,
+        };
+
+        const savedCategory2 =
+            await categoryService.createCategory(categoryToSave2);
+
+        const productsBeforeDelete = await categoryService.getCategories();
+
+        expect(productsBeforeDelete).toBeDefined();
+        expect(productsBeforeDelete.length).toBe(2);
+
+        await categoryService.deleteCategory(savedCategory2.id.toString());
+
+        const categoriesAfterDelete = await categoryService.getCategories();
+
+        expect(categoriesAfterDelete).toBeDefined();
+        expect(categoriesAfterDelete.length).toBe(1);
+        expect(categoriesAfterDelete[0].id).toBe(savedCategory1.id);
+    });
 });
