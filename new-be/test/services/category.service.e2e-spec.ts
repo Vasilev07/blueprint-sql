@@ -44,4 +44,43 @@ describe("Order Service (e2e)", () => {
         expect(dto.parent).toBe(undefined);
         expect(dto.children).toBe(undefined);
     });
+
+    test("should fetch all categories", async () => {
+        const categoryToSave1 = {
+            id: undefined,
+            name: "Product 1",
+            description: "Some test descriptive description 1",
+            parent: undefined,
+            children: undefined,
+        };
+        const categoryToSave2 = {
+            id: undefined,
+            name: "Product 2",
+            description: "Some test descriptive description 2",
+            parent: undefined,
+            children: undefined,
+        };
+        const categoryToSave3 = {
+            id: undefined,
+            name: "Product 3",
+            description: "Some test descriptive description 3",
+            parent: undefined,
+            children: undefined,
+        };
+
+        const dto1 = await categoryService.createCategory(categoryToSave1);
+        const dto2 = await categoryService.createCategory(categoryToSave2);
+        const dto3 = await categoryService.createCategory(categoryToSave3);
+
+        const categories = await categoryService.getCategories();
+
+        expect(categories).toBeDefined();
+        expect(categories.length).toBe(3);
+        expect(categories[0].id).toBeDefined();
+        expect(categories[1].id).toBeDefined();
+        expect(categories[2].id).toBeDefined();
+        expect(categories[0].name).toBe(dto1.name);
+        expect(categories[1].name).toBe(dto2.name);
+        expect(categories[2].name).toBe(dto3.name);
+    });
 });
