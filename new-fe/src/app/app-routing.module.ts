@@ -23,11 +23,11 @@ const routes: Routes = [
                     ),
             },
             {
-                path: "product-categories",
+                path: "categories",
                 loadChildren: () =>
-                    import(
-                        "./product-categories/product-categories.module"
-                    ).then((m) => m.ProductCategoriesModule),
+                    import("./categories/categories.module").then(
+                        (m) => m.CategoriesModule,
+                    ),
             },
             {
                 path: "orders",

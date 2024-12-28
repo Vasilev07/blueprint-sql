@@ -26,9 +26,9 @@ export class AppMenuComponent implements OnInit {
                         routerLink: ["/products"],
                     },
                     {
-                        label: "Product Categories",
-                        icon: "pi pi-fw pi-table",
-                        routerLink: ["/product-categories"],
+                        label: "Categories",
+                        icon: "pi pi-fw",
+                        routerLink: ["/categories"],
                     },
                     {
                         label: "Orders",

@@ -1,5 +1,5 @@
-<div class="product-categories">
-  <p-toast/>
+<div class="categories">
+  <p-toast />
   <p-toolbar styleClass="mb-4 gap-2">
     <ng-template pTemplate="left">
       <p-button
@@ -8,20 +8,20 @@
         label="New"
         icon="pi pi-plus"
         class="mr-2"
-        (click)="openNew()"/>
+        (click)="openNew()" />
       <p-button
         pRipple
         severity="danger"
         label="Delete"
         icon="pi pi-trash"
         (click)="deleteSelectedProducts()"
-        [disabled]="!selectedProducts || !selectedProducts.length"/>
+        [disabled]="!selectedProducts || !selectedProducts.length" />
     </ng-template>
   </p-toolbar>
 
   <p-table
     #dt
-    [value]="products"
+    [value]="categories"
     [rows]="10"
     [paginator]="true"
     [rowsPerPageOptions]="[5,10,20,50]"
@@ -36,19 +36,19 @@
     <ng-template pTemplate="header">
       <tr>
         <th style="width: 4rem">
-          <p-tableHeaderCheckbox/>
+          <p-tableHeaderCheckbox />
         </th>
         <th pSortableColumn="name" style="min-width:15rem">
           Name
-          <p-sortIcon field="name"/>
+          <p-sortIcon field="name" />
         </th>
         <th pSortableColumn="price">
           Price
-          <p-sortIcon field="price"/>
+          <p-sortIcon field="price" />
         </th>
         <th pSortableColumn="weight">
           Weight
-          <p-sortIcon field="weight"/>
+          <p-sortIcon field="weight" />
         </th>
         <th></th>
       </tr>
@@ -56,7 +56,7 @@
     <ng-template pTemplate="body" let-product>
       <tr>
         <td>
-          <p-tableCheckbox [value]="product"/>
+          <p-tableCheckbox [value]="product" />
         </td>
         <td>
           {{ product.name }}
@@ -75,26 +75,27 @@
             [rounded]="true"
             [outlined]="true"
             severity="success"
-            (click)="editProduct(product)"/>
+            (click)="editCategory(product)" />
           <p-button
             pRipple
             icon="pi pi-trash"
             severity="danger"
             [rounded]="true"
             [outlined]="true"
-            (click)="deleteProduct(product)"/>
+            (click)="deleteCategory(product)" />
         </td>
       </tr>
     </ng-template>
     <ng-template pTemplate="summary">
       <div class="flex align-items-center justify-content-between">
-        In total there are {{ products ? products.length : 0 }} products.
+        In total there are {{ categories ? categories.length : 0 }} products.
       </div>
     </ng-template>
   </p-table>
 
-  <p-dialog header="{{ isEdit ? 'Edit' : 'Create'}} Product" [modal]="true" [(visible)]="visible" [style]="{ width: '25rem' }">
-    <form [formGroup]="productForm">
+  <p-dialog header="{{ isEdit ? 'Edit' : 'Create'}} Product" [modal]="true" [(visible)]="visible"
+            [style]="{ width: '25rem' }">
+    <form [formGroup]="categoryForm">
       <span class="p-text-secondary block mb-8">Update your information.</span>
       <div class="flex items-center gap-4 mb-4">
         <label for="name" class="font-semibold w-24">Name</label>
@@ -110,7 +111,7 @@
       </div>
       <div class="flex justify-end gap-2">
         <p-button label="Cancel" severity="secondary" (click)="hideDialog()" />
-        <p-button label="Save" (click)="saveProduct()" />
+        <p-button label="Save" (click)="saveCategory()" />
       </div>
     </form>
 

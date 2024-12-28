@@ -4,18 +4,20 @@ import { ConfirmationService, MessageService } from "primeng/api";
 import { ProductService } from "../../typescript-api-client/src/clients/product.service";
 
 @Component({
-    templateUrl: "product-categories.component.html",
-    providers: [],
+    templateUrl: "categories.component.html",
+    providers: [MessageService, ConfirmationService],
 })
-export class ProductCategoriesComponent implements OnInit {
+export class CategoriesComponent implements OnInit {
     public visible: boolean = false;
     public isEdit: boolean = false;
-    public productCategoryForm: FormGroup<any> = this.fb.group({
+    public categoryForm: FormGroup<any> = this.fb.group({
         name: ["", Validators.required],
         weight: ["", Validators.required],
         price: ["", Validators.required],
         // category: ["", Validators.required],
     });
+    selectedProducts: any[] = [];
+    categories: any[] = [];
 
     constructor(
         private readonly messageService: MessageService,
@@ -25,15 +27,25 @@ export class ProductCategoriesComponent implements OnInit {
     ) {}
 
     public ngOnInit(): void {
-        console.log("ProductCategoriesComponent initialized");
+        console.log("CategoriesComponent initialized");
+        this.selectedProducts = [];
     }
 
     public openNew() {
-        this.productCategory = undefined;
         this.visible = true;
     }
 
     test() {
         console.log("test");
     }
+
+    deleteSelectedProducts() {}
+
+    editCategory(product: any) {}
+
+    deleteCategory(product: any) {}
+
+    hideDialog() {}
+
+    saveCategory() {}
 }
