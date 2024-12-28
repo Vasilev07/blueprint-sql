@@ -6,7 +6,7 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { Category } from "../../src/entities/category.entity";
 import { DataSource } from "typeorm";
 
-describe("Order Service (e2e)", () => {
+describe("Category Service (e2e)", () => {
     let app: INestApplication;
     let categoryService: CategoryService;
 
@@ -29,7 +29,7 @@ describe("Order Service (e2e)", () => {
     test("should create new category", async () => {
         const categoryToSave = {
             id: undefined,
-            name: "Product 1",
+            name: "Category 1",
             description: "Some test descriptive description",
             parent: undefined,
             children: undefined,
@@ -47,21 +47,21 @@ describe("Order Service (e2e)", () => {
     test("should fetch all categories", async () => {
         const categoryToSave1 = {
             id: undefined,
-            name: "Product 1",
+            name: "Category 1",
             description: "Some test descriptive description 1",
             parent: undefined,
             children: undefined,
         };
         const categoryToSave2 = {
             id: undefined,
-            name: "Product 2",
+            name: "Category 2",
             description: "Some test descriptive description 2",
             parent: undefined,
             children: undefined,
         };
         const categoryToSave3 = {
             id: undefined,
-            name: "Product 3",
+            name: "Category 3",
             description: "Some test descriptive description 3",
             parent: undefined,
             children: undefined,
