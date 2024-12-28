@@ -82,4 +82,34 @@ describe("Category Service (e2e)", () => {
         expect(categories[1].name).toBe(dto2.name);
         expect(categories[2].name).toBe(dto3.name);
     });
+
+    test("should update category", async () => {
+        const categoryToSave = {
+            id: undefined,
+            name: "Category 1",
+            description: "Some test descriptive description 1",
+            parent: undefined,
+            children: undefined,
+        };
+
+        const dto1 = await categoryService.createCategory(categoryToSave);
+
+        const categoryToUpdate = {
+            id: dto1.id,
+            name: "Category 1 Updated",
+            description: "Some test descriptive description 1 Updated",
+            parent: undefined,
+            children: undefined,
+        };
+
+        const updatedCategory =
+            await categoryService.updateCategory(categoryToUpdate);
+
+        expect(updatedCategory).toBeDefined();
+        expect(updatedCategory.id).toBe(dto1.id);
+        expect(updatedCategory.name).toBe("Category 1 Updated");
+        expect(updatedCategory.description).toBe(
+            "Some test descriptive description 1 Updated",
+        );
+    });
 });

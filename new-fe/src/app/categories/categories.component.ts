@@ -105,7 +105,9 @@ export class CategoriesComponent implements OnInit, OnDestroy {
         console.log("category", category);
     }
 
-    public updateCategory(category: CategoryDTO) {}
+    public updateCategory(category: CategoryDTO) {
+        console.log(category, "category");
+    }
 
     test() {
         console.log("test");

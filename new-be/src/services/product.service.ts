@@ -16,6 +16,17 @@ export class ProductService {
         this.productRepository = entityManager.getRepository(Product);
     }
 
+    async getProducts(): Promise<ProductDTO[]> {
+        try {
+            const products: Product[] = await this.productRepository.find();
+            return products.map((product: Product) =>
+                this.mapper.map(product, Product, ProductDTO),
+            );
+        } catch (e) {
+            throw new Error("Error fetching products");
+        }
+    }
+
     async createProduct(product: ProductDTO): Promise<ProductDTO> {
         try {
             console.log(product);
@@ -31,17 +42,6 @@ export class ProductService {
             return this.mapper.map(productFromDB, Product, ProductDTO);
         } catch (e) {
             throw new Error("Product failed to save!");
-        }
-    }
-
-    async getProducts(): Promise<ProductDTO[]> {
-        try {
-            const products: Product[] = await this.productRepository.find();
-            return products.map((product: Product) =>
-                this.mapper.map(product, Product, ProductDTO),
-            );
-        } catch (e) {
-            throw new Error("Error fetching products");
         }
     }
 
