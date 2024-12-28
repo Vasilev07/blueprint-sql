@@ -24,7 +24,7 @@ describe("Order Service (e2e)", () => {
 
     afterEach(async () => {
         const ds = app.get(DataSource);
-        await ds.createQueryBuilder().delete().from(Product).execute();
+        await ds.createQueryBuilder().delete().from(Category).execute();
     });
 
     test("should create new category", async () => {
