@@ -1,14 +1,15 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnDestroy, OnInit } from "@angular/core";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { ConfirmationService, MessageService } from "primeng/api";
 import { CategoryService } from "../../typescript-api-client/src/clients/category.service";
 import { CategoryDTO } from "../../typescript-api-client/src/models/categoryDTO";
+import { Subject, takeUntil } from "rxjs";
 
 @Component({
     templateUrl: "categories.component.html",
     providers: [MessageService, ConfirmationService, CategoryService],
 })
-export class CategoriesComponent implements OnInit {
+export class CategoriesComponent implements OnInit, OnDestroy {
     public visible: boolean = false;
     public isEdit: boolean = false;
     public categoryForm: FormGroup<any> = this.fb.group({
@@ -19,6 +20,7 @@ export class CategoriesComponent implements OnInit {
     public categories: CategoryDTO[] = [];
 
     private category?: CategoryDTO;
+    private readonly ngUnsubscribe: Subject<void> = new Subject<void>();
 
     constructor(
         private readonly messageService: MessageService,
@@ -30,42 +32,37 @@ export class CategoriesComponent implements OnInit {
     public ngOnInit(): void {
         console.log("CategoriesComponent initialized");
         this.selectedCategories = [];
-        this.categoryService.getCategories().subscribe({
-            next: (categories: CategoryDTO[]) => {
-                console.log("categories", categories);
-                this.categories = categories;
-            },
-        });
+        this.categoryService
+            .getCategories()
+            .pipe(takeUntil(this.ngUnsubscribe))
+            .subscribe({
+                next: (categories: CategoryDTO[]) => {
+                    console.log("categories", categories);
+                    this.categories = categories;
+                },
+            });
+    }
+
+    public ngOnDestroy() {
+        console.log("ngOnDestroy");
+        this.ngUnsubscribe.next();
+        this.ngUnsubscribe.complete();
     }
 
     public openNew() {
         this.visible = true;
     }
 
-    test() {
-        console.log("test");
-    }
+    public deleteSelectedCategories() {}
 
-    deleteSelectedCategories() {}
+    public deleteCategory(category: CategoryDTO) {}
 
-    editCategory(category: CategoryDTO) {
-        this.isEdit = true;
-        this.visible = true;
-        this.category = { ...category };
-        this.categoryForm.patchValue(category);
-        console.log("category", category);
-    }
-
-    updateCategory(category: CategoryDTO) {}
-
-    deleteCategory(category: CategoryDTO) {}
-
-    hideDialog() {
+    public hideDialog() {
         this.isEdit = false;
         this.visible = false;
     }
 
-    saveCategory() {
+    public saveCategory() {
         this.isEdit
             ? this.updateCategory({
                   id: this.category?.id,
@@ -74,7 +71,7 @@ export class CategoriesComponent implements OnInit {
             : this.createCategory(this.categoryForm.getRawValue());
     }
 
-    createCategory(category: CategoryDTO) {
+    public createCategory(category: CategoryDTO) {
         this.categoryService
             .createCategory({
                 id: undefined,
@@ -98,5 +95,19 @@ export class CategoriesComponent implements OnInit {
                     this.hideDialog();
                 },
             });
+    }
+
+    public editCategory(category: CategoryDTO) {
+        this.isEdit = true;
+        this.visible = true;
+        this.category = { ...category };
+        this.categoryForm.patchValue(category);
+        console.log("category", category);
+    }
+
+    public updateCategory(category: CategoryDTO) {}
+
+    test() {
+        console.log("test");
     }
 }
