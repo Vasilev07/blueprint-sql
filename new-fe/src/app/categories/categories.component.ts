@@ -16,7 +16,7 @@ export class CategoriesComponent implements OnInit {
         price: ["", Validators.required],
         // category: ["", Validators.required],
     });
-    selectedProducts: any[] = [];
+    selectedCategories: any[] = [];
     categories: any[] = [];
 
     constructor(
@@ -28,7 +28,7 @@ export class CategoriesComponent implements OnInit {
 
     public ngOnInit(): void {
         console.log("CategoriesComponent initialized");
-        this.selectedProducts = [];
+        this.selectedCategories = [];
     }
 
     public openNew() {
@@ -39,7 +39,7 @@ export class CategoriesComponent implements OnInit {
         console.log("test");
     }
 
-    deleteSelectedProducts() {}
+    deleteSelectedCategories() {}
 
     editCategory(product: any) {}
 

@@ -14,8 +14,8 @@
         severity="danger"
         label="Delete"
         icon="pi pi-trash"
-        (click)="deleteSelectedProducts()"
-        [disabled]="!selectedProducts || !selectedProducts.length" />
+        (click)="deleteSelectedCategories()"
+        [disabled]="!selectedCategories || !selectedCategories.length" />
     </ng-template>
   </p-toolbar>
 
@@ -27,7 +27,7 @@
     [rowsPerPageOptions]="[5,10,20,50]"
     [globalFilterFields]="['name', 'country.name', 'representative.name', 'status']"
     [tableStyle]="{ 'min-width': '75rem' }"
-    [(selection)]="selectedProducts"
+    [(selection)]="selectedCategories"
     [rowHover]="true"
     dataKey="id"
     currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
@@ -53,19 +53,19 @@
         <th></th>
       </tr>
     </ng-template>
-    <ng-template pTemplate="body" let-product>
+    <ng-template pTemplate="body" let-category>
       <tr>
         <td>
-          <p-tableCheckbox [value]="product" />
+          <p-tableCheckbox [value]="category" />
         </td>
         <td>
-          {{ product.name }}
+          {{ category.name }}
         </td>
         <td>
-          {{ product.price | currency : 'USD' }}
+          {{ category.price | currency : 'USD' }}
         </td>
         <td>
-          {{ product.weight }}
+          {{ category.weight }}
         </td>
         <td>
           <p-button
@@ -75,25 +75,25 @@
             [rounded]="true"
             [outlined]="true"
             severity="success"
-            (click)="editCategory(product)" />
+            (click)="editCategory(category)" />
           <p-button
             pRipple
             icon="pi pi-trash"
             severity="danger"
             [rounded]="true"
             [outlined]="true"
-            (click)="deleteCategory(product)" />
+            (click)="deleteCategory(category)" />
         </td>
       </tr>
     </ng-template>
     <ng-template pTemplate="summary">
       <div class="flex align-items-center justify-content-between">
-        In total there are {{ categories ? categories.length : 0 }} products.
+        In total there are {{ categories ? categories.length : 0 }} categories.
       </div>
     </ng-template>
   </p-table>
 
-  <p-dialog header="{{ isEdit ? 'Edit' : 'Create'}} Product" [modal]="true" [(visible)]="visible"
+  <p-dialog header="{{ isEdit ? 'Edit' : 'Create'}} Categories" [modal]="true" [(visible)]="visible"
             [style]="{ width: '25rem' }">
     <form [formGroup]="categoryForm">
       <span class="p-text-secondary block mb-8">Update your information.</span>
