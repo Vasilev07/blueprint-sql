@@ -13,7 +13,6 @@ import {
 import { ProductDTO } from "../../models/product-dto";
 import { ProductService } from "@services/product.service";
 import { FileInterceptor } from "@nestjs/platform-express";
-import { Product } from "@entities/product.entity";
 
 @Controller("/product")
 @ApiTags("Product")
