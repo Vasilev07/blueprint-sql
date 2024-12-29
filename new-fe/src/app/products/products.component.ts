@@ -121,7 +121,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
     }
 
     public createProduct(product: ProductDTO) {
-      product;
+        product;
         // this.productService.createProduct(product).subscribe({
         //     next: (product: ProductDTO) => {
         //         this.product = product;
