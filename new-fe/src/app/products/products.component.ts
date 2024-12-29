@@ -5,6 +5,8 @@ import { ConfirmationService, MessageService } from "primeng/api";
 import { ProductDTO } from "../../typescript-api-client/src/models/productDTO";
 import { ProductService } from "../../typescript-api-client/src/clients/product.service";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
+import { FileSelectEvent, FileUploadEvent } from "primeng/fileupload";
+import { CreateProductRequestData } from "../../typescript-api-client/src/models/createProductRequestData";
 
 @Component({
     templateUrl: "./products.component.html",
@@ -23,6 +25,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
         price: ["", Validators.required],
         // category: ["", Validators.required],
     });
+    public files: File[] = [];
 
     private readonly ngUnsubscribe: Subject<void> = new Subject<void>();
 
@@ -121,23 +124,25 @@ export class ProductsComponent implements OnInit, OnDestroy {
     }
 
     public createProduct(product: ProductDTO) {
-        product;
-        // this.productService.createProduct(product).subscribe({
-        //     next: (product: ProductDTO) => {
-        //         this.product = product;
-        //         this.products = [...this.products, product];
-        //     },
-        //     complete: () => {
-        //         this.messageService.add({
-        //             severity: "success",
-        //             summary: "Successful",
-        //             detail: "Product Created",
-        //             life: 3000,
-        //         });
-        //
-        //         this.hideDialog();
-        //     },
-        // });
+        // const imageBlobs: Blob[] = this.convertFilesToBlobs(this.files);
+        this.productService
+            .createProduct(product as CreateProductRequestData, this.files)
+            .subscribe({
+                next: (product: ProductDTO) => {
+                    this.product = product;
+                    this.products = [...this.products, product];
+                },
+                complete: () => {
+                    this.messageService.add({
+                        severity: "success",
+                        summary: "Successful",
+                        detail: "Product Created",
+                        life: 3000,
+                    });
+
+                    this.hideDialog();
+                },
+            });
     }
 
     public editProduct(product: ProductDTO) {
@@ -175,5 +180,14 @@ export class ProductsComponent implements OnInit, OnDestroy {
 
     test() {
         console.log("test");
+    }
+
+    onUpload($event: FileUploadEvent) {
+        console.log("event", $event);
+    }
+
+    onSelectedFilesChange(event: FileSelectEvent) {
+        this.files = event.currentFiles;
+        console.log(this.files, "this.files");
     }
 }

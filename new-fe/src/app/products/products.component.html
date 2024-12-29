@@ -93,7 +93,7 @@
     </ng-template>
   </p-table>
 
-  <p-dialog header="{{ isEdit ? 'Edit' : 'Create'}} Product" [modal]="true" [(visible)]="visible" [style]="{ width: '25rem' }">
+  <p-dialog header="{{ isEdit ? 'Edit' : 'Create'}} Product" [modal]="true" [(visible)]="visible" [style]="{ width: '150rem', height: '100rem' }">
     <form [formGroup]="productForm">
       <div class="flex items-center gap-4 mb-4">
         <label for="name" class="font-semibold w-24">Name</label>
@@ -107,6 +107,27 @@
         <label for="price" class="font-semibold w-24">Price</label>
         <input formControlName="price" pInputText id="price" class="flex-auto" autocomplete="off" />
       </div>
+
+      <p-fileUpload
+        name="demo[]"
+        (onSelect)="onSelectedFilesChange($event)"
+        [multiple]="true"
+        accept="image/*"
+        maxFileSize="100000000"
+        mode="advanced"
+      >
+        <ng-template #empty>
+          <div>Drag and drop files to here to upload.</div>
+        </ng-template>
+        <ng-template #content>
+          <ul *ngIf="files.length">
+            <li *ngFor="let file of files">{{ file.name }} - {{ file.size }} bytes</li>
+          </ul>
+        </ng-template>
+      </p-fileUpload>
+
+      <p-divider></p-divider>
+
       <div class="flex justify-end gap-2">
         <p-button label="Cancel" severity="secondary" (click)="hideDialog()" />
         <p-button label="Save" (click)="saveProduct()" />
@@ -115,8 +136,8 @@
 
   </p-dialog>
 
-  <p-confirmDialog />
-  <p-button (click)="test()" label="Save" [outlined]="true" />
-  <p-button (click)="test()" label="Delete" severity="danger" [outlined]="true" />
+<!--  <p-confirmDialog />-->
+<!--  <p-button (click)="test()" label="Save" [outlined]="true" />-->
+<!--  <p-button (click)="test()" label="Delete" severity="danger" [outlined]="true" />-->
 
 </div>

@@ -20,6 +20,7 @@ import { DialogModule } from "primeng/dialog";
 import { InputTextModule } from "primeng/inputtext";
 import { Ripple } from "primeng/ripple";
 import { ConfirmationService } from "primeng/api";
+import { DividerModule } from "primeng/divider";
 
 @NgModule({
     imports: [
@@ -43,6 +44,7 @@ import { ConfirmationService } from "primeng/api";
         InputTextModule,
         Ripple,
         ReactiveFormsModule,
+        DividerModule,
     ],
     declarations: [ProductsComponent],
     providers: [ConfirmationService],
