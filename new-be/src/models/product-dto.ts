@@ -20,5 +20,8 @@ export class ProductDTO {
 
     // @AutoMap()
     // @ApiPropertyOptional()
+    // files?: string[];
+    // @AutoMap()
+    // @ApiPropertyOptional()
     // category?: string;
 }

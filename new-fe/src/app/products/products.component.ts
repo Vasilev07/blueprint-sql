@@ -121,22 +121,23 @@ export class ProductsComponent implements OnInit, OnDestroy {
     }
 
     public createProduct(product: ProductDTO) {
-        this.productService.createProduct(product).subscribe({
-            next: (product: ProductDTO) => {
-                this.product = product;
-                this.products = [...this.products, product];
-            },
-            complete: () => {
-                this.messageService.add({
-                    severity: "success",
-                    summary: "Successful",
-                    detail: "Product Created",
-                    life: 3000,
-                });
-
-                this.hideDialog();
-            },
-        });
+        product;
+        // this.productService.createProduct(product).subscribe({
+        //     next: (product: ProductDTO) => {
+        //         this.product = product;
+        //         this.products = [...this.products, product];
+        //     },
+        //     complete: () => {
+        //         this.messageService.add({
+        //             severity: "success",
+        //             summary: "Successful",
+        //             detail: "Product Created",
+        //             life: 3000,
+        //         });
+        //
+        //         this.hideDialog();
+        //     },
+        // });
     }
 
     public editProduct(product: ProductDTO) {
