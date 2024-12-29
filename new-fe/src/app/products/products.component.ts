@@ -2,7 +2,6 @@ import { Component, OnDestroy, OnInit } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { Subject, takeUntil } from "rxjs";
 import { ConfirmationService, MessageService } from "primeng/api";
-import { LayoutService } from "../layout/service/app.layout.service";
 import { ProductDTO } from "../../typescript-api-client/src/models/productDTO";
 import { ProductService } from "../../typescript-api-client/src/clients/product.service";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
@@ -31,8 +30,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
         private readonly http: HttpClient,
         private readonly confirmationService: ConfirmationService,
         private readonly messageService: MessageService,
-        public layoutService: LayoutService,
-        public productService: ProductService,
+        private productService: ProductService,
         public fb: FormBuilder,
     ) {}
 
@@ -40,13 +38,16 @@ export class ProductsComponent implements OnInit, OnDestroy {
         this.productService
             .getAll()
             .pipe(takeUntil(this.ngUnsubscribe))
-            .subscribe((products) => {
-                console.log("products", products);
-                this.products = products;
+            .subscribe({
+                next: (products) => {
+                    console.log("products", products);
+                    this.products = products;
+                },
             });
     }
 
     public ngOnDestroy() {
+        console.log("ngOnDestroy");
         this.ngUnsubscribe.next();
         this.ngUnsubscribe.complete();
     }
@@ -152,7 +153,8 @@ export class ProductsComponent implements OnInit, OnDestroy {
             .updateProduct(product.id!.toString(), product)
             .pipe(takeUntil(this.ngUnsubscribe))
             .subscribe({
-                next: () => {
+                next: (productFromDb) => {
+                    productFromDb;
                     // TODO Check that
                     this.product = product;
                     this.products = [...this.products, product];

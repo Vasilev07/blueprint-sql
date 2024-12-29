@@ -23,9 +23,18 @@ const routes: Routes = [
                     ),
             },
             {
+                path: "categories",
+                loadChildren: () =>
+                    import("./categories/categories.module").then(
+                        (m) => m.CategoriesModule,
+                    ),
+            },
+            {
                 path: "orders",
                 loadChildren: () =>
-                    import("./orders/orders.module").then((m) => m.OrdersModule),
+                    import("./orders/orders.module").then(
+                        (m) => m.OrdersModule,
+                    ),
             },
         ],
         canActivate: [AuthGuard],

@@ -4,7 +4,6 @@ import { InjectMapper } from "@automapper/nestjs";
 import { Mapper } from "@automapper/core";
 import { ProductDTO } from "../models/product-dto";
 import { Product } from "@entities/product.entity";
-import { CategoryType } from "../enums/categories.enum";
 
 @Injectable()
 export class ProductService {
@@ -15,6 +14,17 @@ export class ProductService {
         @InjectMapper() private mapper: Mapper,
     ) {
         this.productRepository = entityManager.getRepository(Product);
+    }
+
+    async getProducts(): Promise<ProductDTO[]> {
+        try {
+            const products: Product[] = await this.productRepository.find();
+            return products.map((product: Product) =>
+                this.mapper.map(product, Product, ProductDTO),
+            );
+        } catch (e) {
+            throw new Error("Error fetching products");
+        }
     }
 
     async createProduct(product: ProductDTO): Promise<ProductDTO> {
@@ -32,17 +42,6 @@ export class ProductService {
             return this.mapper.map(productFromDB, Product, ProductDTO);
         } catch (e) {
             throw new Error("Product failed to save!");
-        }
-    }
-
-    async getProducts(): Promise<ProductDTO[]> {
-        try {
-            const products: Product[] = await this.productRepository.find();
-            return products.map((product: Product) =>
-                this.mapper.map(product, Product, ProductDTO),
-            );
-        } catch (e) {
-            throw new Error("Error fetching products");
         }
     }
 
@@ -68,23 +67,6 @@ export class ProductService {
             await this.productRepository.delete(id);
         } catch (error) {
             throw new Error("Error deleting product" + error);
-        }
-    }
-
-    async getProductsByCategoryType(
-        categoryType: CategoryType,
-    ): Promise<ProductDTO[]> {
-        categoryType;
-        try {
-            const products: Product[] = await this.productRepository.find({
-                // where: { category: { type: categoryType } },
-                relations: ["category"],
-            });
-            return products.map((product: Product) =>
-                this.mapper.map(product, Product, ProductDTO),
-            );
-        } catch (e) {
-            throw new Error("Error fetching products by category type");
         }
     }
 }

@@ -1,6 +1,11 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import {
+    Column,
+    Entity,
+    ManyToOne,
+    OneToMany,
+    PrimaryGeneratedColumn,
+} from "typeorm";
 import { AutoMap } from "@automapper/classes";
-import { CategoryType } from "../enums/categories.enum";
 
 @Entity()
 export class Category {
@@ -12,14 +17,15 @@ export class Category {
     @AutoMap()
     name: string;
 
-    @Column({
-        type: "enum",
-        enum: CategoryType,
-    })
+    @Column()
     @AutoMap()
-    type: CategoryType;
+    description: string;
 
-    // @OneToMany(() => Product, (product) => product.category)
-    // @AutoMap(() => [Product])
-    // products: Product[];
+    @AutoMap(() => [Category])
+    @ManyToOne(() => Category, (category) => category.children)
+    parent: Category;
+
+    @AutoMap(() => Category)
+    @OneToMany(() => Category, (category) => category.parent)
+    children: Category[];
 }
