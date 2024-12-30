@@ -9,6 +9,7 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { dataSourceOptions } from "./config/data-source";
 import { CategoryModule } from "./controllers/category/category.module";
 import { ProductModule } from "./controllers/product/product.module";
+import { MulterConfigService } from "./config/multer.config";
 
 @Module({
     imports: [
@@ -22,6 +23,6 @@ import { ProductModule } from "./controllers/product/product.module";
         ProductModule,
     ],
     controllers: [AppController],
-    providers: [AppService],
+    providers: [AppService, MulterConfigService],
 })
 export class AppModule {}

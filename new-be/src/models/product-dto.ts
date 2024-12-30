@@ -18,10 +18,4 @@ export class ProductDTO {
     @ApiProperty()
     price: number;
 
-    // @AutoMap()
-    // @ApiPropertyOptional()
-    // files?: string[];
-    // @AutoMap()
-    // @ApiPropertyOptional()
-    // category?: string;
 }

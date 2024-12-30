@@ -12,7 +12,8 @@ import {
 } from "@nestjs/common";
 import { ProductDTO } from "../../models/product-dto";
 import { ProductService } from "@services/product.service";
-import { FileInterceptor } from "@nestjs/platform-express";
+import { JsonToObjectsInterceptor } from "../../interceptors/json-to-objects.interceptor";
+import { FilesInterceptor } from "@nestjs/platform-express";
 
 @Controller("/product")
 @ApiTags("Product")
@@ -36,24 +37,7 @@ export class ProductController {
             type: "object",
             properties: {
                 data: {
-                    type: "object",
-                    properties: {
-                        id: {
-                            type: "string" || undefined,
-                        },
-                        name: {
-                            type: "string",
-                        },
-                        description: {
-                            type: "number",
-                        },
-                        parent: {
-                            type: undefined,
-                        },
-                        children: {
-                            type: undefined,
-                        },
-                    },
+                    type: "string",
                 },
                 files: {
                     type: "array",
@@ -65,7 +49,10 @@ export class ProductController {
             },
         },
     })
-    @UseInterceptors(FileInterceptor("files"))
+    @UseInterceptors(
+        FilesInterceptor("files"),
+        JsonToObjectsInterceptor(["data"]),
+    )
     async createProduct(
         @Body() productDTO: ProductDTO,
         @UploadedFiles() files: Array<Express.Multer.File>,
@@ -77,6 +64,30 @@ export class ProductController {
             throw new Error("Error creating product" + error);
         }
     }
+
+    // @Post("/upload")
+    // @ApiConsumes("multipart/form-data")
+    // @UseInterceptors(FileInterceptor("file"))
+    // @ApiBody({
+    //     required: true,
+    //     type: "multipart/form-data",
+    //     schema: {
+    //         type: "object",
+    //         properties: {
+    //             file: {
+    //                 type: "string",
+    //                 format: "binary",
+    //             },
+    //         },
+    //     },
+    // })
+    // async uploadFile(
+    //     @UploadedFile()
+    //     file: Express.Multer.File,
+    // ): Promise<void> {
+    //     console.log(file, "file");
+    //     return await Promise.resolve();
+    // }
 
     @Put(":id")
     async updateProduct(
