@@ -1,36 +1,38 @@
 import {
     CallHandler,
     ExecutionContext,
+    Injectable,
     NestInterceptor,
-    Type,
-    mixin,
 } from "@nestjs/common";
+import { plainToInstance } from "class-transformer";
 import { Observable } from "rxjs";
 
-export function JsonToObjectsInterceptor(
-    fields: string[],
-): Type<NestInterceptor> {
-    class JsonToObjectsInterceptor implements NestInterceptor {
-        intercept(
-            context: ExecutionContext,
-            next: CallHandler,
-        ): Observable<any> {
-            console.log("KURWA");
-            const request = context.switchToHttp().getRequest();
-            console.log("request.body", request.body);
-            console.log("request", request);
+@Injectable()
+export class JsonToDtoInterceptor<T> implements NestInterceptor {
+    constructor(
+        private readonly dto: new () => T,
+        private readonly fields: string[],
+    ) {}
 
-            if (request.body) {
-                fields.forEach((field) => {
-                    if (request.body[field]) {
-                        request.body[field] = JSON.parse(request.body[field]);
-                    }
-                });
+    intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+        const request = context.switchToHttp().getRequest();
+
+        this.fields.forEach((field) => {
+            if (request.body[field]) {
+                try {
+                    // Parse the JSON string and transform into the DTO
+                    request.body[field] = plainToInstance(
+                        this.dto,
+                        JSON.parse(request.body[field]),
+                    );
+                } catch (error) {
+                    throw new Error(
+                        `Failed to parse and transform field '${field}'`,
+                    );
+                }
             }
-            return next.handle();
-        }
-    }
+        });
 
-    const Interceptor = mixin(JsonToObjectsInterceptor);
-    return Interceptor as Type<NestInterceptor>;
+        return next.handle();
+    }
 }

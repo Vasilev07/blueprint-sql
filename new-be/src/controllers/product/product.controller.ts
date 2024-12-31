@@ -1,18 +1,22 @@
 import { ApiBody, ApiConsumes, ApiTags } from "@nestjs/swagger";
 import {
     Body,
+    ClassSerializerInterceptor,
     Controller,
     Delete,
     Get,
     Param,
     Post,
     Put,
+    SerializeOptions,
     UploadedFiles,
     UseInterceptors,
 } from "@nestjs/common";
 import { ProductDTO } from "../../models/product-dto";
 import { ProductService } from "@services/product.service";
-import { JsonToObjectsInterceptor } from "../../interceptors/json-to-objects.interceptor";
+import {
+    JsonToDtoInterceptor,
+} from "../../interceptors/json-to-objects.interceptor";
 import { FilesInterceptor } from "@nestjs/platform-express";
 
 @Controller("/product")
@@ -51,13 +55,16 @@ export class ProductController {
     })
     @UseInterceptors(
         FilesInterceptor("files"),
-        JsonToObjectsInterceptor(["data"]),
+        new JsonToDtoInterceptor(ProductDTO, ["data"]),
     )
+    @SerializeOptions({ type: ProductDTO })
     async createProduct(
-        @Body() productDTO: ProductDTO,
+        @Body("data") productDTO: ProductDTO,
         @UploadedFiles() files: Array<Express.Multer.File>,
     ): Promise<ProductDTO> {
         console.log(files, "files");
+        console.log(productDTO, "productDTO");
+        console.log(typeof productDTO, "productDTO");
         try {
             return await this.productService.createProduct(productDTO);
         } catch (error) {

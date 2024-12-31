@@ -118,18 +118,15 @@ export class ProductsComponent implements OnInit, OnDestroy {
     public saveProduct() {
         this.isEdit
             ? this.updateProduct({
-                id: this.product?.id,
-                ...this.productForm.getRawValue(),
-            })
+                  id: this.product?.id,
+                  ...this.productForm.getRawValue(),
+              })
             : this.createProduct(this.productForm.getRawValue());
     }
 
     public createProduct(product: ProductDTO) {
         this.productService
-            .createProduct(
-                JSON.stringify(product),
-                this.files,
-            )
+            .createProduct(JSON.stringify(product), this.files)
             .subscribe({
                 next: (product: ProductDTO) => {
                     this.product = product;
