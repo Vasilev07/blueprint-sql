@@ -22,7 +22,9 @@ export class ProductService {
 
     async getProducts(): Promise<ProductDTO[]> {
         try {
-            const products: Product[] = await this.productRepository.find();
+            const products: Product[] = await this.productRepository.find({
+                relations: { images: true },
+            });
             return products.map((product: Product) =>
                 this.mapper.map(product, Product, ProductDTO),
             );
@@ -88,7 +90,8 @@ export class ProductService {
         // TODO that should be transactional
         // Maybe locking is also a good idea
         try {
-            await this.productRepository.update(productDTO.id, productDTO);
+            // TODO FIX
+            // await this.productRepository.update(productDTO.id, productDTO);
 
             const product = await this.productRepository.findOneBy({
                 id: productDTO.id,

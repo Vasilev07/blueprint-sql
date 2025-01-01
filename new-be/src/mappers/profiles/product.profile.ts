@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { AutomapperProfile, InjectMapper } from "@automapper/nestjs";
-import { createMap, Mapper } from "@automapper/core";
+import { createMap, forMember, mapFrom, Mapper } from "@automapper/core";
 import { Product } from "../../entities/product.entity";
 import { ProductDTO } from "../../models/product-dto";
 
@@ -12,7 +12,26 @@ export class ProductProfile extends AutomapperProfile {
 
     override get profile() {
         return (mapper) => {
-            createMap(mapper, Product, ProductDTO);
+            createMap(
+                mapper,
+                Product,
+                ProductDTO,
+                forMember(
+                    (dest) => dest.images,
+                    mapFrom((source) =>
+                        source.images.map((image) => {
+                            try {
+                                return Buffer.from(image.data).toString(
+                                    "base64",
+                                );
+                            } catch (error) {
+                                console.log(error);
+                                return undefined;
+                            }
+                        }),
+                    ),
+                ),
+            );
             createMap(mapper, ProductDTO, Product);
         };
     }

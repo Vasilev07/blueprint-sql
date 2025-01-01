@@ -1,143 +1,146 @@
 <div class="products">
-  <p-toast/>
-  <p-toolbar styleClass="mb-4 gap-2">
-    <ng-template pTemplate="left">
-      <p-button
-        pRipple
-        severity="success"
-        label="New"
-        icon="pi pi-plus"
-        class="mr-2"
-        (click)="openNew()"/>
-      <p-button
-        pRipple
-        severity="danger"
-        label="Delete"
-        icon="pi pi-trash"
-        (click)="deleteSelectedProducts()"
-        [disabled]="!selectedProducts || !selectedProducts.length"/>
-    </ng-template>
-  </p-toolbar>
-
-  <p-table
-    #dt
-    [value]="products"
-    [rows]="10"
-    [paginator]="true"
-    [rowsPerPageOptions]="[5,10,20,50]"
-    [globalFilterFields]="['name', 'country.name', 'representative.name', 'status']"
-    [tableStyle]="{ 'min-width': '75rem' }"
-    [(selection)]="selectedProducts"
-    [rowHover]="true"
-    dataKey="id"
-    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
-    [showCurrentPageReport]="true"
-  >
-    <ng-template pTemplate="header">
-      <tr>
-        <th style="width: 4rem">
-          <p-tableHeaderCheckbox/>
-        </th>
-        <th pSortableColumn="name" style="min-width:15rem">
-          Name
-          <p-sortIcon field="name"/>
-        </th>
-        <th pSortableColumn="price">
-          Price
-          <p-sortIcon field="price"/>
-        </th>
-        <th pSortableColumn="weight">
-          Weight
-          <p-sortIcon field="weight"/>
-        </th>
-        <th></th>
-      </tr>
-    </ng-template>
-    <ng-template pTemplate="body" let-product>
-      <tr>
-        <td>
-          <p-tableCheckbox [value]="product"/>
-        </td>
-        <td>
-          {{ product.name }}
-        </td>
-        <td>
-          {{ product.price | currency : 'USD' }}
-        </td>
-        <td>
-          {{ product.weight }}
-        </td>
-        <td>
-          <p-button
-            pRipple
-            icon="pi pi-pencil"
-            class="mr-2"
-            [rounded]="true"
-            [outlined]="true"
-            severity="success"
-            (click)="editProduct(product)"/>
-          <p-button
-            pRipple
-            icon="pi pi-trash"
-            severity="danger"
-            [rounded]="true"
-            [outlined]="true"
-            (click)="deleteProduct(product)"/>
-        </td>
-      </tr>
-    </ng-template>
-    <ng-template pTemplate="summary">
-      <div class="flex align-items-center justify-content-between">
-        In total there are {{ products ? products.length : 0 }} products.
-      </div>
-    </ng-template>
-  </p-table>
-
-  <p-dialog header="{{ isEdit ? 'Edit' : 'Create'}} Product" [modal]="true" [(visible)]="visible" [style]="{ width: '150rem', height: '100rem' }">
-    <form [formGroup]="productForm">
-      <div class="flex items-center gap-4 mb-4">
-        <label for="name" class="font-semibold w-24">Name</label>
-        <input formControlName="name" pInputText id="name" class="flex-auto" autocomplete="off" />
-      </div>
-      <div class="flex items-center gap-4 mb-8">
-        <label for="weight" class="font-semibold w-24">Weight</label>
-        <input formControlName="weight" pInputText id="weight" class="flex-auto" autocomplete="off" />
-      </div>
-      <div class="flex items-center gap-4 mb-8">
-        <label for="price" class="font-semibold w-24">Price</label>
-        <input formControlName="price" pInputText id="price" class="flex-auto" autocomplete="off" />
-      </div>
-
-      <p-fileUpload
-        name="demo[]"
-        (onSelect)="onSelectedFilesChange($event)"
-        [multiple]="true"
-        accept="image/*"
-        maxFileSize="100000000"
-        mode="advanced"
-      >
-        <ng-template #empty>
-          <div>Drag and drop files to here to upload.</div>
+    <p-toast />
+    <p-toolbar styleClass="mb-4 gap-2">
+        <ng-template pTemplate="left">
+            <p-button
+                pRipple
+                severity="success"
+                label="New"
+                icon="pi pi-plus"
+                class="mr-2"
+                (click)="openNew()" />
+            <p-button
+                pRipple
+                severity="danger"
+                label="Delete"
+                icon="pi pi-trash"
+                (click)="deleteSelectedProducts()"
+                [disabled]="!selectedProducts || !selectedProducts.length" />
         </ng-template>
-        <ng-template #content>
-          <ul *ngIf="files.length">
-            <li *ngFor="let file of files">{{ file.name }} - {{ file.size }} bytes</li>
-          </ul>
+    </p-toolbar>
+
+    <p-table
+        #dt
+        [value]="products"
+        [rows]="10"
+        [paginator]="true"
+        [rowsPerPageOptions]="[5,10,20,50]"
+        [globalFilterFields]="['name', 'country.name', 'representative.name', 'status']"
+        [tableStyle]="{ 'min-width': '75rem' }"
+        [(selection)]="selectedProducts"
+        [rowHover]="true"
+        dataKey="id"
+        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+        [showCurrentPageReport]="true"
+    >
+        <ng-template pTemplate="header">
+            <tr>
+                <th style="width: 4rem">
+                    <p-tableHeaderCheckbox />
+                </th>
+                <th pSortableColumn="name" style="min-width:15rem">
+                    Name
+                    <p-sortIcon field="name" />
+                </th>
+                <th pSortableColumn="price">
+                    Price
+                    <p-sortIcon field="price" />
+                </th>
+                <th pSortableColumn="weight">
+                    Weight
+                    <p-sortIcon field="weight" />
+                </th>
+                <th></th>
+            </tr>
         </ng-template>
-      </p-fileUpload>
+        <ng-template pTemplate="body" let-product>
+            <tr>
+                <td>
+                    <p-tableCheckbox [value]="product" />
+                </td>
+                <td>
+                    {{ product.name }}
+                </td>
+                <td>
+                    {{ product.price | currency : 'USD' }}
+                </td>
+                <td>
+                    {{ product.weight }}
+                </td>
 
-      <p-divider></p-divider>
+                <img [src]="product.images[0]" />
+                <td>
+                    <p-button
+                        pRipple
+                        icon="pi pi-pencil"
+                        class="mr-2"
+                        [rounded]="true"
+                        [outlined]="true"
+                        severity="success"
+                        (click)="editProduct(product)" />
+                    <p-button
+                        pRipple
+                        icon="pi pi-trash"
+                        severity="danger"
+                        [rounded]="true"
+                        [outlined]="true"
+                        (click)="deleteProduct(product)" />
+                </td>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="summary">
+            <div class="flex align-items-center justify-content-between">
+                In total there are {{ products ? products.length : 0 }} products.
+            </div>
+        </ng-template>
+    </p-table>
 
-      <div class="flex justify-end gap-2">
-        <p-button label="Cancel" severity="secondary" (click)="hideDialog()" />
-        <p-button label="Save" (click)="saveProduct()" />
-      </div>
-    </form>
+    <p-dialog header="{{ isEdit ? 'Edit' : 'Create'}} Product" [modal]="true" [(visible)]="visible"
+              [style]="{ width: '150rem', height: '100rem' }">
+        <form [formGroup]="productForm">
+            <div class="flex items-center gap-4 mb-4">
+                <label for="name" class="font-semibold w-24">Name</label>
+                <input formControlName="name" pInputText id="name" class="flex-auto" autocomplete="off" />
+            </div>
+            <div class="flex items-center gap-4 mb-8">
+                <label for="weight" class="font-semibold w-24">Weight</label>
+                <input formControlName="weight" pInputText id="weight" class="flex-auto" autocomplete="off" />
+            </div>
+            <div class="flex items-center gap-4 mb-8">
+                <label for="price" class="font-semibold w-24">Price</label>
+                <input formControlName="price" pInputText id="price" class="flex-auto" autocomplete="off" />
+            </div>
 
-  </p-dialog>
+            <p-fileUpload
+                name="demo[]"
+                (onSelect)="onSelectedFilesChange($event)"
+                [multiple]="true"
+                accept="image/*"
+                maxFileSize="100000000"
+                mode="advanced"
+            >
+                <ng-template #empty>
+                    <div>Drag and drop files to here to upload.</div>
+                </ng-template>
+                <ng-template #content>
+                    <ul *ngIf="files.length">
+                        <li *ngFor="let file of files">{{ file.name }} - {{ file.size }} bytes</li>
+                    </ul>
+                </ng-template>
+            </p-fileUpload>
 
-<!--  <p-confirmDialog />-->
-<!--  <p-button (click)="test()" label="Save" [outlined]="true" />-->
-<!--  <p-button (click)="test()" label="Delete" severity="danger" [outlined]="true" />-->
+            <p-divider></p-divider>
+
+            <div class="flex justify-end gap-2">
+                <p-button label="Cancel" severity="secondary" (click)="hideDialog()" />
+                <p-button label="Save" (click)="saveProduct()" />
+            </div>
+        </form>
+
+    </p-dialog>
+
+    <!--  <p-confirmDialog />-->
+    <!--  <p-button (click)="test()" label="Save" [outlined]="true" />-->
+    <!--  <p-button (click)="test()" label="Delete" severity="danger" [outlined]="true" />-->
 
 </div>
