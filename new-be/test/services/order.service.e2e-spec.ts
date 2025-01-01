@@ -53,8 +53,10 @@ describe("Order Service (e2e)", () => {
             name: "Product 1",
             price: 100,
         };
-        const productFromDB: ProductDTO =
-            await productService.createProduct(product);
+        const productFromDB: ProductDTO = await productService.createProduct(
+            product,
+            files,
+        );
 
         const orderToSave: OrderDTO = {
             id: undefined,
@@ -86,7 +88,7 @@ describe("Order Service (e2e)", () => {
             name: "Product 1",
             price: 100,
         };
-        const savedProduct = await productService.createProduct(product);
+        const savedProduct = await productService.createProduct(product, files);
 
         console.log(await productService.getProducts(), "products");
 

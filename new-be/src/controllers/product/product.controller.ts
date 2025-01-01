@@ -1,7 +1,6 @@
 import { ApiBody, ApiConsumes, ApiTags } from "@nestjs/swagger";
 import {
     Body,
-    ClassSerializerInterceptor,
     Controller,
     Delete,
     Get,
@@ -14,9 +13,7 @@ import {
 } from "@nestjs/common";
 import { ProductDTO } from "../../models/product-dto";
 import { ProductService } from "@services/product.service";
-import {
-    JsonToDtoInterceptor,
-} from "../../interceptors/json-to-objects.interceptor";
+import { JsonToDtoInterceptor } from "../../interceptors/json-to-objects.interceptor";
 import { FilesInterceptor } from "@nestjs/platform-express";
 
 @Controller("/product")
@@ -66,7 +63,7 @@ export class ProductController {
         console.log(productDTO, "productDTO");
         console.log(typeof productDTO, "productDTO");
         try {
-            return await this.productService.createProduct(productDTO);
+            return await this.productService.createProduct(productDTO, files);
         } catch (error) {
             throw new Error("Error creating product" + error);
         }

@@ -4,16 +4,20 @@ import { InjectMapper } from "@automapper/nestjs";
 import { Mapper } from "@automapper/core";
 import { ProductDTO } from "../models/product-dto";
 import { Product } from "@entities/product.entity";
+import { ProductImage } from "@entities/product-image.entity";
+import { promises as fs } from "fs";
 
 @Injectable()
 export class ProductService {
     private productRepository: Repository<Product>;
+    private productImageRepository: Repository<ProductImage>;
 
     constructor(
         entityManager: EntityManager,
         @InjectMapper() private mapper: Mapper,
     ) {
         this.productRepository = entityManager.getRepository(Product);
+        this.productImageRepository = entityManager.getRepository(ProductImage);
     }
 
     async getProducts(): Promise<ProductDTO[]> {
@@ -27,7 +31,10 @@ export class ProductService {
         }
     }
 
-    async createProduct(product: ProductDTO): Promise<ProductDTO> {
+    async createProduct(
+        product: ProductDTO,
+        files: Array<Express.Multer.File>,
+    ): Promise<ProductDTO> {
         try {
             console.log(product);
             const productToSave: Product = this.mapper.map(
@@ -35,6 +42,38 @@ export class ProductService {
                 ProductDTO,
                 Product,
             );
+            console.log(productToSave, "productToSave");
+
+            const filesToSave = await Promise.all(
+                files.map(async (file) => {
+                    const currentImage = new ProductImage();
+
+                    currentImage.name = file.filename;
+                    // currentImage.product = productToSave;
+                    console.log(file.buffer, "file.buffer");
+                    console.log(file, "file");
+                    console.log(file.path, "file.path");
+                    console.log(__dirname, "__dirname");
+                    try {
+                        const fileData = await fs.readFile(file.path);
+                        console.log(fileData, "fileData");
+                        currentImage.data = fileData;
+                    } catch (error) {
+                        console.log(error, "error");
+                    }
+                    console.log(currentImage, "currentImage BEFORE SAVE");
+                    try {
+                        return await this.productImageRepository.save(
+                            currentImage,
+                        );
+                    } catch (e) {
+                        console.log(e, "e");
+                    }
+                }),
+            );
+            console.log(filesToSave, "filesToSave");
+
+            productToSave.images = filesToSave;
 
             const productFromDB: Product =
                 await this.productRepository.save(productToSave);

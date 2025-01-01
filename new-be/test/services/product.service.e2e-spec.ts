@@ -35,7 +35,7 @@ describe("Product Service (e2e)", () => {
             weight: 10,
         };
 
-        const dto = await productService.createProduct(productToSave);
+        const dto = await productService.createProduct(productToSave, files);
 
         expect(dto).toBeDefined();
         expect(dto.id).toBeDefined();
@@ -58,8 +58,8 @@ describe("Product Service (e2e)", () => {
             weight: 1,
         };
 
-        const dto1 = await productService.createProduct(productToSave1);
-        const dto2 = await productService.createProduct(productToSave2);
+        const dto1 = await productService.createProduct(productToSave1, files);
+        const dto2 = await productService.createProduct(productToSave2, files);
 
         const products = await productService.getProducts();
 
@@ -78,7 +78,10 @@ describe("Product Service (e2e)", () => {
             price: 100,
             weight: 10,
         };
-        const savedProduct = await productService.createProduct(productToSave1);
+        const savedProduct = await productService.createProduct(
+            productToSave1,
+            files,
+        );
 
         expect(savedProduct).toBeDefined();
         expect(savedProduct.name).toBe("Product 1");
@@ -108,8 +111,10 @@ describe("Product Service (e2e)", () => {
             price: 100,
             weight: 10,
         };
-        const savedProduct1 =
-            await productService.createProduct(productToSave1);
+        const savedProduct1 = await productService.createProduct(
+            productToSave1,
+            files,
+        );
 
         const productToSave2 = {
             id: undefined,
@@ -117,8 +122,10 @@ describe("Product Service (e2e)", () => {
             price: 100,
             weight: 10,
         };
-        const savedProduct2 =
-            await productService.createProduct(productToSave2);
+        const savedProduct2 = await productService.createProduct(
+            productToSave2,
+            files,
+        );
 
         const productsBeforeDelete = await productService.getProducts();
 
