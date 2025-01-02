@@ -21,9 +21,13 @@ export class ProductProfile extends AutomapperProfile {
                     mapFrom((source) =>
                         source.images.map((image) => {
                             try {
-                                return Buffer.from(image.data).toString(
-                                    "base64",
-                                );
+                                return {
+                                    id: image.id,
+                                    name: image.name,
+                                    data: Buffer.from(image.data).toString(
+                                        "base64",
+                                    ),
+                                };
                             } catch (error) {
                                 console.log(error);
                                 return undefined;

@@ -16,7 +16,7 @@ export class ProductImage {
     @Column({
         type: "bytea",
     })
-    data: Uint8Array;
+    public data: Uint8Array;
 
     @AutoMap(() => Product)
     @ManyToOne(() => Product, (product) => product.images)

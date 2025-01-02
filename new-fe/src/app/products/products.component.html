@@ -67,8 +67,10 @@
                 <td>
                     {{ product.weight }}
                 </td>
+                <td>
+                    <img [src]="product.images[0]" width="50" class="shadow-lg"/>
+                </td>
 
-                <img [src]="product.images[0]" />
                 <td>
                     <p-button
                         pRipple

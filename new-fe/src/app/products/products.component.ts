@@ -51,7 +51,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
                         const mappedProductImages =
                             (product.images?.map((image: any) =>
                                 this.sanitizer.bypassSecurityTrustResourceUrl(
-                                    "data:image/jpeg;base64," + image,
+                                    "data:image/jpeg;base64," + image.data,
                                 ),
                             ) as any) ?? [];
 
