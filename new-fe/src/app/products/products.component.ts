@@ -6,7 +6,6 @@ import { ProductDTO } from "../../typescript-api-client/src/models/productDTO";
 import { ProductService } from "../../typescript-api-client/src/clients/product.service";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { FileSelectEvent, FileUploadEvent } from "primeng/fileupload";
-import { CreateProductRequestData } from "../../typescript-api-client/src/models/createProductRequestData";
 import { DomSanitizer } from "@angular/platform-browser";
 
 @Component({
