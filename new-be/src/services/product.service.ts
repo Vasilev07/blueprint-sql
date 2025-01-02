@@ -90,8 +90,13 @@ export class ProductService {
         // TODO that should be transactional
         // Maybe locking is also a good idea
         try {
+            const productToSave = this.mapper.map(
+                productDTO,
+                ProductDTO,
+                Product,
+            );
             // TODO FIX
-            // await this.productRepository.update(productDTO.id, productDTO);
+            await this.productRepository.update(productDTO.id, productToSave);
 
             const product = await this.productRepository.findOneBy({
                 id: productDTO.id,

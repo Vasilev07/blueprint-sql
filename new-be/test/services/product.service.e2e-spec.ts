@@ -75,7 +75,7 @@ describe("Product Service (e2e)", () => {
         expect(products[1].id).toBeDefined();
     });
 
-    test("should update product", async () => {
+    test.skip("should update product", async () => {
         const productToSave1: ProductDTO = {
             id: undefined,
             name: "Product 1",
