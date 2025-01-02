@@ -1,5 +1,6 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { AutoMap } from "@automapper/classes";
+import { ProductImage } from "@entities/product-image.entity";
 
 @Entity()
 export class Product {
@@ -18,4 +19,8 @@ export class Product {
     @Column({ type: "decimal", precision: 10, scale: 2 })
     @AutoMap()
     price: number;
+
+    @AutoMap(() => [ProductImage])
+    @OneToMany(() => ProductImage, (productImage) => productImage.product)
+    images: ProductImage[];
 }

@@ -5,6 +5,8 @@ import { ConfirmationService, MessageService } from "primeng/api";
 import { ProductDTO } from "../../typescript-api-client/src/models/productDTO";
 import { ProductService } from "../../typescript-api-client/src/clients/product.service";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
+import { FileSelectEvent, FileUploadEvent } from "primeng/fileupload";
+import { DomSanitizer } from "@angular/platform-browser";
 
 @Component({
     templateUrl: "./products.component.html",
@@ -23,6 +25,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
         price: ["", Validators.required],
         // category: ["", Validators.required],
     });
+    public files: File[] = [];
 
     private readonly ngUnsubscribe: Subject<void> = new Subject<void>();
 
@@ -32,6 +35,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
         private readonly messageService: MessageService,
         private productService: ProductService,
         public fb: FormBuilder,
+        private sanitizer: DomSanitizer,
     ) {}
 
     public ngOnInit(): void {
@@ -41,7 +45,19 @@ export class ProductsComponent implements OnInit, OnDestroy {
             .subscribe({
                 next: (products) => {
                     console.log("products", products);
-                    this.products = products;
+                    this.products = products.map((product: ProductDTO) => {
+                        const mappedProductImages =
+                            (product.images?.map((image: any) =>
+                                this.sanitizer.bypassSecurityTrustResourceUrl(
+                                    "data:image/jpeg;base64," + image.data,
+                                ),
+                            ) as any) ?? [];
+
+                        return {
+                            ...product,
+                            images: mappedProductImages,
+                        };
+                    });
                 },
             });
     }
@@ -114,30 +130,33 @@ export class ProductsComponent implements OnInit, OnDestroy {
     public saveProduct() {
         this.isEdit
             ? this.updateProduct({
-                  id: this.product?.id,
-                  ...this.productForm.getRawValue(),
-              })
+                id: this.product?.id,
+                ...this.productForm.getRawValue(),
+            })
             : this.createProduct(this.productForm.getRawValue());
     }
 
     public createProduct(product: ProductDTO) {
-        product;
-        // this.productService.createProduct(product).subscribe({
-        //     next: (product: ProductDTO) => {
-        //         this.product = product;
-        //         this.products = [...this.products, product];
-        //     },
-        //     complete: () => {
-        //         this.messageService.add({
-        //             severity: "success",
-        //             summary: "Successful",
-        //             detail: "Product Created",
-        //             life: 3000,
-        //         });
-        //
-        //         this.hideDialog();
-        //     },
-        // });
+        this.productService
+            .createProduct(JSON.stringify(product), this.files)
+            .subscribe({
+                next: (product: ProductDTO) => {
+                    this.product = product;
+                    this.products = [...this.products, product];
+                },
+                complete: () => {
+                    this.messageService.add({
+                        severity: "success",
+                        summary: "Successful",
+                        detail: "Product Created",
+                        life: 3000,
+                    });
+
+                    this.hideDialog();
+                },
+            });
+
+        // this.productService.uploadFile(this.files[0]).subscribe(console.log);
     }
 
     public editProduct(product: ProductDTO) {
@@ -175,5 +194,14 @@ export class ProductsComponent implements OnInit, OnDestroy {
 
     test() {
         console.log("test");
+    }
+
+    onUpload($event: FileUploadEvent) {
+        console.log("event", $event);
+    }
+
+    onSelectedFilesChange(event: FileSelectEvent) {
+        this.files = event.currentFiles;
+        console.log(this.files, "this.files");
     }
 }

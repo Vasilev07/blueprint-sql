@@ -9,7 +9,7 @@ import { ProductsComponent } from "./products.component";
 import { ProductsRoutingModule } from "./products-routing.module";
 import { TableModule } from "primeng/table";
 import { PaginatorModule } from "primeng/paginator";
-import { CommonModule } from "@angular/common";
+import { CommonModule, NgOptimizedImage } from "@angular/common";
 import { FileUploadModule } from "primeng/fileupload";
 import { RatingModule } from "primeng/rating";
 import { TagModule } from "primeng/tag";
@@ -20,6 +20,8 @@ import { DialogModule } from "primeng/dialog";
 import { InputTextModule } from "primeng/inputtext";
 import { Ripple } from "primeng/ripple";
 import { ConfirmationService } from "primeng/api";
+import { DividerModule } from "primeng/divider";
+import { ImageModule } from "primeng/image";
 
 @NgModule({
     imports: [
@@ -43,6 +45,9 @@ import { ConfirmationService } from "primeng/api";
         InputTextModule,
         Ripple,
         ReactiveFormsModule,
+        DividerModule,
+        ImageModule,
+        NgOptimizedImage,
     ],
     declarations: [ProductsComponent],
     providers: [ConfirmationService],

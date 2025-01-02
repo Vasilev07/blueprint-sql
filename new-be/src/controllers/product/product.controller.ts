@@ -7,12 +7,14 @@ import {
     Param,
     Post,
     Put,
+    SerializeOptions,
     UploadedFiles,
     UseInterceptors,
 } from "@nestjs/common";
 import { ProductDTO } from "../../models/product-dto";
 import { ProductService } from "@services/product.service";
-import { FileInterceptor } from "@nestjs/platform-express";
+import { JsonToDtoInterceptor } from "../../interceptors/json-to-objects.interceptor";
+import { FilesInterceptor } from "@nestjs/platform-express";
 
 @Controller("/product")
 @ApiTags("Product")
@@ -36,24 +38,7 @@ export class ProductController {
             type: "object",
             properties: {
                 data: {
-                    type: "object",
-                    properties: {
-                        id: {
-                            type: "string" || undefined,
-                        },
-                        name: {
-                            type: "string",
-                        },
-                        description: {
-                            type: "number",
-                        },
-                        parent: {
-                            type: undefined,
-                        },
-                        children: {
-                            type: undefined,
-                        },
-                    },
+                    type: "string",
                 },
                 files: {
                     type: "array",
@@ -65,18 +50,48 @@ export class ProductController {
             },
         },
     })
-    @UseInterceptors(FileInterceptor("files"))
+    @UseInterceptors(
+        FilesInterceptor("files"),
+        new JsonToDtoInterceptor(ProductDTO, ["data"]),
+    )
+    @SerializeOptions({ type: ProductDTO })
     async createProduct(
-        @Body() productDTO: ProductDTO,
+        @Body("data") productDTO: ProductDTO,
         @UploadedFiles() files: Array<Express.Multer.File>,
     ): Promise<ProductDTO> {
         console.log(files, "files");
+        console.log(productDTO, "productDTO");
+        console.log(typeof productDTO, "productDTO");
         try {
-            return await this.productService.createProduct(productDTO);
+            return await this.productService.createProduct(productDTO, files);
         } catch (error) {
             throw new Error("Error creating product" + error);
         }
     }
+
+    // @Post("/upload")
+    // @ApiConsumes("multipart/form-data")
+    // @UseInterceptors(FileInterceptor("file"))
+    // @ApiBody({
+    //     required: true,
+    //     type: "multipart/form-data",
+    //     schema: {
+    //         type: "object",
+    //         properties: {
+    //             file: {
+    //                 type: "string",
+    //                 format: "binary",
+    //             },
+    //         },
+    //     },
+    // })
+    // async uploadFile(
+    //     @UploadedFile()
+    //     file: Express.Multer.File,
+    // ): Promise<void> {
+    //     console.log(file, "file");
+    //     return await Promise.resolve();
+    // }
 
     @Put(":id")
     async updateProduct(

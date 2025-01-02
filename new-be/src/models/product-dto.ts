@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { AutoMap } from "@automapper/classes";
+import { ProductImageDTO } from "./product-image-dto";
 
 export class ProductDTO {
     @AutoMap()
@@ -18,10 +19,7 @@ export class ProductDTO {
     @ApiProperty()
     price: number;
 
-    // @AutoMap()
-    // @ApiPropertyOptional()
-    // files?: string[];
-    // @AutoMap()
-    // @ApiPropertyOptional()
-    // category?: string;
+    @AutoMap(() => [ProductImageDTO])
+    @ApiPropertyOptional()
+    images?: ProductImageDTO[];
 }

@@ -3,6 +3,7 @@ import { AppModule } from "./app.module";
 import { DocumentBuilder } from "@nestjs/swagger";
 import { OpenApiNestFactory } from "nest-openapi-tools";
 import { BE_PORT } from "./constants";
+import "reflect-metadata";
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule, {

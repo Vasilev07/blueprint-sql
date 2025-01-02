@@ -6,3 +6,4 @@ tmp
 coverage
 openapi.json
 tsconfig.tsbuildinfo
+uploads
