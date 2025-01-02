@@ -37,8 +37,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
         private productService: ProductService,
         public fb: FormBuilder,
         private sanitizer: DomSanitizer,
-    ) {
-    }
+    ) {}
 
     public ngOnInit(): void {
         this.productService

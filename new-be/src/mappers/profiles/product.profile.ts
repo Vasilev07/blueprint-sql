@@ -19,7 +19,7 @@ export class ProductProfile extends AutomapperProfile {
                 forMember(
                     (dest) => dest.images,
                     mapFrom((source) =>
-                        source.images.map((image) => {
+                        source.images?.map((image) => {
                             try {
                                 return {
                                     id: image.id,
