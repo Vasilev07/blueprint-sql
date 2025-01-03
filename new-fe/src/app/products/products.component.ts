@@ -36,8 +36,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
         private productService: ProductService,
         public fb: FormBuilder,
         private sanitizer: DomSanitizer,
-    ) {
-    }
+    ) {}
 
     public ngOnInit(): void {
         this.productService
@@ -47,12 +46,13 @@ export class ProductsComponent implements OnInit, OnDestroy {
                 next: (products: ProductDTO[]) => {
                     console.log("products", products);
                     this.products = products.map((product: ProductDTO) => {
-
-                        const previewImage = product.images && product.images.length > 0 ?
-                            this.sanitizer.bypassSecurityTrustResourceUrl(
-                                "data:image/jpeg;base64," +
-                                product.images![0]!.data,
-                            ) : undefined;
+                        const previewImage =
+                            product.images && product.images.length > 0
+                                ? this.sanitizer.bypassSecurityTrustResourceUrl(
+                                      "data:image/jpeg;base64," +
+                                          product.images![0]!.data,
+                                  )
+                                : undefined;
                         return {
                             ...product,
                             // images: mappedProductImages,
@@ -131,9 +131,9 @@ export class ProductsComponent implements OnInit, OnDestroy {
     public saveProduct() {
         this.isEdit
             ? this.updateProduct({
-                id: this.product?.id,
-                ...this.productForm.getRawValue(),
-            })
+                  id: this.product?.id,
+                  ...this.productForm.getRawValue(),
+              })
             : this.createProduct(this.productForm.getRawValue());
     }
 
@@ -165,8 +165,8 @@ export class ProductsComponent implements OnInit, OnDestroy {
         this.visible = true;
         this.files = product.images
             ? product.images?.map(
-                (image: any) => new File([image.data], image.name),
-            )
+                  (image: any) => new File([image.data], image.name),
+              )
             : [];
         this.product = { ...product };
         this.productForm.patchValue(product);
