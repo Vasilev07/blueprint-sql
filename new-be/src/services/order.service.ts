@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { Order } from "src/entities/order.entity";
-import { OrderDto } from "../models/order.dto";
+import { OrderDTO } from "../models/order.dto";
 import { EntityManager, Repository } from "typeorm";
 import { Mapper } from "@automapper/core";
 import { InjectMapper } from "@automapper/nestjs";
@@ -15,23 +15,23 @@ export class OrderService {
         this.orderRepository = entityManager.getRepository(Order);
     }
 
-    async createOrder(orderDTO: OrderDto): Promise<OrderDto> {
+    async createOrder(orderDTO: OrderDTO): Promise<OrderDTO> {
         try {
-            const orderToSave = this.mapper.map(orderDTO, OrderDto, Order);
+            const orderToSave = this.mapper.map(orderDTO, OrderDTO, Order);
 
             const savedEntity = await this.orderRepository.save(orderToSave);
 
-            return this.mapper.map(savedEntity, Order, OrderDto);
+            return this.mapper.map(savedEntity, Order, OrderDTO);
         } catch (error) {
             throw new Error("Error creating order" + error);
         }
     }
 
-    async getOrders(): Promise<OrderDto[]> {
+    async getOrders(): Promise<OrderDTO[]> {
         try {
             const orders: Order[] = await this.orderRepository.find();
             return orders.map((order) =>
-                this.mapper.map(order, Order, OrderDto),
+                this.mapper.map(order, Order, OrderDTO),
             );
         } catch (error) {
             throw new Error("Error creating order" + error);
@@ -39,7 +39,7 @@ export class OrderService {
     }
 
     // TODO think of a more generic way of fetching relations
-    async getOrdersWithProducts(): Promise<OrderDto[]> {
+    async getOrdersWithProducts(): Promise<OrderDTO[]> {
         try {
             const ordersWithProducts = await this.orderRepository.find({
                 relations: {
@@ -48,7 +48,7 @@ export class OrderService {
             });
             console.log(ordersWithProducts, "ordersWithProducts");
             return ordersWithProducts.map((order) =>
-                this.mapper.map(order, Order, OrderDto),
+                this.mapper.map(order, Order, OrderDTO),
             );
         } catch (error) {
             throw new Error("Error creating order" + error);

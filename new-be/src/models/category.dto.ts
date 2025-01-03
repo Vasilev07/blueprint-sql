@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { AutoMap } from "@automapper/classes";
 
-export class CategoryDto {
+export class CategoryDTO {
     @ApiPropertyOptional()
     @AutoMap()
     id?: number;
@@ -15,10 +15,10 @@ export class CategoryDto {
     description: string;
 
     @ApiPropertyOptional()
-    @AutoMap(() => CategoryDto)
-    parent?: CategoryDto;
+    @AutoMap(() => CategoryDTO)
+    parent?: CategoryDTO;
 
     @ApiPropertyOptional()
-    @AutoMap(() => [CategoryDto])
-    children?: CategoryDto[];
+    @AutoMap(() => [CategoryDTO])
+    children?: CategoryDTO[];
 }

@@ -9,7 +9,7 @@ import {
 } from "@nestjs/common";
 import { CategoryService } from "@services/category.service";
 import { ApiTags } from "@nestjs/swagger";
-import { CategoryDto } from "../../models/category.dto";
+import { CategoryDTO } from "../../models/category.dto";
 
 @Controller("/category")
 @ApiTags("Category")
@@ -22,15 +22,15 @@ export class CategoryController {
     }
 
     @Post("/create")
-    async createCategory(@Body() category: CategoryDto) {
+    async createCategory(@Body() category: CategoryDTO) {
         return await this.categoryService.createCategory(category);
     }
 
     @Put(":id")
     async updateCategory(
         @Param("id") id: string,
-        @Body() category: CategoryDto,
-    ): Promise<CategoryDto> {
+        @Body() category: CategoryDTO,
+    ): Promise<CategoryDTO> {
         return await this.categoryService.updateCategory(category);
     }
 

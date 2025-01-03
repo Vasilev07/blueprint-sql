@@ -1,9 +1,9 @@
 import { Injectable } from "@nestjs/common";
-import { CategoryDto } from "../models/category.dto";
 import { Mapper } from "@automapper/core";
 import { InjectMapper } from "@automapper/nestjs";
 import { Category } from "@entities/category.entity";
 import { EntityManager, Repository } from "typeorm";
+import { CategoryDTO } from "../models/category.dto";
 
 @Injectable()
 export class CategoryService {
@@ -16,30 +16,30 @@ export class CategoryService {
         this.categoryRepository = entityManager.getRepository(Category);
     }
 
-    async getCategories(): Promise<CategoryDto[]> {
+    async getCategories(): Promise<CategoryDTO[]> {
         const categories = await this.categoryRepository.find();
 
-        return this.mapper.mapArray(categories, Category, CategoryDto);
+        return this.mapper.mapArray(categories, Category, CategoryDTO);
     }
 
-    async createCategory(category: CategoryDto): Promise<CategoryDto> {
+    async createCategory(category: CategoryDTO): Promise<CategoryDTO> {
         try {
             const categoryToSave = this.mapper.map(
                 category,
-                CategoryDto,
+                CategoryDTO,
                 Category,
             );
 
             const savedCategory =
                 await this.categoryRepository.save(categoryToSave);
 
-            return this.mapper.map(savedCategory, Category, CategoryDto);
+            return this.mapper.map(savedCategory, Category, CategoryDTO);
         } catch (e) {
             throw new Error("Error creating category");
         }
     }
 
-    async updateCategory(category: CategoryDto): Promise<CategoryDto> {
+    async updateCategory(category: CategoryDTO): Promise<CategoryDTO> {
         // TODO that should be transactional
         // Maybe locking is also a good idea
         try {
@@ -49,7 +49,7 @@ export class CategoryService {
                 id: category.id,
             });
 
-            return this.mapper.map(updatedCategory, Category, CategoryDto);
+            return this.mapper.map(updatedCategory, Category, CategoryDTO);
         } catch (e) {
             throw new Error("Error updating category");
         }

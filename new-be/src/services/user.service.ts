@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { UserDto } from "../models/user.dto";
+import { UserDTO } from "../models/user.dto";
 import { sign } from "jsonwebtoken";
 import { CryptoService } from "./crypto.service";
 import { EntityManager } from "typeorm";
@@ -15,7 +15,7 @@ export class UserService {
         @InjectMapper() private mapper: Mapper,
     ) {}
 
-    async register(dto: UserDto) {
+    async register(dto: UserDTO) {
         const isEmailAvailable = await this.findOneByEmail(dto.email);
         console.log("isEmailAvailable", isEmailAvailable);
 
@@ -56,11 +56,11 @@ export class UserService {
         });
     }
 
-    async getAll(): Promise<UserDto[]> {
+    async getAll(): Promise<UserDTO[]> {
         const users = await this.entityManager.find(User);
 
         return users.map((user: User) => {
-            return this.mapper.map(user, User, UserDto);
+            return this.mapper.map(user, User, UserDTO);
         });
     }
 }

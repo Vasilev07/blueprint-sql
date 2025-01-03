@@ -2,8 +2,8 @@ import { Injectable } from "@nestjs/common";
 import { AutomapperProfile, InjectMapper } from "@automapper/nestjs";
 import { createMap, forMember, mapFrom, Mapper } from "@automapper/core";
 import { Product } from "../../entities/product.entity";
-import { ProductDto } from "../../models/product.dto";
-import { ProductImageDto } from "../../models/product-image.dto";
+import { ProductDTO } from "../../models/product.dto";
+import { ProductImageDTO } from "../../models/product-image-d-t.o";
 import { ProductImage } from "@entities/product-image.entity";
 
 @Injectable()
@@ -17,12 +17,12 @@ export class ProductProfile extends AutomapperProfile {
             createMap(
                 mapper,
                 Product,
-                ProductDto,
+                ProductDTO,
                 forMember(
                     (dest) => dest.images,
                     mapFrom((source: Product) =>
                         source.images?.map(
-                            (image: ProductImage): ProductImageDto => {
+                            (image: ProductImage): ProductImageDTO => {
                                 try {
                                     return {
                                         id: image.id,
@@ -42,7 +42,7 @@ export class ProductProfile extends AutomapperProfile {
             );
             createMap(
                 mapper,
-                ProductDto,
+                ProductDTO,
                 Product,
                 // forMember((dest: Product) => dest.images, ignore()),
             );

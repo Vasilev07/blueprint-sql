@@ -4,7 +4,7 @@ import { UserService } from "src/services/user.service";
 import { CryptoService } from "src/services/crypto.service";
 import { ApiTags } from "@nestjs/swagger";
 import { User } from "@entities/user.entity";
-import { UserDto } from "../../models/user.dto";
+import { UserDTO } from "../../models/user.dto";
 import { UserLoginDto } from "../../models/user-login.dto";
 
 @Controller("/auth")
@@ -17,7 +17,7 @@ export class UserController {
     ) {}
 
     @Get("/all")
-    async getAll(): Promise<UserDto[]> {
+    async getAll(): Promise<UserDTO[]> {
         return await this.userService.getAll();
     }
 
@@ -46,7 +46,7 @@ export class UserController {
     }
 
     @Post("/register")
-    async register(@Body() userDTO: UserDto): Promise<any> {
+    async register(@Body() userDTO: UserDTO): Promise<any> {
         try {
             return await this.userService.register(userDTO);
         } catch (error) {

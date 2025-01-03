@@ -1,5 +1,5 @@
 import { createMap, forMember, mapFrom, Mapper } from "@automapper/core";
-import { UserDto } from "../../models/user.dto";
+import { UserDTO } from "../../models/user.dto";
 import { User } from "../../entities/user.entity";
 import { Injectable } from "@nestjs/common";
 import { AutomapperProfile, InjectMapper } from "@automapper/nestjs";
@@ -15,16 +15,16 @@ export class UserProfile extends AutomapperProfile {
             createMap(
                 mapper,
                 User,
-                UserDto,
+                UserDTO,
                 forMember(
-                    (dto: UserDto) => dto.fullName,
+                    (dto: UserDTO) => dto.fullName,
                     mapFrom(
                         (entity: User): string =>
                             entity.firstname + " " + entity.lastname,
                     ),
                 ),
                 forMember(
-                    (dto: UserDto) => dto.confirmPassword,
+                    (dto: UserDTO) => dto.confirmPassword,
                     mapFrom((entity: User) => entity.password),
                 ),
             );

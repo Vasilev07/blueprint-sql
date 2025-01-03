@@ -11,7 +11,7 @@ import {
     UploadedFiles,
     UseInterceptors,
 } from "@nestjs/common";
-import { ProductDto } from "../../models/product.dto";
+import { ProductDTO } from "../../models/product.dto";
 import { ProductService } from "@services/product.service";
 import { JsonToDtoInterceptor } from "../../interceptors/json-to-objects.interceptor";
 import { FilesInterceptor } from "@nestjs/platform-express";
@@ -52,13 +52,13 @@ export class ProductController {
     })
     @UseInterceptors(
         FilesInterceptor("files"),
-        new JsonToDtoInterceptor(ProductDto, ["data"]),
+        new JsonToDtoInterceptor(ProductDTO, ["data"]),
     )
-    @SerializeOptions({ type: ProductDto })
+    @SerializeOptions({ type: ProductDTO })
     async createProduct(
-        @Body("data") productDTO: ProductDto,
+        @Body("data") productDTO: ProductDTO,
         @UploadedFiles() files: Array<Express.Multer.File>,
-    ): Promise<ProductDto> {
+    ): Promise<ProductDTO> {
         console.log(files, "files");
         console.log(productDTO, "productDTO");
         console.log(typeof productDTO, "productDTO");
@@ -96,8 +96,8 @@ export class ProductController {
     @Put(":id")
     async updateProduct(
         @Param("id") id: string,
-        @Body() productDTO: ProductDto,
-    ): Promise<ProductDto> {
+        @Body() productDTO: ProductDTO,
+    ): Promise<ProductDTO> {
         try {
             return await this.productService.updateProduct(productDTO);
         } catch (error) {

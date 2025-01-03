@@ -2,8 +2,8 @@ import { Injectable } from "@nestjs/common";
 import { AutomapperProfile, InjectMapper } from "@automapper/nestjs";
 import { createMap, forMember, Mapper, mapWith } from "@automapper/core";
 import { Order } from "../../entities/order.entity";
-import { OrderDto } from "../../models/order.dto";
-import { ProductDto } from "../../models/product.dto";
+import { OrderDTO } from "../../models/order.dto";
+import { ProductDTO } from "../../models/product.dto";
 import { Product } from "../../entities/product.entity";
 
 @Injectable()
@@ -17,19 +17,19 @@ export class OrderProfile extends AutomapperProfile {
             createMap(
                 mapper,
                 Order,
-                OrderDto,
+                OrderDTO,
                 forMember(
                     (destination) => destination.products,
-                    mapWith(ProductDto, Product, (source) => source.products),
+                    mapWith(ProductDTO, Product, (source) => source.products),
                 ),
             );
             createMap(
                 mapper,
-                OrderDto,
+                OrderDTO,
                 Order,
                 forMember(
                     (destination) => destination.products,
-                    mapWith(Product, ProductDto, (source) => source.products),
+                    mapWith(Product, ProductDTO, (source) => source.products),
                 ),
             );
         };

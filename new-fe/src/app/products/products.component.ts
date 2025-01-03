@@ -2,11 +2,11 @@ import { Component, OnDestroy, OnInit } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { Subject, takeUntil } from "rxjs";
 import { ConfirmationService, MessageService } from "primeng/api";
-import { ProductDTO } from "../../typescript-api-client/src/models/productDTO";
 import { ProductService } from "../../typescript-api-client/src/clients/product.service";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { FileSelectEvent, FileUploadEvent } from "primeng/fileupload";
 import { DomSanitizer } from "@angular/platform-browser";
+import { ProductDTO } from "../../typescript-api-client/src/models/productDTO";
 
 @Component({
     templateUrl: "./products.component.html",
@@ -14,7 +14,7 @@ import { DomSanitizer } from "@angular/platform-browser";
 })
 export class ProductsComponent implements OnInit, OnDestroy {
     public product: ProductDTO | undefined = undefined;
-    public products: ProductDTO[] = [];
+    public products: any[] = [];
     public selectedProducts: ProductDTO[] = [];
     public statuses!: any[];
     public visible: boolean = false;
@@ -36,27 +36,23 @@ export class ProductsComponent implements OnInit, OnDestroy {
         private productService: ProductService,
         public fb: FormBuilder,
         private sanitizer: DomSanitizer,
-    ) {}
+    ) {
+    }
 
     public ngOnInit(): void {
         this.productService
             .getAll()
             .pipe(takeUntil(this.ngUnsubscribe))
             .subscribe({
-                next: (products) => {
+                next: (products: ProductDTO[]) => {
                     console.log("products", products);
                     this.products = products.map((product: ProductDTO) => {
-                        // const mappedProductImages =
-                        //     (product.images?.map((image: any) =>
-                        //         this.sanitizer.bypassSecurityTrustResourceUrl(
-                        //             "data:image/jpeg;base64," + image.data,
-                        //         ),
-                        //     ) as any) ?? [];
-                        const previewImage =
+
+                        const previewImage = product.images && product.images.length > 0 ?
                             this.sanitizer.bypassSecurityTrustResourceUrl(
                                 "data:image/jpeg;base64," +
-                                    product.images![0]!.data,
-                            );
+                                product.images![0]!.data,
+                            ) : undefined;
                         return {
                             ...product,
                             // images: mappedProductImages,
@@ -135,9 +131,9 @@ export class ProductsComponent implements OnInit, OnDestroy {
     public saveProduct() {
         this.isEdit
             ? this.updateProduct({
-                  id: this.product?.id,
-                  ...this.productForm.getRawValue(),
-              })
+                id: this.product?.id,
+                ...this.productForm.getRawValue(),
+            })
             : this.createProduct(this.productForm.getRawValue());
     }
 
@@ -169,8 +165,8 @@ export class ProductsComponent implements OnInit, OnDestroy {
         this.visible = true;
         this.files = product.images
             ? product.images?.map(
-                  (image: any) => new File([image.data], image.name),
-              )
+                (image: any) => new File([image.data], image.name),
+            )
             : [];
         this.product = { ...product };
         this.productForm.patchValue(product);
