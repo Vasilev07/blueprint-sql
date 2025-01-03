@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Post } from "@nestjs/common";
-import { OrderDTO } from "../../models/order-dto";
+import { OrderDto } from "../../models/order.dto";
 import { OrderService } from "@services/order.service";
 import { ApiTags } from "@nestjs/swagger";
 
@@ -9,7 +9,7 @@ export class OrderController {
     constructor(private readonly orderService: OrderService) {}
 
     @Get("")
-    async getProducts(): Promise<OrderDTO[]> {
+    async getProducts(): Promise<OrderDto[]> {
         try {
             return await this.orderService.getOrders();
         } catch (error) {
@@ -18,7 +18,7 @@ export class OrderController {
     }
 
     @Post("/create")
-    async createOrder(@Body() orderDTO: OrderDTO): Promise<OrderDTO> {
+    async createOrder(@Body() orderDTO: OrderDto): Promise<OrderDto> {
         try {
             return await this.orderService.createOrder(orderDTO);
         } catch (error) {

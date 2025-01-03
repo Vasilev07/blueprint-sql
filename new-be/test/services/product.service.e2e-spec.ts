@@ -6,7 +6,7 @@ import { DataSource } from "typeorm";
 import { AppModule } from "../../src/app.module";
 import { Order } from "../../src/entities/order.entity";
 import { Product } from "../../src/entities/product.entity";
-import { ProductDTO } from "../../src/models/product-dto";
+import { ProductDto } from "../../src/models/product.dto";
 
 describe("Product Service (e2e)", () => {
     let app: INestApplication;
@@ -29,7 +29,7 @@ describe("Product Service (e2e)", () => {
     });
 
     test("should create new product", async () => {
-        const productToSave: ProductDTO = {
+        const productToSave: ProductDto = {
             id: undefined,
             name: "Product 1",
             price: 100,
@@ -47,14 +47,14 @@ describe("Product Service (e2e)", () => {
     });
 
     test("should get all products", async () => {
-        const productToSave1: ProductDTO = {
+        const productToSave1: ProductDto = {
             id: undefined,
             name: "Product 1",
             price: 100,
             weight: 10,
             images: [],
         };
-        const productToSave2: ProductDTO = {
+        const productToSave2: ProductDto = {
             id: undefined,
             name: "Product 2",
             price: 88,
@@ -76,7 +76,7 @@ describe("Product Service (e2e)", () => {
     });
 
     test.skip("should update product", async () => {
-        const productToSave1: ProductDTO = {
+        const productToSave1: ProductDto = {
             id: undefined,
             name: "Product 1",
             price: 100,
@@ -93,7 +93,7 @@ describe("Product Service (e2e)", () => {
         expect(savedProduct.price).toBe(100);
         expect(savedProduct.weight).toBe(10);
 
-        const productToUpdate: ProductDTO = {
+        const productToUpdate: ProductDto = {
             id: savedProduct.id,
             name: "Product 1 Updated",
             price: 200,
@@ -111,7 +111,7 @@ describe("Product Service (e2e)", () => {
     });
 
     test("should delete product", async () => {
-        const productToSave1: ProductDTO = {
+        const productToSave1: ProductDto = {
             id: undefined,
             name: "Product 1",
             price: 100,

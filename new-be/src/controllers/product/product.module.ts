@@ -5,10 +5,11 @@ import { ProductController } from "./product.controller";
 import { ProductService } from "@services/product.service";
 import { MulterModule } from "@nestjs/platform-express";
 import { ProductProfile } from "@mappers/profiles/product.profile";
+import { ProductImage } from "@entities/product-image.entity";
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Product]),
+        TypeOrmModule.forFeature([Product, ProductImage]),
         MulterModule.register({ dest: "./uploads" }),
     ],
     exports: [TypeOrmModule],

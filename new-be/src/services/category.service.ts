@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { CategoryDTO } from "../models/category-dto";
+import { CategoryDto } from "../models/category.dto";
 import { Mapper } from "@automapper/core";
 import { InjectMapper } from "@automapper/nestjs";
 import { Category } from "@entities/category.entity";
@@ -16,30 +16,30 @@ export class CategoryService {
         this.categoryRepository = entityManager.getRepository(Category);
     }
 
-    async getCategories(): Promise<CategoryDTO[]> {
+    async getCategories(): Promise<CategoryDto[]> {
         const categories = await this.categoryRepository.find();
 
-        return this.mapper.mapArray(categories, Category, CategoryDTO);
+        return this.mapper.mapArray(categories, Category, CategoryDto);
     }
 
-    async createCategory(category: CategoryDTO): Promise<CategoryDTO> {
+    async createCategory(category: CategoryDto): Promise<CategoryDto> {
         try {
             const categoryToSave = this.mapper.map(
                 category,
-                CategoryDTO,
+                CategoryDto,
                 Category,
             );
 
             const savedCategory =
                 await this.categoryRepository.save(categoryToSave);
 
-            return this.mapper.map(savedCategory, Category, CategoryDTO);
+            return this.mapper.map(savedCategory, Category, CategoryDto);
         } catch (e) {
             throw new Error("Error creating category");
         }
     }
 
-    async updateCategory(category: CategoryDTO): Promise<CategoryDTO> {
+    async updateCategory(category: CategoryDto): Promise<CategoryDto> {
         // TODO that should be transactional
         // Maybe locking is also a good idea
         try {
@@ -49,7 +49,7 @@ export class CategoryService {
                 id: category.id,
             });
 
-            return this.mapper.map(updatedCategory, Category, CategoryDTO);
+            return this.mapper.map(updatedCategory, Category, CategoryDto);
         } catch (e) {
             throw new Error("Error updating category");
         }

@@ -7,8 +7,8 @@ import { OrderService } from "../../src/services/order.service";
 import { AppModule } from "../../src/app.module";
 import { Product } from "../../src/entities/product.entity";
 import { Order, OrderStatus } from "../../src/entities/order.entity";
-import { ProductDTO } from "../../src/models/product-dto";
-import { OrderDTO } from "../../src/models/order-dto";
+import { ProductDto } from "../../src/models/product.dto";
+import { OrderDto } from "../../src/models/order.dto";
 
 describe("Order Service (e2e)", () => {
     let app: INestApplication;
@@ -47,19 +47,19 @@ describe("Order Service (e2e)", () => {
     });
 
     test("should save order", async () => {
-        const product: ProductDTO = {
+        const product: ProductDto = {
             id: undefined,
             weight: 10,
             name: "Product 1",
             price: 100,
             images: [],
         };
-        const productFromDB: ProductDTO = await productService.createProduct(
+        const productFromDB: ProductDto = await productService.createProduct(
             product,
             [],
         );
 
-        const orderToSave: OrderDTO = {
+        const orderToSave: OrderDto = {
             id: undefined,
             status: OrderStatus.PENDING,
             total: 100,
@@ -68,10 +68,10 @@ describe("Order Service (e2e)", () => {
             updated_at: new Date(),
         };
 
-        const orderFromDB: OrderDTO =
+        const orderFromDB: OrderDto =
             await orderService.createOrder(orderToSave);
 
-        const productsFromDb: ProductDTO[] = await productService.getProducts();
+        const productsFromDb: ProductDto[] = await productService.getProducts();
 
         expect(orderFromDB).toBeDefined();
         expect(orderFromDB.id).toBeDefined();
@@ -83,7 +83,7 @@ describe("Order Service (e2e)", () => {
     });
 
     test("should get orders", async () => {
-        const product: ProductDTO = {
+        const product: ProductDto = {
             id: undefined,
             weight: 10,
             name: "Product 1",
@@ -94,7 +94,7 @@ describe("Order Service (e2e)", () => {
 
         console.log(await productService.getProducts(), "products");
 
-        const orderToSave: OrderDTO = {
+        const orderToSave: OrderDto = {
             id: undefined,
             status: OrderStatus.PENDING,
             total: 100,
@@ -105,7 +105,7 @@ describe("Order Service (e2e)", () => {
         const savedOrder = await orderService.createOrder(orderToSave);
         console.log(savedOrder, "savedOrder");
 
-        const orders: OrderDTO[] = await orderService.getOrdersWithProducts();
+        const orders: OrderDto[] = await orderService.getOrdersWithProducts();
         console.log(orders, "orders");
 
         expect(orders).toBeDefined();

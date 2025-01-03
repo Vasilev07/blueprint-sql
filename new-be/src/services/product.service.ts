@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { EntityManager, Repository } from "typeorm";
 import { InjectMapper } from "@automapper/nestjs";
 import { Mapper } from "@automapper/core";
-import { ProductDTO } from "../models/product-dto";
+import { ProductDto } from "../models/product.dto";
 import { Product } from "@entities/product.entity";
 import { ProductImage } from "@entities/product-image.entity";
 import { promises as fs } from "fs";
@@ -20,13 +20,13 @@ export class ProductService {
         this.productImageRepository = entityManager.getRepository(ProductImage);
     }
 
-    async getProducts(): Promise<ProductDTO[]> {
+    async getProducts(): Promise<ProductDto[]> {
         try {
             const products: Product[] = await this.productRepository.find({
                 relations: { images: true },
             });
             return products.map((product: Product) =>
-                this.mapper.map(product, Product, ProductDTO),
+                this.mapper.map(product, Product, ProductDto),
             );
         } catch (e) {
             throw new Error("Error fetching products");
@@ -34,14 +34,14 @@ export class ProductService {
     }
 
     async createProduct(
-        product: ProductDTO,
+        product: ProductDto,
         files: Array<Express.Multer.File>,
-    ): Promise<ProductDTO> {
+    ): Promise<ProductDto> {
         try {
             console.log(product);
             const productToSave: Product = this.mapper.map(
                 product,
-                ProductDTO,
+                ProductDto,
                 Product,
             );
             console.log(productToSave, "productToSave");
@@ -80,19 +80,19 @@ export class ProductService {
             const productFromDB: Product =
                 await this.productRepository.save(productToSave);
             console.log(productFromDB, "productFromDB");
-            return this.mapper.map(productFromDB, Product, ProductDTO);
+            return this.mapper.map(productFromDB, Product, ProductDto);
         } catch (e) {
             throw new Error("Product failed to save!");
         }
     }
 
-    async updateProduct(productDTO: ProductDTO) {
+    async updateProduct(productDTO: ProductDto) {
         // TODO that should be transactional
         // Maybe locking is also a good idea
         try {
             const productToSave = this.mapper.map(
                 productDTO,
-                ProductDTO,
+                ProductDto,
                 Product,
             );
             // TODO FIX
@@ -102,7 +102,7 @@ export class ProductService {
                 id: productDTO.id,
             });
 
-            return this.mapper.map(product, Product, ProductDTO);
+            return this.mapper.map(product, Product, ProductDto);
         } catch (error) {
             throw new Error("Error updating product" + error);
         }

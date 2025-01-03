@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { UserDto } from "src/models/user-dto";
+import { UserDto } from "../models/user.dto";
 import { sign } from "jsonwebtoken";
 import { CryptoService } from "./crypto.service";
 import { EntityManager } from "typeorm";
