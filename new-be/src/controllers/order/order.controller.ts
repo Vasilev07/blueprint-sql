@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Post } from "@nestjs/common";
-import { OrderDTO } from "../../models/order-dto";
+import { OrderDTO } from "../../models/order.dto";
 import { OrderService } from "@services/order.service";
 import { ApiTags } from "@nestjs/swagger";
 

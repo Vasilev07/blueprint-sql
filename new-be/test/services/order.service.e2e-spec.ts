@@ -7,8 +7,8 @@ import { OrderService } from "../../src/services/order.service";
 import { AppModule } from "../../src/app.module";
 import { Product } from "../../src/entities/product.entity";
 import { Order, OrderStatus } from "../../src/entities/order.entity";
-import { ProductDTO } from "../../src/models/product-dto";
-import { OrderDTO } from "../../src/models/order-dto";
+import { ProductDTO } from "../../src/models/product.dto";
+import { OrderDTO } from "../../src/models/order.dto";
 
 describe("Order Service (e2e)", () => {
     let app: INestApplication;

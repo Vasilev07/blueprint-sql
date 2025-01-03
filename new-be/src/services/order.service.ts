@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { Order } from "src/entities/order.entity";
-import { OrderDTO } from "src/models/order-dto";
+import { OrderDTO } from "../models/order.dto";
 import { EntityManager, Repository } from "typeorm";
 import { Mapper } from "@automapper/core";
 import { InjectMapper } from "@automapper/nestjs";

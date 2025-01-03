@@ -1,9 +1,9 @@
 import { Injectable } from "@nestjs/common";
-import { CategoryDTO } from "../models/category-dto";
 import { Mapper } from "@automapper/core";
 import { InjectMapper } from "@automapper/nestjs";
 import { Category } from "@entities/category.entity";
 import { EntityManager, Repository } from "typeorm";
+import { CategoryDTO } from "../models/category.dto";
 
 @Injectable()
 export class CategoryService {

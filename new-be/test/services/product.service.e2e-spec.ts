@@ -6,7 +6,7 @@ import { DataSource } from "typeorm";
 import { AppModule } from "../../src/app.module";
 import { Order } from "../../src/entities/order.entity";
 import { Product } from "../../src/entities/product.entity";
-import { ProductDTO } from "../../src/models/product-dto";
+import { ProductDTO } from "../../src/models/product.dto";
 
 describe("Product Service (e2e)", () => {
     let app: INestApplication;

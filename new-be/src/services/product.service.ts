@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { EntityManager, Repository } from "typeorm";
 import { InjectMapper } from "@automapper/nestjs";
 import { Mapper } from "@automapper/core";
-import { ProductDTO } from "../models/product-dto";
+import { ProductDTO } from "../models/product.dto";
 import { Product } from "@entities/product.entity";
 import { ProductImage } from "@entities/product-image.entity";
 import { promises as fs } from "fs";

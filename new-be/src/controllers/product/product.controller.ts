@@ -11,7 +11,7 @@ import {
     UploadedFiles,
     UseInterceptors,
 } from "@nestjs/common";
-import { ProductDTO } from "../../models/product-dto";
+import { ProductDTO } from "../../models/product.dto";
 import { ProductService } from "@services/product.service";
 import { JsonToDtoInterceptor } from "../../interceptors/json-to-objects.interceptor";
 import { FilesInterceptor } from "@nestjs/platform-express";

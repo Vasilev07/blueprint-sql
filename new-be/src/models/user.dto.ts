@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { AutoMap } from "@automapper/classes";
 
-export class UserDto {
+export class UserDTO {
     @ApiProperty()
     @AutoMap()
     email: string;
