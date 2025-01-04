@@ -46,33 +46,7 @@ export class ProductService {
             );
             console.log(productToSave, "productToSave");
 
-            const filesToSave = await Promise.all(
-                files.map(async (file) => {
-                    const currentImage = new ProductImage();
-
-                    currentImage.name = file.filename;
-                    // currentImage.product = productToSave;
-                    console.log(file.buffer, "file.buffer");
-                    console.log(file, "file");
-                    console.log(file.path, "file.path");
-                    console.log(__dirname, "__dirname");
-                    try {
-                        const fileData = await fs.readFile(file.path);
-                        console.log(fileData, "fileData");
-                        currentImage.data = fileData;
-                    } catch (error) {
-                        console.log(error, "error");
-                    }
-                    console.log(currentImage, "currentImage BEFORE SAVE");
-                    try {
-                        return await this.productImageRepository.save(
-                            currentImage,
-                        );
-                    } catch (e) {
-                        console.log(e, "e");
-                    }
-                }),
-            );
+            const filesToSave = await this.saveFiles(files);
             console.log(filesToSave, "filesToSave");
 
             productToSave.images = filesToSave;
@@ -99,7 +73,7 @@ export class ProductService {
                 Product,
             );
 
-            const savedFiles = await this.savedFiles(files);
+            const savedFiles = await this.saveFiles(files);
             console.log(savedFiles, "filesToSave");
 
             productToSave.images = savedFiles;
@@ -116,7 +90,7 @@ export class ProductService {
         }
     }
 
-    private async savedFiles(files: Array<Express.Multer.File>) {
+    private async saveFiles(files: Array<Express.Multer.File>) {
         return await Promise.all(
             files.map(async (file) => {
                 const currentImage = new ProductImage();
