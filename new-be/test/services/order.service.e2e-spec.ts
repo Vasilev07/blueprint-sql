@@ -69,7 +69,7 @@ describe("Order Service (e2e)", () => {
         const orderFromDB: OrderDTO =
             await orderService.createOrder(orderToSave);
 
-        const productsFromDb: ProductDTO[] = await productService.getProducts();
+        // const productsFromDb: ProductDTO[] = await productService.getProducts();
 
         expect(orderFromDB).toBeDefined();
         expect(orderFromDB.id).toBeDefined();
