@@ -1,35 +1,41 @@
-import { Injectable } from "@nestjs/common";
+import { Inject, Injectable, OnModuleInit } from "@nestjs/common";
 import { Category } from "@entities/category.entity";
 import { EntityManager, Repository } from "typeorm";
 import { CategoryDTO } from "../models/category.dto";
+import { CategoryMapper } from "@mappers/implementations/category.mapper";
+import { MapperService } from "@mappers/mapper.service";
 
 @Injectable()
-export class CategoryService {
+export class CategoryService implements OnModuleInit {
     private categoryRepository: Repository<Category>;
-    private mapper: any;
+    private categoryMapper: CategoryMapper;
 
-    constructor(entityManager: EntityManager) {
-        this.categoryRepository = entityManager.getRepository(Category);
+    constructor(
+        private readonly entityManager: EntityManager,
+        @Inject(MapperService) private readonly mapperService: MapperService,
+    ) {}
+
+    public onModuleInit(): any {
+        this.categoryRepository = this.entityManager.getRepository(Category);
+        this.categoryMapper = this.mapperService.getMapper("Category");
     }
 
     async getCategories(): Promise<CategoryDTO[]> {
         const categories = await this.categoryRepository.find();
 
-        return this.mapper.mapArray(categories, Category, CategoryDTO);
+        return categories.map((category) => {
+            return this.categoryMapper.entityToDTO(category);
+        });
     }
 
     async createCategory(category: CategoryDTO): Promise<CategoryDTO> {
         try {
-            const categoryToSave = this.mapper.map(
-                category,
-                CategoryDTO,
-                Category,
-            );
+            const categoryToSave = this.categoryMapper.dtoToEntity(category);
 
             const savedCategory =
                 await this.categoryRepository.save(categoryToSave);
 
-            return this.mapper.map(savedCategory, Category, CategoryDTO);
+            return this.categoryMapper.entityToDTO(savedCategory);
         } catch (e) {
             throw new Error("Error creating category");
         }
@@ -45,7 +51,7 @@ export class CategoryService {
                 id: category.id,
             });
 
-            return this.mapper.map(updatedCategory, Category, CategoryDTO);
+            return this.categoryMapper.entityToDTO(updatedCategory);
         } catch (e) {
             throw new Error("Error updating category");
         }
