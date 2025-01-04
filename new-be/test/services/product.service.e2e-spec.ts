@@ -100,8 +100,10 @@ describe("Product Service (e2e)", () => {
             weight: 20,
             images: [],
         };
-        const updatedProduct =
-            await productService.updateProduct(productToUpdate);
+        const updatedProduct = await productService.updateProduct(
+            productToUpdate,
+            [],
+        );
 
         expect(updatedProduct).toBeDefined();
         expect(updatedProduct.id).toBe(savedProduct.id);

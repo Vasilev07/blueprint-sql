@@ -7,22 +7,22 @@ import { BaseMapper } from "@mappers/base.mapper";
 export class CategoryMapper implements BaseMapper<Category, CategoryDTO> {
     public entityToDTO(entity: Category): CategoryDTO {
         if (!entity) {
-            return null;
+            return undefined;
         }
         return {
             id: entity.id,
             name: entity.name,
             description: entity.description,
-            parent: entity.parent ? this.entityToDTO(entity.parent) : null,
+            parent: entity.parent ? this.entityToDTO(entity.parent) : undefined,
             children: entity.children
                 ? entity.children.map((child) => this.entityToDTO(child))
-                : [],
+                : undefined,
         };
     }
 
     public dtoToEntity(dto: CategoryDTO): Category {
         if (!dto) {
-            return null;
+            return undefined;
         }
 
         return {
@@ -32,7 +32,7 @@ export class CategoryMapper implements BaseMapper<Category, CategoryDTO> {
             parent: dto.parent ? this.dtoToEntity(dto.parent) : undefined,
             children: dto.children
                 ? dto.children.map((child) => this.dtoToEntity(child))
-                : [],
+                : undefined,
         };
     }
 }

@@ -41,17 +41,15 @@ export class CategoryService implements OnModuleInit {
         }
     }
 
-    async updateCategory(category: CategoryDTO): Promise<CategoryDTO> {
+    async updateCategory(categoryDTO: CategoryDTO): Promise<CategoryDTO> {
         // TODO that should be transactional
         // Maybe locking is also a good idea
         try {
-            await this.categoryRepository.update(category.id, category);
+            const category = this.categoryMapper.dtoToEntity(categoryDTO);
 
-            const updatedCategory = await this.categoryRepository.findOneBy({
-                id: category.id,
-            });
+            const savedCategory = await this.categoryRepository.save(category);
 
-            return this.categoryMapper.entityToDTO(updatedCategory);
+            return this.categoryMapper.entityToDTO(savedCategory);
         } catch (e) {
             throw new Error("Error updating category");
         }

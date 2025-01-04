@@ -12,7 +12,6 @@ export class ProductService implements OnModuleInit {
     private productRepository: Repository<Product>;
     private productImageRepository: Repository<ProductImage>;
     private productMapper: ProductMapper;
-    private mapper: any;
 
     constructor(
         private readonly entityManager: EntityManager,
@@ -58,15 +57,7 @@ export class ProductService implements OnModuleInit {
         files: Array<Express.Multer.File>,
     ): Promise<ProductDTO> {
         try {
-            console.log(product);
-            const productToSave: Product = this.mapper.map(
-                product,
-                ProductDTO,
-                Product,
-            );
-
-            const newDTO = this.productMapper.dtoToEntity(product);
-            console.log(newDTO, "newDTO");
+            const productToSave = this.productMapper.dtoToEntity(product);
 
             console.log(productToSave, "productToSave");
 
@@ -77,8 +68,8 @@ export class ProductService implements OnModuleInit {
 
             const productFromDB: Product =
                 await this.productRepository.save(productToSave);
-            console.log(productFromDB, "productFromDB");
-            return this.mapper.map(productFromDB, Product, ProductDTO);
+
+            return this.productMapper.entityToDTO(productFromDB);
         } catch (e) {
             throw new Error("Product failed to save!");
         }
@@ -91,18 +82,7 @@ export class ProductService implements OnModuleInit {
         // TODO that should be transactional
         // Maybe locking is also a good idea
         try {
-            const productToSave = this.mapper.map(
-                productDTO,
-                ProductDTO,
-                Product,
-                // mapWith()
-                // {
-                //     beforeMap: (s, d) => {
-                //         console.log(s, "source");
-                //         console.log(d, "destination");
-                //     },
-                // },
-            );
+            const productToSave = this.productMapper.dtoToEntity(productDTO);
 
             const productImages = await this.buildProductImages(files);
             console.log(productImages, "filesToSave");
@@ -112,7 +92,7 @@ export class ProductService implements OnModuleInit {
             // TODO FIX
             const product = await this.productRepository.save(productToSave);
 
-            return this.mapper.map(product, Product, ProductDTO);
+            return this.productMapper.entityToDTO(product);
         } catch (error) {
             throw new Error("Error updating product" + error);
         }
