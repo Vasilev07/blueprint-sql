@@ -68,7 +68,7 @@
                     {{ product.weight }}
                 </td>
                 <td>
-                    <img [src]="product.images[0]" width="50" class="shadow-lg"/>
+                    <img [src]="product?.previewImage" width="50" class="shadow-lg"/>
                 </td>
 
                 <td>
@@ -114,9 +114,12 @@
             </div>
 
             <p-fileUpload
+                #fileUpload
+                [files]="files"
                 name="demo[]"
                 (onSelect)="onSelectedFilesChange($event)"
                 [multiple]="true"
+                [showUploadButton]="false"
                 accept="image/*"
                 maxFileSize="100000000"
                 mode="advanced"

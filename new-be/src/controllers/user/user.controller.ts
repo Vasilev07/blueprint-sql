@@ -1,11 +1,11 @@
 import { Body, Controller, Get, Post } from "@nestjs/common";
 import { AuthMiddleware } from "src/middlewares/auth.middleware";
-import { UserDto } from "src/models/user-dto";
-import { UserLoginDTO } from "src/models/user-login-d-t-o";
 import { UserService } from "src/services/user.service";
 import { CryptoService } from "src/services/crypto.service";
 import { ApiTags } from "@nestjs/swagger";
 import { User } from "@entities/user.entity";
+import { UserDTO } from "../../models/user.dto";
+import { UserLoginDto } from "../../models/user-login.dto";
 
 @Controller("/auth")
 @ApiTags("User")
@@ -17,12 +17,12 @@ export class UserController {
     ) {}
 
     @Get("/all")
-    async getAll(): Promise<UserDto[]> {
+    async getAll(): Promise<UserDTO[]> {
         return await this.userService.getAll();
     }
 
     @Post("/login")
-    async login(@Body() administratorLoginDTO: UserLoginDTO): Promise<any> {
+    async login(@Body() administratorLoginDTO: UserLoginDto): Promise<any> {
         const admin: User = await this.userService.findOneByEmail(
             administratorLoginDTO.email,
         );
@@ -46,7 +46,7 @@ export class UserController {
     }
 
     @Post("/register")
-    async register(@Body() userDTO: UserDto): Promise<any> {
+    async register(@Body() userDTO: UserDTO): Promise<any> {
         try {
             return await this.userService.register(userDTO);
         } catch (error) {

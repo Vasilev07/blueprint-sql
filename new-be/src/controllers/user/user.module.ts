@@ -5,12 +5,11 @@ import { UserController } from "./user.controller";
 import { UserService } from "@services/user.service";
 import { CryptoService } from "@services/crypto.service";
 import { AuthMiddleware } from "@middlewares/auth.middleware";
-import { UserProfile } from "@mappers/profiles/user.profile";
 
 @Module({
     imports: [TypeOrmModule.forFeature([User])],
     exports: [TypeOrmModule],
     controllers: [UserController],
-    providers: [UserService, CryptoService, AuthMiddleware, UserProfile],
+    providers: [UserService, CryptoService, AuthMiddleware],
 })
 export class UserModule {}

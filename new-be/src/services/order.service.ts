@@ -1,27 +1,32 @@
-import { Injectable } from "@nestjs/common";
+import { Inject, Injectable, OnModuleInit } from "@nestjs/common";
 import { Order } from "src/entities/order.entity";
-import { OrderDTO } from "src/models/order-dto";
+import { OrderDTO } from "../models/order.dto";
 import { EntityManager, Repository } from "typeorm";
-import { Mapper } from "@automapper/core";
-import { InjectMapper } from "@automapper/nestjs";
+import { MapperService } from "@mappers/mapper.service";
+import { OrderMapper } from "@mappers/implementations/order.mapper";
 
 @Injectable()
-export class OrderService {
+export class OrderService implements OnModuleInit {
     private orderRepository: Repository<Order>;
+    private orderMapper: OrderMapper;
+
     constructor(
-        entityManager: EntityManager,
-        @InjectMapper() private mapper: Mapper,
-    ) {
-        this.orderRepository = entityManager.getRepository(Order);
+        private readonly entityManager: EntityManager,
+        @Inject(MapperService) private readonly mappersService: MapperService,
+    ) {}
+
+    onModuleInit(): any {
+        this.orderRepository = this.entityManager.getRepository(Order);
+        this.orderMapper = this.mappersService.getMapper("Order");
     }
 
     async createOrder(orderDTO: OrderDTO): Promise<OrderDTO> {
         try {
-            const orderToSave = this.mapper.map(orderDTO, OrderDTO, Order);
+            const orderToSave = this.orderMapper.dtoToEntity(orderDTO);
 
             const savedEntity = await this.orderRepository.save(orderToSave);
 
-            return this.mapper.map(savedEntity, Order, OrderDTO);
+            return this.orderMapper.entityToDTO(savedEntity);
         } catch (error) {
             throw new Error("Error creating order" + error);
         }
@@ -30,9 +35,7 @@ export class OrderService {
     async getOrders(): Promise<OrderDTO[]> {
         try {
             const orders: Order[] = await this.orderRepository.find();
-            return orders.map((order) =>
-                this.mapper.map(order, Order, OrderDTO),
-            );
+            return orders.map((order) => this.orderMapper.entityToDTO(order));
         } catch (error) {
             throw new Error("Error creating order" + error);
         }
@@ -48,7 +51,7 @@ export class OrderService {
             });
             console.log(ordersWithProducts, "ordersWithProducts");
             return ordersWithProducts.map((order) =>
-                this.mapper.map(order, Order, OrderDTO),
+                this.orderMapper.entityToDTO(order),
             );
         } catch (error) {
             throw new Error("Error creating order" + error);

@@ -9,7 +9,7 @@ import {
 } from "@nestjs/common";
 import { CategoryService } from "@services/category.service";
 import { ApiTags } from "@nestjs/swagger";
-import { CategoryDTO } from "../../models/category-dto";
+import { CategoryDTO } from "../../models/category.dto";
 
 @Controller("/category")
 @ApiTags("Category")
