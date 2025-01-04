@@ -5,22 +5,24 @@ import { ProductImage } from "@entities/product-image.entity";
 @Entity()
 export class Product {
     @PrimaryGeneratedColumn()
-    @AutoMap()
+    @AutoMap(() => Number)
     id?: number;
 
     @Column("text")
-    @AutoMap()
+    @AutoMap(() => String)
     name: string;
 
     @Column({ type: "decimal", precision: 10, scale: 2 })
-    @AutoMap()
+    @AutoMap(() => Number)
     weight: number;
 
     @Column({ type: "decimal", precision: 10, scale: 2 })
-    @AutoMap()
+    @AutoMap(() => Number)
     price: number;
 
     @AutoMap(() => [ProductImage])
-    @OneToMany(() => ProductImage, (productImage) => productImage.product)
+    @OneToMany(() => ProductImage, (productImage) => productImage.product, {
+        cascade: true,
+    })
     images: ProductImage[];
 }

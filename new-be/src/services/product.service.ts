@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { EntityManager, Repository } from "typeorm";
 import { InjectMapper } from "@automapper/nestjs";
-import { Mapper } from "@automapper/core";
+import { beforeMap, Mapper, mapWith } from "@automapper/core";
 import { ProductDTO } from "../models/product.dto";
 import { Product } from "@entities/product.entity";
 import { ProductImage } from "@entities/product-image.entity";
@@ -46,10 +46,10 @@ export class ProductService {
             );
             console.log(productToSave, "productToSave");
 
-            const filesToSave = await this.saveFiles(files);
-            console.log(filesToSave, "filesToSave");
+            const productImages = await this.buildProductImages(files);
+            console.log(productImages, "filesToSave");
 
-            productToSave.images = filesToSave;
+            productToSave.images = productImages;
 
             const productFromDB: Product =
                 await this.productRepository.save(productToSave);
@@ -71,18 +71,22 @@ export class ProductService {
                 productDTO,
                 ProductDTO,
                 Product,
+                // mapWith()
+                // {
+                //     beforeMap: (s, d) => {
+                //         console.log(s, "source");
+                //         console.log(d, "destination");
+                //     },
+                // },
             );
 
-            const savedFiles = await this.saveFiles(files);
-            console.log(savedFiles, "filesToSave");
+            const productImages = await this.buildProductImages(files);
+            console.log(productImages, "filesToSave");
+            console.log(productToSave, "productToSave");
 
-            productToSave.images = savedFiles;
+            productToSave.images = productImages;
             // TODO FIX
-            await this.productRepository.update(productDTO.id, productToSave);
-
-            const product = await this.productRepository.findOneBy({
-                id: productDTO.id,
-            });
+            const product = await this.productRepository.save(productToSave);
 
             return this.mapper.map(product, Product, ProductDTO);
         } catch (error) {
@@ -90,7 +94,9 @@ export class ProductService {
         }
     }
 
-    private async saveFiles(files: Array<Express.Multer.File>) {
+    private async buildProductImages(
+        files: Array<Express.Multer.File>,
+    ): Promise<ProductImage[]> {
         return await Promise.all(
             files.map(async (file) => {
                 const currentImage = new ProductImage();
@@ -98,17 +104,12 @@ export class ProductService {
                 currentImage.name = file.filename;
 
                 try {
-                    const fileData = await fs.readFile(file.path);
-                    currentImage.data = fileData;
+                    currentImage.data = await fs.readFile(file.path);
                 } catch (error) {
                     console.log(error, "error");
                 }
 
-                try {
-                    return await this.productImageRepository.save(currentImage);
-                } catch (e) {
-                    console.log(e, "e");
-                }
+                return currentImage;
             }),
         );
     }

@@ -176,8 +176,6 @@ export class ProductsComponent implements OnInit, OnDestroy {
               })
             : [];
         this.files = loadedFiles;
-        console.log("loadedFiles", loadedFiles);
-        this.fileUpload?.files.push(...loadedFiles);
 
         console.log("files", this.files);
         this.product = { ...product };

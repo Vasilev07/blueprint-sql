@@ -3,23 +3,23 @@ import { AutoMap } from "@automapper/classes";
 import { ProductImageDTO } from "./product-image-d-t.o";
 
 export class ProductDTO {
-    @AutoMap()
+    @AutoMap(() => Number)
     @ApiPropertyOptional()
     id?: number;
 
-    @AutoMap()
+    @AutoMap(() => String)
     @ApiProperty()
     name: string;
 
-    @AutoMap()
+    @AutoMap(() => Number)
     @ApiProperty()
     weight: number;
 
-    @AutoMap()
+    @AutoMap(() => Number)
     @ApiProperty()
     price: number;
 
     @AutoMap(() => [ProductImageDTO])
     @ApiProperty({ type: [ProductImageDTO] })
-    images?: ProductImageDTO[];
+    images?: ProductImageDTO[] = [];
 }

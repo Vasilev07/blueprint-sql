@@ -1,6 +1,13 @@
 import { Injectable } from "@nestjs/common";
 import { AutomapperProfile, InjectMapper } from "@automapper/nestjs";
-import { createMap, forMember, mapFrom, Mapper } from "@automapper/core";
+import {
+    createMap,
+    forMember,
+    ignore,
+    mapFrom,
+    Mapper,
+    typeConverter,
+} from "@automapper/core";
 import { Product } from "../../entities/product.entity";
 import { ProductDTO } from "../../models/product.dto";
 import { ProductImageDTO } from "../../models/product-image-d-t.o";
@@ -44,7 +51,8 @@ export class ProductProfile extends AutomapperProfile {
                 mapper,
                 ProductDTO,
                 Product,
-                // forMember((dest: Product) => dest.images, ignore()),
+                forMember((dest: Product) => dest.images, ignore()),
+                // typeConverter(String, Number, (str) => parseInt(str, 10)),
             );
         };
     }
