@@ -1,39 +1,59 @@
-import { Injectable } from "@nestjs/common";
+import { Inject, Injectable, OnModuleInit } from "@nestjs/common";
 import { EntityManager, Repository } from "typeorm";
-import { InjectMapper } from "@automapper/nestjs";
-import { beforeMap, Mapper, mapWith } from "@automapper/core";
 import { ProductDTO } from "../models/product.dto";
 import { Product } from "@entities/product.entity";
 import { ProductImage } from "@entities/product-image.entity";
 import { promises as fs } from "fs";
+import { MapperService } from "@mappers/mapper.service";
+import { ProductMapper } from "@mappers/implementations/product.mapper";
 
 @Injectable()
-export class ProductService {
+export class ProductService implements OnModuleInit {
     private productRepository: Repository<Product>;
     private productImageRepository: Repository<ProductImage>;
+    private productMapper: ProductMapper;
+    private mapper: any;
 
     constructor(
-        entityManager: EntityManager,
-        @InjectMapper() private mapper: Mapper,
-    ) {
-        this.productRepository = entityManager.getRepository(Product);
-        this.productImageRepository = entityManager.getRepository(ProductImage);
+        private readonly entityManager: EntityManager,
+        @Inject(MapperService) private readonly mapperService: MapperService,
+    ) {}
+
+    public onModuleInit(): any {
+        this.productRepository = this.entityManager.getRepository(Product);
+        this.productImageRepository =
+            this.entityManager.getRepository(ProductImage);
+        this.productMapper = this.mapperService.getMapper("Product");
     }
 
-    async getProducts(): Promise<ProductDTO[]> {
+    public async getProducts(): Promise<ProductDTO[]> {
         try {
             const products: Product[] = await this.productRepository.find({
                 relations: { images: true },
             });
-            return products.map((product: Product) =>
-                this.mapper.map(product, Product, ProductDTO),
-            );
+
+            console.log(products, "products");
+
+            return products.map((product) => {
+                console.log(product, "productTEST");
+                try {
+                    console.log(
+                        this.productMapper.entityToDTO(product),
+                        "test",
+                    );
+
+                    return this.productMapper.entityToDTO(product);
+                } catch (e) {
+                    console.log(e, "ERROR MAPPING");
+                    return {} as ProductDTO;
+                }
+            });
         } catch (e) {
             throw new Error("Error fetching products");
         }
     }
 
-    async createProduct(
+    public async createProduct(
         product: ProductDTO,
         files: Array<Express.Multer.File>,
     ): Promise<ProductDTO> {
@@ -44,6 +64,10 @@ export class ProductService {
                 ProductDTO,
                 Product,
             );
+
+            const newDTO = this.productMapper.dtoToEntity(product);
+            console.log(newDTO, "newDTO");
+
             console.log(productToSave, "productToSave");
 
             const productImages = await this.buildProductImages(files);
@@ -60,7 +84,7 @@ export class ProductService {
         }
     }
 
-    async updateProduct(
+    public async updateProduct(
         productDTO: ProductDTO,
         files: Array<Express.Multer.File>,
     ) {
@@ -114,7 +138,7 @@ export class ProductService {
         );
     }
 
-    async deleteProduct(id: string) {
+    public async deleteProduct(id: string) {
         try {
             // TODO we do nothing with Orders referencing it
             await this.productRepository.delete(id);

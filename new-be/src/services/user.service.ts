@@ -3,17 +3,21 @@ import { UserDTO } from "../models/user.dto";
 import { sign } from "jsonwebtoken";
 import { CryptoService } from "./crypto.service";
 import { EntityManager } from "typeorm";
-import { Mapper } from "@automapper/core";
-import { InjectMapper } from "@automapper/nestjs";
 import { User } from "@entities/user.entity";
+import { UserMapper } from "@mappers/implementations/user.mapper";
+import { MapperService } from "@mappers/mapper.service";
 
 @Injectable()
 export class UserService {
+    private userMapper: UserMapper;
+
     constructor(
         private cryptoService: CryptoService,
         private entityManager: EntityManager,
-        @InjectMapper() private mapper: Mapper,
-    ) {}
+        private readonly mapperService: MapperService,
+    ) {
+        // this.userMapper = this.mapperService.getMapper("User");
+    }
 
     async register(dto: UserDTO) {
         const isEmailAvailable = await this.findOneByEmail(dto.email);
@@ -58,9 +62,7 @@ export class UserService {
 
     async getAll(): Promise<UserDTO[]> {
         const users = await this.entityManager.find(User);
-
-        return users.map((user: User) => {
-            return this.mapper.map(user, User, UserDTO);
-        });
+        console.log(users);
+        return Promise.all([]);
     }
 }

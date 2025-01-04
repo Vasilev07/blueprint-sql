@@ -2,17 +2,15 @@ import { Injectable } from "@nestjs/common";
 import { Order } from "src/entities/order.entity";
 import { OrderDTO } from "../models/order.dto";
 import { EntityManager, Repository } from "typeorm";
-import { Mapper } from "@automapper/core";
-import { InjectMapper } from "@automapper/nestjs";
 
 @Injectable()
 export class OrderService {
     private orderRepository: Repository<Order>;
-    constructor(
-        entityManager: EntityManager,
-        @InjectMapper() private mapper: Mapper,
-    ) {
+    private mapper: any;
+
+    constructor(entityManager: EntityManager) {
         this.orderRepository = entityManager.getRepository(Order);
+        this.mapper = {};
     }
 
     async createOrder(orderDTO: OrderDTO): Promise<OrderDTO> {

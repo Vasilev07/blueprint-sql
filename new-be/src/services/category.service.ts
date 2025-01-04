@@ -1,6 +1,4 @@
 import { Injectable } from "@nestjs/common";
-import { Mapper } from "@automapper/core";
-import { InjectMapper } from "@automapper/nestjs";
 import { Category } from "@entities/category.entity";
 import { EntityManager, Repository } from "typeorm";
 import { CategoryDTO } from "../models/category.dto";
@@ -8,11 +6,9 @@ import { CategoryDTO } from "../models/category.dto";
 @Injectable()
 export class CategoryService {
     private categoryRepository: Repository<Category>;
+    private mapper: any;
 
-    constructor(
-        entityManager: EntityManager,
-        @InjectMapper() private mapper: Mapper,
-    ) {
+    constructor(entityManager: EntityManager) {
         this.categoryRepository = entityManager.getRepository(Category);
     }
 

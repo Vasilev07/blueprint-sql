@@ -22,7 +22,7 @@ export class ProductController {
     constructor(public productService: ProductService) {}
 
     @Get()
-    async getAll() {
+    async getAll(): Promise<ProductDTO[]> {
         try {
             return await this.productService.getProducts();
         } catch (error) {

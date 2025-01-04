@@ -6,7 +6,6 @@ import {
     PrimaryGeneratedColumn,
 } from "typeorm";
 import { Product } from "./product.entity";
-import { AutoMap } from "@automapper/classes";
 
 export enum OrderStatus {
     PENDING = "pending",
@@ -17,7 +16,6 @@ export enum OrderStatus {
 @Entity()
 export class Order {
     @PrimaryGeneratedColumn()
-    @AutoMap()
     id?: number;
 
     @Column({
@@ -25,11 +23,9 @@ export class Order {
         enum: OrderStatus,
         default: OrderStatus.PENDING,
     })
-    @AutoMap()
     status: OrderStatus;
 
     @Column({ type: "int", width: 200 })
-    @AutoMap()
     total: number;
 
     @ManyToMany(() => Product)
@@ -37,6 +33,5 @@ export class Order {
         name: "order_products",
         joinColumn: { name: "order_id", referencedColumnName: "id" },
     })
-    @AutoMap(() => [Product])
     products?: Product[];
 }

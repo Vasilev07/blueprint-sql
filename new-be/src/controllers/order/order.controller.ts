@@ -9,11 +9,11 @@ export class OrderController {
     constructor(private readonly orderService: OrderService) {}
 
     @Get("")
-    async getProducts(): Promise<OrderDTO[]> {
+    async getOrders(): Promise<OrderDTO[]> {
         try {
             return await this.orderService.getOrders();
         } catch (error) {
-            throw new Error("Error getting products" + error);
+            throw new Error("Error getting orders" + error);
         }
     }
 
