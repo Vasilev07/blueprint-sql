@@ -50,7 +50,13 @@
                     Weight
                     <p-sortIcon field="weight" />
                 </th>
-                <th></th>
+                <th>
+                    Images
+                    <p-sortIcon field="weight" />
+                </th>
+                <th>
+                    Actions
+                </th>
             </tr>
         </ng-template>
         <ng-template pTemplate="body" let-product>
@@ -68,7 +74,7 @@
                     {{ product.weight }}
                 </td>
                 <td>
-                    <img [src]="product?.previewImage" width="50" class="shadow-lg"/>
+                    <img [src]="product?.previewImage" width="50" height="50" class="shadow-lg"/>
                 </td>
 
                 <td>
