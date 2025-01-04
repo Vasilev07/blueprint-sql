@@ -86,7 +86,10 @@ export class ProductService {
         }
     }
 
-    async updateProduct(productDTO: ProductDTO) {
+    async updateProduct(
+        productDTO: ProductDTO,
+        files: Array<Express.Multer.File>,
+    ) {
         // TODO that should be transactional
         // Maybe locking is also a good idea
         try {
@@ -95,6 +98,11 @@ export class ProductService {
                 ProductDTO,
                 Product,
             );
+
+            const savedFiles = await this.savedFiles(files);
+            console.log(savedFiles, "filesToSave");
+
+            productToSave.images = savedFiles;
             // TODO FIX
             await this.productRepository.update(productDTO.id, productToSave);
 
@@ -106,6 +114,29 @@ export class ProductService {
         } catch (error) {
             throw new Error("Error updating product" + error);
         }
+    }
+
+    private async savedFiles(files: Array<Express.Multer.File>) {
+        return await Promise.all(
+            files.map(async (file) => {
+                const currentImage = new ProductImage();
+
+                currentImage.name = file.filename;
+
+                try {
+                    const fileData = await fs.readFile(file.path);
+                    currentImage.data = fileData;
+                } catch (error) {
+                    console.log(error, "error");
+                }
+
+                try {
+                    return await this.productImageRepository.save(currentImage);
+                } catch (e) {
+                    console.log(e, "e");
+                }
+            }),
+        );
     }
 
     async deleteProduct(id: string) {

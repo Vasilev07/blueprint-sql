@@ -1,14 +1,9 @@
 import { Component, OnDestroy, OnInit, ViewChild } from "@angular/core";
-import { HttpClient } from "@angular/common/http";
 import { Subject, takeUntil } from "rxjs";
 import { ConfirmationService, MessageService } from "primeng/api";
 import { ProductService } from "../../typescript-api-client/src/clients/product.service";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
-import {
-    FileSelectEvent,
-    FileUpload,
-    FileUploadEvent,
-} from "primeng/fileupload";
+import { FileSelectEvent, FileUpload, FileUploadEvent } from "primeng/fileupload";
 import { DomSanitizer } from "@angular/platform-browser";
 import { ProductDTO } from "../../typescript-api-client/src/models/productDTO";
 
@@ -35,7 +30,6 @@ export class ProductsComponent implements OnInit, OnDestroy {
     private readonly ngUnsubscribe: Subject<void> = new Subject<void>();
 
     constructor(
-        private readonly http: HttpClient,
         private readonly confirmationService: ConfirmationService,
         private readonly messageService: MessageService,
         private productService: ProductService,
@@ -61,9 +55,6 @@ export class ProductsComponent implements OnInit, OnDestroy {
                         console.log("prod.images", product.images);
                         return {
                             ...product,
-                            // images: product.images.map((image: ProductImageDTO) => {
-                            //     return new File([image.data], image.name)
-                            // }),
                             previewImage,
                         };
                     });
@@ -197,7 +188,11 @@ export class ProductsComponent implements OnInit, OnDestroy {
     public updateProduct(product: ProductDTO) {
         console.log("product before http call", product);
         this.productService
-            .updateProduct(product.id!.toString(), product)
+            .updateProduct(
+                product.id!.toString(),
+                JSON.stringify(product),
+                this.files,
+            )
             .pipe(takeUntil(this.ngUnsubscribe))
             .subscribe({
                 next: (productFromDb) => {
