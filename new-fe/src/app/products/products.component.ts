@@ -1,10 +1,14 @@
-import { Component, OnDestroy, OnInit } from "@angular/core";
+import { Component, OnDestroy, OnInit, ViewChild } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { Subject, takeUntil } from "rxjs";
 import { ConfirmationService, MessageService } from "primeng/api";
 import { ProductService } from "../../typescript-api-client/src/clients/product.service";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
-import { FileSelectEvent, FileUploadEvent } from "primeng/fileupload";
+import {
+    FileSelectEvent,
+    FileUpload,
+    FileUploadEvent,
+} from "primeng/fileupload";
 import { DomSanitizer } from "@angular/platform-browser";
 import { ProductDTO } from "../../typescript-api-client/src/models/productDTO";
 
@@ -26,6 +30,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
         // category: ["", Validators.required],
     });
     public files: File[] = [];
+    @ViewChild("fileUpload") public fileUpload?: FileUpload;
 
     private readonly ngUnsubscribe: Subject<void> = new Subject<void>();
 
@@ -53,9 +58,12 @@ export class ProductsComponent implements OnInit, OnDestroy {
                                           product.images![0]!.data,
                                   )
                                 : undefined;
+                        console.log("prod.images", product.images);
                         return {
                             ...product,
-                            // images: mappedProductImages,
+                            // images: product.images.map((image: ProductImageDTO) => {
+                            //     return new File([image.data], image.name)
+                            // }),
                             previewImage,
                         };
                     });
@@ -163,11 +171,24 @@ export class ProductsComponent implements OnInit, OnDestroy {
     public editProduct(product: ProductDTO) {
         this.isEdit = true;
         this.visible = true;
-        this.files = product.images
-            ? product.images?.map(
-                  (image: any) => new File([image.data], image.name),
-              )
+        const loadedFiles = product.images
+            ? product.images?.map((image: any) => {
+                  // TODO Extract to a util function
+                  const binaryData = atob(image.data);
+                  const buffer = new ArrayBuffer(binaryData.length);
+                  const view = new Uint8Array(buffer);
+                  for (let i = 0; i < binaryData.length; i++) {
+                      view[i] = binaryData.charCodeAt(i);
+                  }
+                  const blob = new Blob([view], { type: "image/jpeg" });
+                  return new File([blob], image.name, { type: "image/jpeg" });
+              })
             : [];
+        this.files = loadedFiles;
+        console.log("loadedFiles", loadedFiles);
+        this.fileUpload?.files.push(...loadedFiles);
+
+        console.log("files", this.files);
         this.product = { ...product };
         this.productForm.patchValue(product);
         console.log("product", product);

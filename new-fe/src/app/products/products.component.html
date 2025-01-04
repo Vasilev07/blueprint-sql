@@ -114,6 +114,8 @@
             </div>
 
             <p-fileUpload
+                #fileUpload
+                [files]="files"
                 name="demo[]"
                 (onSelect)="onSelectedFilesChange($event)"
                 [multiple]="true"
