@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Inject, Injectable, OnModuleInit } from "@nestjs/common";
 import { UserDTO } from "../models/user.dto";
 import { sign } from "jsonwebtoken";
 import { CryptoService } from "./crypto.service";
@@ -8,15 +8,19 @@ import { UserMapper } from "@mappers/implementations/user.mapper";
 import { MapperService } from "@mappers/mapper.service";
 
 @Injectable()
-export class UserService {
+export class UserService implements OnModuleInit {
     private userMapper: UserMapper;
 
     constructor(
         private cryptoService: CryptoService,
         private entityManager: EntityManager,
-        private readonly mapperService: MapperService,
+        @Inject(MapperService) private readonly mapperService: MapperService,
     ) {
         // this.userMapper = this.mapperService.getMapper("User");
+    }
+
+    public onModuleInit(): void {
+        this.userMapper = this.mapperService.getMapper("User");
     }
 
     async register(dto: UserDTO) {
@@ -62,7 +66,8 @@ export class UserService {
 
     async getAll(): Promise<UserDTO[]> {
         const users = await this.entityManager.find(User);
-        console.log(users);
-        return Promise.all([]);
+        return users.map((user) => {
+            return this.userMapper.entityToDTO(user);
+        });
     }
 }

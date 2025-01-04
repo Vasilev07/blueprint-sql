@@ -14,10 +14,4 @@ export class OrderDTO {
 
     @ApiPropertyOptional()
     products?: ProductDTO[];
-
-    @ApiProperty()
-    created_at: Date;
-
-    @ApiProperty()
-    updated_at: Date;
 }

@@ -18,7 +18,7 @@ export class ProductService implements OnModuleInit {
         @Inject(MapperService) private readonly mapperService: MapperService,
     ) {}
 
-    public onModuleInit(): any {
+    public onModuleInit(): void {
         this.productRepository = this.entityManager.getRepository(Product);
         this.productImageRepository =
             this.entityManager.getRepository(ProductImage);
@@ -34,18 +34,7 @@ export class ProductService implements OnModuleInit {
             console.log(products, "products");
 
             return products.map((product) => {
-                console.log(product, "productTEST");
-                try {
-                    console.log(
-                        this.productMapper.entityToDTO(product),
-                        "test",
-                    );
-
-                    return this.productMapper.entityToDTO(product);
-                } catch (e) {
-                    console.log(e, "ERROR MAPPING");
-                    return {} as ProductDTO;
-                }
+                return this.productMapper.entityToDTO(product);
             });
         } catch (e) {
             throw new Error("Error fetching products");

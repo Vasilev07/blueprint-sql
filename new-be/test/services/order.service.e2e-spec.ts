@@ -64,8 +64,6 @@ describe("Order Service (e2e)", () => {
             status: OrderStatus.PENDING,
             total: 100,
             products: [productFromDB],
-            created_at: new Date(),
-            updated_at: new Date(),
         };
 
         const orderFromDB: OrderDTO =
@@ -99,8 +97,6 @@ describe("Order Service (e2e)", () => {
             status: OrderStatus.PENDING,
             total: 100,
             products: [savedProduct],
-            created_at: new Date(),
-            updated_at: new Date(),
         };
         const savedOrder = await orderService.createOrder(orderToSave);
         console.log(savedOrder, "savedOrder");
