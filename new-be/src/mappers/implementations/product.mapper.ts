@@ -27,6 +27,7 @@ export class ProductMapper implements BaseMapper<Product, ProductDTO> {
     }
 
     public dtoToEntity(dto: ProductDTO): Product {
+        console.log("DTO TO ENTITY", dto);
         return {
             id: dto.id,
             name: dto.name,

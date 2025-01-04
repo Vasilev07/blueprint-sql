@@ -82,7 +82,10 @@ export class ProductService implements OnModuleInit {
         // TODO that should be transactional
         // Maybe locking is also a good idea
         try {
+            console.log(productDTO, "productDTO DTO DTO");
             const productToSave = this.productMapper.dtoToEntity(productDTO);
+
+            console.log(productToSave, "productToSave");
 
             const productImages = await this.buildProductImages(files);
             console.log(productImages, "filesToSave");

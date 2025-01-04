@@ -96,7 +96,7 @@ export class ProductController {
     @SerializeOptions({ type: ProductDTO })
     async updateProduct(
         @Param("id") id: string,
-        @Body() productDTO: ProductDTO,
+        @Body("data") productDTO: ProductDTO,
         @UploadedFiles() files: Array<Express.Multer.File>,
     ): Promise<ProductDTO> {
         try {
