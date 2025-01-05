@@ -12,6 +12,7 @@ export class OrderMapper implements BaseMapper<Order, OrderDTO> {
             total: entity.total,
             products: [],
             address: { ...entity.address },
+            contactInformation: { ...entity.contactInformation },
         };
     }
 
@@ -22,6 +23,7 @@ export class OrderMapper implements BaseMapper<Order, OrderDTO> {
             total: dto.total,
             products: [],
             address: { ...dto.address },
+            contactInformation: { ...dto.contactInformation },
         };
     }
 }

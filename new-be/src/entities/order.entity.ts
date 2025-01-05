@@ -7,6 +7,7 @@ import {
 } from "typeorm";
 import { Product } from "./product.entity";
 import { Address } from "@entities/address.entity";
+import { ContactInformation } from "@entities/contact-information.entity";
 
 export enum OrderStatus {
     PENDING = "pending",
@@ -31,6 +32,9 @@ export class Order {
 
     @Column(() => Address)
     address: Address;
+
+    @Column(() => ContactInformation)
+    contactInformation: ContactInformation;
 
     @ManyToMany(() => Product)
     @JoinTable({

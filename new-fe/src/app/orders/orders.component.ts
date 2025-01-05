@@ -5,6 +5,10 @@ import { Subject, takeUntil } from "rxjs";
 import { ConfirmationService, MessageService } from "primeng/api";
 import { LayoutService } from "../layout/service/app.layout.service";
 import { OrderDTO } from "../../typescript-api-client/src/models/orderDTO";
+import { FormBuilder, FormGroup, Validators } from "@angular/forms";
+import { OrderService } from "../../typescript-api-client/src/clients/order.service";
+import { ContactInformationDTO } from "../../typescript-api-client/src/models/contactInformationDTO";
+import { AddressDTO } from "../../typescript-api-client/src/models/addressDTO";
 
 @Component({
     templateUrl: "./orders.component.html",
@@ -16,6 +20,23 @@ export class OrdersComponent implements OnInit, OnDestroy {
     public isEdit!: boolean;
     public visible!: boolean;
     public order?: OrderDTO;
+    public orderForm: FormGroup<{
+        contactInformation: FormGroup;
+        addressInformation: FormGroup;
+    }> = this.fb.group({
+        contactInformation: this.fb.group({
+            firstName: ["Georgi", Validators.required],
+            lastName: ["Vasilev", Validators.required],
+            email: ["gvas@gmail.com", Validators.required],
+            phone: ["0885865090", Validators.required],
+        }),
+        addressInformation: this.fb.group({
+            country: ["Bulgaria", Validators.required],
+            city: ["Sofia", Validators.required],
+            postCode: ["1000", Validators.required],
+            address: ["jk.Drujbai", Validators.required],
+        }),
+    });
 
     private readonly ngUnsubscribe: Subject<void> = new Subject<void>();
 
@@ -24,6 +45,8 @@ export class OrdersComponent implements OnInit, OnDestroy {
         private readonly confirmationService: ConfirmationService,
         private readonly messageService: MessageService,
         public layoutService: LayoutService,
+        private readonly fb: FormBuilder,
+        private readonly orderService: OrderService,
     ) {
     }
 
@@ -44,6 +67,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
     openNew() {
         this.order = undefined;
         this.visible = true;
+        this.orderDialog = true;
     }
 
     deleteSelectedProducts() {
@@ -88,6 +112,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
     hideDialog() {
         this.isEdit = false;
         this.visible = false;
+        this.orderDialog = false;
     }
 
     saveOrder() {
@@ -99,7 +124,22 @@ export class OrdersComponent implements OnInit, OnDestroy {
     }
 
     private createOrder() {
+        console.log(this.orderForm.getRawValue());
+        const formData = this.orderForm.getRawValue();
 
+        const order: OrderDTO = {
+            id: undefined,
+            contactInformation:
+                formData.contactInformation as ContactInformationDTO,
+            address: formData.addressInformation as AddressDTO,
+            status: "pending",
+            total: 420,
+        };
+
+        this.orderService
+            .createOrder(order)
+            .pipe(takeUntil(this.ngUnsubscribe))
+            .subscribe(console.log);
     }
 
     private updateOrder() {

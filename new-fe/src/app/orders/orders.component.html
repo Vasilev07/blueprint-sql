@@ -95,53 +95,59 @@
 
   <p-dialog
     [(visible)]="orderDialog"
-    [style]="{ width: '450px' }"
+    [style]="{ width: '100rem', height: '80rem' }"
     header="Product Details"
     [modal]="true"
     styleClass="p-fluid">
     <ng-template pTemplate="content">
-      <div class="field">
-        <label for="name">Name</label>
-        <input
-          type="text"
-          pInputText
-          id="name"
-          [(ngModel)]="order!.name"
-          required
-          autofocus/>
-        <small class="p-error" *ngIf="submitted && !product!.name">
-          Name is required.
-        </small>
-      </div>
+        <form [formGroup]="orderForm">
+            <div formGroupName="contactInformation">
+                <div class="flex items-center mb-5">
+                    <label for="firstName" class="font-semibold w-24">First Name</label>
+                    <input formControlName="firstName" pInputText id="firstName" class="flex-auto" autocomplete="off" />
+                </div>
+                <div class="flex items-center mb-5">
+                    <label for="lastName" class="font-semibold w-24">Last Name</label>
+                    <input formControlName="lastName" pInputText id="lastName" class="flex-auto" autocomplete="off" />
+                </div>
+                <div class="flex items-center gap-4 mb-8">
+                    <label for="email" class="font-semibold w-24">Email</label>
+                    <input formControlName="email" pInputText id="email" class="flex-auto" autocomplete="off" />
+                </div>
+                <div class="flex items-center gap-4 mb-8">
+                    <label for="phone" class="font-semibold w-24">Phone</label>
+                    <input formControlName="phone" pInputText id="phone" class="flex-auto" autocomplete="off" />
+                </div>
+            </div>
 
-      <div class="formgrid grid">
-        <div class="field col">
-          <label for="price">Price</label>
-          <p-inputNumber
-            id="price"
-            [(ngModel)]="product!.price"
-            mode="currency"
-            currency="USD"
-            locale="en-US"/>
-        </div>
-        <div class="field col">
-          <label for="weight">Weight</label>
-          <p-inputNumber
-            id="weight"
-            [(ngModel)]="product!.weight"/>
-        </div>
-      </div>
+            <div formGroupName="addressInformation">
+                <div class="flex items-center mb-5">
+                    <label for="country" class="font-semibold w-24">Country</label>
+                    <input formControlName="country" pInputText id="country" class="flex-auto" autocomplete="off" />
+                </div>
+                <div class="flex items-center mb-5">
+                    <label for="city" class="font-semibold w-24">City</label>
+                    <input formControlName="city" pInputText id="city" class="flex-auto" autocomplete="off" />
+                </div>
+                <div class="flex items-center gap-4 mb-8">
+                    <label for="postCode" class="font-semibold w-24">Post Code</label>
+                    <input formControlName="postCode" pInputText id="postCode" class="flex-auto" autocomplete="off" />
+                </div>
+                <div class="flex items-center gap-4 mb-8">
+                    <label for="address" class="font-semibold w-24">Address</label>
+                    <input formControlName="address" pInputText id="address" class="flex-auto" autocomplete="off" />
+                </div>
+            </div>
+        </form>
     </ng-template>
 
     <ng-template pTemplate="footer">
       <p-button
-        pRipple
         label="Cancel"
         icon="pi pi-times"
         [text]="true"
         (click)="hideDialog()"/>
       <p-button
-        pRipple
         label="Save"
         icon="pi pi-check"
         [text]="true"
