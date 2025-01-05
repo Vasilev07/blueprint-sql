@@ -13,6 +13,9 @@ export class OrdersComponent implements OnInit, OnDestroy {
     public selectedOrders: any;
     public orders!: OrderDTO[];
     public orderDialog!: boolean;
+    public isEdit!: boolean;
+    public visible!: boolean;
+    public order?: OrderDTO;
 
     private readonly ngUnsubscribe: Subject<void> = new Subject<void>();
 
@@ -21,7 +24,8 @@ export class OrdersComponent implements OnInit, OnDestroy {
         private readonly confirmationService: ConfirmationService,
         private readonly messageService: MessageService,
         public layoutService: LayoutService,
-    ) {}
+    ) {
+    }
 
     ngOnInit(): void {
         this.http
@@ -37,7 +41,10 @@ export class OrdersComponent implements OnInit, OnDestroy {
         this.ngUnsubscribe.complete();
     }
 
-    openNew() {}
+    openNew() {
+        this.order = undefined;
+        this.visible = true;
+    }
 
     deleteSelectedProducts() {
         this.confirmationService.confirm({
@@ -78,49 +85,24 @@ export class OrdersComponent implements OnInit, OnDestroy {
         });
     }
 
-    hideDialog() {}
-
-    saveProduct() {
-        // this.submitted = true;
-        //
-        // if (this.product?.name?.trim()) {
-        //     if (this.product.id) {
-        //         this.orders[this.findIndexById(this.product.id)] = this.product;
-        //         this.messageService.add({
-        //             severity: "success",
-        //             summary: "Successful",
-        //             detail: "Product Updated",
-        //             life: 3000,
-        //         });
-        //     } else {
-        //         this.orders.push(this.product);
-        //         this.messageService.add({
-        //             severity: "success",
-        //             summary: "Successful",
-        //             detail: "Product Created",
-        //             life: 3000,
-        //         });
-        //     }
-        //
-        //     this.orders = [...this.orders];
-        //     this.productDialog = false;
-        //     this.product = undefined;
-        // }
+    hideDialog() {
+        this.isEdit = false;
+        this.visible = false;
     }
 
-    findIndexById(id: number): number {
-        let index = -1;
-        for (let i = 0; i < this.orders.length; i++) {
-            if (this.orders[i].id === id) {
-                index = i;
-                break;
-            }
-        }
-
-        return index;
+    saveOrder() {
+        this.isEdit ? this.updateOrder() : this.createOrder();
     }
 
     editOrder(order: any) {
         console.log(order);
+    }
+
+    private createOrder() {
+
+    }
+
+    private updateOrder() {
+
     }
 }

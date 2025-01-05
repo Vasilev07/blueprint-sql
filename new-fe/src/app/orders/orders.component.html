@@ -93,61 +93,61 @@
     </ng-template>
   </p-table>
 
-<!--  <p-dialog-->
-<!--    [(visible)]="orderDialog"-->
-<!--    [style]="{ width: '450px' }"-->
-<!--    header="Product Details"-->
-<!--    [modal]="true"-->
-<!--    styleClass="p-fluid">-->
-<!--    <ng-template pTemplate="content">-->
-<!--      <div class="field">-->
-<!--        <label for="name">Name</label>-->
-<!--        <input-->
-<!--          type="text"-->
-<!--          pInputText-->
-<!--          id="name"-->
-<!--          [(ngModel)]="order!.name"-->
-<!--          required-->
-<!--          autofocus/>-->
-<!--        <small class="p-error" *ngIf="submitted && !product!.name">-->
-<!--          Name is required.-->
-<!--        </small>-->
-<!--      </div>-->
+  <p-dialog
+    [(visible)]="orderDialog"
+    [style]="{ width: '450px' }"
+    header="Product Details"
+    [modal]="true"
+    styleClass="p-fluid">
+    <ng-template pTemplate="content">
+      <div class="field">
+        <label for="name">Name</label>
+        <input
+          type="text"
+          pInputText
+          id="name"
+          [(ngModel)]="order!.name"
+          required
+          autofocus/>
+        <small class="p-error" *ngIf="submitted && !product!.name">
+          Name is required.
+        </small>
+      </div>
 
-<!--      <div class="formgrid grid">-->
-<!--        <div class="field col">-->
-<!--          <label for="price">Price</label>-->
-<!--          <p-inputNumber-->
-<!--            id="price"-->
-<!--            [(ngModel)]="product!.price"-->
-<!--            mode="currency"-->
-<!--            currency="USD"-->
-<!--            locale="en-US"/>-->
-<!--        </div>-->
-<!--        <div class="field col">-->
-<!--          <label for="weight">Weight</label>-->
-<!--          <p-inputNumber-->
-<!--            id="weight"-->
-<!--            [(ngModel)]="product!.weight"/>-->
-<!--        </div>-->
-<!--      </div>-->
-<!--    </ng-template>-->
+      <div class="formgrid grid">
+        <div class="field col">
+          <label for="price">Price</label>
+          <p-inputNumber
+            id="price"
+            [(ngModel)]="product!.price"
+            mode="currency"
+            currency="USD"
+            locale="en-US"/>
+        </div>
+        <div class="field col">
+          <label for="weight">Weight</label>
+          <p-inputNumber
+            id="weight"
+            [(ngModel)]="product!.weight"/>
+        </div>
+      </div>
+    </ng-template>
 
-<!--    <ng-template pTemplate="footer">-->
-<!--      <p-button-->
-<!--        pRipple-->
-<!--        label="Cancel"-->
-<!--        icon="pi pi-times"-->
-<!--        [text]="true"-->
-<!--        (click)="hideDialog()"/>-->
-<!--      <p-button-->
-<!--        pRipple-->
-<!--        label="Save"-->
-<!--        icon="pi pi-check"-->
-<!--        [text]="true"-->
-<!--        (click)="saveProduct()"/>-->
-<!--    </ng-template>-->
-<!--  </p-dialog>-->
+    <ng-template pTemplate="footer">
+      <p-button
+        pRipple
+        label="Cancel"
+        icon="pi pi-times"
+        [text]="true"
+        (click)="hideDialog()"/>
+      <p-button
+        pRipple
+        label="Save"
+        icon="pi pi-check"
+        [text]="true"
+        (click)="saveOrder()"/>
+    </ng-template>
+  </p-dialog>
 
   <p-confirmDialog [style]="{ width: '450px' }"/>
 </div>

@@ -6,6 +6,7 @@ import {
     PrimaryGeneratedColumn,
 } from "typeorm";
 import { Product } from "./product.entity";
+import { Address } from "@entities/address.entity";
 
 export enum OrderStatus {
     PENDING = "pending",
@@ -27,6 +28,9 @@ export class Order {
 
     @Column({ type: "int", width: 200 })
     total: number;
+
+    @Column(() => Address)
+    address: Address;
 
     @ManyToMany(() => Product)
     @JoinTable({

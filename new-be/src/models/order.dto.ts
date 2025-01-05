@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { OrderStatus } from "src/entities/order.entity";
 import { ProductDTO } from "./product.dto";
+import { AddressDTO } from "./address.dto";
 
 export class OrderDTO {
     @ApiProperty()
@@ -11,6 +12,9 @@ export class OrderDTO {
 
     @ApiProperty()
     total: number;
+
+    @ApiProperty()
+    address: AddressDTO;
 
     @ApiPropertyOptional()
     products?: ProductDTO[];

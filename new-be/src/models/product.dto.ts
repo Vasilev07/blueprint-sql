@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { ProductImageDTO } from "./product-image-d-t.o";
+import { ProductImageDTO } from "./product-image.dto";
 
 export class ProductDTO {
     @ApiPropertyOptional()

@@ -11,6 +11,7 @@ export class OrderMapper implements BaseMapper<Order, OrderDTO> {
             status: entity.status,
             total: entity.total,
             products: [],
+            address: { ...entity.address },
         };
     }
 
@@ -20,6 +21,7 @@ export class OrderMapper implements BaseMapper<Order, OrderDTO> {
             status: dto.status,
             total: dto.total,
             products: [],
+            address: { ...dto.address },
         };
     }
 }
