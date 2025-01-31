@@ -19,29 +19,31 @@ import { ConfirmDialogModule } from "primeng/confirmdialog";
 import { DialogModule } from "primeng/dialog";
 import { ConfirmationService, MessageService } from "primeng/api";
 import { InputTextModule } from "primeng/inputtext";
+import { CardModule } from "primeng/card";
 
 @NgModule({
-  imports: [
-    CommonModule,
-    FormsModule,
-    ChartModule,
-    MenuModule,
-    TableModule,
-    StyleClassModule,
-    PanelMenuModule,
-    ButtonModule,
-    PaginatorModule,
-    OrdersRoutingModule,
-    FileUploadModule,
-    RatingModule,
-    TagModule,
-    ToastModule,
-    ToolbarModule,
-    ConfirmDialogModule,
-    DialogModule,
-    InputTextModule,
-    ReactiveFormsModule,
-  ],
+    imports: [
+        CommonModule,
+        FormsModule,
+        ChartModule,
+        MenuModule,
+        TableModule,
+        StyleClassModule,
+        PanelMenuModule,
+        ButtonModule,
+        PaginatorModule,
+        OrdersRoutingModule,
+        FileUploadModule,
+        RatingModule,
+        TagModule,
+        ToastModule,
+        ToolbarModule,
+        ConfirmDialogModule,
+        DialogModule,
+        InputTextModule,
+        ReactiveFormsModule,
+        CardModule,
+    ],
     declarations: [OrdersComponent],
     providers: [ConfirmationService, MessageService],
 })
