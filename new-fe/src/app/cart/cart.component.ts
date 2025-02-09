@@ -27,6 +27,9 @@ export class CartComponent implements OnInit, OnDestroy {
             .subscribe((orders: OrderDTO[]) => {
                 this.orders = orders;
                 this.cartProducts = orders[0]!.products ?? [];
+
+                console.log("Cart products: ", this.cartProducts);
+                console.log("Orders: ", this.orders);
             });
     }
 

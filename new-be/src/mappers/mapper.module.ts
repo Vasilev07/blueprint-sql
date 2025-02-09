@@ -16,7 +16,7 @@ import { OrderMapper } from "@mappers/implementations/order.mapper";
     ],
     exports: [MapperService],
 })
-export class MapperModule implements OnModuleInit {
+export class MapperModule {
     constructor(
         private readonly mapperService: MapperService,
         private readonly productMapper: ProductMapper,
@@ -25,10 +25,6 @@ export class MapperModule implements OnModuleInit {
         private readonly orderMapper: OrderMapper,
     ) {
         console.log("MapperModule constructor called");
-    }
-
-    public onModuleInit() {
-        console.log("MapperModule initialized");
         this.mapperService.registerMapper("User", this.userMapper);
         this.mapperService.registerMapper("Product", this.productMapper);
         this.mapperService.registerMapper("Category", this.categoryMapper);

@@ -2,7 +2,8 @@ import { BaseMapper } from "@mappers/base.mapper";
 import { Product } from "@entities/product.entity";
 import { ProductDTO } from "../../models/product.dto";
 import { ProductImage } from "@entities/product-image.entity";
-import { Injectable } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
+import { MapperService } from "@mappers/mapper.service";
 
 @Injectable()
 export class ProductMapper implements BaseMapper<Product, ProductDTO> {

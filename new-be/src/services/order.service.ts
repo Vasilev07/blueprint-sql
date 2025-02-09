@@ -3,12 +3,12 @@ import { Order } from "src/entities/order.entity";
 import { OrderDTO } from "../models/order.dto";
 import { EntityManager, Repository } from "typeorm";
 import { MapperService } from "@mappers/mapper.service";
-import { OrderMapper } from "@mappers/implementations/order.mapper";
+import { BaseMapper } from "@mappers/base.mapper";
 
 @Injectable()
 export class OrderService implements OnModuleInit {
     private orderRepository: Repository<Order>;
-    private orderMapper: OrderMapper;
+    private orderMapper: BaseMapper<Order, OrderDTO>;
 
     constructor(
         private readonly entityManager: EntityManager,
