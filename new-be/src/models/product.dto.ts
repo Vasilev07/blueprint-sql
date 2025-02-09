@@ -15,5 +15,5 @@ export class ProductDTO {
     price: number;
 
     @ApiProperty({ type: [ProductImageDTO] })
-    images?: ProductImageDTO[] = [];
+    images?: ProductImageDTO[];
 }

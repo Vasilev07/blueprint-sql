@@ -20,6 +20,6 @@ export class OrderDTO {
     @ApiProperty()
     contactInformation: ContactInformationDTO;
 
-    @ApiPropertyOptional()
-    products?: ProductDTO[];
+    @ApiProperty({ type: [ProductDTO] })
+    products: ProductDTO[];
 }

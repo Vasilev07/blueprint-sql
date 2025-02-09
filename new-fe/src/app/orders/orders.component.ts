@@ -56,6 +56,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
             .pipe(takeUntil(this.ngUnsubscribe))
             .subscribe((orders: OrderDTO[]) => {
                 this.orders = orders;
+                // this.cartProducts = orders[0]!.products ?? [];
             });
     }
 
@@ -134,6 +135,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
             address: formData.addressInformation as AddressDTO,
             status: "pending",
             total: 420,
+            products: [],
         };
 
         this.orderService

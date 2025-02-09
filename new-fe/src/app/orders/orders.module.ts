@@ -20,6 +20,7 @@ import { DialogModule } from "primeng/dialog";
 import { ConfirmationService, MessageService } from "primeng/api";
 import { InputTextModule } from "primeng/inputtext";
 import { CardModule } from "primeng/card";
+import { DividerModule } from "primeng/divider";
 
 @NgModule({
     imports: [
@@ -43,8 +44,10 @@ import { CardModule } from "primeng/card";
         InputTextModule,
         ReactiveFormsModule,
         CardModule,
+        DividerModule,
     ],
     declarations: [OrdersComponent],
     providers: [ConfirmationService, MessageService],
 })
-export class OrdersModule {}
+export class OrdersModule {
+}

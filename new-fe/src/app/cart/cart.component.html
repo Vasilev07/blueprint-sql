@@ -1,0 +1,17 @@
+<p-card>
+    <div class="cart-header">
+        <div>Your Cart Total is: {{cartTotalPrice}}</div>
+    </div>
+
+    <div class="cart-body">
+        <div *ngFor="let product of cartProducts">
+            <div>{{product.images![0]}}</div>
+            <div>{{product.name}}</div>
+            <div>{{product.price}}</div>
+            <div>{{product.weight}}</div>
+        </div>
+    </div>
+
+    <div class="cart-footer">
+    </div>
+</p-card>
