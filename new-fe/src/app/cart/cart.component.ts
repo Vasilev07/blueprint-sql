@@ -12,6 +12,11 @@ export class CartComponent implements OnInit, OnDestroy {
     public cartTotalPrice: number = 0;
     public orders: OrderDTO[] = [];
     public cartProducts: ProductDTO[] = [];
+    public vat: number = 0;
+    public total: number = 0;
+    public shippingCost: number = 0;
+    public cartSubtotal: number = 0;
+    public quantity: number = 1;
 
     private readonly ngUnsubscribe: Subject<void> = new Subject<void>();
 
@@ -26,6 +31,7 @@ export class CartComponent implements OnInit, OnDestroy {
             .pipe(takeUntil(this.ngUnsubscribe))
             .subscribe((orders: OrderDTO[]) => {
                 this.orders = orders;
+                console.log("Orders: ", orders);
                 this.cartProducts = orders[0]!.products ?? [];
 
                 console.log("Cart products: ", this.cartProducts);
@@ -42,4 +48,7 @@ export class CartComponent implements OnInit, OnDestroy {
         console.log("Checkout button clicked");
     }
 
+    removeItem(id: number | undefined) {
+
+    }
 }

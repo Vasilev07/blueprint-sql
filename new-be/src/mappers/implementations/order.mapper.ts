@@ -15,16 +15,21 @@ export class OrderMapper implements BaseMapper<Order, OrderDTO>, OnModuleInit {
 
     onModuleInit(): any {
         this.productMapper = this.mappersService.getMapper("Product");
+        console.log('kuku');
     }
 
     public entityToDTO(entity: Order): OrderDTO {
+        console.log("MAPPER");
+        console.log(entity, "entity");
+
         return {
             id: entity.id,
             status: entity.status,
             total: entity.total,
-            products: entity.products.map((product) =>
-                this.productMapper.entityToDTO(product),
-            ),
+            products:
+                entity?.products?.map((product) =>
+                    this.productMapper.entityToDTO(product),
+                ) ?? [],
             address: { ...entity.address },
             contactInformation: { ...entity.contactInformation },
         };
@@ -35,9 +40,10 @@ export class OrderMapper implements BaseMapper<Order, OrderDTO>, OnModuleInit {
             id: dto.id,
             status: dto.status,
             total: dto.total,
-            products: dto.products.map((product) =>
-                this.productMapper.dtoToEntity(product),
-            ),
+            products:
+                dto?.products?.map((product) =>
+                    this.productMapper.dtoToEntity(product),
+                ) ?? [],
             address: { ...dto.address },
             contactInformation: { ...dto.contactInformation },
         };

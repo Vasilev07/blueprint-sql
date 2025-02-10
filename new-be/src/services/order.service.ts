@@ -34,8 +34,21 @@ export class OrderService implements OnModuleInit {
 
     async getOrders(): Promise<OrderDTO[]> {
         try {
-            const orders: Order[] = await this.orderRepository.find();
-            return orders.map((order) => this.orderMapper.entityToDTO(order));
+            const orders: Order[] = await this.orderRepository.find({
+                relations: ["products"],
+            });
+            console.log(orders, "orders");
+            orders.forEach((order, i) => {
+                console.log(
+                    `Order #${i} has product type:`,
+                    Array.isArray(order.products),
+                );
+            });
+            const mapperResult = orders.map((order) =>
+                this.orderMapper.entityToDTO(order),
+            );
+            console.log(mapperResult, "mapperResult".repeat(10));
+            return mapperResult;
         } catch (error) {
             throw new Error("Error creating order" + error);
         }
