@@ -7,14 +7,13 @@ import { Injectable } from "@nestjs/common";
 @Injectable()
 export class ProductMapper implements BaseMapper<Product, ProductDTO> {
     public entityToDTO(entity: Product): ProductDTO {
-        console.log("MAPPER");
         return {
             id: entity.id,
             name: entity.name,
             price: entity.price,
             weight: entity.weight,
             images:
-                entity.images.length > 0
+                entity.images?.length > 0
                     ? entity.images.map((image: ProductImage) => {
                           return {
                               id: image.id,
@@ -27,13 +26,22 @@ export class ProductMapper implements BaseMapper<Product, ProductDTO> {
     }
 
     public dtoToEntity(dto: ProductDTO): Product {
+        const encoder = new TextEncoder();
+
         console.log("DTO TO ENTITY", dto);
+
         return {
             id: dto.id,
             name: dto.name,
             price: dto.price,
             weight: dto.weight,
-            images: [],
+            images: dto.images.map((image) => {
+                return {
+                    id: image.id,
+                    name: image.name,
+                    data: encoder.encode(image.data),
+                } as unknown as ProductImage;
+            }),
         };
     }
 }

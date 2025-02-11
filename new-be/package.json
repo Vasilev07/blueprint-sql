@@ -6,7 +6,7 @@
     "private": true,
     "license": "UNLICENSED",
     "scripts": {
-        "build": "tsc",
+        "build": "nest build",
         "start": "npm run build && npm run migration:run && ts-node -r tsconfig-paths/register dist/main.js",
         "start:dev": "npm run start --watch",
         "start:debug": "npm run start --debug --watch",

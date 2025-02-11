@@ -5,6 +5,10 @@ import { Subject, takeUntil } from "rxjs";
 import { ConfirmationService, MessageService } from "primeng/api";
 import { LayoutService } from "../layout/service/app.layout.service";
 import { OrderDTO } from "../../typescript-api-client/src/models/orderDTO";
+import { FormBuilder, FormGroup, Validators } from "@angular/forms";
+import { OrderService } from "../../typescript-api-client/src/clients/order.service";
+import { ContactInformationDTO } from "../../typescript-api-client/src/models/contactInformationDTO";
+import { AddressDTO } from "../../typescript-api-client/src/models/addressDTO";
 
 @Component({
     templateUrl: "./orders.component.html",
@@ -13,6 +17,26 @@ export class OrdersComponent implements OnInit, OnDestroy {
     public selectedOrders: any;
     public orders!: OrderDTO[];
     public orderDialog!: boolean;
+    public isEdit!: boolean;
+    public visible!: boolean;
+    public order?: OrderDTO;
+    public orderForm: FormGroup<{
+        contactInformation: FormGroup;
+        addressInformation: FormGroup;
+    }> = this.fb.group({
+        contactInformation: this.fb.group({
+            firstName: ["Georgi", Validators.required],
+            lastName: ["Vasilev", Validators.required],
+            email: ["gvas@gmail.com", Validators.required],
+            phone: ["0885865090", Validators.required],
+        }),
+        addressInformation: this.fb.group({
+            country: ["Bulgaria", Validators.required],
+            city: ["Sofia", Validators.required],
+            postCode: ["1000", Validators.required],
+            address: ["jk.Drujbai", Validators.required],
+        }),
+    });
 
     private readonly ngUnsubscribe: Subject<void> = new Subject<void>();
 
@@ -21,6 +45,8 @@ export class OrdersComponent implements OnInit, OnDestroy {
         private readonly confirmationService: ConfirmationService,
         private readonly messageService: MessageService,
         public layoutService: LayoutService,
+        private readonly fb: FormBuilder,
+        private readonly orderService: OrderService,
     ) {}
 
     ngOnInit(): void {
@@ -29,6 +55,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
             .pipe(takeUntil(this.ngUnsubscribe))
             .subscribe((orders: OrderDTO[]) => {
                 this.orders = orders;
+                // this.cartProducts = orders[0]!.products ?? [];
             });
     }
 
@@ -37,7 +64,11 @@ export class OrdersComponent implements OnInit, OnDestroy {
         this.ngUnsubscribe.complete();
     }
 
-    openNew() {}
+    openNew() {
+        this.order = undefined;
+        this.visible = true;
+        this.orderDialog = true;
+    }
 
     deleteSelectedProducts() {
         this.confirmationService.confirm({
@@ -78,49 +109,39 @@ export class OrdersComponent implements OnInit, OnDestroy {
         });
     }
 
-    hideDialog() {}
-
-    saveProduct() {
-        // this.submitted = true;
-        //
-        // if (this.product?.name?.trim()) {
-        //     if (this.product.id) {
-        //         this.orders[this.findIndexById(this.product.id)] = this.product;
-        //         this.messageService.add({
-        //             severity: "success",
-        //             summary: "Successful",
-        //             detail: "Product Updated",
-        //             life: 3000,
-        //         });
-        //     } else {
-        //         this.orders.push(this.product);
-        //         this.messageService.add({
-        //             severity: "success",
-        //             summary: "Successful",
-        //             detail: "Product Created",
-        //             life: 3000,
-        //         });
-        //     }
-        //
-        //     this.orders = [...this.orders];
-        //     this.productDialog = false;
-        //     this.product = undefined;
-        // }
+    hideDialog() {
+        this.isEdit = false;
+        this.visible = false;
+        this.orderDialog = false;
     }
 
-    findIndexById(id: number): number {
-        let index = -1;
-        for (let i = 0; i < this.orders.length; i++) {
-            if (this.orders[i].id === id) {
-                index = i;
-                break;
-            }
-        }
-
-        return index;
+    saveOrder() {
+        this.isEdit ? this.updateOrder() : this.createOrder();
     }
 
     editOrder(order: any) {
         console.log(order);
     }
+
+    private createOrder() {
+        console.log(this.orderForm.getRawValue());
+        const formData = this.orderForm.getRawValue();
+
+        const order: OrderDTO = {
+            id: undefined,
+            contactInformation:
+                formData.contactInformation as ContactInformationDTO,
+            address: formData.addressInformation as AddressDTO,
+            status: "pending",
+            total: 420,
+            products: [],
+        };
+
+        this.orderService
+            .createOrder(order)
+            .pipe(takeUntil(this.ngUnsubscribe))
+            .subscribe(console.log);
+    }
+
+    private updateOrder() {}
 }

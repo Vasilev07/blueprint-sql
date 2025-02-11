@@ -3,7 +3,11 @@ import { Subject, takeUntil } from "rxjs";
 import { ConfirmationService, MessageService } from "primeng/api";
 import { ProductService } from "../../typescript-api-client/src/clients/product.service";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
-import { FileSelectEvent, FileUpload, FileUploadEvent } from "primeng/fileupload";
+import {
+    FileSelectEvent,
+    FileUpload,
+    FileUploadEvent,
+} from "primeng/fileupload";
 import { DomSanitizer } from "@angular/platform-browser";
 import { ProductDTO } from "../../typescript-api-client/src/models/productDTO";
 

@@ -1,153 +1,179 @@
 <div class="products">
-  <p-toast/>
-  <p-toolbar styleClass="mb-4 gap-2">
-    <ng-template pTemplate="left">
-      <p-button
-        pRipple
-        severity="success"
-        label="New"
-        icon="pi pi-plus"
-        class="mr-2"
-        (click)="openNew()"/>
-      <p-button
-        pRipple
-        severity="danger"
-        label="Delete"
-        icon="pi pi-trash"
-        (click)="deleteSelectedProducts()"
-        [disabled]="!selectedOrders || !selectedOrders.length"/>
-    </ng-template>
-  </p-toolbar>
+    <p-toast />
+    <p-toolbar styleClass="mb-4 gap-2">
+        <ng-template pTemplate="left">
+            <p-button
+                severity="success"
+                label="New"
+                icon="pi pi-plus"
+                class="mr-2"
+                (click)="openNew()" />
+            <p-button
+                severity="danger"
+                label="Delete"
+                icon="pi pi-trash"
+                (click)="deleteSelectedProducts()"
+                [disabled]="!selectedOrders || !selectedOrders.length" />
+        </ng-template>
+    </p-toolbar>
 
-  <p-table
-    #dt
-    [value]="orders"
-    [rows]="10"
-    [paginator]="true"
-    [rowsPerPageOptions]="[5,10,20,50]"
-    [globalFilterFields]="['name', 'country.name', 'representative.name', 'status']"
-    [tableStyle]="{ 'min-width': '75rem' }"
-    [(selection)]="selectedOrders"
-    [rowHover]="true"
-    dataKey="id"
-    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
-    [showCurrentPageReport]="true"
-  >
-    <ng-template pTemplate="header">
-      <tr>
-        <th style="width: 4rem">
-          <p-tableHeaderCheckbox/>
-        </th>
-        <th pSortableColumn="name" style="min-width:15rem">
-          Name
-          <p-sortIcon field="name"/>
-        </th>
-        <th pSortableColumn="price">
-          Price
-          <p-sortIcon field="price"/>
-        </th>
-        <th pSortableColumn="weight">
-          Weight
-          <p-sortIcon field="weight"/>
-        </th>
-        <th></th>
-      </tr>
-    </ng-template>
-    <ng-template pTemplate="body" let-order>
-      <tr>
-        <td>
-          <p-tableCheckbox [value]="order"/>
-        </td>
-        <td>
-          {{ order.name }}
-        </td>
-        <td>
-          {{ order.price | currency : 'USD' }}
-        </td>
-        <td>
-          {{ order.weight }}
-        </td>
-        <td>
-          <p-button
-            pRipple
-            icon="pi pi-pencil"
-            class="mr-2"
-            [rounded]="true"
-            [outlined]="true"
-            severity="success"
-            (click)="editOrder(order)"/>
-          <p-button
-            pRipple
-            icon="pi pi-trash"
-            severity="danger"
-            [rounded]="true"
-            [outlined]="true"
-            (click)="deleteOrder(order)"/>
-        </td>
-      </tr>
-    </ng-template>
-    <ng-template pTemplate="summary">
-      <div class="flex align-items-center justify-content-between">
-        In total there are {{ orders ? orders.length : 0 }} products.
-      </div>
-    </ng-template>
-  </p-table>
+    <p-table
+        #dt
+        [value]="orders"
+        [rows]="10"
+        [paginator]="true"
+        [rowsPerPageOptions]="[5,10,20,50]"
+        [globalFilterFields]="['name', 'country.name', 'representative.name', 'status']"
+        [tableStyle]="{ 'min-width': '75rem' }"
+        [(selection)]="selectedOrders"
+        [rowHover]="true"
+        dataKey="id"
+        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+        [showCurrentPageReport]="true"
+    >
+        <ng-template pTemplate="header">
+            <tr>
+                <th style="width: 4rem">
+                    <p-tableHeaderCheckbox />
+                </th>
+                <th pSortableColumn="name" style="min-width:15rem">
+                    Name
+                    <p-sortIcon field="name" />
+                </th>
+                <th pSortableColumn="total">
+                    Total
+                    <p-sortIcon field="total" />
+                </th>
+                <th pSortableColumn="status">
+                    Status
+                    <p-sortIcon field="status" />
+                </th>
+                <th>
+                    Actions
+                </th>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-order>
+            <tr>
+                <td>
+                    <p-tableCheckbox [value]="order" />
+                </td>
+                <td>
+                    {{ order.contactInformation.firstName }} {{ order.contactInformation.lastName }}
+                </td>
+                <td>
+                    {{ order.total | currency : 'USD' }}
+                </td>
+                <td>
+                    {{ order.status }}
+                </td>
+                <td>
+                    <p-button
+                        pRipple
+                        icon="pi pi-pencil"
+                        class="mr-2"
+                        [rounded]="true"
+                        [outlined]="true"
+                        severity="success"
+                        (click)="editOrder(order)" />
+                    <p-button
+                        pRipple
+                        icon="pi pi-trash"
+                        severity="danger"
+                        [rounded]="true"
+                        [outlined]="true"
+                        (click)="deleteOrder(order)" />
+                </td>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="summary">
+            <div class="flex align-items-center justify-content-between">
+                In total there are {{ orders ? orders.length : 0 }} products.
+            </div>
+        </ng-template>
+    </p-table>
 
-<!--  <p-dialog-->
-<!--    [(visible)]="orderDialog"-->
-<!--    [style]="{ width: '450px' }"-->
-<!--    header="Product Details"-->
-<!--    [modal]="true"-->
-<!--    styleClass="p-fluid">-->
-<!--    <ng-template pTemplate="content">-->
-<!--      <div class="field">-->
-<!--        <label for="name">Name</label>-->
-<!--        <input-->
-<!--          type="text"-->
-<!--          pInputText-->
-<!--          id="name"-->
-<!--          [(ngModel)]="order!.name"-->
-<!--          required-->
-<!--          autofocus/>-->
-<!--        <small class="p-error" *ngIf="submitted && !product!.name">-->
-<!--          Name is required.-->
-<!--        </small>-->
-<!--      </div>-->
+    <p-dialog
+        [(visible)]="orderDialog"
+        [style]="{ width: '100rem', height: '80rem' }"
+        header="Order Details"
+        [modal]="true"
+        styleClass="p-fluid">
+        <ng-template pTemplate="content">
+            <p-card [style]="{ width: '25rem', overflow: 'hidden' }">
+                <ng-template #header>
+                    <img alt="Card" class="w-full" src="https://primefaces.org/cdn/primeng/images/card-ng.jpg" />
+                </ng-template>
+                <ng-template #title> Advanced Card</ng-template>
+                <ng-template #subtitle> Card subtitle</ng-template>
+                <form [formGroup]="orderForm">
+                    <div formGroupName="contactInformation">
+                        <div class="flex items-center mb-5">
+                            <label for="firstName" class="font-semibold w-24">First Name</label>
+                            <input formControlName="firstName" pInputText id="firstName" class="flex-auto"
+                                   autocomplete="off" />
+                        </div>
+                        <div class="flex items-center mb-5">
+                            <label for="lastName" class="font-semibold w-24">Last Name</label>
+                            <input formControlName="lastName" pInputText id="lastName" class="flex-auto"
+                                   autocomplete="off" />
+                        </div>
+                        <div class="flex items-center gap-4 mb-8">
+                            <label for="email" class="font-semibold w-24">Email</label>
+                            <input formControlName="email" pInputText id="email" class="flex-auto" autocomplete="off" />
+                        </div>
+                        <div class="flex items-center gap-4 mb-8">
+                            <label for="phone" class="font-semibold w-24">Phone</label>
+                            <input formControlName="phone" pInputText id="phone" class="flex-auto" autocomplete="off" />
+                        </div>
+                    </div>
 
-<!--      <div class="formgrid grid">-->
-<!--        <div class="field col">-->
-<!--          <label for="price">Price</label>-->
-<!--          <p-inputNumber-->
-<!--            id="price"-->
-<!--            [(ngModel)]="product!.price"-->
-<!--            mode="currency"-->
-<!--            currency="USD"-->
-<!--            locale="en-US"/>-->
-<!--        </div>-->
-<!--        <div class="field col">-->
-<!--          <label for="weight">Weight</label>-->
-<!--          <p-inputNumber-->
-<!--            id="weight"-->
-<!--            [(ngModel)]="product!.weight"/>-->
-<!--        </div>-->
-<!--      </div>-->
-<!--    </ng-template>-->
+                    <div formGroupName="addressInformation">
+                        <div class="flex items-center mb-5">
+                            <label for="country" class="font-semibold w-24">Country</label>
+                            <input formControlName="country" pInputText id="country" class="flex-auto"
+                                   autocomplete="off" />
+                        </div>
+                        <div class="flex items-center mb-5">
+                            <label for="city" class="font-semibold w-24">City</label>
+                            <input formControlName="city" pInputText id="city" class="flex-auto" autocomplete="off" />
+                        </div>
+                        <div class="flex items-center gap-4 mb-8">
+                            <label for="postCode" class="font-semibold w-24">Post Code</label>
+                            <input formControlName="postCode" pInputText id="postCode" class="flex-auto"
+                                   autocomplete="off" />
+                        </div>
+                        <div class="flex items-center gap-4 mb-8">
+                            <label for="address" class="font-semibold w-24">Address</label>
+                            <input formControlName="address" pInputText id="address" class="flex-auto"
+                                   autocomplete="off" />
+                        </div>
+                    </div>
+                </form>
 
-<!--    <ng-template pTemplate="footer">-->
-<!--      <p-button-->
-<!--        pRipple-->
-<!--        label="Cancel"-->
-<!--        icon="pi pi-times"-->
-<!--        [text]="true"-->
-<!--        (click)="hideDialog()"/>-->
-<!--      <p-button-->
-<!--        pRipple-->
-<!--        label="Save"-->
-<!--        icon="pi pi-check"-->
-<!--        [text]="true"-->
-<!--        (click)="saveProduct()"/>-->
-<!--    </ng-template>-->
-<!--  </p-dialog>-->
+<!--                <ng-template #footer>-->
+<!--                    <div class="flex gap-4 mt-1">-->
+<!--                        <p-button label="Cancel" severity="secondary" class="w-full" [outlined]="true"-->
+<!--                                  styleClass="w-full" />-->
+<!--                        <p-button label="Save" class="w-full" styleClass="w-full" />-->
+<!--                    </div>-->
+<!--                </ng-template>-->
+            </p-card>
+        </ng-template>
 
-  <p-confirmDialog [style]="{ width: '450px' }"/>
+        <ng-template pTemplate="footer">
+            <p-button
+                label="Cancel"
+                icon="pi pi-times"
+                [text]="true"
+                (click)="hideDialog()" />
+            <p-button
+                label="Save"
+                icon="pi pi-check"
+                [text]="true"
+                (click)="saveOrder()" />
+        </ng-template>
+    </p-dialog>
+
+    <p-confirmDialog [style]="{ width: '450px' }" />
 </div>

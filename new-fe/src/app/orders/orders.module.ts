@@ -1,5 +1,5 @@
 import { NgModule } from "@angular/core";
-import { FormsModule } from "@angular/forms";
+import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { ChartModule } from "primeng/chart";
 import { MenuModule } from "primeng/menu";
 import { StyleClassModule } from "primeng/styleclass";
@@ -18,6 +18,9 @@ import { ToolbarModule } from "primeng/toolbar";
 import { ConfirmDialogModule } from "primeng/confirmdialog";
 import { DialogModule } from "primeng/dialog";
 import { ConfirmationService, MessageService } from "primeng/api";
+import { InputTextModule } from "primeng/inputtext";
+import { CardModule } from "primeng/card";
+import { DividerModule } from "primeng/divider";
 
 @NgModule({
     imports: [
@@ -38,6 +41,10 @@ import { ConfirmationService, MessageService } from "primeng/api";
         ToolbarModule,
         ConfirmDialogModule,
         DialogModule,
+        InputTextModule,
+        ReactiveFormsModule,
+        CardModule,
+        DividerModule,
     ],
     declarations: [OrdersComponent],
     providers: [ConfirmationService, MessageService],

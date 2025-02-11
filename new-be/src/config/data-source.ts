@@ -8,7 +8,7 @@ export const dataSourceOptions: DataSourceOptions = {
     password: process.env.DB_PASSWORD || "postgres",
     database: process.env.DB_DATABASE || "blueprint-sql",
     logging: ["error"],
-    entities: ["src/entities/*.ts"],
+    entities: ["dist/**/*.entity{.ts,.js}"],
     migrations: ["src/migrations/*{.ts,.js}"],
     synchronize: true,
 };

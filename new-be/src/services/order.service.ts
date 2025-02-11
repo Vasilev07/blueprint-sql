@@ -3,12 +3,12 @@ import { Order } from "src/entities/order.entity";
 import { OrderDTO } from "../models/order.dto";
 import { EntityManager, Repository } from "typeorm";
 import { MapperService } from "@mappers/mapper.service";
-import { OrderMapper } from "@mappers/implementations/order.mapper";
+import { BaseMapper } from "@mappers/base.mapper";
 
 @Injectable()
 export class OrderService implements OnModuleInit {
     private orderRepository: Repository<Order>;
-    private orderMapper: OrderMapper;
+    private orderMapper: BaseMapper<Order, OrderDTO>;
 
     constructor(
         private readonly entityManager: EntityManager,
@@ -34,8 +34,21 @@ export class OrderService implements OnModuleInit {
 
     async getOrders(): Promise<OrderDTO[]> {
         try {
-            const orders: Order[] = await this.orderRepository.find();
-            return orders.map((order) => this.orderMapper.entityToDTO(order));
+            const orders: Order[] = await this.orderRepository.find({
+                relations: ["products", "products.images"],
+            });
+            console.log(orders, "orders");
+            orders.forEach((order, i) => {
+                console.log(
+                    `Order #${i} has product type:`,
+                    Array.isArray(order.products),
+                );
+            });
+            const mapperResult = orders.map((order) =>
+                this.orderMapper.entityToDTO(order),
+            );
+            console.log(mapperResult, "mapperResult".repeat(10));
+            return mapperResult;
         } catch (error) {
             throw new Error("Error creating order" + error);
         }
