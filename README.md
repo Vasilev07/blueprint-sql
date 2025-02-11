@@ -23,6 +23,8 @@ This project has one purpose -> startup project with all things configured, like
 
 ![img_6.png](img_6.png)
 
+![img_7.png](img_7.png)
+
 ### Development
 
 In order to be able to run the project you will need NodeJS and NPM installed.

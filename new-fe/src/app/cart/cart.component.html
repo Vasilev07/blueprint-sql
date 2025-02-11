@@ -20,7 +20,7 @@
                     </div>
                 </div>
 
-                <div style="flex: 1;">
+                <div style="flex: 1;display: flex; flex-direction: row-reverse;">
                     <p-inputNumber [(ngModel)]="quantity" [showButtons]="true" buttonLayout="vertical"
                                    spinnerMode="vertical"
                                    inputId="vertical" [inputStyle]="{ width: '3rem' }">
@@ -34,9 +34,9 @@
                 </div>
 
 
-                <div style="flex: 1;">
-                    PRICE
-                </div>
+                <h6 style="flex: 1; display: flex; flex-direction: row-reverse;">
+                    {{ product.price * quantity | currency : 'USD' }}
+                </h6>
             </div>
         </div>
 
