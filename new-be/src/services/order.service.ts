@@ -35,7 +35,7 @@ export class OrderService implements OnModuleInit {
     async getOrders(): Promise<OrderDTO[]> {
         try {
             const orders: Order[] = await this.orderRepository.find({
-                relations: ["products"],
+                relations: ["products", "products.images"],
             });
             console.log(orders, "orders");
             orders.forEach((order, i) => {

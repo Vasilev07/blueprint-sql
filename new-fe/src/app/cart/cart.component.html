@@ -9,13 +9,13 @@
         <p-divider></p-divider>
 
         <div *ngFor="let product of cartProducts">
+            <img [src]="product.previewImage" width="50" height="50" class="shadow-lg"/>
             <p-image class="w-12rem">{{ product.images![0] }}</p-image>
             <div>
                 <h5>Product Name: {{ product.name }}</h5>
                 <h6>Price: {{ product.price }}</h6>
                 <h6>Weight: {{ product.weight }}</h6>
             </div>
-
             <div>
                 <p-inputNumber [(ngModel)]="quantity" [showButtons]="true" buttonLayout="vertical" spinnerMode="vertical"
                                inputId="vertical" [inputStyle]="{ width: '3rem' }">

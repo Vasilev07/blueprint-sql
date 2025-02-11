@@ -26,13 +26,22 @@ export class ProductMapper implements BaseMapper<Product, ProductDTO> {
     }
 
     public dtoToEntity(dto: ProductDTO): Product {
+        const encoder = new TextEncoder();
+
         console.log("DTO TO ENTITY", dto);
+
         return {
             id: dto.id,
             name: dto.name,
             price: dto.price,
             weight: dto.weight,
-            images: [],
+            images: dto.images.map((image) => {
+                return {
+                    id: image.id,
+                    name: image.name,
+                    data: encoder.encode(image.data),
+                } as unknown as ProductImage;
+            }),
         };
     }
 }
