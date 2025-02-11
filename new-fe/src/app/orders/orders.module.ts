@@ -49,5 +49,4 @@ import { DividerModule } from "primeng/divider";
     declarations: [OrdersComponent],
     providers: [ConfirmationService, MessageService],
 })
-export class OrdersModule {
-}
+export class OrdersModule {}

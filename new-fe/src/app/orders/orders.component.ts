@@ -47,8 +47,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
         public layoutService: LayoutService,
         private readonly fb: FormBuilder,
         private readonly orderService: OrderService,
-    ) {
-    }
+    ) {}
 
     ngOnInit(): void {
         this.http
@@ -144,7 +143,5 @@ export class OrdersComponent implements OnInit, OnDestroy {
             .subscribe(console.log);
     }
 
-    private updateOrder() {
-
-    }
+    private updateOrder() {}
 }

@@ -22,5 +22,4 @@ import { ImageModule } from "primeng/image";
     ],
     declarations: [CartComponent],
 })
-export class CartModule {
-}
+export class CartModule {}

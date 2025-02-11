@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Post } from "@nestjs/common";
 import { OrderDTO } from "../../models/order.dto";
 import { OrderService } from "@services/order.service";
-import { ApiOkResponse, ApiTags } from "@nestjs/swagger";
+import { ApiTags } from "@nestjs/swagger";
 
 @Controller("/order")
 @ApiTags("Order")

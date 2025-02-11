@@ -1,6 +1,6 @@
 import { MapperService } from "@mappers/mapper.service";
 import { ProductMapper } from "@mappers/implementations/product.mapper";
-import { Global, Module, OnModuleInit } from "@nestjs/common";
+import { Global, Module } from "@nestjs/common";
 import { UserMapper } from "@mappers/implementations/user.mapper";
 import { CategoryMapper } from "@mappers/implementations/category.mapper";
 import { OrderMapper } from "@mappers/implementations/order.mapper";
