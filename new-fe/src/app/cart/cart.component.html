@@ -8,31 +8,36 @@
     <div class="cart-body" style="display: flex; width: 100%; flex-direction: column;">
         <p-divider></p-divider>
 
-        <div *ngFor="let product of cartProducts">
-            <img [src]="product.previewImage" width="50" height="50" class="shadow-lg"/>
-            <p-image class="w-12rem">{{ product.images![0] }}</p-image>
-            <div>
-                <h5>Product Name: {{ product.name }}</h5>
-                <h6>Price: {{ product.price }}</h6>
-                <h6>Weight: {{ product.weight }}</h6>
-            </div>
-            <div>
-                <p-inputNumber [(ngModel)]="quantity" [showButtons]="true" buttonLayout="vertical" spinnerMode="vertical"
-                               inputId="vertical" [inputStyle]="{ width: '3rem' }">
-                    <ng-template #incrementbuttonicon>
-                        <span class="pi pi-plus"></span>
-                    </ng-template>
-                    <ng-template #decrementbuttonicon>
-                        <span class="pi pi-minus"></span>
-                    </ng-template>
-                </p-inputNumber>
-            </div>
+        <div *ngFor="let product of cartProducts" style="display: flex;">
+            <img [src]="product.previewImage" class="shadow-lg w-8rem h-12rem" style="min-width: 8rem;"/>
+
+            <div style="display: flex; justify-content: space-between; padding: 2rem !important; width: 100%;">
+                <div style="display:flex;gap:1.5rem;flex: 1;">
+                    <div>
+                        <h5>Product Name: {{ product.name }}</h5>
+                        <h6>Price: {{ product.price }}</h6>
+                        <h6>Weight: {{ product.weight }}</h6>
+                    </div>
+                </div>
+
+                <div style="flex: 1;">
+                    <p-inputNumber [(ngModel)]="quantity" [showButtons]="true" buttonLayout="vertical"
+                                   spinnerMode="vertical"
+                                   inputId="vertical" [inputStyle]="{ width: '3rem' }">
+                        <ng-template #incrementbuttonicon>
+                            <span class="pi pi-plus"></span>
+                        </ng-template>
+                        <ng-template #decrementbuttonicon>
+                            <span class="pi pi-minus"></span>
+                        </ng-template>
+                    </p-inputNumber>
+                </div>
 
 
-            <div>
-                PRICE
+                <div style="flex: 1;">
+                    PRICE
+                </div>
             </div>
-
         </div>
 
     </div>
