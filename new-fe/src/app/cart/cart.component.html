@@ -1,3 +1,14 @@
+<p-toolbar styleClass="mb-4 gap-2">
+  <ng-template pTemplate="left">
+    <p-button
+      severity="success"
+      label="New"
+      icon="pi pi-plus"
+      class="mr-2"
+      (click)="openAddNewProductToCartDialog()" />
+  </ng-template>
+</p-toolbar>
+
 <p-card>
     <div class="cart-header">
         <h3>Your Cart Total is: {{ cartTotalPrice | currency: 'USD' }}</h3>

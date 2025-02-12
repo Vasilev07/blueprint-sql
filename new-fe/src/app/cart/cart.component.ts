@@ -22,6 +22,8 @@ export class CartComponent implements OnInit, OnDestroy {
     public shippingCost: number = 0;
     public cartSubtotal: number = 0;
     public quantity: number = 1;
+    public visible?: boolean;
+    public quickProductAddDialog?: boolean;
 
     private readonly ngUnsubscribe: Subject<void> = new Subject<void>();
     private cartItemsFromStogare?: CartItem[];
@@ -88,4 +90,9 @@ export class CartComponent implements OnInit, OnDestroy {
     }
 
     public removeItem(id: number | undefined) {}
+
+    public openAddNewProductToCartDialog() {
+        this.visible = true;
+        this.quickProductAddDialog = true;
+    }
 }

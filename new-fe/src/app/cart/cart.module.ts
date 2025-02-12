@@ -7,19 +7,23 @@ import { DividerModule } from "primeng/divider";
 import { InputNumberModule } from "primeng/inputnumber";
 import { FormsModule } from "@angular/forms";
 import { ImageModule } from "primeng/image";
+import { Button } from "primeng/button";
+import { ToolbarModule } from "primeng/toolbar";
 
 @NgModule({
-    imports: [
-        CartRoutingModule,
-        CardModule,
-        NgForOf,
-        CardModule,
-        DividerModule,
-        InputNumberModule,
-        FormsModule,
-        ImageModule,
-        CurrencyPipe,
-    ],
+  imports: [
+    CartRoutingModule,
+    CardModule,
+    NgForOf,
+    CardModule,
+    DividerModule,
+    InputNumberModule,
+    FormsModule,
+    ImageModule,
+    CurrencyPipe,
+    Button,
+    ToolbarModule,
+  ],
     declarations: [CartComponent],
 })
 export class CartModule {}
