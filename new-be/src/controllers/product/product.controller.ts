@@ -30,6 +30,17 @@ export class ProductController {
         }
     }
 
+    @Post("/bulk-fetch")
+    async getProductsByIds(
+        @Body() productIds: string[],
+    ): Promise<ProductDTO[]> {
+        try {
+            return await this.productService.getProductsByIds(productIds);
+        } catch (error) {
+            throw new Error("Error getting products by ids" + error);
+        }
+    }
+
     @Post("/create")
     @ApiConsumes("multipart/form-data")
     // TODO Think of a way to make it more dynamic -> it is not working without it ...

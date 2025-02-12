@@ -1,5 +1,5 @@
 import { Inject, Injectable, OnModuleInit } from "@nestjs/common";
-import { EntityManager, Repository } from "typeorm";
+import { EntityManager, In, Repository } from "typeorm";
 import { ProductDTO } from "../models/product.dto";
 import { Product } from "@entities/product.entity";
 import { ProductImage } from "@entities/product-image.entity";
@@ -38,6 +38,20 @@ export class ProductService implements OnModuleInit {
             });
         } catch (e) {
             throw new Error("Error fetching products");
+        }
+    }
+
+    public async getProductsByIds(productIds: string[]): Promise<ProductDTO[]> {
+        try {
+            const products: Product[] = await this.productRepository.findBy({
+                id: In(productIds),
+            });
+
+            return products.map((product) =>
+                this.productMapper.entityToDTO(product),
+            );
+        } catch (e) {
+            throw new Error("Error fetching product");
         }
     }
 

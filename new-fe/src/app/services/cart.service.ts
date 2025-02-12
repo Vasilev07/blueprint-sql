@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
 import { BehaviorSubject } from "rxjs";
 
-interface CartItem {
+export interface CartItem {
     productId: string;
     quantity: number;
 }
@@ -15,7 +15,7 @@ export class CartService {
     // BehaviorSubject holds the current array of cart items
     private cartItemsSubject = new BehaviorSubject<CartItem[]>([]);
     /** Expose as observable so components can subscribe (read-only) */
-    public cartItems$ = this.cartItemsSubject.asObservable();
+    public cartItemsObservable = this.cartItemsSubject.asObservable();
 
     constructor() {
         this.loadCartFromStorage();

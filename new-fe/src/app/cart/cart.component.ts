@@ -1,13 +1,16 @@
 import { Component, OnDestroy, OnInit } from "@angular/core";
 import { ProductDTO } from "../../typescript-api-client/src/models/productDTO";
 import { OrderDTO } from "../../typescript-api-client/src/models/orderDTO";
-import { Subject, takeUntil } from "rxjs";
+import { map, Subject, switchMap, takeUntil } from "rxjs";
 import { HttpClient } from "@angular/common/http";
 import { DomSanitizer, SafeResourceUrl } from "@angular/platform-browser";
+import { CartItem, CartService } from "../services/cart.service";
+import { ProductService } from "../../typescript-api-client/src/clients/product.service";
 
 @Component({
     selector: "cart",
     templateUrl: "./cart.component.html",
+    styleUrls: ["./cart.component.scss"],
 })
 export class CartComponent implements OnInit, OnDestroy {
     public cartTotalPrice: number = 0;
@@ -21,10 +24,13 @@ export class CartComponent implements OnInit, OnDestroy {
     public quantity: number = 1;
 
     private readonly ngUnsubscribe: Subject<void> = new Subject<void>();
+    private cartItemsFromStogare?: CartItem[];
 
     constructor(
         private readonly http: HttpClient,
         private sanitizer: DomSanitizer,
+        private cartService: CartService,
+        public productService: ProductService,
     ) {}
 
     public ngOnInit(): void {
@@ -56,6 +62,20 @@ export class CartComponent implements OnInit, OnDestroy {
                 console.log("Cart products: ", this.cartProducts);
                 console.log("Orders: ", this.orders);
             });
+
+        this.cartService.cartItemsObservable
+            .pipe(
+                map((cartItems) =>
+                    cartItems.map((cartItem) => cartItem.productId),
+                ),
+                switchMap((productIds) =>
+                    this.productService.getProductsByIds(productIds),
+                ),
+                takeUntil(this.ngUnsubscribe),
+            )
+            .subscribe((cartItems) => {
+                this.cartProducts = { ...cartItems, previewImage: "" } as any;
+            });
     }
 
     public ngOnDestroy() {
@@ -67,5 +87,5 @@ export class CartComponent implements OnInit, OnDestroy {
         console.log("Checkout button clicked");
     }
 
-    removeItem(id: number | undefined) {}
+    public removeItem(id: number | undefined) {}
 }
