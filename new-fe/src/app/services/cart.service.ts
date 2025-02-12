@@ -10,7 +10,7 @@ interface CartItem {
     providedIn: "root",
 })
 export class CartService {
-    private readonly LOCAL_STORAGE_KEY = "myAppCart";
+    private readonly LOCAL_STORAGE_KEY = "bp_cart";
 
     // BehaviorSubject holds the current array of cart items
     private cartItemsSubject = new BehaviorSubject<CartItem[]>([]);
@@ -33,6 +33,7 @@ export class CartService {
         );
 
         if (existing) {
+            // TODO REFACTOR
             existing.quantity += newItem.quantity;
         } else {
             items.push(newItem);
@@ -42,8 +43,7 @@ export class CartService {
         this.saveCartToStorage();
     }
 
-    // Remove an item entirely
-    removeItem(productId: string): void {
+    public removeItem(productId: string): void {
         const updated = this.cartItemsSubject.value.filter(
             (item) => item.productId !== productId,
         );
@@ -51,8 +51,7 @@ export class CartService {
         this.saveCartToStorage();
     }
 
-    // Adjust the quantity of an existing item
-    updateQuantity(productId: string, quantity: number): void {
+    public updateQuantity(productId: string, quantity: number): void {
         const items = [...this.cartItemsSubject.value];
         const target = items.find((item) => item.productId === productId);
 
@@ -68,13 +67,11 @@ export class CartService {
         }
     }
 
-    // Clear the entire cart
-    clearCart(): void {
+    public clearCart(): void {
         this.cartItemsSubject.next([]);
         localStorage.removeItem(this.LOCAL_STORAGE_KEY);
     }
 
-    // Load from local storage at startup
     private loadCartFromStorage(): void {
         const data = localStorage.getItem(this.LOCAL_STORAGE_KEY);
         if (data) {
@@ -93,7 +90,6 @@ export class CartService {
         }
     }
 
-    // Save to local storage whenever there's a change
     private saveCartToStorage(): void {
         const items = this.cartItemsSubject.value;
         localStorage.setItem(this.LOCAL_STORAGE_KEY, JSON.stringify(items));
