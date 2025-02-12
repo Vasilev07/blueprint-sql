@@ -1,47 +1,72 @@
 <p-card>
     <div class="cart-header">
-        <div>Your Cart Total is: {{ cartTotalPrice }}</div>
+        <h3>Your Cart Total is: {{ cartTotalPrice | currency: 'USD' }}</h3>
     </div>
 
     <p-divider></p-divider>
 
-    <div class="cart-body" style="display: flex; width: 100%; flex-direction: column;">
+    <div class="cart-body">
         <p-divider></p-divider>
 
-        <div *ngFor="let product of cartProducts" style="display: flex;">
-            <img [src]="product.previewImage" class="shadow-lg w-8rem h-12rem" style="min-width: 8rem;"/>
+        <div *ngFor="let product of cartProducts">
+            <div class="cart-body__product-list">
+                <img [src]="product.previewImage" class="shadow-lg w-8rem h-12rem cart-body__product-list__image" />
 
-            <div style="display: flex; justify-content: space-between; padding: 2rem !important; width: 100%;">
-                <div style="display:flex;gap:1.5rem;flex: 1;">
-                    <div>
-                        <h5>Product Name: {{ product.name }}</h5>
-                        <h6>Price: {{ product.price }}</h6>
-                        <h6>Weight: {{ product.weight }}</h6>
+                <div class="cart-body__product-list__product-info-container">
+                    <div class="cart-body__product-list__product-info-container__product-info">
+                        <div>
+                            <h5>Product Name: {{ product.name }}</h5>
+                            <h6>Price: {{ product.price }}</h6>
+                            <h6>Weight: {{ product.weight }}</h6>
+                        </div>
                     </div>
+
+                    <div class="cart-body__product-list__product-info-container__quantity">
+                        <p-inputNumber [(ngModel)]="quantity" [showButtons]="true" buttonLayout="vertical"
+                                       spinnerMode="vertical"
+                                       inputId="vertical" [inputStyle]="{ width: '3rem' }">
+                            <ng-template #incrementbuttonicon>
+                                <span class="pi pi-plus"></span>
+                            </ng-template>
+                            <ng-template #decrementbuttonicon>
+                                <span class="pi pi-minus"></span>
+                            </ng-template>
+                        </p-inputNumber>
+                    </div>
+
+
+                    <h6 class="cart-body__product-list__product-info-container__price">
+                        {{ product.price * quantity | currency : 'USD' }}
+                    </h6>
                 </div>
-
-                <div style="flex: 1;display: flex; flex-direction: row-reverse;">
-                    <p-inputNumber [(ngModel)]="quantity" [showButtons]="true" buttonLayout="vertical"
-                                   spinnerMode="vertical"
-                                   inputId="vertical" [inputStyle]="{ width: '3rem' }">
-                        <ng-template #incrementbuttonicon>
-                            <span class="pi pi-plus"></span>
-                        </ng-template>
-                        <ng-template #decrementbuttonicon>
-                            <span class="pi pi-minus"></span>
-                        </ng-template>
-                    </p-inputNumber>
-                </div>
-
-
-                <h6 style="flex: 1; display: flex; flex-direction: row-reverse;">
-                    {{ product.price * quantity | currency : 'USD' }}
-                </h6>
             </div>
-        </div>
 
+            <p-divider></p-divider>
+        </div>
     </div>
 
     <div class="cart-footer">
+
+        <div class="cart-footer__subtotal">
+            <div>Subtotal:</div>
+            <div>{{ cartTotalPrice | currency : 'USD' }}</div>
+        </div>
+
+        <div class="cart-footer__shipping">
+            <div>Shipping:</div>
+            <div>{{ cartTotalPrice | currency : 'USD' }}</div>
+        </div>
+
+
+        <div class="cart-footer__vat">
+            <div>VAT:</div>
+            <div>{{ cartTotalPrice | currency : 'USD' }}</div>
+        </div>
+
+        <p-divider></p-divider>
+        <div class="cart-footer__total">
+            <div>Total:</div>
+            <div>{{ cartTotalPrice | currency : 'USD' }}</div>
+        </div>
     </div>
 </p-card>

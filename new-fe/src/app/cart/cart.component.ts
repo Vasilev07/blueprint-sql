@@ -8,6 +8,7 @@ import { DomSanitizer, SafeResourceUrl } from "@angular/platform-browser";
 @Component({
     selector: "cart",
     templateUrl: "./cart.component.html",
+    styleUrls: ["./cart.component.scss"],
 })
 export class CartComponent implements OnInit, OnDestroy {
     public cartTotalPrice: number = 0;
