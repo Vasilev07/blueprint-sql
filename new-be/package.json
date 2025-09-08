@@ -21,7 +21,8 @@
         "test:e2e": "jest --config ./test/jest-e2e.json --runInBand",
         "test:e2e:watch": "jest --config ./test/jest-e2e.json --watch --no-cache",
         "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js -d src/config/data-source.ts",
-        "migration:run": "npm run typeorm -- migration:run"
+        "migration:run": "npm run typeorm -- migration:run",
+        "seed": "ts-node -r tsconfig-paths/register src/seed.ts"
     },
     "dependencies": {
         "@nestjs/common": "^10.0.0",

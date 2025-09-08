@@ -1,0 +1,286 @@
+<div class="story-viewer-container" [class.fullscreen]="isFullscreen">
+  <!-- Debug Info -->
+  <div style="position: fixed; top: 10px; left: 10px; background: red; color: white; padding: 10px; z-index: 10000;">
+    Story Viewer Component Loaded - Story ID: {{ story?.id }}
+  </div>
+  
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-overlay">
+    <div class="loading-content">
+      <i class="pi pi-spin pi-spinner"></i>
+      <p>Loading story...</p>
+    </div>
+  </div>
+
+  <!-- Story Content -->
+  <div *ngIf="!isLoading && story" class="story-content">
+    
+    <!-- Video Player -->
+    <div class="video-container">
+      <video #videoPlayer
+        [src]="story.videoUrl"
+        (timeupdate)="onVideoTimeUpdate()"
+        (ended)="onVideoEnded()"
+        (click)="togglePlayPause()"
+        (error)="onVideoError($event)"
+        (loadeddata)="onVideoLoaded()"
+        class="video-player"
+        preload="metadata"
+        controls>
+        Your browser does not support the video tag.
+      </video>
+
+      <!-- Video Overlay Controls -->
+      <div class="video-overlay" (click)="togglePlayPause()">
+        <div class="play-button" *ngIf="!isPlaying">
+          <i class="pi pi-play"></i>
+        </div>
+      </div>
+
+      <!-- Progress Bar -->
+      <div class="progress-container">
+        <div class="progress-bar" (click)="onProgressBarClick($event)">
+          <div class="progress-fill" [style.width.%]="(currentTime / duration) * 100"></div>
+        </div>
+        <div class="time-display">
+          <span>{{ formatTime(currentTime) }}</span>
+          <span>{{ formatTime(duration) }}</span>
+        </div>
+      </div>
+
+      <!-- Video Controls -->
+      <div class="video-controls">
+        <div class="control-left">
+          <button pButton 
+            type="button"
+            [icon]="isPlaying ? 'pi pi-pause' : 'pi pi-play'"
+            class="p-button-rounded p-button-text control-btn"
+            (click)="togglePlayPause()"
+            pTooltip="Play/Pause">
+          </button>
+          
+          <button pButton 
+            type="button"
+            [icon]="isMuted ? 'pi pi-volume-off' : 'pi pi-volume-up'"
+            class="p-button-rounded p-button-text control-btn"
+            (click)="toggleMute()"
+            pTooltip="Mute/Unmute">
+          </button>
+          
+          <div class="volume-slider">
+            <p-slider 
+              [(ngModel)]="volume" 
+              [min]="0" 
+              [max]="100"
+              (onChange)="onVolumeChange($event)"
+              class="volume-control">
+            </p-slider>
+          </div>
+        </div>
+
+        <div class="control-right">
+          <button pButton 
+            type="button"
+            icon="pi pi-expand" 
+            class="p-button-rounded p-button-text control-btn"
+            (click)="toggleFullscreen()"
+            pTooltip="Fullscreen">
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Stream Info Panel -->
+    <div class="live-stream-info">
+      <div class="stream-header">
+        <div class="streamer-info">
+          <div class="avatar-fallback" 
+               [style.background-image]="story.userAvatar ? 'url(' + story.userAvatar + ')' : 'none'"
+               [style.background-color]="!story.userAvatar ? '#007bff' : 'transparent'">
+            <span *ngIf="!story.userAvatar">{{ story.userName?.charAt(0)?.toUpperCase() || '?' }}</span>
+          </div>
+          <div class="streamer-details">
+            <h3>{{ story.userName }}</h3>
+            <div class="live-indicator">
+              <span class="live-dot"></span>
+              <span class="live-text">LIVE</span>
+              <span class="viewer-count">{{ story.views.toLocaleString() }} watching</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="story-actions">
+          <button pButton 
+            type="button"
+            [icon]="isLiked ? 'pi pi-heart-fill' : 'pi pi-heart'"
+            [class]="isLiked ? 'p-button-danger p-button-outlined' : 'p-button-outlined'"
+            class="p-button-rounded action-btn"
+            (click)="onLikeStory()"
+            pTooltip="Like">
+          </button>
+          
+          <button pButton 
+            type="button"
+            icon="pi pi-comments" 
+            class="p-button-outlined p-button-rounded action-btn"
+            (click)="toggleComments()"
+            pTooltip="Comments">
+            <span class="comment-count" *ngIf="story.comments > 0">{{ story.comments }}</span>
+          </button>
+          
+          <button pButton 
+            type="button"
+            icon="pi pi-share-alt" 
+            class="p-button-outlined p-button-rounded action-btn"
+            (click)="onShareStory()"
+            pTooltip="Share">
+          </button>
+        </div>
+      </div>
+
+      <div class="story-caption">
+        <p>{{ story.caption }}</p>
+      </div>
+
+      <div class="story-stats">
+        <div class="stat-item">
+          <i class="pi pi-eye"></i>
+          <span>{{ story.views.toLocaleString() }} views</span>
+        </div>
+        <div class="stat-item">
+          <i class="pi pi-heart" [class.liked]="story.isLiked"></i>
+          <span>{{ story.likes.toLocaleString() }} likes</span>
+        </div>
+        <div class="stat-item">
+          <i class="pi pi-comments"></i>
+          <span>{{ story.comments.toLocaleString() }} comments</span>
+        </div>
+      </div>
+
+      <div class="story-tags">
+        <span class="tag" *ngFor="let tag of story.tags">
+          #{{ tag }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Live Chat Panel -->
+    <div class="live-chat-panel" [class.show]="showComments">
+      <div class="chat-header">
+        <h3>Live Chat ({{ story.comments }})</h3>
+        <div class="chat-controls">
+          <button pButton 
+            type="button"
+            icon="pi pi-users" 
+            class="p-button-text p-button-rounded"
+            pTooltip="Viewers">
+            <span class="viewer-badge">{{ story.views.toLocaleString() }}</span>
+          </button>
+          <button pButton 
+            type="button"
+            icon="pi pi-times" 
+            class="p-button-text p-button-rounded"
+            (click)="toggleComments()">
+          </button>
+        </div>
+      </div>
+
+      <div class="comments-list">
+        <div *ngIf="comments.length === 0" class="no-comments">
+          <i class="pi pi-comments"></i>
+          <p>No messages yet. Be the first to chat!</p>
+        </div>
+        
+        <div class="comment-item" *ngFor="let comment of comments">
+          <div class="avatar-fallback" 
+               [style.background-image]="comment.userAvatar ? 'url(' + comment.userAvatar + ')' : 'none'"
+               [style.background-color]="!comment.userAvatar ? '#007bff' : 'transparent'">
+            <span *ngIf="!comment.userAvatar">{{ comment.userName?.charAt(0)?.toUpperCase() || '?' }}</span>
+          </div>
+          <div class="comment-content">
+            <div class="comment-header">
+              <span class="comment-author">{{ comment.userName }}</span>
+              <span class="comment-time">{{ formatDate(comment.createdAt) }}</span>
+            </div>
+            <p class="comment-text">{{ comment.content }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-input">
+        <input pInputText 
+          type="text" 
+          placeholder="Send a message..."
+          [(ngModel)]="newComment"
+          (keyup.enter)="onAddComment()"
+          class="chat-field">
+        <button pButton 
+          type="button"
+          label="Send" 
+          icon="pi pi-send"
+          class="p-button-primary send-btn"
+          (click)="onAddComment()"
+          [disabled]="!newComment.trim()">
+        </button>
+      </div>
+    </div>
+
+    <!-- Navigation Controls -->
+    <div class="navigation-controls">
+      <button pButton 
+        type="button"
+        icon="pi pi-chevron-left" 
+        class="p-button-rounded p-button-text nav-btn prev-btn"
+        (click)="previousStory()"
+        [disabled]="currentStoryIndex === 0"
+        pTooltip="Previous Story">
+      </button>
+      
+      <button pButton 
+        type="button"
+        icon="pi pi-chevron-right" 
+        class="p-button-rounded p-button-text nav-btn next-btn"
+        (click)="nextStory()"
+        [disabled]="currentStoryIndex === allStories.length - 1"
+        pTooltip="Next Story">
+      </button>
+    </div>
+
+    <!-- Close Button -->
+    <button pButton 
+      type="button"
+      icon="pi pi-times" 
+      class="p-button-rounded p-button-text close-btn"
+      (click)="onClose()"
+      pTooltip="Close">
+    </button>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="!isLoading && !story" class="error-state">
+    <i class="pi pi-exclamation-triangle"></i>
+    <h3>Live Stream Not Found</h3>
+    <p>The live stream you're looking for doesn't exist or has been removed.</p>
+    <button pButton 
+      label="Go Back to Live TV" 
+      icon="pi pi-arrow-left"
+      class="p-button-primary"
+      (click)="onGoBack()">
+    </button>
+  </div>
+
+  <!-- Fallback Content -->
+  <div *ngIf="!isLoading && story && !story.videoUrl" class="fallback-content">
+    <div class="fallback-video">
+      <img [src]="story.thumbnailUrl" [alt]="story.caption" style="width: 100%; height: 100%; object-fit: cover;">
+      <div class="fallback-overlay">
+        <i class="pi pi-video" style="font-size: 4rem; color: white;"></i>
+        <h3>Video Unavailable</h3>
+        <p>This live stream is currently unavailable.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Messages -->
+<p-toast></p-toast> 

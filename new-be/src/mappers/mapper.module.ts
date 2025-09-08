@@ -4,6 +4,7 @@ import { Global, Module } from "@nestjs/common";
 import { UserMapper } from "@mappers/implementations/user.mapper";
 import { CategoryMapper } from "@mappers/implementations/category.mapper";
 import { OrderMapper } from "@mappers/implementations/order.mapper";
+import { MessageMapper } from "@mappers/implementations/message.mapper";
 
 @Global()
 @Module({
@@ -13,6 +14,7 @@ import { OrderMapper } from "@mappers/implementations/order.mapper";
         UserMapper,
         CategoryMapper,
         OrderMapper,
+        MessageMapper,
     ],
     exports: [MapperService],
 })
@@ -23,11 +25,13 @@ export class MapperModule {
         private readonly userMapper: UserMapper,
         private readonly categoryMapper: CategoryMapper,
         private readonly orderMapper: OrderMapper,
+        private readonly messageMapper: MessageMapper,
     ) {
         console.log("MapperModule constructor called");
         this.mapperService.registerMapper("User", this.userMapper);
         this.mapperService.registerMapper("Product", this.productMapper);
         this.mapperService.registerMapper("Category", this.categoryMapper);
         this.mapperService.registerMapper("Order", this.orderMapper);
+        this.mapperService.registerMapper("Message", this.messageMapper);
     }
 }

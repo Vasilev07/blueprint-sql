@@ -1,8 +1,8 @@
 import { Component, OnDestroy, OnInit } from "@angular/core";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { ConfirmationService, MessageService } from "primeng/api";
-import { CategoryService } from "../../typescript-api-client/src/clients/category.service";
-import { CategoryDTO } from "../../typescript-api-client/src/models/categoryDTO";
+import { CategoryService } from "../../typescript-api-client/src/api/api";
+import { CategoryDTO } from "../../typescript-api-client/src/model/models";
 import { Subject, takeUntil } from "rxjs";
 
 @Component({
@@ -98,12 +98,11 @@ export class CategoriesComponent implements OnInit, OnDestroy {
 
     public createCategory(category: CategoryDTO) {
         this.categoryService
-            .createCategory({
-                id: undefined,
-                ...category,
-                parent: undefined,
-                children: undefined,
-            })
+            .createCategory(
+                category,
+                undefined,
+                undefined
+            )
             .subscribe({
                 next: (category: CategoryDTO) => {
                     this.category = category;
@@ -137,10 +136,12 @@ export class CategoriesComponent implements OnInit, OnDestroy {
             .pipe(takeUntil(this.ngUnsubscribe))
             .subscribe({
                 next: (categoryFromDb) => {
-                    categoryFromDb;
-                    // TODO Check that
-                    this.category = category;
-                    this.categories = [...this.categories, category];
+                    this.category = categoryFromDb;
+                    const index = this.categories.findIndex(c => c.id === categoryFromDb.id);
+                    if (index !== -1) {
+                        this.categories[index] = categoryFromDb;
+                        this.categories = [...this.categories];
+                    }
                 },
                 complete: () => {
                     this.messageService.add({

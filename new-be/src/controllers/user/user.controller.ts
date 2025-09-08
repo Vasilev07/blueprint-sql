@@ -22,19 +22,30 @@ export class UserController {
     }
 
     @Post("/login")
-    async login(@Body() administratorLoginDTO: UserLoginDto): Promise<any> {
+    async login(@Body() administratorLoginDTO: any): Promise<any> {
+        console.log('Login attempt:', administratorLoginDTO);
+
         const admin: User = await this.userService.findOneByEmail(
             administratorLoginDTO.email,
         );
+        
+        console.log('Found user:', admin);
 
         if (!admin) {
             throw new Error("Invalid email or password");
         }
 
+        console.log('Comparing passwords:', {
+            provided: administratorLoginDTO.password,
+            stored: admin.password
+        });
+        
         const passwordMatch = await this.cryptoService.comparePasswords(
             administratorLoginDTO.password,
             admin.password,
         );
+        
+        console.log('Password match:', passwordMatch);
 
         if (!passwordMatch) {
             throw new Error("Invalid email or password");

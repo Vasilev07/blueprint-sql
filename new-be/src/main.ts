@@ -32,8 +32,7 @@ async function bootstrap() {
                 enabled: true,
                 type: "typescript-angular",
                 outputFolderPath: "../new-fe/src/typescript-api-client/src",
-                additionalProperties:
-                    "apiPackage=clients,modelPackage=models,withoutPrefixEnums=true,withSeparateModelsAndApi=true,ngVersion=16.2.12",
+                additionalProperties: "withoutPrefixEnums=true,ngVersion=16.2.12,fileNaming=kebab-case",
                 openApiFilePath: "./openapi.json", // or ./openapi.json
                 skipValidation: true, // optional, false by default
             },

@@ -1,0 +1,30 @@
+:host ::ng-deep {
+  .p-datatable {
+    .p-datatable-header {
+      padding: 1rem;
+    }
+    
+    th {
+      text-align: left;
+    }
+    
+    td {
+      vertical-align: middle;
+      
+      .p-button {
+        margin-right: 0.5rem;
+      }
+    }
+  }
+  
+  .p-tabview {
+    .p-tabview-panels {
+      padding: 1.5rem 0;
+    }
+  }
+}
+
+.card {
+  padding: 2rem;
+  margin: 1rem;
+}

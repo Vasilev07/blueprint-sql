@@ -1,0 +1,179 @@
+<div class="compose-container">
+  <div class="compose-header">
+    <button pButton 
+            type="button" 
+            icon="pi pi-arrow-left" 
+            class="p-button-text p-button-rounded"
+            pTooltip="Back to Messages"
+            (click)="onCancel()">
+    </button>
+    <h2>New Message</h2>
+    <div class="header-actions">
+      <button pButton 
+              type="button" 
+              icon="pi pi-paperclip" 
+              class="p-button-text p-button-rounded"
+              pTooltip="Attach File"
+              (click)="fileInput.click()">
+      </button>
+      <input #fileInput 
+             type="file" 
+             multiple 
+             style="display: none"
+             (change)="onFileSelect($event)">
+    </div>
+  </div>
+
+  <div class="compose-content">
+    <!-- Recipients Section -->
+    <div class="recipients-section">
+      <div class="recipients-header">
+        <span class="label">To:</span>
+        <div class="recipients-input">
+          <p-multiSelect 
+            [options]="users" 
+            [(ngModel)]="selectedRecipients"
+            optionLabel="email"
+            optionValue="email"
+            placeholder="Search or select recipients..."
+            [filter]="true"
+            [showClear]="true"
+            class="recipients-dropdown">
+          </p-multiSelect>
+        </div>
+      </div>
+      
+      <!-- CC/BCC Toggle -->
+      <div class="cc-bcc-toggle">
+        <button pButton 
+                type="button" 
+                label="CC" 
+                class="p-button-text p-button-sm"
+                [class.active]="showCC"
+                (click)="toggleCC()">
+        </button>
+        <button pButton 
+                type="button" 
+                label="BCC" 
+                class="p-button-text p-button-sm"
+                [class.active]="showBCC"
+                (click)="toggleBCC()">
+        </button>
+      </div>
+
+      <!-- CC Field -->
+      <div class="cc-section" *ngIf="showCC">
+        <span class="label">CC:</span>
+        <p-multiSelect 
+          [options]="users" 
+          [(ngModel)]="selectedCC"
+          optionLabel="email"
+          optionValue="email"
+          placeholder="Add CC recipients..."
+          [filter]="true"
+          [showClear]="true"
+          class="cc-dropdown">
+        </p-multiSelect>
+      </div>
+
+      <!-- BCC Field -->
+      <div class="bcc-section" *ngIf="showBCC">
+        <span class="label">BCC:</span>
+        <p-multiSelect 
+          [options]="users" 
+          [(ngModel)]="selectedBCC"
+          optionLabel="email"
+          optionValue="email"
+          placeholder="Add BCC recipients..."
+          [filter]="true"
+          [showClear]="true"
+          class="bcc-dropdown">
+        </p-multiSelect>
+      </div>
+    </div>
+
+    <!-- Subject Section -->
+    <div class="subject-section">
+      <input pInputText 
+             type="text" 
+             placeholder="Subject"
+             [(ngModel)]="subject"
+             class="subject-input">
+    </div>
+
+    <!-- Message Body -->
+    <div class="message-body-section">
+      <textarea pInputTextarea 
+                [(ngModel)]="content"
+                placeholder="Type your message here..."
+                class="message-textarea">
+      </textarea>
+    </div>
+
+    <!-- Attachments Preview -->
+    <div class="attachments-section" *ngIf="attachments.length > 0">
+      <div class="attachments-header">
+        <span class="label">Attachments ({{ attachments.length }})</span>
+        <button pButton 
+                type="button" 
+                icon="pi pi-times" 
+                class="p-button-text p-button-sm"
+                (click)="clearAttachments()">
+        </button>
+      </div>
+      <div class="attachments-list">
+        <div class="attachment-item" *ngFor="let file of attachments; let i = index">
+          <div class="attachment-info">
+            <i class="pi pi-file"></i>
+            <span class="file-name">{{ file.name }}</span>
+            <span class="file-size">({{ formatFileSize(file.size) }})</span>
+          </div>
+          <button pButton 
+                  type="button" 
+                  icon="pi pi-times" 
+                  class="p-button-text p-button-sm p-button-danger"
+                  (click)="removeAttachment(i)">
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer Actions -->
+  <div class="compose-footer">
+    <div class="footer-left">
+      <button pButton 
+              type="button" 
+              icon="pi pi-paperclip" 
+              class="p-button-text p-button-rounded"
+              pTooltip="Attach File"
+              (click)="fileInput.click()">
+      </button>
+      <button pButton 
+              type="button" 
+              icon="pi pi-image" 
+              class="p-button-text p-button-rounded"
+              pTooltip="Add Image"
+              (click)="addImage()">
+      </button>
+    </div>
+    
+    <div class="footer-right">
+      <button pButton 
+              type="button" 
+              label="Save Draft" 
+              class="p-button-outlined p-button-sm"
+              (click)="saveDraft()">
+      </button>
+      <button pButton 
+              type="button" 
+              label="Send" 
+              icon="pi pi-send"
+              class="p-button-primary"
+              [loading]="loading"
+              [disabled]="!isFormValid()"
+              (click)="onSubmit()">
+      </button>
+    </div>
+  </div>
+</div>

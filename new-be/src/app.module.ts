@@ -9,6 +9,8 @@ import { CategoryModule } from "./controllers/category/category.module";
 import { ProductModule } from "./controllers/product/product.module";
 import { MulterConfigService } from "./config/multer.config";
 import { MapperModule } from "@mappers/mapper.module";
+import { MessageModule } from "./controllers/message/message.module";
+import { FriendModule } from "./controllers/friend/friend.module";
 
 @Module({
     imports: [
@@ -18,6 +20,8 @@ import { MapperModule } from "@mappers/mapper.module";
         UserModule,
         CategoryModule,
         ProductModule,
+        MessageModule,
+        FriendModule,
     ],
     controllers: [AppController],
     providers: [AppService, MulterConfigService],

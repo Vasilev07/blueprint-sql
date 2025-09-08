@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit, ViewChild } from "@angular/core";
 import { Subject, takeUntil } from "rxjs";
 import { ConfirmationService, MessageService } from "primeng/api";
-import { ProductService } from "../../typescript-api-client/src/clients/product.service";
+import { ProductService } from "../../typescript-api-client/src/api/api";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import {
     FileSelectEvent,
@@ -9,7 +9,7 @@ import {
     FileUploadEvent,
 } from "primeng/fileupload";
 import { DomSanitizer } from "@angular/platform-browser";
-import { ProductDTO } from "../../typescript-api-client/src/models/productDTO";
+import { ProductDTO } from "../../typescript-api-client/src/model/models";
 
 @Component({
     templateUrl: "./products.component.html",
@@ -189,19 +189,31 @@ export class ProductsComponent implements OnInit, OnDestroy {
 
     public updateProduct(product: ProductDTO) {
         console.log("product before http call", product);
+        const productData = {
+            ...product,
+            id: undefined // Remove id from the data since it's in the path
+        };
         this.productService
-            .updateProduct(
-                product.id!.toString(),
-                JSON.stringify(product),
-                this.files,
+            .updateProduct(product.id!.toString(),
+                JSON.stringify(productData),
+                this.files
             )
             .pipe(takeUntil(this.ngUnsubscribe))
             .subscribe({
                 next: (productFromDb) => {
-                    productFromDb;
-                    // TODO Check that
-                    this.product = product;
-                    this.products = [...this.products, product];
+                    this.product = productFromDb;
+                    const index = this.products.findIndex(p => p.id === productFromDb.id);
+                    if (index !== -1) {
+                        this.products[index] = {
+                            ...productFromDb,
+                            previewImage: productFromDb.images && productFromDb.images.length > 0
+                                ? this.sanitizer.bypassSecurityTrustResourceUrl(
+                                    "data:image/jpeg;base64," + productFromDb.images[0].data
+                                )
+                                : undefined
+                        };
+                        this.products = [...this.products];
+                    }
                 },
                 complete: () => {
                     this.messageService.add({

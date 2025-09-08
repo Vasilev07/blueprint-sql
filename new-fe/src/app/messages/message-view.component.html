@@ -1,0 +1,90 @@
+<div class="message-view-container">
+  <div class="message-view-header">
+    <button pButton 
+            type="button" 
+            icon="pi pi-arrow-left" 
+            class="p-button-text p-button-rounded"
+            pTooltip="Back to Messages"
+            (click)="goBack()">
+    </button>
+    <h1>Message</h1>
+    <div class="message-actions">
+      <button pButton 
+              type="button" 
+              icon="pi pi-archive" 
+              class="p-button-outlined p-button-rounded"
+              pTooltip="Archive Message"
+              (click)="archiveMessage()">
+      </button>
+      <button pButton 
+              type="button" 
+              icon="pi pi-trash" 
+              class="p-button-outlined p-button-rounded p-button-danger"
+              pTooltip="Delete Message"
+              (click)="deleteMessage()">
+      </button>
+    </div>
+  </div>
+
+  <div class="message-view-content">
+    <div *ngIf="loading" class="loading">
+      <i class="pi pi-spin pi-spinner"></i>
+      <p>Loading message...</p>
+    </div>
+
+    <div *ngIf="!loading && message" class="message-detail">
+      <div class="message-header">
+        <h2>{{ message.subject }}</h2>
+        <div class="message-meta">
+          <div class="message-sender">
+            <strong>From:</strong> {{ message.from }}
+          </div>
+          <div class="message-recipients" *ngIf="message.to && message.to.length > 0">
+            <strong>To:</strong> {{ message.to.join(', ') }}
+          </div>
+          <div class="message-date">
+            <i class="pi pi-calendar"></i>
+            {{ message.createdAt | date:'medium' }}
+          </div>
+        </div>
+      </div>
+
+      <div class="message-body">
+        <div class="message-content">
+          {{ message.content }}
+        </div>
+
+        <div *ngIf="message.attachments && message.attachments.length > 0" 
+             class="message-attachments">
+          <h4>Attachments</h4>
+          <div class="attachment-list">
+            <div *ngFor="let attachment of message.attachments" 
+                 class="attachment-item">
+              <i class="pi pi-paperclip"></i>
+              <span>{{ attachment }}</span>
+              <button pButton 
+                      type="button" 
+                      icon="pi pi-download" 
+                      class="p-button-text p-button-rounded"
+                      pTooltip="Download">
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="!loading && !message" class="no-message">
+      <i class="pi pi-exclamation-triangle"></i>
+      <h3>Message Not Found</h3>
+      <p>The message you're looking for could not be found.</p>
+      <button pButton 
+              type="button" 
+              label="Back to Messages" 
+              icon="pi pi-arrow-left" 
+              class="p-button-outlined"
+              (click)="goBack()">
+      </button>
+    </div>
+  </div>
+</div>
