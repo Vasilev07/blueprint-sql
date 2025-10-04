@@ -77,6 +77,73 @@ export class MessageService implements OnModuleInit {
         return messages.map(message => this.messageMapper.entityToDTO(message));
     }
 
+    async findMessagesByTab(email: string, tab: 'unread' | 'read' | 'vip'): Promise<MessageDTO[]> {
+        console.log(`Searching for ${tab} messages for email:`, email);
+
+        // First get all messages to debug what we're working with
+        const allMessages = await this.entityManager.find(Message);
+        console.log('All messages in DB:', allMessages.map(m => ({
+            id: m.id,
+            to: m.to,
+            from: m.from,
+            cc: m.cc,
+            isRead: m.isRead,
+            isDeleted: m.isDeleted,
+            isArchived: m.isArchived
+        })));
+
+        // Use a simpler approach - get all messages and filter in memory for now
+        // This is not optimal for large datasets but will work for debugging
+        const allMessagesForUser = await this.entityManager
+            .createQueryBuilder(Message, "message")
+            .where("message.isDeleted = :isDeleted", { isDeleted: false })
+            .andWhere("message.isArchived = :isArchived", { isArchived: false })
+            .getMany();
+
+        // Filter messages for the user
+        const userMessages = allMessagesForUser.filter(message => {
+            // Check if email is in the 'to' array
+            const isInTo = Array.isArray(message.to) && message.to.includes(email);
+            // Check if email is in the 'cc' array
+            const isInCc = Array.isArray(message.cc) && message.cc.includes(email);
+            return isInTo || isInCc;
+        });
+
+        console.log(`Found ${userMessages.length} messages for user ${email}:`, userMessages.map(m => ({
+            id: m.id,
+            to: m.to,
+            from: m.from,
+            cc: m.cc,
+            isRead: m.isRead
+        })));
+
+        // Apply tab-specific filtering
+        let filteredMessages = userMessages;
+        switch (tab) {
+            case 'unread':
+                filteredMessages = userMessages.filter(m => !m.isRead);
+                break;
+            case 'read':
+                filteredMessages = userMessages.filter(m => m.isRead);
+                break;
+            case 'vip':
+                filteredMessages = userMessages.filter(m => m.from && m.from.toLowerCase().includes('vip'));
+                break;
+            default:
+                throw new Error(`Invalid tab: ${tab}`);
+        }
+
+        console.log(`Found ${filteredMessages.length} ${tab} messages:`, filteredMessages.map(m => ({
+            id: m.id,
+            to: m.to,
+            from: m.from,
+            cc: m.cc,
+            isRead: m.isRead
+        })));
+
+        return filteredMessages.map(message => this.messageMapper.entityToDTO(message));
+    }
+
     async findById(id: number): Promise<MessageDTO | null> {
         const message = await this.entityManager.findOne(Message, {
             where: { id, isDeleted: false }

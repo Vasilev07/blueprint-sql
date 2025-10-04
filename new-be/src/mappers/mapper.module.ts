@@ -27,7 +27,6 @@ export class MapperModule {
         private readonly orderMapper: OrderMapper,
         private readonly messageMapper: MessageMapper,
     ) {
-        console.log("MapperModule constructor called");
         this.mapperService.registerMapper("User", this.userMapper);
         this.mapperService.registerMapper("Product", this.productMapper);
         this.mapperService.registerMapper("Category", this.categoryMapper);

@@ -59,9 +59,6 @@ export class ProductController {
         @Body("data") productDTO: ProductDTO,
         @UploadedFiles() files: Array<Express.Multer.File>,
     ): Promise<ProductDTO> {
-        console.log(files, "files");
-        console.log(productDTO, "productDTO");
-        console.log(typeof productDTO, "productDTO");
         try {
             return await this.productService.createProduct(productDTO, files);
         } catch (error) {

@@ -60,3 +60,15 @@ export class CreateMessageDTO {
     @ApiProperty()
     userId: number;
 }
+
+export class MessageTabFilterDTO {
+    @ApiProperty({ description: "User email address" })
+    email: string;
+
+    @ApiProperty({ 
+        description: "Tab type", 
+        enum: ['unread', 'read', 'vip'],
+        example: 'unread'
+    })
+    tab: 'unread' | 'read' | 'vip';
+}

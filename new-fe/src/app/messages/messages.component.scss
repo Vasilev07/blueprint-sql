@@ -17,6 +17,34 @@
 }
 
 .messages-content {
+  .tab-navigation {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid var(--surface-border);
+    
+    .tab-button {
+      background: transparent;
+      border: none;
+      border-bottom: 3px solid transparent;
+      color: var(--text-color-secondary);
+      padding: 1rem 1.5rem;
+      border-radius: 0;
+      transition: all 0.2s;
+      
+      &:hover {
+        color: var(--primary-color);
+        background-color: var(--surface-hover);
+      }
+      
+      &.active {
+        color: var(--primary-color);
+        border-bottom-color: var(--primary-color);
+        background-color: transparent;
+      }
+    }
+  }
+  
   .loading, .no-messages {
     text-align: center;
     padding: 3rem;

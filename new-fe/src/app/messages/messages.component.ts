@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy } from "@angular/core";
 import { Router } from "@angular/router";
+import { HttpClient } from "@angular/common/http";
 import { MessagesService } from 'src/typescript-api-client/src/api/api';
 import { MessageDTO } from "../../typescript-api-client/src/model/models";
 import { AuthService } from "../services/auth.service";
@@ -16,24 +17,33 @@ export class MessagesComponent implements OnInit, OnDestroy {
     loading = false;
     currentUserEmail: string = '';
     private messageSubscription?: Subscription;
+    
+    // Tab functionality
+    activeTab: 'unread' | 'read' | 'vip' = 'unread';
+    tabs = [
+        { key: 'unread', label: 'Unread', icon: 'pi pi-envelope' },
+        { key: 'read', label: 'Read', icon: 'pi pi-check-circle' },
+        { key: 'vip', label: 'VIP', icon: 'pi pi-star' }
+    ];
 
     constructor(
         private messagesService: MessagesService,
         private router: Router,
         private authService: AuthService,
-        private websocketService: WebsocketService
+        private websocketService: WebsocketService,
+        private httpClient: HttpClient
     ) {
     }
 
     ngOnInit(): void {
         this.currentUserEmail = this.authService.getUserEmail();
         if (this.currentUserEmail) {
-            this.loadMessages();
+            this.loadMessagesByTab(this.activeTab);
             // Subscribe to real-time message updates
             this.messageSubscription = this.websocketService
                 .subscribeToMessages()
                 .subscribe(() => {
-                    this.loadMessages();
+                    this.loadMessagesByTab(this.activeTab);
                 });
         }
     }
@@ -57,6 +67,33 @@ export class MessagesComponent implements OnInit, OnDestroy {
                 this.loading = false;
             },
         });
+    }
+
+    loadMessagesByTab(tab: 'unread' | 'read' | 'vip'): void {
+        this.loading = true;
+        
+        // Using direct HTTP call until OpenAPI is regenerated
+        const url = 'http://localhost:3000/messages/tab';
+        const body = {
+            email: this.currentUserEmail,
+            tab: tab
+        };
+        
+        this.httpClient.post(url, body).subscribe({
+            next: (messages: any) => {
+                this.messages = messages;
+                this.loading = false;
+            },
+            error: (error) => {
+                console.error(`Error loading ${tab} messages:`, error);
+                this.loading = false;
+            },
+        });
+    }
+
+    onTabChange(tab: any): void {
+        this.activeTab = tab;
+        this.loadMessagesByTab(tab);
     }
 
     composeMessage(): void {

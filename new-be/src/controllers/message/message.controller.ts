@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Post, Put, Param, Delete, Query } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiResponse } from "@nestjs/swagger";
 import { MessageService } from "src/services/message.service";
-import { MessageDTO, CreateMessageDTO } from "../../models/message.dto";
+import { MessageDTO, CreateMessageDTO, MessageTabFilterDTO } from "../../models/message.dto";
 
 @Controller("/messages")
 @ApiTags("Messages")
@@ -27,6 +27,15 @@ export class MessageController {
     @ApiResponse({ status: 200, description: "Inbox messages retrieved successfully", type: [MessageDTO] })
     async findInboxByEmail(@Param("email") email: string): Promise<MessageDTO[]> {
         return await this.messageService.findInboxByEmail(email);
+    }
+
+    @Post("/tab")
+    @ApiOperation({ summary: "Get messages by tab (unread/read/vip) for a user" })
+    @ApiResponse({ status: 200, description: "Messages retrieved successfully", type: [MessageDTO] })
+    async findMessagesByTab(
+        @Body() filter: MessageTabFilterDTO
+    ): Promise<MessageDTO[]> {
+        return await this.messageService.findMessagesByTab(filter.email, filter.tab);
     }
 
     @Get("/:id")

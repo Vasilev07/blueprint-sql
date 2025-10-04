@@ -2,7 +2,7 @@ import { WebSocketGateway, WebSocketServer, SubscribeMessage, OnGatewayConnectio
 import { Server, Socket } from 'socket.io';
 import { Injectable } from '@nestjs/common';
 
-@WebSocketGateway(3000, {
+@WebSocketGateway({
     cors: {
         origin: 'http://localhost:4200',
         credentials: true
@@ -47,9 +47,8 @@ export class MessageGateway implements OnGatewayConnection, OnGatewayDisconnect 
         }
 
         // Notify CC recipients
-        if (message.cc) {
-            const ccRecipients = message.cc.split(',').map(e => e.trim());
-            for (const ccEmail of ccRecipients) {
+        if (message.cc && Array.isArray(message.cc) && message.cc.length > 0) {
+            for (const ccEmail of message.cc) {
                 const ccSocket = this.userSockets.get(ccEmail);
                 if (ccSocket) {
                     ccSocket.emit('messageCreated');

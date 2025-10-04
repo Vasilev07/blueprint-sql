@@ -11,15 +11,29 @@
   </div>
 
   <div class="messages-content">
+    <!-- Tab Navigation -->
+    <div class="tab-navigation">
+      <button *ngFor="let tab of tabs"
+              pButton
+              type="button"
+              [class]="'tab-button ' + (activeTab === tab.key ? 'active' : '')"
+              [icon]="tab.icon"
+              [label]="tab.label"
+              (click)="onTabChange(tab.key)">
+      </button>
+    </div>
+
     <div *ngIf="loading" class="loading">
       <i class="pi pi-spin pi-spinner"></i>
-      <p>Loading messages...</p>
+      <p>Loading {{ activeTab }} messages...</p>
     </div>
 
     <div *ngIf="!loading && messages.length === 0" class="no-messages">
       <i class="pi pi-inbox"></i>
-      <h3>No Messages</h3>
-      <p>Your inbox is empty. Start by composing a new message!</p>
+      <h3>No {{ activeTab | titlecase }} Messages</h3>
+      <p *ngIf="activeTab === 'unread'">No unread messages in your inbox.</p>
+      <p *ngIf="activeTab === 'read'">No read messages found.</p>
+      <p *ngIf="activeTab === 'vip'">No VIP messages found.</p>
       <button pButton 
               type="button" 
               label="Compose Message" 
