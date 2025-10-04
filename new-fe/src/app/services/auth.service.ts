@@ -39,6 +39,15 @@ export class AuthService {
         return moment(expiration);
     }
 
+    getUserEmail(): string {
+        const token = localStorage.getItem("id_token");
+        if (token) {
+            const decodedToken = this.jwtHelper.decodeToken(token);
+            return decodedToken.email;
+        }
+        return '';
+    }
+
     private setSession(authResult: any) {
         localStorage.setItem("id_token", authResult.token);
     }

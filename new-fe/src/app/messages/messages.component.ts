@@ -1,33 +1,53 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, OnDestroy } from "@angular/core";
 import { Router } from "@angular/router";
 import { MessagesService } from 'src/typescript-api-client/src/api/api';
 import { MessageDTO } from "../../typescript-api-client/src/model/models";
 import { AuthService } from "../services/auth.service";
+import { WebsocketService } from "../services/websocket.service";
+import { Subscription } from 'rxjs';
 
 @Component({
     selector: "app-messages",
     templateUrl: "./messages.component.html",
     styleUrls: ["./messages.component.scss"],
 })
-export class MessagesComponent implements OnInit {
+export class MessagesComponent implements OnInit, OnDestroy {
     messages: MessageDTO[] = [];
     loading = false;
-    currentUserId: number = 1; // Get from auth service
+    currentUserEmail: string = '';
+    private messageSubscription?: Subscription;
 
     constructor(
         private messagesService: MessagesService,
         private router: Router,
         private authService: AuthService,
+        private websocketService: WebsocketService
     ) {
     }
 
     ngOnInit(): void {
-        this.loadMessages();
+        this.currentUserEmail = this.authService.getUserEmail();
+        if (this.currentUserEmail) {
+            this.loadMessages();
+            // Subscribe to real-time message updates
+            this.messageSubscription = this.websocketService
+                .subscribeToMessages()
+                .subscribe(() => {
+                    this.loadMessages();
+                });
+        }
+    }
+
+    ngOnDestroy(): void {
+        if (this.messageSubscription) {
+            this.messageSubscription.unsubscribe();
+        }
+        this.websocketService.disconnect();
     }
 
     loadMessages(): void {
         this.loading = true;
-        this.messagesService.findInboxByUserId(this.currentUserId).subscribe({
+        this.messagesService.findInboxByEmail(this.currentUserEmail).subscribe({
             next: (messages) => {
                 this.messages = messages;
                 this.loading = false;

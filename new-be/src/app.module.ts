@@ -11,6 +11,7 @@ import { MulterConfigService } from "./config/multer.config";
 import { MapperModule } from "@mappers/mapper.module";
 import { MessageModule } from "./controllers/message/message.module";
 import { FriendModule } from "./controllers/friend/friend.module";
+import { MessageGateway } from "./gateways/message.gateway";
 
 @Module({
     imports: [
@@ -24,6 +25,6 @@ import { FriendModule } from "./controllers/friend/friend.module";
         FriendModule,
     ],
     controllers: [AppController],
-    providers: [AppService, MulterConfigService],
+    providers: [AppService, MulterConfigService, MessageGateway],
 })
 export class AppModule {}

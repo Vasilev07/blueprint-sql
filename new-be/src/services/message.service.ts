@@ -2,8 +2,10 @@ import { Injectable, OnModuleInit, Inject } from "@nestjs/common";
 import { MessageDTO, CreateMessageDTO } from "../models/message.dto";
 import { EntityManager } from "typeorm";
 import { Message } from "@entities/message.entity";
+import { User } from "@entities/user.entity";
 import { MessageMapper } from "@mappers/implementations/message.mapper";
 import { MapperService } from "@mappers/mapper.service";
+import { MessageGateway } from "../gateways/message.gateway";
 
 @Injectable()
 export class MessageService implements OnModuleInit {
@@ -12,6 +14,7 @@ export class MessageService implements OnModuleInit {
     constructor(
         private entityManager: EntityManager,
         @Inject(MapperService) private readonly mapperService: MapperService,
+        private readonly messageGateway: MessageGateway,
     ) {}
 
     public onModuleInit(): void {
@@ -21,7 +24,12 @@ export class MessageService implements OnModuleInit {
     async create(createMessageDTO: CreateMessageDTO): Promise<MessageDTO> {
         const message = this.messageMapper.dtoToEntity(createMessageDTO as MessageDTO);
         const savedMessage = await this.entityManager.save(message);
-        return this.messageMapper.entityToDTO(savedMessage);
+        const messageDto = this.messageMapper.entityToDTO(savedMessage);
+        
+        // Notify connected clients about the new message
+        await this.messageGateway.notifyNewMessage(messageDto);
+        
+        return messageDto;
     }
 
     async findAllByUserId(userId: number): Promise<MessageDTO[]> {
@@ -32,11 +40,40 @@ export class MessageService implements OnModuleInit {
         return messages.map(message => this.messageMapper.entityToDTO(message));
     }
 
-    async findInboxByUserId(userId: number): Promise<MessageDTO[]> {
-        const messages = await this.entityManager.find(Message, {
-            where: { userId, isDeleted: false, isArchived: false },
-            order: { createdAt: 'DESC' }
-        });
+    async findInboxByEmail(email: string): Promise<MessageDTO[]> {
+        console.log('Searching for messages for email:', email);
+
+        // First get all messages to see what we're working with
+        const allMessages = await this.entityManager.find(Message);
+        console.log('All messages in DB:', allMessages.map(m => ({
+            id: m.id,
+            to: m.to,
+            from: m.from,
+            cc: m.cc,
+            isDeleted: m.isDeleted,
+            isArchived: m.isArchived
+        })));
+
+        // Try a simpler query first to debug
+        const messages = await this.entityManager
+            .createQueryBuilder(Message, "message")
+            .where("message.isDeleted = :isDeleted", { isDeleted: false })
+            .andWhere("message.isArchived = :isArchived", { isArchived: false })
+            .andWhere("(message.to = :email OR :email = ANY(string_to_array(message.cc, ',')))", { 
+                email 
+            })
+            .orderBy("message.createdAt", "DESC")
+            .getMany();
+
+        console.log('Found messages:', messages.map(m => ({
+            id: m.id,
+            to: m.to,
+            from: m.from,
+            cc: m.cc,
+            isDeleted: m.isDeleted,
+            isArchived: m.isArchived
+        })));
+
         return messages.map(message => this.messageMapper.entityToDTO(message));
     }
 

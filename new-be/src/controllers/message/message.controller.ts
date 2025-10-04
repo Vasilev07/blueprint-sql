@@ -22,11 +22,11 @@ export class MessageController {
         return await this.messageService.findAllByUserId(userId);
     }
 
-    @Get("/user/:userId/inbox")
-    @ApiOperation({ summary: "Get inbox messages for a user" })
+    @Get("/inbox/:email")
+    @ApiOperation({ summary: "Get inbox messages for a user by email" })
     @ApiResponse({ status: 200, description: "Inbox messages retrieved successfully", type: [MessageDTO] })
-    async findInboxByUserId(@Param("userId") userId: number): Promise<MessageDTO[]> {
-        return await this.messageService.findInboxByUserId(userId);
+    async findInboxByEmail(@Param("email") email: string): Promise<MessageDTO[]> {
+        return await this.messageService.findInboxByEmail(email);
     }
 
     @Get("/:id")

@@ -1,5 +1,7 @@
 {
   "dependencies": {
+    "@nestjs/platform-socket.io": "^10.4.20",
+    "@nestjs/websockets": "^10.4.20",
     "nest-openapi-tools": "^6.0.3",
     "primeng": "^17.18.1"
   }
