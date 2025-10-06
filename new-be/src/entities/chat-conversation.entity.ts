@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
-import { ChatParticipant } from './chat-participant.entity';
-import { ChatMessage } from './chat-message.entity';
+import { ChatParticipant } from '@entities/chat-participant.entity';
+import { ChatMessage } from '@entities/chat-message.entity';
 
 @Entity()
 export class ChatConversation {

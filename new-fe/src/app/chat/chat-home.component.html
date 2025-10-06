@@ -19,7 +19,7 @@
         </div>
         
         <div class="chat-info">
-          <div class="chat-name">{{ conversation.name || 'Unknown User' }}</div>
+          <div class="chat-name">{{ getConversationDisplayName(conversation) }}</div>
           <div class="last-message">{{ conversation.lastMessage || 'No messages yet' }}</div>
         </div>
         

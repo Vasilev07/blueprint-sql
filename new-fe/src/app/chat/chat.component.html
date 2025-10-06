@@ -1,44 +1,30 @@
 <div class="chat-container">
-  <!-- Chat Header -->
+  <!-- Sidebar removed -->
+  <!-- Header -->
   <div class="chat-header">
-    <button pButton 
-      icon="pi pi-arrow-left" 
-      class="p-button-text p-button-rounded back-btn"
-      (click)="goBack()"
-      pTooltip="Go Back">
-    </button>
-    
+    <button pButton
+            type="button"
+            icon="pi pi-arrow-left"
+            class="p-button-text p-button-rounded back-btn"
+            pTooltip="Back"
+            (click)="goBack()"></button>
+
     <div class="chat-user-info">
-      <p-avatar 
-        [image]="currentUser?.avatar" 
-        [label]="currentUser?.name?.charAt(0)?.toUpperCase() || '?'"
-        size="large"
-        shape="circle">
-      </p-avatar>
+      <p-avatar [label]="(currentUser?.name || '?').charAt(0).toUpperCase()"
+                [image]="currentUser?.avatar"
+                shape="circle"
+                styleClass="mr-2"></p-avatar>
       <div class="user-details">
-        <h3>{{ currentUser?.name || 'Loading...' }}</h3>
-        <span class="user-status" [class]="currentUser?.isOnline ? 'online' : 'offline'">
-          {{ currentUser?.isOnline ? 'Online' : 'Offline' }}
-        </span>
+        <h3>{{ otherUserName }}</h3>
+        <div class="user-status" [ngClass]="{ 'online': isOtherUserOnline, 'offline': !isOtherUserOnline }">
+          {{ otherUserStatus }}
+        </div>
       </div>
     </div>
-    
+
     <div class="chat-actions">
-      <button pButton 
-        icon="pi pi-phone" 
-        class="p-button-text p-button-rounded"
-        pTooltip="Call">
-      </button>
-      <button pButton 
-        icon="pi pi-video" 
-        class="p-button-rounded"
-        pTooltip="Video Call">
-      </button>
-      <button pButton 
-        icon="pi pi-ellipsis-v" 
-        class="p-button-text p-button-rounded"
-        pTooltip="More Options">
-      </button>
+      <button pButton type="button" icon="pi pi-search" class="p-button-text" pTooltip="Search"></button>
+      <button pButton type="button" icon="pi pi-ellipsis-v" class="p-button-text" pTooltip="More"></button>
     </div>
   </div>
 

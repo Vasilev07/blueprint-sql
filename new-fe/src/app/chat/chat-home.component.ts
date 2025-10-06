@@ -13,6 +13,7 @@ export class ChatHomeComponent implements OnInit {
     topFriends$: Observable<User[]>;
     recentMessages$: Observable<Message[]>;
     conversations$: Observable<Conversation[]>;
+    friends: User[] = [];
 
     constructor(
         private router: Router,
@@ -26,14 +27,24 @@ export class ChatHomeComponent implements OnInit {
 
     ngOnInit(): void {
         // Observables are already initialized in constructor
+        this.chatService.friends$.subscribe(f => this.friends = f || []);
     }
 
-    startChat(userId: string): void {
-        this.router.navigate(["/chat/conversation", userId]);
+    startChat(userId: any): void {
+        const id = String((userId && typeof userId === 'object') ? userId.id : userId);
+        if (!id || id === 'undefined' || id === 'null') return;
+        this.router.navigate(["/chat/conversation", id]);
     }
 
     startChatFromConversation(conversation: Conversation): void {
-        const otherUserId = conversation.participants.find(p => p !== "1");
+        const me = this.getLoggedInUserId();
+        const otherUserId = (conversation.participants || [])
+            .map((p: any) => String(p))
+            .find((p: string) => p !== me);
+
+        console.log(otherUserId, "otherUserId");
+        console.log(conversation, "conversation");
+        
         if (otherUserId) {
             this.router.navigate(["/chat/conversation", otherUserId]);
         }
@@ -54,15 +65,24 @@ export class ChatHomeComponent implements OnInit {
     }
 
     getUserName(userId: string): string {
-        // This would typically come from a user service
-        const userNames: { [key: string]: string } = {
-            "1": "You",
-            "2": "Jane Smith",
-            "3": "Mike Johnson",
-            "4": "Sarah Wilson",
-            "5": "David Brown",
-            "6": "Emily Davis",
-        };
-        return userNames[userId] || "Unknown User";
+        const friend = this.friends.find(u => String(u.id) === String(userId));
+        return friend?.name || userId || "Unknown User";
+    }
+
+    private getLoggedInUserId(): string {
+        const id = Number(JSON.parse(atob((localStorage.getItem('id_token') || '').split('.')[1] || 'e30='))?.id || 0);
+        return String(id || '');
+    }
+
+    getConversationDisplayName(conversation: Conversation): string {
+        if (conversation.name) {
+            return conversation.name;
+        }
+        const me = this.getLoggedInUserId();
+        const parts = (conversation.participants || []).map((p: any) => String(p));
+        const others = parts.filter(p => p !== me);
+        const otherId = others[0] || parts[0] || '';
+        const friend = this.friends.find(f => String(f.id) === otherId || f.email === otherId);
+        return friend?.name || otherId || 'Unknown User';
     }
 }

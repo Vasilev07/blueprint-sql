@@ -60,12 +60,49 @@ export class ChatService {
   ) {
     this.applyAuthHeadersToApiServices();
     this.loadInitialData();
+    // Live updates for any chat messages
+    this.ws.onAnyChatMessage().subscribe(({ conversationId, message }) => {
+      const currentUserId = this.getCurrentUserId();
+      const otherUserId = Number(message.senderId) === currentUserId ? Number(message.recipientId) : Number(message.senderId);
+
+      // Append message to stream
+      const nextMsg: Message = {
+        id: String(message.id ?? `${message.senderId}-${message.createdAt}`),
+        senderId: String(message.senderId),
+        receiverId: String(otherUserId || ''),
+        content: message.content,
+        timestamp: new Date(message.createdAt ?? Date.now()),
+        isRead: Number(message.senderId) === currentUserId,
+        type: 'text'
+      };
+      this.messagesSubject.next([...this.messagesSubject.value, nextMsg]);
+
+      // Normalize conversations using numeric user ids and conversation id
+      const convId = String(conversationId);
+      const existing = this.conversationsSubject.value.find(c => c.id === convId);
+      const updated: Conversation = existing ? {
+        ...existing,
+        lastMessage: message.content,
+        lastMessageTime: new Date(message.createdAt ?? Date.now()),
+        unreadCount: (existing.unreadCount ?? 0) + (Number(message.senderId) === currentUserId ? 0 : 1)
+      } : {
+        id: convId,
+        participants: [String(currentUserId), String(otherUserId)],
+        unreadCount: Number(message.senderId) === currentUserId ? 0 : 1,
+        lastMessage: message.content,
+        lastMessageTime: new Date(message.createdAt ?? Date.now())
+      } as Conversation;
+
+      const convs = this.conversationsSubject.value.filter(c => c.id !== updated.id);
+      this.conversationsSubject.next([updated, ...convs]);
+    });
   }
 
   private loadInitialData() {
     this.loadUsers();
     this.loadFriends();
     this.loadMessagesAndConversations();
+    this.loadBackendConversations();
   }
 
   private applyAuthHeadersToApiServices() {
@@ -84,6 +121,47 @@ export class ChatService {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
     });
+  }
+
+  private getCurrentUserId(): number {
+    return Number(JSON.parse(atob((localStorage.getItem('id_token') || '').split('.')[1] || 'e30='))?.id || 0);
+  }
+
+  private loadBackendConversations() {
+    const userId = this.getCurrentUserId();
+    if (!userId) return;
+    this.httpClient
+      .get<any[]>(`http://localhost:3000/chat/conversations`, {
+        headers: this.getAuthHeaders(),
+        params: { userId: String(userId) }
+      })
+      .subscribe({
+        next: (convs: any[]) => {
+          const selfId = String(userId);
+          const mapped: Conversation[] = (convs || []).map((c: any) => {
+            // Backend returns participants as userId[] numbers; normalize to string ids for FE
+            const participantIds = (c.participants || []).map((p: any) => String(p));
+            const last = Array.isArray(c.messages) && c.messages.length > 0
+              ? c.messages[c.messages.length - 1]
+              : undefined;
+            const other = c.otherUser;
+            const otherId = participantIds.find((pid: string) => pid !== selfId);
+            const friend = this.friendsSubject.value.find(f => String(f.id) === String(otherId) || f.email === otherId);
+            return {
+              id: String(c.id),
+              participants: participantIds,
+              unreadCount: Number((c as any).unreadCount ?? 0),
+              lastMessage: last?.content,
+              lastMessageTime: last?.createdAt ? new Date(last.createdAt) : undefined,
+              name: friend?.name || (other ? `${other.firstname ?? ''} ${other.lastname ?? ''}`.trim() || other.email : undefined)
+            } as Conversation;
+          });
+          this.conversationsSubject.next(mapped);
+        },
+        error: () => {
+          // Keep existing state
+        }
+      });
   }
 
   private loadUsers() {
@@ -177,7 +255,11 @@ export class ChatService {
             conversationsMap.set(otherId, conv);
           }
         }
-        this.conversationsSubject.next(Array.from(conversationsMap.values()));
+        // Avoid creating duplicate rows per user from legacy email-based messages.
+        // Prefer backend-provided conversations; only set if we have none yet.
+        if ((this.conversationsSubject.value || []).length === 0) {
+          this.conversationsSubject.next(Array.from(conversationsMap.values()));
+        }
       },
       error: () => {
         this.messagesSubject.next([]);

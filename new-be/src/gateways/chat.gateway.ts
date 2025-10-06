@@ -31,14 +31,21 @@ export class ChatGateway {
     @MessageBody() payload: { conversationId?: number; senderId: number; recipientId: number; content: string },
     @ConnectedSocket() client: Socket
   ) {
-    let conversationId = payload.conversationId;
-    if (!conversationId) {
-      const conv = await this.chatService.getOrCreateConversation(payload.senderId, payload.recipientId);
-      conversationId = conv.id;
+    try {
+      let conversationId = payload.conversationId;
+      if (!conversationId) {
+        const conv = await this.chatService.getOrCreateConversation(payload.senderId, payload.recipientId);
+        conversationId = conv.id;
+      }
+      const message = await this.chatService.sendMessage(conversationId, payload.senderId, payload.content, 'text');
+      this.server.emit(`chat:message:${conversationId}`, message);
+      this.server.emit('chat:message', { conversationId, message });
+      return message;
+    } catch (err: any) {
+      // Normalize error for WS pipeline to avoid instanceof issues
+      const message = typeof err?.message === 'string' ? err.message : 'Failed to send chat message';
+      return { error: true, message };
     }
-    const message = await this.chatService.sendMessage(conversationId, payload.senderId, payload.content, 'text');
-    this.server.emit(`chat:message:${conversationId}`, message);
-    return message;
   }
 }
 

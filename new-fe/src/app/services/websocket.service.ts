@@ -14,67 +14,88 @@ export class WebsocketService {
         console.log('WebsocketService constructor called');
         const email = this.authService.getUserEmail();
         this.socket = io('http://localhost:3000', {
-            query: { email }
+            query: { email: email || '' },
+            transports: ['websocket', 'polling'],
+            withCredentials: true
+        });
+
+        this.socket.on('connect', () => {
+            console.log('Socket connected:', this.socket.id);
+        });
+        this.socket.on('disconnect', (reason) => {
+            console.log('Socket disconnected:', reason);
+        });
+        this.socket.on('connect_error', (err: any) => {
+            console.error('Socket connect_error:', err?.message || err);
+        });
+        this.socket.on('error', (err: any) => {
+            console.error('Socket error:', err);
         });
         console.log('Socket created for:', email);
     }
 
     subscribeToMessages(): Observable<void> {
         return new Observable<void>(observer => {
-            this.socket.on('messageCreated', () => {
-                observer.next();
-            });
+            const handler = () => observer.next();
+            this.socket.on('messageCreated', handler);
+            return () => this.socket.off('messageCreated', handler);
         });
     }
 
     onPresenceSnapshot(): Observable<string[]> {
         return new Observable<string[]>(observer => {
-            this.socket.on('presence:snapshot', (onlineEmails: string[]) => {
-                observer.next(onlineEmails || []);
-            });
+            const handler = (onlineEmails: string[]) => observer.next(onlineEmails || []);
+            this.socket.on('presence:snapshot', handler);
+            return () => this.socket.off('presence:snapshot', handler);
         });
     }
 
     onPresenceOnline(): Observable<string> {
         return new Observable<string>(observer => {
-            this.socket.on('presence:online', (email: string) => {
-                observer.next(email);
-            });
+            const handler = (email: string) => observer.next(email);
+            this.socket.on('presence:online', handler);
+            return () => this.socket.off('presence:online', handler);
         });
     }
 
     onPresenceOffline(): Observable<string> {
         return new Observable<string>(observer => {
-            this.socket.on('presence:offline', (email: string) => {
-                observer.next(email);
-            });
+            const handler = (email: string) => observer.next(email);
+            this.socket.on('presence:offline', handler);
+            return () => this.socket.off('presence:offline', handler);
         });
     }
 
     onFriendRequestCreated(): Observable<void> {
         return new Observable<void>(observer => {
-            this.socket.on('friend:request:created', () => {
+            const handler = () => {
                 console.log('WebSocket: Received friend:request:created');
                 observer.next();
-            });
+            };
+            this.socket.on('friend:request:created', handler);
+            return () => this.socket.off('friend:request:created', handler);
         });
     }
 
     onFriendRequestUpdated(): Observable<void> {
         return new Observable<void>(observer => {
-            this.socket.on('friend:request:updated', () => {
+            const handler = () => {
                 console.log('WebSocket: Received friend:request:updated');
                 observer.next();
-            });
+            };
+            this.socket.on('friend:request:updated', handler);
+            return () => this.socket.off('friend:request:updated', handler);
         });
     }
 
     onFriendListUpdated(): Observable<void> {
         return new Observable<void>(observer => {
-            this.socket.on('friend:list:updated', () => {
+            const handler = () => {
                 console.log('WebSocket: Received friend:list:updated');
                 observer.next();
-            });
+            };
+            this.socket.on('friend:list:updated', handler);
+            return () => this.socket.off('friend:list:updated', handler);
         });
     }
 
@@ -86,9 +107,17 @@ export class WebsocketService {
     onChatMessage(conversationId: number): Observable<any> {
         return new Observable<any>(observer => {
             const event = `chat:message:${conversationId}`;
-            this.socket.on(event, (message: any) => {
-                observer.next(message);
-            });
+            const handler = (message: any) => observer.next(message);
+            this.socket.on(event, handler);
+            return () => this.socket.off(event, handler);
+        });
+    }
+
+    onAnyChatMessage(): Observable<{ conversationId: number; message: any }> {
+        return new Observable<{ conversationId: number; message: any }>(observer => {
+            const handler = (payload: { conversationId: number; message: any }) => observer.next(payload);
+            this.socket.on('chat:message', handler);
+            return () => this.socket.off('chat:message', handler);
         });
     }
 
