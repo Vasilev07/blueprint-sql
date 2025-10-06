@@ -1,0 +1,111 @@
+<div class="chat-home-container">
+  <!-- Chat Sidebar -->
+  <div class="chat-sidebar">
+    <div class="sidebar-header">
+      <h2>Chats</h2>
+      <button pButton icon="pi pi-plus" class="p-button-rounded p-button-text" pTooltip="New Chat"></button>
+    </div>
+    
+    <div class="chat-list">
+      <div class="chat-item" *ngFor="let conversation of conversations$ | async" (click)="startChatFromConversation(conversation)">
+        <div class="chat-avatar">
+          <p-avatar 
+            [image]="conversation.avatar" 
+            [label]="conversation.name?.charAt(0)?.toUpperCase()"
+            size="large"
+            shape="circle">
+          </p-avatar>
+          <div class="online-indicator" [class]="conversation.isOnline ? 'online' : 'offline'"></div>
+        </div>
+        
+        <div class="chat-info">
+          <div class="chat-name">{{ getConversationDisplayName(conversation) }}</div>
+          <div class="last-message">{{ conversation.lastMessage || 'No messages yet' }}</div>
+        </div>
+        
+        <div class="chat-meta">
+          <div class="chat-time">{{ formatTime(conversation.lastMessageTime) }}</div>
+          <div *ngIf="conversation.unreadCount > 0" class="unread-badge">
+            {{ conversation.unreadCount }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Chat Area -->
+  <div class="main-chat-area">
+    <div class="chat-header">
+      <h1>Chat Dashboard</h1>
+      <p>Select a chat to start messaging</p>
+    </div>
+
+    <div class="dashboard-grid">
+      <!-- Last 10 Registered Users -->
+      <div class="dashboard-card">
+        <div class="card-header">
+          <h2>Recently Registered Users</h2>
+          <span class="badge">{{ (lastRegisteredUsers$ | async)?.length || 0 }}</span>
+        </div>
+        <div class="card-content">
+          <app-user-list 
+            [users]="(lastRegisteredUsers$ | async) ?? []"
+            (userClick)="startChat($event)">
+          </app-user-list>
+        </div>
+      </div>
+
+      <!-- Top 10 Friends -->
+      <div class="dashboard-card">
+        <div class="card-header">
+          <h2>Your Top Friends</h2>
+          <span class="badge">{{ (topFriends$ | async)?.length || 0 }}</span>
+        </div>
+        <div class="card-content">
+          <app-friends-list 
+            [friends]="(topFriends$ | async) ?? []"
+            (friendClick)="startChat($event)">
+          </app-friends-list>
+        </div>
+      </div>
+
+      <!-- Recent Messages -->
+      <div class="dashboard-card full-width">
+        <div class="card-header">
+          <h2>Recent Messages</h2>
+          <span class="badge">{{ (recentMessages$ | async)?.length || 0 }}</span>
+        </div>
+        <div class="card-content">
+          <app-recent-messages 
+            [messages]="(recentMessages$ | async) ?? []"
+            (messageClick)="startChat($event)">
+          </app-recent-messages>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+      <div class="action-card">
+        <i class="pi pi-search"></i>
+        <h3>Find People</h3>
+        <p>Search for new friends and start conversations</p>
+        <button pButton label="Search Users" class="p-button-primary" icon="pi pi-search"></button>
+      </div>
+      
+      <div class="action-card">
+        <i class="pi pi-users"></i>
+        <h3>Group Chats</h3>
+        <p>Create or join group conversations</p>
+        <button pButton label="Create Group" class="p-button-secondary" icon="pi pi-plus"></button>
+      </div>
+      
+      <div class="action-card">
+        <i class="pi pi-cog"></i>
+        <h3>Settings</h3>
+        <p>Customize your chat experience</p>
+        <button pButton label="Settings" class="p-button-outlined" icon="pi pi-cog"></button>
+      </div>
+    </div>
+  </div>
+</div> 

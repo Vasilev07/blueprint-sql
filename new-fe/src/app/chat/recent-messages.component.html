@@ -1,0 +1,32 @@
+<div class="recent-messages">
+  <div class="message-item" *ngFor="let message of messages" (click)="onMessageClick(message.senderId)">
+    <div class="message-avatar">
+      <p-avatar 
+        [image]="getUserAvatar(message.senderId)" 
+        [label]="getUserName(message.senderId)?.charAt(0)?.toUpperCase() || '?'"
+        size="large"
+        shape="circle">
+      </p-avatar>
+      <div class="online-indicator" [class]="isUserOnline(message.senderId) ? 'online' : 'offline'"></div>
+    </div>
+    
+    <div class="message-info">
+      <div class="message-sender">{{ getUserName(message.senderId) || 'Unknown User' }}</div>
+      <div class="message-content">{{ message.content || 'No content' }}</div>
+      <div class="message-time">{{ formatTime(message.timestamp) }}</div>
+    </div>
+    
+    <div class="message-status">
+      <div class="read-status">
+        <i *ngIf="message.isRead" class="pi pi-check-double read"></i>
+        <i *ngIf="!message.isRead" class="pi pi-check unread"></i>
+      </div>
+    </div>
+  </div>
+  
+  <div *ngIf="messages.length === 0" class="empty-state">
+    <i class="pi pi-comments"></i>
+    <p>No recent messages</p>
+    <small>Start conversations to see messages here</small>
+  </div>
+</div> 

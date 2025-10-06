@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from "@angular/core";
-import { ProductDTO } from "../../typescript-api-client/src/models/productDTO";
-import { OrderDTO } from "../../typescript-api-client/src/models/orderDTO";
+import { ProductDTO } from "../../typescript-api-client/src/model/models";
+import { OrderDTO } from "../../typescript-api-client/src/model/models";
 import { Subject, takeUntil } from "rxjs";
 import { HttpClient } from "@angular/common/http";
 import { DomSanitizer, SafeResourceUrl } from "@angular/platform-browser";
@@ -38,12 +38,12 @@ export class CartComponent implements OnInit, OnDestroy {
                 this.cartProducts =
                     orders
                         .filter((order) => order.id === 1)[0]!
-                        .products.map((product) => {
+                        .products.map((product: ProductDTO) => {
                             const previewImage =
                                 product?.images && product.images.length > 0
                                     ? this.sanitizer.bypassSecurityTrustResourceUrl(
                                           "data:image/jpeg;base64," +
-                                              product!.images[0]!.data ?? "",
+                                              (product!.images[0]?.data ?? ""),
                                       )
                                     : "";
 

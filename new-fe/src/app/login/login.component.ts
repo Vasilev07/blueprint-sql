@@ -28,7 +28,8 @@ export class LoginComponent {
     ) {}
 
     public login(): void {
-        // TODO extract that in separate service -> use the service created from BE
-        this.authService.login();
+        if (this.username && this.password) {
+            this.authService.login(this.username, this.password);
+        }
     }
 }

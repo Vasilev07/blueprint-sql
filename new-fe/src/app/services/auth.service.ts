@@ -12,11 +12,11 @@ export class AuthService {
         private router: Router,
     ) {}
 
-    login(): void {
+    login(email: string, password: string): void {
         this.http
             .post("http://localhost:3000/auth/login", {
-                username: "admin@gmail.com",
-                password: "admin",
+                email,
+                password
             })
             .subscribe((res) => {
                 this.setSession(res);
@@ -37,6 +37,15 @@ export class AuthService {
         const expiration: Date | null =
             this.jwtHelper.getTokenExpirationDate(token);
         return moment(expiration);
+    }
+
+    getUserEmail(): string {
+        const token = localStorage.getItem("id_token");
+        if (token) {
+            const decodedToken = this.jwtHelper.decodeToken(token);
+            return decodedToken.email;
+        }
+        return '';
     }
 
     private setSession(authResult: any) {

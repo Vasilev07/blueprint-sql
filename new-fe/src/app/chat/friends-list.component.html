@@ -1,0 +1,37 @@
+<div class="friends-list">
+  <div class="friend-item" *ngFor="let friend of friends" (click)="onFriendClick(friend.id)">
+    <div class="friend-avatar">
+      <p-avatar 
+        [image]="friend.avatar" 
+        [label]="friend.name?.charAt(0)?.toUpperCase() || '?'"
+        size="large"
+        shape="circle">
+      </p-avatar>
+      <div class="online-indicator" [class]="friend.isOnline ? 'online' : 'offline'"></div>
+    </div>
+    
+    <div class="friend-info">
+      <div class="friend-name">{{ friend.name || 'Unknown Friend' }}</div>
+      <div class="friend-email">{{ friend.email || 'No email' }}</div>
+    </div>
+    
+    <div class="friend-actions">
+      <button pButton 
+        label="Message" 
+        class="p-button-primary p-button-sm"
+        icon="pi pi-comments">
+      </button>
+      <button pButton 
+        label="Remove" 
+        class="p-button-danger p-button-sm"
+        icon="pi pi-user-minus">
+      </button>
+    </div>
+  </div>
+  
+  <div *ngIf="friends.length === 0" class="empty-state">
+    <i class="pi pi-heart"></i>
+    <p>No friends yet</p>
+    <small>Start adding friends to see them here</small>
+  </div>
+</div> 

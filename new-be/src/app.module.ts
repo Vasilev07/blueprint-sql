@@ -9,6 +9,10 @@ import { CategoryModule } from "./controllers/category/category.module";
 import { ProductModule } from "./controllers/product/product.module";
 import { MulterConfigService } from "./config/multer.config";
 import { MapperModule } from "@mappers/mapper.module";
+import { MessageModule } from "./controllers/message/message.module";
+import { FriendModule } from "./controllers/friend/friend.module";
+import { MessageGateway } from "./gateways/message.gateway";
+import { ChatModule } from "./controllers/chat/chat.module";
 
 @Module({
     imports: [
@@ -18,8 +22,11 @@ import { MapperModule } from "@mappers/mapper.module";
         UserModule,
         CategoryModule,
         ProductModule,
+        MessageModule,
+        FriendModule,
+        ChatModule,
     ],
     controllers: [AppController],
-    providers: [AppService, MulterConfigService],
+    providers: [AppService, MulterConfigService, MessageGateway],
 })
 export class AppModule {}

@@ -1,0 +1,141 @@
+<p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>
+
+<div class="card">
+  <div class="tabbar-header">
+    <span class="tabbar-title">Friends</span>
+    <span class="tabbar-user" *ngIf="currentUserEmail">
+      <i class="pi pi-user"></i>
+      <span class="email">{{ currentUserEmail }}</span>
+    </span>
+  </div>
+  <p-tabView>
+    <!-- All Users Tab -->
+    <p-tabPanel header="All Users">
+      <p-table [value]="users" [loading]="loading" [paginator]="true" [rows]="10"
+               styleClass="p-datatable-striped">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Avatar</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Actions</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-user>
+          <tr>
+            <td>
+              <p-avatar [label]="user.fullName?.charAt(0)" styleClass="mr-2" size="large"
+                       [style]="{'background-color': '#2196F3', 'color': '#ffffff'}">
+              </p-avatar>
+            </td>
+            <td>{{user.fullName}}</td>
+            <td>{{user.email}}</td>
+            <td>
+              <button *ngIf="user.id !== currentUserId" 
+                      pButton type="button" [label]="getButtonLabel(user.id)"
+                      class="p-button-rounded" [class]="getButtonClass(user.id)"
+                      (click)="sendFriendRequest(user.id)"
+                      [disabled]="friendRequests.get(user.id) === 'pending' || friendRequests.get(user.id) === 'accepted'">
+              </button>
+              <button *ngIf="user.id === currentUserId"
+                      pButton
+                      type="button"
+                      label="You"
+                      icon="pi pi-user"
+                      class="p-button-rounded you-button"
+                      disabled>
+              </button>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="4" class="text-center">No users found.</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </p-tabPanel>
+
+    <!-- Friend Requests Tab -->
+    <p-tabPanel>
+      <ng-template pTemplate="header">
+        <span class="tab-header-with-badge">
+          <span class="p-tabview-title">Friend Requests</span>
+          <span class="p-badge p-badge-danger p-badge-rounded" *ngIf="(incomingRequests?.length || 0) > 0">{{ incomingRequests.length }}</span>
+        </span>
+      </ng-template>
+      <div *ngIf="incomingRequests.length === 0" class="text-center p-4">
+        <i class="pi pi-inbox text-4xl text-gray-400 mb-3"></i>
+        <p class="text-gray-500">No pending friend requests</p>
+      </div>
+      
+      <div *ngIf="incomingRequests.length > 0" class="friend-requests-list">
+        <div *ngFor="let request of incomingRequests" 
+             class="friend-request-item">
+          <div class="friend-request-info">
+            <span class="avatar-wrapper">
+              <p-avatar [label]="getUserInitials(request.user) || 'U'" 
+                       size="large" 
+                       shape="circle"
+                       [style]="{'background-color': '#3498db', 'color': '#ffffff'}">
+              </p-avatar>
+              <span class="presence-dot" [class.online]="presenceService.isOnline(request.user?.email)" [class.offline]="!presenceService.isOnline(request.user?.email)"></span>
+            </span>
+            <div class="friend-request-details">
+              <h3 class="friend-name">{{ getUserFullName(request.user) || 'Unknown User' }}</h3>
+              <p class="friend-email">{{ request.user?.email }}</p>
+              <p class="friend-status">Wants to be your friend</p>
+            </div>
+          </div>
+          <div class="friend-request-actions">
+            <button pButton 
+                    type="button" 
+                    label="Accept" 
+                    icon="pi pi-check" 
+                    class="p-button-success p-button-sm"
+                    (click)="acceptFriendRequest(+request.userId)">
+            </button>
+            <button pButton 
+                    type="button" 
+                    label="Decline" 
+                    icon="pi pi-times" 
+                    class="p-button-outlined p-button-danger p-button-sm"
+                    (click)="declineFriendRequest(+request.userId)">
+            </button>
+          </div>
+        </div>
+      </div>
+    </p-tabPanel>
+
+    <!-- My Friends Tab -->
+    <p-tabPanel header="My Friends">
+      <div *ngIf="myFriends.length === 0" class="text-center p-4">
+        <i class="pi pi-users text-4xl text-gray-400 mb-3"></i>
+        <p class="text-gray-500">No friends yet</p>
+        <p class="text-sm text-gray-400">Start by sending friend requests to other users</p>
+      </div>
+      
+      <div *ngIf="myFriends.length > 0" class="friends-grid">
+        <div *ngFor="let friend of myFriends" 
+             class="friend-card">
+          <span class="avatar-wrapper">
+            <p-avatar [label]="getFriendInitials(friend) || 'F'" 
+                     size="large" 
+                     shape="circle"
+                     [style]="{'background-color': '#27ae60', 'color': '#ffffff'}">
+            </p-avatar>
+            <span class="presence-dot" [class.online]="presenceService.isOnline(getFriendEmail(friend))" [class.offline]="!presenceService.isOnline(getFriendEmail(friend))"></span>
+          </span>
+          <div class="friend-info">
+            <h3 class="friend-name">{{ getFriendDisplayName(friend) || 'Unknown Friend' }}</h3>
+            <p class="friend-email">{{ getFriendEmail(friend) }}</p>
+            <p class="friend-status">Friends</p>
+          </div>
+        </div>
+      </div>
+    </p-tabPanel>
+  </p-tabView>
+
+  
+</div>

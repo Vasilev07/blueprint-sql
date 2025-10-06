@@ -1,14 +1,11 @@
 import { Component, OnDestroy, OnInit } from "@angular/core";
-import { ProductDTO } from "../../typescript-api-client/src/models/productDTO";
+import { ProductDTO, OrderDTO, ContactInformationDTO, AddressDTO } from "../../typescript-api-client/src/model/models";
 import { HttpClient } from "@angular/common/http";
 import { Subject, takeUntil } from "rxjs";
 import { ConfirmationService, MessageService } from "primeng/api";
 import { LayoutService } from "../layout/service/app.layout.service";
-import { OrderDTO } from "../../typescript-api-client/src/models/orderDTO";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
-import { OrderService } from "../../typescript-api-client/src/clients/order.service";
-import { ContactInformationDTO } from "../../typescript-api-client/src/models/contactInformationDTO";
-import { AddressDTO } from "../../typescript-api-client/src/models/addressDTO";
+import { OrderService } from "../../typescript-api-client/src/api/api";
 
 @Component({
     templateUrl: "./orders.component.html",

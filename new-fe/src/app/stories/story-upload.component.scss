@@ -1,0 +1,505 @@
+.story-upload-container {
+  padding: 2rem;
+  background: #f8f9fa;
+  min-height: 100vh;
+
+  .upload-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+    .back-btn {
+      flex-shrink: 0;
+    }
+
+    .header-content {
+      h1 {
+        margin: 0 0 0.5rem 0;
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #212529;
+      }
+
+      p {
+        margin: 0;
+        color: #6c757d;
+        font-size: 1rem;
+      }
+    }
+  }
+
+  .upload-content {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+
+    .upload-form-container {
+      background: white;
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+      .upload-form {
+        .upload-section {
+          margin-bottom: 2rem;
+
+          h3 {
+            margin: 0 0 0.5rem 0;
+            color: #212529;
+            font-size: 1.25rem;
+            font-weight: 600;
+          }
+
+          .section-description {
+            margin: 0 0 1rem 0;
+            color: #6c757d;
+            font-size: 0.9rem;
+          }
+
+          .video-upload-area {
+            border: 2px dashed #dee2e6;
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            transition: border-color 0.2s ease;
+
+            &:hover {
+              border-color: #007bff;
+            }
+
+            .upload-hint {
+              margin-top: 1rem;
+
+              i {
+                font-size: 3rem;
+                color: #6c757d;
+                margin-bottom: 1rem;
+                display: block;
+              }
+
+              p {
+                margin: 0 0 0.5rem 0;
+                color: #495057;
+                font-weight: 500;
+              }
+
+              small {
+                color: #6c757d;
+                font-size: 0.875rem;
+              }
+            }
+          }
+
+          .video-preview {
+            .preview-container {
+              border: 1px solid #e9ecef;
+              border-radius: 8px;
+              overflow: hidden;
+
+              img {
+                width: 100%;
+                height: 200px;
+                object-fit: cover;
+              }
+
+              .video-info {
+                padding: 1rem;
+                background: #f8f9fa;
+
+                .file-details {
+                  margin-bottom: 1rem;
+
+                  h4 {
+                    margin: 0 0 0.25rem 0;
+                    color: #212529;
+                    font-size: 1rem;
+                  }
+
+                  p {
+                    margin: 0;
+                    color: #6c757d;
+                    font-size: 0.875rem;
+                  }
+                }
+
+                .duration-warning {
+                  display: flex;
+                  align-items: center;
+                  gap: 0.5rem;
+                  margin-bottom: 1rem;
+                  padding: 0.5rem;
+                  background: #fff3cd;
+                  border: 1px solid #ffeaa7;
+                  border-radius: 4px;
+                  color: #856404;
+
+                  i {
+                    color: #f39c12;
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        .form-group {
+          margin-bottom: 1.5rem;
+
+          label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #495057;
+            font-weight: 600;
+            font-size: 0.9rem;
+          }
+
+          .caption-input {
+            width: 100%;
+            resize: vertical;
+            min-height: 80px;
+          }
+
+          .character-count {
+            text-align: right;
+            font-size: 0.75rem;
+            color: #6c757d;
+            margin-top: 0.25rem;
+
+            &.near-limit {
+              color: #f39c12;
+            }
+          }
+
+          .category-dropdown {
+            width: 100%;
+          }
+
+          .tags-input {
+            width: 100%;
+          }
+
+          .form-hint {
+            display: block;
+            margin-top: 0.25rem;
+            color: #6c757d;
+            font-size: 0.8rem;
+          }
+
+          .validation-error {
+            margin-top: 0.25rem;
+
+            small {
+              color: #dc3545;
+              font-size: 0.8rem;
+            }
+          }
+
+          .privacy-options {
+            .privacy-option {
+              margin-bottom: 1rem;
+              padding: 0.75rem;
+              background: #f8f9fa;
+              border-radius: 6px;
+
+              small {
+                display: block;
+                margin-top: 0.25rem;
+                color: #6c757d;
+                font-size: 0.8rem;
+              }
+            }
+          }
+        }
+
+        .upload-progress {
+          margin: 2rem 0;
+          padding: 1.5rem;
+          background: #e3f2fd;
+          border-radius: 8px;
+          text-align: center;
+
+          h3 {
+            margin: 0 0 1rem 0;
+            color: #1976d2;
+          }
+
+          .progress-bar {
+            margin-bottom: 1rem;
+          }
+
+          .progress-text {
+            margin: 0;
+            color: #1976d2;
+            font-size: 0.9rem;
+          }
+        }
+
+        .form-actions {
+          display: flex;
+          gap: 1rem;
+          justify-content: flex-end;
+          padding-top: 1rem;
+          border-top: 1px solid #e9ecef;
+
+          .cancel-btn {
+            min-width: 100px;
+          }
+
+          .upload-submit-btn {
+            min-width: 140px;
+          }
+        }
+      }
+    }
+
+    .upload-tips {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      height: fit-content;
+
+      h3 {
+        margin: 0 0 1.5rem 0;
+        color: #212529;
+        font-size: 1.25rem;
+        font-weight: 600;
+        text-align: center;
+      }
+
+      .tips-list {
+        .tip-item {
+          display: flex;
+          align-items: flex-start;
+          gap: 1rem;
+          margin-bottom: 1.5rem;
+          padding: 1rem;
+          background: #f8f9fa;
+          border-radius: 8px;
+          transition: background-color 0.2s ease;
+
+          &:hover {
+            background: #e9ecef;
+          }
+
+          &:last-child {
+            margin-bottom: 0;
+          }
+
+          i {
+            font-size: 1.5rem;
+            color: #007bff;
+            margin-top: 0.25rem;
+            flex-shrink: 0;
+          }
+
+          div {
+            h4 {
+              margin: 0 0 0.5rem 0;
+              color: #212529;
+              font-size: 1rem;
+              font-weight: 600;
+            }
+
+            p {
+              margin: 0;
+              color: #6c757d;
+              font-size: 0.875rem;
+              line-height: 1.4;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// Responsive Design
+@media (max-width: 1024px) {
+  .story-upload-container {
+    .upload-content {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .story-upload-container {
+    padding: 1rem;
+
+    .upload-header {
+      flex-direction: column;
+      text-align: center;
+      gap: 1rem;
+
+      .header-content {
+        h1 {
+          font-size: 1.5rem;
+        }
+      }
+    }
+
+    .upload-content {
+      .upload-form-container {
+        padding: 1.5rem;
+
+        .upload-form {
+          .form-actions {
+            flex-direction: column;
+
+            button {
+              width: 100%;
+            }
+          }
+        }
+      }
+
+      .upload-tips {
+        .tips-list {
+          .tip-item {
+            flex-direction: column;
+            text-align: center;
+
+            i {
+              margin: 0 0 0.5rem 0;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// Dark Theme Support
+@media (prefers-color-scheme: dark) {
+  .story-upload-container {
+    background: #1a1a1a;
+
+    .upload-header {
+      background: #2d2d2d;
+      color: white;
+
+      .header-content {
+        h1 {
+          color: white;
+        }
+
+        p {
+          color: #adb5bd;
+        }
+      }
+    }
+
+    .upload-content {
+      .upload-form-container {
+        background: #2d2d2d;
+        color: white;
+
+        .upload-form {
+          .upload-section {
+            h3 {
+              color: white;
+            }
+
+            .section-description {
+              color: #adb5bd;
+            }
+
+            .video-upload-area {
+              border-color: #495057;
+
+              &:hover {
+                border-color: #007bff;
+              }
+
+              .upload-hint {
+                p {
+                  color: #e9ecef;
+                }
+
+                small {
+                  color: #adb5bd;
+                }
+              }
+            }
+
+            .video-preview {
+              .preview-container {
+                border-color: #495057;
+
+                .video-info {
+                  background: #495057;
+
+                  .file-details {
+                    h4 {
+                      color: white;
+                    }
+
+                    p {
+                      color: #adb5bd;
+                    }
+                  }
+                }
+              }
+            }
+          }
+
+          .form-group {
+            label {
+              color: #e9ecef;
+            }
+
+            .form-hint {
+              color: #adb5bd;
+            }
+
+            .privacy-options {
+              .privacy-option {
+                background: #495057;
+
+                small {
+                  color: #adb5bd;
+                }
+              }
+            }
+          }
+        }
+      }
+
+      .upload-tips {
+        background: #2d2d2d;
+        color: white;
+
+        h3 {
+          color: white;
+        }
+
+        .tips-list {
+          .tip-item {
+            background: #495057;
+
+            &:hover {
+              background: #6c757d;
+            }
+
+            div {
+              h4 {
+                color: white;
+              }
+
+              p {
+                color: #adb5bd;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+} 

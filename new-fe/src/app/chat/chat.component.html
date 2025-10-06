@@ -1,0 +1,93 @@
+<div class="chat-container">
+  <!-- Sidebar removed -->
+  <!-- Header -->
+  <div class="chat-header">
+    <button pButton
+            type="button"
+            icon="pi pi-arrow-left"
+            class="p-button-text p-button-rounded back-btn"
+            pTooltip="Back"
+            (click)="goBack()"></button>
+
+    <div class="chat-user-info">
+      <p-avatar [label]="(currentUser?.name || '?').charAt(0).toUpperCase()"
+                [image]="currentUser?.avatar"
+                shape="circle"
+                styleClass="mr-2"></p-avatar>
+      <div class="user-details">
+        <h3>{{ otherUserName }}</h3>
+        <div class="user-status" [ngClass]="{ 'online': isOtherUserOnline, 'offline': !isOtherUserOnline }">
+          {{ otherUserStatus }}
+        </div>
+      </div>
+    </div>
+
+    <div class="chat-actions">
+      <button pButton type="button" icon="pi pi-search" class="p-button-text" pTooltip="Search"></button>
+      <button pButton type="button" icon="pi pi-ellipsis-v" class="p-button-text" pTooltip="More"></button>
+    </div>
+  </div>
+
+  <!-- Chat Messages -->
+  <div class="chat-messages" [class.loading]="isLoading">
+    <div *ngIf="isLoading" class="loading-messages">
+      <i class="pi pi-spin pi-spinner"></i>
+      <p>Loading messages...</p>
+    </div>
+    
+    <div *ngIf="!isLoading && messages.length === 0" class="empty-messages">
+      <i class="pi pi-comments"></i>
+      <h3>No messages yet</h3>
+      <p>Start the conversation by sending a message!</p>
+    </div>
+    
+    <div *ngFor="let message of messages" 
+         class="message-wrapper" 
+         [class.own-message]="isOwnMessage(message)">
+      <div class="message-bubble">
+        <div class="message-content">{{ message.content }}</div>
+        <div class="message-footer">
+          <span class="message-time">{{ formatTime(message.timestamp) }}</span>
+          <div *ngIf="isOwnMessage(message)" class="message-status">
+            <i *ngIf="message.isRead" class="pi pi-check-double read"></i>
+            <i *ngIf="!message.isRead" class="pi pi-check"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat Input -->
+  <div class="chat-input">
+    <form [formGroup]="messageForm" (ngSubmit)="sendMessage()" class="message-form">
+      <div class="input-container">
+        <button pButton 
+          type="button"
+          icon="pi pi-paperclip" 
+          class="p-button-text p-button-rounded attachment-btn"
+          pTooltip="Attach File">
+        </button>
+        
+        <input pInputText 
+          formControlName="content"
+          placeholder="Type your message..."
+          class="message-input"
+          [class.ng-invalid]="messageForm.get('content')?.invalid && messageForm.get('content')?.touched">
+        
+        <button pButton 
+          type="submit"
+          icon="pi pi-send" 
+          class="p-button-rounded send-btn"
+          [disabled]="messageForm.invalid"
+          pTooltip="Send Message">
+        </button>
+      </div>
+      
+      <div *ngIf="messageForm.get('content')?.invalid && messageForm.get('content')?.touched" 
+           class="validation-error">
+        <small *ngIf="messageForm.get('content')?.errors?.['required']">Message is required</small>
+        <small *ngIf="messageForm.get('content')?.errors?.['maxlength']">Message too long</small>
+      </div>
+    </form>
+  </div>
+</div> 

@@ -1,0 +1,234 @@
+<div class="story-upload-container">
+  <div class="upload-header">
+    <button pButton 
+      icon="pi pi-arrow-left" 
+      class="p-button-text p-button-rounded back-btn"
+      (click)="onCancel()"
+      pTooltip="Go Back">
+    </button>
+    
+    <div class="header-content">
+      <h1>Upload Your Story</h1>
+      <p>Share your moments with the world</p>
+    </div>
+  </div>
+
+  <div class="upload-content">
+    <div class="upload-form-container">
+      <form [formGroup]="uploadForm" (ngSubmit)="uploadStory()" class="upload-form">
+        
+        <!-- Video Upload Section -->
+        <div class="upload-section">
+          <h3>Select Video</h3>
+          <p class="section-description">
+            Choose a video file (max 60 seconds, 100MB)
+          </p>
+          
+          <div class="video-upload-area" *ngIf="!selectedFile">
+            <p-fileUpload 
+              mode="basic" 
+              name="video" 
+              accept="video/*" 
+              maxFileSize="104857600"
+              (onSelect)="onFileSelect($event)"
+              chooseLabel="Choose Video"
+              [auto]="true"
+              [showCancelButton]="false"
+              [showUploadButton]="false">
+            </p-fileUpload>
+            
+            <div class="upload-hint">
+              <i class="pi pi-video"></i>
+              <p>Drag and drop your video here or click to browse</p>
+              <small>Supported formats: MP4, MOV, AVI, WebM</small>
+            </div>
+          </div>
+
+          <!-- Video Preview -->
+          <div class="video-preview" *ngIf="selectedFile">
+            <div class="preview-container">
+              <img [src]="videoPreview" alt="Video thumbnail" *ngIf="videoPreview">
+              <div class="video-info">
+                <div class="file-details">
+                  <h4>{{ selectedFile.name }}</h4>
+                  <p>{{ formatDuration(videoDuration) }} • {{ (selectedFile.size / (1024 * 1024)).toFixed(1) }} MB</p>
+                </div>
+                
+                <div class="duration-warning" *ngIf="videoDuration > maxDuration">
+                  <i class="pi pi-exclamation-triangle"></i>
+                  <span>Video exceeds maximum duration ({{ maxDuration }}s)</span>
+                </div>
+                
+                <button pButton 
+                  type="button"
+                  label="Remove" 
+                  icon="pi pi-trash" 
+                  class="p-button-danger p-button-outlined"
+                  (click)="onRemoveFile()">
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Story Details Section -->
+        <div class="upload-section">
+          <h3>Story Details</h3>
+          
+          <div class="form-group">
+            <label for="caption">Caption *</label>
+            <textarea pInputTextarea 
+              id="caption"
+              formControlName="caption"
+              rows="3"
+              placeholder="What's happening in your story?"
+              [maxlength]="200"
+              class="caption-input">
+            </textarea>
+            <div class="character-count" [class.near-limit]="getRemainingCharacters() <= 20">
+              {{ getRemainingCharacters() }} characters remaining
+            </div>
+            <div class="validation-error" *ngIf="uploadForm.get('caption')?.invalid && uploadForm.get('caption')?.touched">
+              <small *ngIf="uploadForm.get('caption')?.errors?.['required']">Caption is required</small>
+              <small *ngIf="uploadForm.get('caption')?.errors?.['maxlength']">Caption is too long</small>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="category">Category *</label>
+            <p-dropdown 
+              id="category"
+              [options]="categories" 
+              formControlName="category"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Select a category"
+              class="category-dropdown">
+            </p-dropdown>
+            <div class="validation-error" *ngIf="uploadForm.get('category')?.invalid && uploadForm.get('category')?.touched">
+              <small>Please select a category</small>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="tags">Tags</label>
+            <input pInputText 
+              id="tags"
+              type="text" 
+              formControlName="tags"
+              placeholder="#lifestyle #fun #vibes"
+              (input)="onTagsInput($event)"
+              class="tags-input">
+            <small class="form-hint">Add hashtags to help others discover your story</small>
+          </div>
+
+          <div class="form-group">
+            <label>Privacy Settings</label>
+            <div class="privacy-options">
+              <div class="privacy-option">
+                <p-checkbox 
+                  formControlName="isPublic" 
+                  [binary]="true"
+                  label="Make story public">
+                </p-checkbox>
+                <small>Public stories can be seen by everyone</small>
+              </div>
+              
+              <div class="privacy-option">
+                <p-checkbox 
+                  formControlName="allowComments" 
+                  [binary]="true"
+                  label="Allow comments">
+                </p-checkbox>
+                <small>Let others comment on your story</small>
+              </div>
+              
+              <div class="privacy-option">
+                <p-checkbox 
+                  formControlName="allowLikes" 
+                  [binary]="true"
+                  label="Allow likes">
+                </p-checkbox>
+                <small>Let others like your story</small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Upload Progress -->
+        <div class="upload-progress" *ngIf="isUploading">
+          <h3>Uploading Your Story</h3>
+          <p-progressBar 
+            [value]="uploadProgress" 
+            [showValue]="true"
+            class="progress-bar">
+          </p-progressBar>
+          <p class="progress-text">Please wait while we process your video...</p>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="form-actions">
+          <button pButton 
+            type="button"
+            label="Cancel" 
+            class="p-button-outlined cancel-btn"
+            (click)="onCancel()"
+            [disabled]="isUploading">
+          </button>
+          
+          <button pButton 
+            type="submit"
+            label="Upload Story" 
+            icon="pi pi-upload"
+            class="p-button-primary upload-submit-btn"
+            [disabled]="uploadForm.invalid || !selectedFile || isUploading">
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Upload Tips -->
+    <div class="upload-tips">
+      <h3>Upload Tips</h3>
+      <div class="tips-list">
+        <div class="tip-item">
+          <i class="pi pi-clock"></i>
+          <div>
+            <h4>Keep it Short</h4>
+            <p>Stories work best when they're 15-30 seconds long</p>
+          </div>
+        </div>
+        
+        <div class="tip-item">
+          <i class="pi pi-eye"></i>
+          <div>
+            <h4>Start Strong</h4>
+            <p>Hook viewers in the first 3 seconds</p>
+          </div>
+        </div>
+        
+        <div class="tip-item">
+          <i class="pi pi-hashtag"></i>
+          <div>
+            <h4>Use Hashtags</h4>
+            <p>Add relevant hashtags to reach more people</p>
+          </div>
+        </div>
+        
+        <div class="tip-item">
+          <i class="pi pi-lightbulb"></i>
+          <div>
+            <h4>Be Creative</h4>
+            <p>Show your unique perspective and style</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Messages -->
+<p-toast></p-toast>
+
+<!-- Confirmation Dialog -->
+<p-confirmDialog></p-confirmDialog> 

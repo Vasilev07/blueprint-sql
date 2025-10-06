@@ -1,0 +1,176 @@
+<div class="stories-container">
+  <!-- Header -->
+      <div class="stories-header">
+      <div class="header-left">
+        <h1>Live TV</h1>
+        <p>Watch live streams and discover amazing content from around the world</p>
+      </div>
+      
+      <div class="header-right">
+        <button pButton 
+          label="Test Navigation" 
+          icon="pi pi-external-link" 
+          class="p-button-secondary"
+          (click)="testNavigation()"
+          style="margin-right: 10px;">
+        </button>
+        <button pButton 
+          label="Go Live" 
+          icon="pi pi-plus" 
+          class="p-button-primary upload-btn"
+          (click)="onUploadClick()">
+        </button>
+      </div>
+    </div>
+
+  <!-- Search and Filters -->
+  <div class="stories-controls">
+    <div class="search-container">
+      <span class="p-input-icon-left">
+        <i class="pi pi-search"></i>
+        <input pInputText 
+          type="text" 
+          placeholder="Search live streams, users, or tags..."
+          [(ngModel)]="searchQuery"
+          (keyup.enter)="onSearch()">
+      </span>
+    </div>
+    
+    <div class="category-filters">
+      <p-dropdown 
+        [options]="categories" 
+        [(ngModel)]="selectedCategory"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Select Category"
+        (onChange)="onCategoryChange()">
+      </p-dropdown>
+    </div>
+  </div>
+
+  <!-- Stories Grid -->
+  <div class="stories-content">
+    <div *ngIf="isLoading" class="loading-container">
+      <i class="pi pi-spin pi-spinner"></i>
+      <p>Loading amazing stories...</p>
+    </div>
+
+    <div *ngIf="!isLoading && stories.length === 0" class="empty-state">
+      <i class="pi pi-video"></i>
+      <h3>No stories found</h3>
+      <p>Try adjusting your search or filters</p>
+      <button pButton 
+        label="Upload First Story" 
+        icon="pi pi-plus" 
+        class="p-button-primary"
+        (click)="onUploadClick()">
+      </button>
+    </div>
+
+    <div *ngIf="!isLoading && stories.length > 0" class="stories-grid">
+      <div class="story-card" 
+           *ngFor="let story of stories" 
+           (click)="onStoryClick(story)"
+           style="cursor: pointer;">
+        
+        <!-- Story Thumbnail -->
+        <div class="story-thumbnail" (click)="onStoryClick(story)">
+          <img [src]="story.thumbnailUrl" [alt]="story.caption">
+          
+          <!-- Duration Badge -->
+          <div class="duration-badge">
+            {{ formatDuration(story.duration) }}
+          </div>
+          
+          <!-- Time Remaining -->
+          <div class="time-remaining">
+            {{ getTimeRemaining(story.expiresAt) }}
+          </div>
+          
+          <!-- Play Button Overlay -->
+          <div class="play-overlay">
+            <i class="pi pi-play"></i>
+          </div>
+        </div>
+
+        <!-- Story Info -->
+        <div class="story-info">
+          <div class="user-info">
+            <p-avatar 
+              [image]="story.userAvatar" 
+              [label]="story.userName?.charAt(0)?.toUpperCase() || '?'"
+              size="normal"
+              shape="circle">
+            </p-avatar>
+            <div class="user-details">
+              <span class="user-name">{{ story.userName }}</span>
+              <span class="story-time">{{ formatTime(story.createdAt) }}</span>
+            </div>
+          </div>
+
+          <div class="story-caption">
+            {{ story.caption }}
+          </div>
+
+          <div class="story-stats">
+            <div class="stat-item">
+              <i class="pi pi-eye"></i>
+              <span>{{ story.views.toLocaleString() }}</span>
+            </div>
+            <div class="stat-item">
+              <i class="pi pi-heart" [class.liked]="story.isLiked"></i>
+              <span>{{ story.likes.toLocaleString() }}</span>
+            </div>
+            <div class="stat-item">
+              <i class="pi pi-comments"></i>
+              <span>{{ story.comments.toLocaleString() }}</span>
+            </div>
+          </div>
+
+          <!-- Story Tags -->
+          <div class="story-tags">
+            <span class="tag" *ngFor="let tag of story.tags">
+              #{{ tag }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="story-actions" (click)="$event.stopPropagation()">
+          <button pButton 
+            type="button"
+            icon="pi pi-heart" 
+            [class]="story.isLiked ? 'p-button-danger p-button-outlined' : 'p-button-outlined'"
+            [class.liked]="story.isLiked"
+            (click)="onLikeStory(story, $event)"
+            pTooltip="Like">
+          </button>
+          
+          <button pButton 
+            type="button"
+            icon="pi pi-share-alt" 
+            class="p-button-outlined"
+            (click)="onShareStory(story, $event)"
+            pTooltip="Share">
+          </button>
+          
+          <button pButton 
+            type="button"
+            icon="pi pi-ellipsis-v" 
+            class="p-button-outlined"
+            (click)="onMoreOptions(story, $event)"
+            pTooltip="More Options">
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Upload Button -->
+  <button pButton 
+    icon="pi pi-plus" 
+    class="p-button-rounded p-button-primary floating-upload-btn"
+    (click)="onUploadClick()"
+    pTooltip="Upload Story">
+  </button>
+</div> 

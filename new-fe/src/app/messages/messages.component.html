@@ -1,0 +1,122 @@
+<div class="messages-container">
+  <div class="messages-header">
+    <h1>Messages</h1>
+    <button pButton 
+            type="button" 
+            label="Compose" 
+            icon="pi pi-plus" 
+            class="p-button-primary"
+            (click)="composeMessage()">
+    </button>
+  </div>
+
+  <div class="messages-content">
+    <!-- Tab Navigation -->
+    <div class="tab-navigation">
+      <button *ngFor="let tab of tabs"
+              pButton
+              type="button"
+              [class]="'tab-button ' + (activeTab === tab.key ? 'active' : '')"
+              [icon]="tab.icon"
+              (click)="onTabChange(tab.key)">
+        <span class="tab-button-content">
+          <span class="label">{{ tab.label }}</span>
+          <span *ngIf="tab.key === 'unread' && unreadCount > 0" class="p-badge p-badge-danger p-badge-rounded unread-badge">{{ unreadCount }}</span>
+        </span>
+      </button>
+    </div>
+
+    <div *ngIf="loading" class="loading">
+      <i class="pi pi-spin pi-spinner"></i>
+      <p>Loading {{ activeTab }} messages...</p>
+    </div>
+
+    <div *ngIf="!loading && messages.length === 0" class="no-messages">
+      <i class="pi pi-inbox"></i>
+      <h3>No {{ activeTab | titlecase }} Messages</h3>
+      <p *ngIf="activeTab === 'unread'">No unread messages in your inbox.</p>
+      <p *ngIf="activeTab === 'read'">No read messages found.</p>
+      <p *ngIf="activeTab === 'vip'">No VIP messages found.</p>
+      <button pButton 
+              type="button" 
+              label="Compose Message" 
+              icon="pi pi-plus" 
+              class="p-button-outlined"
+              (click)="composeMessage()">
+      </button>
+    </div>
+
+    <div *ngIf="!loading && messages.length > 0" class="messages-list">
+      <div class="message-item" 
+           *ngFor="let message of messages" 
+           (click)="viewMessage(message.id!)">
+        
+        <div class="message-avatar">
+          <span class="avatar-wrapper">
+            <p-avatar 
+              [label]="message.from?.charAt(0)?.toUpperCase() || '?'"
+              size="large"
+              shape="circle">
+            </p-avatar>
+            <span class="presence-dot" [class.online]="presenceService.isOnline(message.from)" [class.offline]="!presenceService.isOnline(message.from)"></span>
+          </span>
+        </div>
+
+        <div class="message-content">
+          <div class="message-header">
+            <h4>{{ message.subject }}</h4>
+            <span class="message-time">{{ message.createdAt | date:'short' }}</span>
+          </div>
+          
+          <div class="message-sender">
+            <strong>From:</strong> {{ message.from }}
+          </div>
+          
+          <div class="message-preview">
+            {{ message.content | slice:0:100 }}{{ message.content.length > 100 ? '...' : '' }}
+          </div>
+
+          <div class="message-meta">
+            <span *ngIf="message.attachments && message.attachments.length > 0" 
+                  class="attachment-badge">
+              <i class="pi pi-paperclip"></i>
+              {{ message.attachments.length }} attachment(s)
+            </span>
+            
+            <span *ngIf="message.to && message.to.length > 0" 
+                  class="recipients">
+              <i class="pi pi-users"></i>
+              To: {{ message.to.join(', ') }}
+            </span>
+          </div>
+        </div>
+
+        <div class="message-actions">
+          <button pButton 
+                  type="button" 
+                  icon="pi pi-eye" 
+                  class="p-button-text p-button-rounded"
+                  pTooltip="View"
+                  (click)="viewMessage(message.id!); $event.stopPropagation()">
+          </button>
+          
+          <button pButton 
+                  type="button" 
+                  icon="pi pi-archive" 
+                  class="p-button-text p-button-rounded"
+                  pTooltip="Archive"
+                  (click)="archiveMessage(message); $event.stopPropagation()">
+          </button>
+          
+          <button pButton 
+                  type="button" 
+                  icon="pi pi-trash" 
+                  class="p-button-text p-button-rounded p-button-danger"
+                  pTooltip="Delete"
+                  (click)="deleteMessage(message); $event.stopPropagation()">
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

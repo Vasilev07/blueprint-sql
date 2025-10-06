@@ -1,0 +1,236 @@
+:host ::ng-deep {
+  .p-datatable {
+    .p-datatable-header {
+      padding: 1rem;
+    }
+    
+    th {
+      text-align: left;
+    }
+    
+    td {
+      vertical-align: middle;
+      
+      .p-button {
+        margin-right: 0.5rem;
+      }
+    }
+  }
+  
+  .p-tabview {
+    .p-tabview-nav li {
+      display: flex;
+      align-items: center;
+    }
+
+    .p-tabview-nav li .p-tabview-nav-link {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      min-height: 2.5rem; /* keep consistent height across tabs */
+      line-height: 1; /* normalize text baseline */
+      position: relative; /* allow absolute-positioned badge inside tab */
+    }
+
+    .p-tabview-panels {
+      padding: 1.5rem 0;
+    }
+  }
+}
+
+.card {
+  padding: 2rem;
+  margin: 1rem;
+}
+
+.tabbar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.25rem 1rem;
+}
+
+.tabbar-title {
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.tabbar-user {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #6b7280;
+}
+
+.tabbar-user .email {
+  font-weight: 500;
+}
+
+.tab-header-with-badge {
+  display: block; /* let the badge position independently */
+  line-height: 1;
+}
+
+.tab-header-with-badge .badge, .tab-header-with-badge .p-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 0.25rem;
+  border-radius: 9999px;
+  background: #ef4444; /* red-500 */
+  color: #ffffff;
+  font-size: 0.75rem;
+  line-height: 1;
+  position: absolute; /* sit on top-right of the tab */
+  top: 0.25rem;
+  right: 0.5rem;
+}
+
+// Friend Requests Styling
+.friend-requests-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.friend-request-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem;
+  background: var(--surface-card);
+  border: 1px solid var(--surface-border);
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: var(--surface-hover);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    border-color: var(--surface-border);
+  }
+}
+
+.friend-request-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  position: relative;
+}
+
+.friend-request-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.friend-name {
+  font-weight: 600;
+  font-size: 1.125rem;
+  color: var(--text-color);
+  margin: 0;
+}
+
+.friend-email {
+  font-size: 0.875rem;
+  color: var(--text-color-secondary);
+  margin: 0;
+}
+
+.friend-status {
+  font-size: 0.75rem;
+  color: var(--primary-color);
+  font-weight: 500;
+  margin: 0;
+  margin-top: 0.25rem;
+}
+
+.friend-request-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+// Friends Grid Styling
+.friends-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.friend-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  position: relative;
+  padding: 1.5rem;
+  background: var(--surface-card);
+  border: 1px solid var(--surface-border);
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: var(--surface-hover);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    border-color: var(--surface-border);
+  }
+}
+
+.friend-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+// Empty state styling
+.text-center {
+  text-align: center;
+}
+
+.p-4 {
+  padding: 1rem;
+}
+
+.mb-3 {
+  margin-bottom: 0.75rem;
+}
+
+.text-gray-500 {
+  color: var(--text-color-secondary);
+}
+
+.text-gray-400 {
+  color: var(--text-color-secondary);
+}
+
+.text-sm {
+  font-size: 0.875rem;
+}
+
+.text-xs {
+  font-size: 0.75rem;
+}
+
+// Avatar improvements
+:host ::ng-deep {
+  .p-avatar {
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+
+  .you-button.p-button {
+    background: #eaf4ff;
+    color: #0b69a3;
+    border: 1px solid #cfe6ff;
+  }
+
+  /* Match button sizing */
+  .you-button.p-button {
+    height: 2.5rem;
+    padding: 0 1rem;
+    font-size: 0.875rem;
+  }
+}

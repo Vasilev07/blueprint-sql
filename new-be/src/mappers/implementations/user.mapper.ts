@@ -7,9 +7,12 @@ import { Injectable } from "@nestjs/common";
 export class UserMapper implements BaseMapper<User, UserDTO> {
     entityToDTO(entity: User): UserDTO {
         return {
+            id: entity.id,
             email: entity.email,
             fullName: `${entity.firstname} ${entity.lastname}`,
-        } as any;
+            password: '',  // Don't send actual password
+            confirmPassword: ''  // Don't send actual password
+        };
     }
     dtoToEntity(dto: UserDTO): User {
         console.log(dto);

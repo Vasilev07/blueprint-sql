@@ -53,7 +53,7 @@ export class UserService implements OnModuleInit {
     }
 
     signForUser = (admin: User) => {
-        return sign({ name: admin.lastname, email: admin.email }, "secred", {
+        return sign({ name: admin.lastname, email: admin.email, id: admin.id }, "secred", {
             expiresIn: "1h",
         });
     };
@@ -67,6 +67,7 @@ export class UserService implements OnModuleInit {
     async getAll(): Promise<UserDTO[]> {
         const users = await this.entityManager.find(User);
         return users.map((user) => {
+            // Don't include passwords in the list
             return this.userMapper.entityToDTO(user);
         });
     }

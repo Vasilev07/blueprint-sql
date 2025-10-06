@@ -41,13 +41,35 @@ const routes: Routes = [
                 loadChildren: () =>
                     import("./cart/cart.module").then((m) => m.CartModule),
             },
+            {
+                path: "chat",
+                loadChildren: () =>
+                    import("./chat/chat.module").then((m) => m.ChatModule),
+            },
+    {
+        path: "messages",
+        loadChildren: () =>
+            import("./messages/messages.module").then((m) => m.MessagesModule),
+    },
+    {
+        path: "friends",
+        loadChildren: () =>
+            import("./friends/friends.module").then((m) => m.FriendsModule),
+    },
+            {
+                path: "live-tv",
+                loadChildren: () =>
+                    import("./stories/stories.module").then((m) => m.StoriesModule),
+            },
         ],
         canActivate: [AuthGuard],
     },
     {
         path: "login",
         loadChildren: () =>
-            import("./login/login.module").then((m) => m.LoginModule),
+            import("./login/login.module").then(
+                (m) => m.LoginModule,
+            ),
     },
 ];
 

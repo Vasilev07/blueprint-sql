@@ -2,7 +2,7 @@ import { Body, Controller, Get, Post } from "@nestjs/common";
 import { AuthMiddleware } from "src/middlewares/auth.middleware";
 import { UserService } from "src/services/user.service";
 import { CryptoService } from "src/services/crypto.service";
-import { ApiTags } from "@nestjs/swagger";
+import { ApiTags, ApiBody, ApiResponse } from "@nestjs/swagger";
 import { User } from "@entities/user.entity";
 import { UserDTO } from "../../models/user.dto";
 import { UserLoginDto } from "../../models/user-login.dto";
@@ -22,19 +22,41 @@ export class UserController {
     }
 
     @Post("/login")
-    async login(@Body() administratorLoginDTO: UserLoginDto): Promise<any> {
+    @ApiBody({
+        schema: {
+            type: 'object',
+            properties: {
+                email: { type: 'string', example: 'user@example.com' },
+                password: { type: 'string', example: 'password123' }
+            },
+            required: ['email', 'password']
+        }
+    })
+    @ApiResponse({ status: 201, description: 'Login successful', schema: { type: 'object', properties: { token: { type: 'string' }, expiresIn: { type: 'number' } } } })
+    async login(@Body() administratorLoginDTO: any): Promise<any> {
+        console.log('Login attempt:', administratorLoginDTO);
+
         const admin: User = await this.userService.findOneByEmail(
             administratorLoginDTO.email,
         );
+        
+        console.log('Found user:', admin);
 
         if (!admin) {
             throw new Error("Invalid email or password");
         }
 
+        console.log('Comparing passwords:', {
+            provided: administratorLoginDTO.password,
+            stored: admin.password
+        });
+        
         const passwordMatch = await this.cryptoService.comparePasswords(
             administratorLoginDTO.password,
             admin.password,
         );
+        
+        console.log('Password match:', passwordMatch);
 
         if (!passwordMatch) {
             throw new Error("Invalid email or password");

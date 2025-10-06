@@ -3,6 +3,7 @@ import { AppModule } from "./app.module";
 import { DocumentBuilder } from "@nestjs/swagger";
 import { OpenApiNestFactory } from "nest-openapi-tools";
 import { BE_PORT } from "./constants";
+import { IoAdapter } from "@nestjs/platform-socket.io";
 import "reflect-metadata";
 
 async function bootstrap() {
@@ -10,7 +11,12 @@ async function bootstrap() {
         snapshot: true,
     });
 
-    app.enableCors({ origin: "http://localhost:4200" });
+    app.enableCors({
+        origin: "http://localhost:4200",
+        credentials: true,
+        methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+        allowedHeaders: ["Content-Type", "Authorization"],
+    });
 
     await OpenApiNestFactory.configure(
         app,
@@ -33,7 +39,7 @@ async function bootstrap() {
                 type: "typescript-angular",
                 outputFolderPath: "../new-fe/src/typescript-api-client/src",
                 additionalProperties:
-                    "apiPackage=clients,modelPackage=models,withoutPrefixEnums=true,withSeparateModelsAndApi=true,ngVersion=16.2.12",
+                    "withoutPrefixEnums=true,ngVersion=16.2.12,fileNaming=kebab-case",
                 openApiFilePath: "./openapi.json", // or ./openapi.json
                 skipValidation: true, // optional, false by default
             },
@@ -42,7 +48,21 @@ async function bootstrap() {
             operationIdFactory: (c: string, method: string) => method,
         },
     );
-    await app.listen(3000);
+    const server = await app.listen(3000, "127.0.0.1");
+    app.useWebSocketAdapter(new IoAdapter(server));
+
+    // Handle shutdown
+    process.on("SIGTERM", async () => {
+        console.log("Received SIGTERM - shutting down...");
+        await app.close();
+        process.exit(0);
+    });
+
+    process.on("SIGINT", async () => {
+        console.log("Received SIGINT - shutting down...");
+        await app.close();
+        process.exit(0);
+    });
 }
 
 bootstrap();
