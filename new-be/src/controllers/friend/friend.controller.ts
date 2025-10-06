@@ -33,4 +33,19 @@ export class FriendController {
     ): Promise<FriendDTO> {
         return this.friendService.updateFriendshipStatus(userId, status, req);
     }
+
+    @Get('requests/incoming')
+    async getIncomingRequests(@Req() req: any): Promise<FriendDTO[]> {
+        return this.friendService.getIncomingRequests(req);
+    }
+
+    @Get('requests/outgoing')
+    async getOutgoingRequests(@Req() req: any): Promise<FriendDTO[]> {
+        return this.friendService.getOutgoingRequests(req);
+    }
+
+    @Get('accepted')
+    async getAcceptedFriends(@Req() req: any): Promise<FriendDTO[]> {
+        return this.friendService.getAcceptedFriends(req);
+    }
 }

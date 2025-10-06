@@ -2,6 +2,7 @@ import { NgModule } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { RouterModule, Routes } from "@angular/router";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
+import { HttpClientModule } from "@angular/common/http";
 import { InputTextModule } from "primeng/inputtext";
 import { ButtonModule } from "primeng/button";
 import { CardModule } from "primeng/card";
@@ -64,6 +65,7 @@ const routes: Routes = [
         InputTextareaModule,
         DropdownModule,
         CalendarModule,
+        HttpClientModule,
     ],
     providers: [ChatService],
 })

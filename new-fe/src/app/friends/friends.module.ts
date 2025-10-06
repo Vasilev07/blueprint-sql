@@ -11,6 +11,7 @@ import { AvatarModule } from 'primeng/avatar';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { TabViewModule } from 'primeng/tabview';
+import { ChipModule } from 'primeng/chip';
 import { MessageService, ConfirmationService } from 'primeng/api';
 
 import { FriendsComponent } from './friends.component';
@@ -37,7 +38,8 @@ const routes: Routes = [
     AvatarModule,
     ToastModule,
     ConfirmDialogModule,
-    TabViewModule
+    TabViewModule,
+    ChipModule
   ],
   providers: [MessageService, ConfirmationService, UserService]
 })

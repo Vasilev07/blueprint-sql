@@ -1,0 +1,19 @@
+.presence-dot {
+  position: absolute;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  border: 2px solid var(--surface-card);
+  bottom: -3px;
+  right: -3px;
+  &.online { background-color: #22c55e; }
+  &.offline { background-color: #9ca3af; }
+}
+
+.avatar-wrapper {
+  position: relative;
+  display: inline-block;
+  line-height: 0; /* ensure wrapper hugs the avatar */
+}
+
+

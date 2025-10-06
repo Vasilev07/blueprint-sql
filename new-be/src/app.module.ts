@@ -12,6 +12,7 @@ import { MapperModule } from "@mappers/mapper.module";
 import { MessageModule } from "./controllers/message/message.module";
 import { FriendModule } from "./controllers/friend/friend.module";
 import { MessageGateway } from "./gateways/message.gateway";
+import { ChatModule } from "./controllers/chat/chat.module";
 
 @Module({
     imports: [
@@ -23,6 +24,7 @@ import { MessageGateway } from "./gateways/message.gateway";
         ProductModule,
         MessageModule,
         FriendModule,
+        ChatModule,
     ],
     controllers: [AppController],
     providers: [AppService, MulterConfigService, MessageGateway],

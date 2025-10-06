@@ -92,6 +92,35 @@ async function seed() {
             console.log(`Created user: ${userData.email}`);
         }
 
+        // Generate additional users up to a total of ~500 users (including admin and above test users)
+        const targetTotalUsers = 500;
+        const usersRepo = dataSource.getRepository(User);
+        const existingCount = await usersRepo.count();
+        const remainingToCreate = Math.max(0, targetTotalUsers - existingCount);
+
+        for (let i = 1; i <= remainingToCreate; i++) {
+            // Cycle through base templates to vary names a bit
+            const base = testUsers[(i - 1) % testUsers.length];
+            const [local, domain] = base.email.split("@");
+            const indexedEmail = `${local}+${i}@${domain}`;
+
+            // Skip if somehow exists (idempotency)
+            const exists = await usersRepo.findOne({ where: { email: indexedEmail } });
+            if (exists) continue;
+
+            const u = new User();
+            u.email = indexedEmail;
+            u.password = await bcrypt.hash(base.password, 10);
+            u.firstname = `${base.firstname}${i}`; // append index
+            u.lastname = base.lastname; // keep the same
+            u.roles = base.roles;
+
+            await usersRepo.save(u);
+            if (i % 25 === 0) {
+                console.log(`Created ${i} of ${remainingToCreate} extra users...`);
+            }
+        }
+
         // Create messages from test users to admin
         const messages = [
             {
@@ -194,8 +223,9 @@ async function seed() {
             console.log(`Created message: ${messageData.subject}`);
         }
 
+        const finalCount = await dataSource.getRepository(User).count();
         console.log("✅ Seed data created successfully!");
-        console.log(`Created ${createdUsers.length + 1} users and ${messages.length} messages`);
+        console.log(`Total users in DB: ${finalCount}. Messages created: ${messages.length}`);
 
     } catch (error) {
         console.error("Error seeding database:", error);

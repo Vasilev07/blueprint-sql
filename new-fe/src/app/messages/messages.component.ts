@@ -5,6 +5,7 @@ import { MessagesService } from 'src/typescript-api-client/src/api/api';
 import { MessageDTO } from "../../typescript-api-client/src/model/models";
 import { AuthService } from "../services/auth.service";
 import { WebsocketService } from "../services/websocket.service";
+import { PresenceService } from "../services/presence.service";
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -17,6 +18,7 @@ export class MessagesComponent implements OnInit, OnDestroy {
     loading = false;
     currentUserEmail: string = '';
     private messageSubscription?: Subscription;
+    unreadCount: number = 0;
     
     // Tab functionality
     activeTab: 'unread' | 'read' | 'vip' = 'unread';
@@ -31,7 +33,8 @@ export class MessagesComponent implements OnInit, OnDestroy {
         private router: Router,
         private authService: AuthService,
         private websocketService: WebsocketService,
-        private httpClient: HttpClient
+        private httpClient: HttpClient,
+        public presenceService: PresenceService
     ) {
     }
 
@@ -39,11 +42,13 @@ export class MessagesComponent implements OnInit, OnDestroy {
         this.currentUserEmail = this.authService.getUserEmail();
         if (this.currentUserEmail) {
             this.loadMessagesByTab(this.activeTab);
+            this.loadUnreadCount();
             // Subscribe to real-time message updates
             this.messageSubscription = this.websocketService
                 .subscribeToMessages()
                 .subscribe(() => {
                     this.loadMessagesByTab(this.activeTab);
+                    this.loadUnreadCount();
                 });
         }
     }
@@ -83,11 +88,31 @@ export class MessagesComponent implements OnInit, OnDestroy {
             next: (messages: any) => {
                 this.messages = messages;
                 this.loading = false;
+                if (tab === 'unread') {
+                    this.unreadCount = Array.isArray(messages) ? messages.length : 0;
+                }
             },
             error: (error) => {
                 console.error(`Error loading ${tab} messages:`, error);
                 this.loading = false;
             },
+        });
+    }
+
+    private loadUnreadCount(): void {
+        const url = 'http://localhost:3000/messages/tab';
+        const body = {
+            email: this.currentUserEmail,
+            tab: 'unread'
+        } as const;
+        this.httpClient.post(url, body).subscribe({
+            next: (messages: any) => {
+                this.unreadCount = Array.isArray(messages) ? messages.length : 0;
+            },
+            error: (error) => {
+                console.error('Error loading unread count:', error);
+                this.unreadCount = 0;
+            }
         });
     }
 

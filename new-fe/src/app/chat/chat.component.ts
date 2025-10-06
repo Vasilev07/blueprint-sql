@@ -17,6 +17,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   messageForm: FormGroup;
   isLoading = false;
   currentUserId: string = '';
+  conversationId?: number;
 
   constructor(
     private route: ActivatedRoute,
@@ -47,13 +48,35 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   private loadConversation(userId: string): void {
     this.isLoading = true;
-    
-    // Load messages
-    this.chatService.getMessages(userId).pipe(takeUntil(this.destroy$)).subscribe(messages => {
-      this.messages = messages;
-      this.isLoading = false;
-      this.scrollToBottom();
-    });
+    const otherUserId = Number(userId);
+    this.chatService.getOrCreateConversation(otherUserId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (conv) => {
+          this.conversationId = conv.id;
+          this.chatService.loadConversationMessages(conv.id)
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+              next: (messages: any[]) => {
+                this.messages = messages as any;
+                this.isLoading = false;
+                this.scrollToBottom();
+              },
+              error: () => {
+                this.isLoading = false;
+              }
+            });
+          this.chatService.subscribeToConversation(conv.id)
+            .pipe(takeUntil(this.destroy$))
+            .subscribe((msg: any) => {
+              (this.messages as any).push(msg);
+              this.scrollToBottom();
+            });
+        },
+        error: () => {
+          this.isLoading = false;
+        }
+      });
   }
 
   private loadUserData(userId: string): void {
@@ -66,20 +89,8 @@ export class ChatComponent implements OnInit, OnDestroy {
   sendMessage(): void {
     if (this.messageForm.valid && this.currentUserId) {
       const content = this.messageForm.get('content')?.value;
-      
-      const messageData = {
-        senderId: '1', // Current user ID
-        receiverId: this.currentUserId,
-        content: content,
-        isRead: false,
-        type: 'text' as const
-      };
-
-      this.chatService.sendMessage(messageData).pipe(takeUntil(this.destroy$)).subscribe(newMessage => {
-        this.messages.push(newMessage);
-        this.messageForm.reset();
-        this.scrollToBottom();
-      });
+      this.chatService.sendChatMessage(this.conversationId, Number(this.currentUserId), content);
+      this.messageForm.reset();
     }
   }
 
@@ -100,7 +111,8 @@ export class ChatComponent implements OnInit, OnDestroy {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   }
 
-  isOwnMessage(message: Message): boolean {
-    return message.senderId === '1';
+  isOwnMessage(message: any): boolean {
+    const currentUserId = Number(JSON.parse(atob((localStorage.getItem('id_token') || '').split('.')[1] || 'e30='))?.id || 0);
+    return Number(message.senderId) === currentUserId;
   }
 }

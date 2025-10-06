@@ -18,8 +18,11 @@
               type="button"
               [class]="'tab-button ' + (activeTab === tab.key ? 'active' : '')"
               [icon]="tab.icon"
-              [label]="tab.label"
               (click)="onTabChange(tab.key)">
+        <span class="tab-button-content">
+          <span class="label">{{ tab.label }}</span>
+          <span *ngIf="tab.key === 'unread' && unreadCount > 0" class="p-badge p-badge-danger p-badge-rounded unread-badge">{{ unreadCount }}</span>
+        </span>
       </button>
     </div>
 
@@ -49,11 +52,14 @@
            (click)="viewMessage(message.id!)">
         
         <div class="message-avatar">
-          <p-avatar 
-            [label]="message.from?.charAt(0)?.toUpperCase() || '?'"
-            size="large"
-            shape="circle">
-          </p-avatar>
+          <span class="avatar-wrapper">
+            <p-avatar 
+              [label]="message.from?.charAt(0)?.toUpperCase() || '?'"
+              size="large"
+              shape="circle">
+            </p-avatar>
+            <span class="presence-dot" [class.online]="presenceService.isOnline(message.from)" [class.offline]="!presenceService.isOnline(message.from)"></span>
+          </span>
         </div>
 
         <div class="message-content">
