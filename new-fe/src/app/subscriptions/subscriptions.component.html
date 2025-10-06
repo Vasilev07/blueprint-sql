@@ -1,0 +1,53 @@
+<div class="subscriptions-container">
+  <div class="hero">
+    <h2>Level up your experience</h2>
+    <p>Simple pricing. Powerful features. Cancel anytime.</p>
+  </div>
+
+  <div class="tiers">
+    <div class="card" *ngFor="let t of tiers" [class]="'card-' + t.key">
+      <div class="card-accent"></div>
+      <div class="card-header">
+        <div class="title-row">
+          <h3>{{ t.title }}</h3>
+          <span class="tier-badge" [ngClass]="'tier-' + t.key">
+            <i class="pi pi-star"></i>
+            {{ t.title.toUpperCase() }}
+          </span>
+          <span class="badge" *ngIf="t.key === 'gold'">Most Popular</span>
+          <span class="badge badge-vip" *ngIf="t.key === 'vip'">Best Value</span>
+        </div>
+        <div class="price-row">
+          <span class="price">{{ t.price }}</span>
+          <span class="per">/ month</span>
+        </div>
+      </div>
+
+      <div class="card-body">
+        <ul class="features">
+          <li *ngFor="let p of t.perks">
+            <i class="pi pi-check"></i>
+            <span>{{ p }}</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="card-footer">
+        <button pButton type="button" class="cta" [label]="t.cta"
+                [ngClass]="{
+                  'p-button-primary': t.key === 'gold' || t.key === 'vip',
+                  'p-button-outlined': t.key === 'bronze' || t.key === 'silver'
+                }"
+                icon="pi pi-star">
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="disclaimer">
+    <i class="pi pi-lock"></i>
+    Secure checkout. No long-term contracts.
+  </div>
+</div>
+
+

@@ -61,6 +61,11 @@ const routes: Routes = [
                 loadChildren: () =>
                     import("./stories/stories.module").then((m) => m.StoriesModule),
             },
+            {
+                path: "subscriptions",
+                loadChildren: () =>
+                    import("./subscriptions/subscriptions.module").then((m) => m.SubscriptionsModule),
+            },
         ],
         canActivate: [AuthGuard],
     },
