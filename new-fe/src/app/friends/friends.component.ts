@@ -66,11 +66,19 @@ export class FriendsComponent implements OnInit {
     }
 
     private applyAuthHeadersToApiServices() {
-        const token = localStorage.getItem('id_token');
+        const token = localStorage.getItem("id_token");
         if (token) {
             const authHeader = `Bearer ${token}`;
-            this.userService.defaultHeaders = this.userService.defaultHeaders.set('Authorization', authHeader);
-            this.friendsService.defaultHeaders = this.friendsService.defaultHeaders.set('Authorization', authHeader);
+            this.userService.defaultHeaders =
+                this.userService.defaultHeaders.set(
+                    "Authorization",
+                    authHeader,
+                );
+            this.friendsService.defaultHeaders =
+                this.friendsService.defaultHeaders.set(
+                    "Authorization",
+                    authHeader,
+                );
         }
     }
 
@@ -123,8 +131,11 @@ export class FriendsComponent implements OnInit {
         for (const user of this.users) {
             if (user.id) {
                 try {
-                    const status = await this.friendsService.getFriendshipStatus(user.id).toPromise();
-                    this.friendRequests.set(user.id, status ?? "");
+                    this.friendsService
+                        .getFriendshipStatus(user.id)
+                        .subscribe((status) => {
+                            this.friendRequests.set(user.id!, status ?? "");
+                        });
                 } catch (error) {
                     console.error("Error loading friendship status:", error);
                     this.friendRequests.set(user.id, "");
@@ -146,34 +157,33 @@ export class FriendsComponent implements OnInit {
             return;
         }
 
-        this.friendsService.sendFriendRequest(userId)
-            .subscribe({
-                next: () => {
-                    this.friendRequests.set(userId, "pending");
-                    this.messageService.add({
-                        severity: "success",
-                        summary: "Success",
-                        detail: "Friend request sent!",
-                    });
-                },
-                error: (error) => {
-                    console.error("Error sending friend request:", error);
+        this.friendsService.sendFriendRequest(userId).subscribe({
+            next: () => {
+                this.friendRequests.set(userId, "pending");
+                this.messageService.add({
+                    severity: "success",
+                    summary: "Success",
+                    detail: "Friend request sent!",
+                });
+            },
+            error: (error) => {
+                console.error("Error sending friend request:", error);
 
-                    // Extract error message from response
-                    let errorMessage = "Failed to send friend request";
-                    if (error.error && error.error.message) {
-                        errorMessage = error.error.message;
-                    } else if (error.message) {
-                        errorMessage = error.message;
-                    }
+                // Extract error message from response
+                let errorMessage = "Failed to send friend request";
+                if (error.error && error.error.message) {
+                    errorMessage = error.error.message;
+                } else if (error.message) {
+                    errorMessage = error.message;
+                }
 
-                    this.messageService.add({
-                        severity: "warn",
-                        summary: "Cannot Send Request",
-                        detail: errorMessage,
-                    });
-                },
-            });
+                this.messageService.add({
+                    severity: "warn",
+                    summary: "Cannot Send Request",
+                    detail: errorMessage,
+                });
+            },
+        });
     }
 
     loadIncomingRequests() {
@@ -199,50 +209,48 @@ export class FriendsComponent implements OnInit {
     }
 
     acceptFriendRequest(friendId: number) {
-        this.friendsService.respondToRequest(friendId)
-            .subscribe({
-                next: () => {
-                    this.messageService.add({
-                        severity: "success",
-                        summary: "Success",
-                        detail: "Friend request accepted!",
-                    });
-                    this.loadIncomingRequests();
-                    this.loadMyFriends();
-                    this.loadFriendshipStatuses(); // Refresh friendship statuses
-                },
-                error: (error) => {
-                    console.error("Error accepting friend request:", error);
-                    this.messageService.add({
-                        severity: "error",
-                        summary: "Error",
-                        detail: "Failed to accept friend request",
-                    });
-                },
-            });
+        this.friendsService.respondToRequest(friendId).subscribe({
+            next: () => {
+                this.messageService.add({
+                    severity: "success",
+                    summary: "Success",
+                    detail: "Friend request accepted!",
+                });
+                this.loadIncomingRequests();
+                this.loadMyFriends();
+                this.loadFriendshipStatuses(); // Refresh friendship statuses
+            },
+            error: (error) => {
+                console.error("Error accepting friend request:", error);
+                this.messageService.add({
+                    severity: "error",
+                    summary: "Error",
+                    detail: "Failed to accept friend request",
+                });
+            },
+        });
     }
 
     declineFriendRequest(friendId: number) {
-        this.friendsService.respondToRequest(friendId)
-            .subscribe({
-                next: () => {
-                    this.messageService.add({
-                        severity: "info",
-                        summary: "Declined",
-                        detail: "Friend request declined",
-                    });
-                    this.loadIncomingRequests();
-                    this.loadFriendshipStatuses(); // Refresh friendship statuses
-                },
-                error: (error) => {
-                    console.error("Error declining friend request:", error);
-                    this.messageService.add({
-                        severity: "error",
-                        summary: "Error",
-                        detail: "Failed to decline friend request",
-                    });
-                },
-            });
+        this.friendsService.respondToRequest(friendId).subscribe({
+            next: () => {
+                this.messageService.add({
+                    severity: "info",
+                    summary: "Declined",
+                    detail: "Friend request declined",
+                });
+                this.loadIncomingRequests();
+                this.loadFriendshipStatuses(); // Refresh friendship statuses
+            },
+            error: (error) => {
+                console.error("Error declining friend request:", error);
+                this.messageService.add({
+                    severity: "error",
+                    summary: "Error",
+                    detail: "Failed to decline friend request",
+                });
+            },
+        });
     }
 
     getUserFullName(user: any): string {
