@@ -1,4 +1,4 @@
 export const environment = {
-  production: false,
-  apiUrl: 'https://api.impulseapp.net' // Your backend URL
+    production: false,
+    apiUrl: "http://localhost:3000", // Your backend URL
 };

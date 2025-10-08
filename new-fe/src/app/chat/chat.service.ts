@@ -209,7 +209,12 @@ export class ChatService {
 
     // New chat-specific API
     getOrCreateConversation(otherUserId: number): Observable<{ id: number }> {
-        return this.chatApi.getOrCreateConversation() as any;
+        const currentUserId = this.getCurrentUserId();
+        return this.httpClient.post<{ id: number }>(
+            'http://localhost:3000/chat/conversation',
+            { userId: currentUserId, otherUserId },
+            { headers: this.getAuthHeaders() }
+        );
     }
 
     loadConversationMessages(conversationId: number): Observable<Message[]> {

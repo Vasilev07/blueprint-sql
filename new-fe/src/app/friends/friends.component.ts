@@ -131,11 +131,8 @@ export class FriendsComponent implements OnInit {
         for (const user of this.users) {
             if (user.id) {
                 try {
-                    this.friendsService
-                        .getFriendshipStatus(user.id)
-                        .subscribe((status) => {
-                            this.friendRequests.set(user.id!, status ?? "");
-                        });
+                    const status = await this.friendsService.getFriendshipStatus(user.id).toPromise();
+                    this.friendRequests.set(user.id, status ?? "");
                 } catch (error) {
                     console.error("Error loading friendship status:", error);
                     this.friendRequests.set(user.id, "");
