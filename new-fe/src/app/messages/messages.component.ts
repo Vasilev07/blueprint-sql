@@ -19,7 +19,7 @@ export class MessagesComponent implements OnInit, OnDestroy {
     currentUserEmail: string = '';
     private messageSubscription?: Subscription;
     unreadCount: number = 0;
-    
+
     // Tab functionality
     activeTab: 'unread' | 'read' | 'vip' = 'unread';
     tabs = [
@@ -76,15 +76,13 @@ export class MessagesComponent implements OnInit, OnDestroy {
 
     loadMessagesByTab(tab: 'unread' | 'read' | 'vip'): void {
         this.loading = true;
-        
-        // Using direct HTTP call until OpenAPI is regenerated
-        const url = 'http://localhost:3000/messages/tab';
+
         const body = {
             email: this.currentUserEmail,
             tab: tab
         };
-        
-        this.httpClient.post(url, body).subscribe({
+
+        this.messagesService.findMessagesByTab(body).subscribe({
             next: (messages: any) => {
                 this.messages = messages;
                 this.loading = false;
@@ -100,12 +98,12 @@ export class MessagesComponent implements OnInit, OnDestroy {
     }
 
     private loadUnreadCount(): void {
-        const url = 'http://localhost:3000/messages/tab';
         const body = {
             email: this.currentUserEmail,
             tab: 'unread'
         } as const;
-        this.httpClient.post(url, body).subscribe({
+
+        this.messagesService.findMessagesByTab(body).subscribe({
             next: (messages: any) => {
                 this.unreadCount = Array.isArray(messages) ? messages.length : 0;
             },

@@ -3,6 +3,7 @@ import { HttpClient } from "@angular/common/http";
 import moment from "moment";
 import { JwtHelperService } from "@auth0/angular-jwt";
 import { Router } from "@angular/router";
+import { UserService } from "src/typescript-api-client/src";
 
 @Injectable({ providedIn: "root" })
 export class AuthService {
@@ -10,15 +11,14 @@ export class AuthService {
         private readonly http: HttpClient,
         private jwtHelper: JwtHelperService,
         private router: Router,
-    ) {}
+        private userService: UserService
+    ) { }
 
     login(email: string, password: string): void {
-        this.http
-            .post("http://localhost:3000/auth/login", {
-                email,
-                password
-            })
-            .subscribe((res) => {
+        this.userService.login({
+            email,
+            password
+        }).subscribe((res) => {
                 this.setSession(res);
                 this.router.navigate(["/"]);
             });

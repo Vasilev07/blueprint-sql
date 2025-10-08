@@ -12,7 +12,7 @@ export class FriendService {
     constructor(
         @InjectEntityManager() private readonly entityManager: EntityManager,
         private readonly friendGateway: FriendGateway
-    ) {}
+    ) { }
 
     private getUserIdFromRequest(req: any): number {
         console.log('Request headers:', req.headers);
@@ -34,9 +34,9 @@ export class FriendService {
 
     async createFriendRequest(friendId: number, req: any): Promise<FriendDTO> {
         const userId = this.getUserIdFromRequest(req);
-        
+
         console.log(`Creating friend request: ${userId} -> ${friendId}`);
-        
+
         // Prevent self-friending
         if (userId === friendId) {
             throw new Error('Cannot send friend request to yourself');
@@ -89,9 +89,9 @@ export class FriendService {
 
     async getFriendshipStatus(otherUserId: number, req: any): Promise<FriendshipStatus | null> {
         const userId = this.getUserIdFromRequest(req);
-        
+
         console.log(`Getting friendship status: ${userId} <-> ${otherUserId}`);
-        
+
         const friendship = await this.entityManager.findOne(UserFriend, {
             where: [
                 { userId, friendId: otherUserId },
@@ -105,7 +105,7 @@ export class FriendService {
 
     async updateFriendshipStatus(otherUserId: number, status: FriendshipStatus, req: any): Promise<FriendDTO> {
         const userId = this.getUserIdFromRequest(req);
-        
+
         const friendship = await this.entityManager.findOne(UserFriend, {
             where: [
                 { userId, friendId: otherUserId },
@@ -124,7 +124,7 @@ export class FriendService {
         // If accepting a friend request, create the reverse friendship
         if (status === FriendshipStatus.ACCEPTED) {
             console.log(`Creating reverse friendship: ${otherUserId} -> ${userId}`);
-            
+
             const reverseFriendship = await this.entityManager.findOne(UserFriend, {
                 where: {
                     userId: otherUserId,
@@ -170,7 +170,7 @@ export class FriendService {
 
     async getIncomingRequests(req: any): Promise<FriendDTO[]> {
         const userId = this.getUserIdFromRequest(req);
-        
+
         const incomingRequests = await this.entityManager.find(UserFriend, {
             where: {
                 friendId: userId,
@@ -194,7 +194,7 @@ export class FriendService {
 
     async getOutgoingRequests(req: any): Promise<FriendDTO[]> {
         const userId = this.getUserIdFromRequest(req);
-        
+
         const outgoingRequests = await this.entityManager.find(UserFriend, {
             where: {
                 userId: userId,
@@ -218,7 +218,7 @@ export class FriendService {
 
     async getAcceptedFriends(req: any): Promise<FriendDTO[]> {
         const userId = this.getUserIdFromRequest(req);
-        
+
         const acceptedFriends = await this.entityManager.find(UserFriend, {
             where: [
                 { userId: userId, status: FriendshipStatus.ACCEPTED },

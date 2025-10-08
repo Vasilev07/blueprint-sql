@@ -13,9 +13,16 @@ import { MessageModule } from "./controllers/message/message.module";
 import { FriendModule } from "./controllers/friend/friend.module";
 import { MessageGateway } from "./gateways/message.gateway";
 import { ChatModule } from "./controllers/chat/chat.module";
+import { ConfigModule } from "@nestjs/config";
 
 @Module({
     imports: [
+        ConfigModule.forRoot({
+            isGlobal: true,
+            envFilePath: [
+            `.env.${process.env.NODE_ENV || 'development'}`,
+            '.env',]
+        }),
         TypeOrmModule.forRoot(dataSourceOptions),
         MapperModule,
         OrderModule,
@@ -29,4 +36,4 @@ import { ChatModule } from "./controllers/chat/chat.module";
     controllers: [AppController],
     providers: [AppService, MulterConfigService, MessageGateway],
 })
-export class AppModule {}
+export class AppModule { }

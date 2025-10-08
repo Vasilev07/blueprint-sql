@@ -29,33 +29,7 @@ export class CartComponent implements OnInit, OnDestroy {
 
     public ngOnInit(): void {
         console.log("CartComponent initialized");
-        this.http
-            .get<OrderDTO[]>("http://localhost:3000/order")
-            .pipe(takeUntil(this.ngUnsubscribe))
-            .subscribe((orders: OrderDTO[]) => {
-                this.orders = orders;
-                console.log("Orders: ", orders);
-                this.cartProducts =
-                    orders
-                        .filter((order) => order.id === 1)[0]!
-                        .products.map((product: ProductDTO) => {
-                            const previewImage =
-                                product?.images && product.images.length > 0
-                                    ? this.sanitizer.bypassSecurityTrustResourceUrl(
-                                          "data:image/jpeg;base64," +
-                                              (product!.images[0]?.data ?? ""),
-                                      )
-                                    : "";
 
-                            return {
-                                ...product,
-                                previewImage,
-                            };
-                        }) ?? [];
-
-                console.log("Cart products: ", this.cartProducts);
-                console.log("Orders: ", this.orders);
-            });
     }
 
     public ngOnDestroy() {
