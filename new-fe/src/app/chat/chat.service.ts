@@ -5,6 +5,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { AuthService } from '../services/auth.service';
 import { MessagesService, UserService } from 'src/typescript-api-client/src/api/api';
 import { FriendsService } from 'src/typescript-api-client/src/api/friends.service';
+import { ChatService as ChatApiService } from 'src/typescript-api-client/src/api/chat.service';
 import { WebsocketService } from '../services/websocket.service';
 import { MessageService } from 'primeng/api';
 
@@ -57,8 +58,8 @@ export class ChatService {
         private authService: AuthService,
         private userService: UserService,
         private friendsApi: FriendsService,
+        private chatApi: ChatApiService,
         private ws: WebsocketService,
-        private chatService: ChatService,
         private messagesService: MessagesService
     ) {
         this.applyAuthHeadersToApiServices();
@@ -114,6 +115,7 @@ export class ChatService {
             // Set default headers for generated clients before calling them
             this.userService.defaultHeaders = this.userService.defaultHeaders.set('Authorization', authHeader);
             this.friendsApi.defaultHeaders = this.friendsApi.defaultHeaders.set('Authorization', authHeader);
+            this.chatApi.defaultHeaders = this.chatApi.defaultHeaders.set('Authorization', authHeader);
         }
     }
 
@@ -132,8 +134,9 @@ export class ChatService {
     private loadBackendConversations() {
         const userId = this.getCurrentUserId();
         if (!userId) return;
-        this.chatService.getConversation(String(userId))
-            .subscribe((convs: any) => {
+        this.chatApi.getConversations(userId)
+            .subscribe({
+                next: (convs: any[]) => {
                 const selfId = String(userId);
                 const mapped: Conversation[] = (convs || []).map((c: any) => {
                     // Backend returns participants as userId[] numbers; normalize to string ids for FE
@@ -154,6 +157,10 @@ export class ChatService {
                     } as Conversation;
                 });
                 this.conversationsSubject.next(mapped);
+                },
+                error: () => {
+                    // Keep existing state
+                }
             });
     }
 
@@ -202,12 +209,11 @@ export class ChatService {
 
     // New chat-specific API
     getOrCreateConversation(otherUserId: number): Observable<{ id: number }> {
-        const currentUserId = Number(JSON.parse(atob((localStorage.getItem('id_token') || '').split('.')[1] || 'e30='))?.id || 0);
-        return this.chatService.getOrCreateConversation(currentUserId);
+        return this.chatApi.getOrCreateConversation() as any;
     }
 
     loadConversationMessages(conversationId: number): Observable<Message[]> {
-        return this.chatService.getMessages(String(conversationId)) as any;
+        return this.chatApi.getMessages(conversationId) as any;
     }
 
     subscribeToConversation(conversationId: number): Observable<any> {
