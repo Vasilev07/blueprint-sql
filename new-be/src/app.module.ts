@@ -20,8 +20,9 @@ import { ConfigModule } from "@nestjs/config";
         ConfigModule.forRoot({
             isGlobal: true,
             envFilePath: [
-            `.env.${process.env.NODE_ENV || 'development'}`,
-            '.env',]
+                `.env.${process.env.NODE_ENV || "development"}`,
+                ".env",
+            ],
         }),
         TypeOrmModule.forRoot(dataSourceOptions),
         MapperModule,
@@ -36,4 +37,4 @@ import { ConfigModule } from "@nestjs/config";
     controllers: [AppController],
     providers: [AppService, MulterConfigService, MessageGateway],
 })
-export class AppModule { }
+export class AppModule {}

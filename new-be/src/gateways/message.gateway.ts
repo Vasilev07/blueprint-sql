@@ -1,16 +1,23 @@
-import { WebSocketGateway, WebSocketServer, SubscribeMessage, OnGatewayConnection, OnGatewayDisconnect } from '@nestjs/websockets';
-import { Server, Socket } from 'socket.io';
-import { Injectable } from '@nestjs/common';
+import {
+    WebSocketGateway,
+    WebSocketServer,
+    OnGatewayConnection,
+    OnGatewayDisconnect,
+} from "@nestjs/websockets";
+import { Server, Socket } from "socket.io";
+import { Injectable } from "@nestjs/common";
 
 @WebSocketGateway({
     cors: {
-        origin: 'http://localhost:4200',
-        credentials: true
+        origin: ["http://localhost:4200", "app.impulseapp.net"],
+        credentials: true,
     },
-    transports: ['websocket', 'polling']
+    transports: ["websocket", "polling"],
 })
 @Injectable()
-export class MessageGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class MessageGateway
+    implements OnGatewayConnection, OnGatewayDisconnect
+{
     @WebSocketServer()
     server: Server;
 
@@ -21,20 +28,20 @@ export class MessageGateway implements OnGatewayConnection, OnGatewayDisconnect 
     handleConnection(client: Socket) {
         const email = client.handshake.query.email as string;
         if (email) {
-            console.log('Socket ID on connect:', client.id);
+            console.log("Socket ID on connect:", client.id);
             this.userSockets.set(email, client);
             console.log(`Client connected: ${email}`);
-            console.log('Current socket count:', this.userSockets.size);
+            console.log("Current socket count:", this.userSockets.size);
         }
     }
 
     handleDisconnect(client: Socket) {
         const email = client.handshake.query.email as string;
         if (email) {
-            console.log('Socket ID on disconnect:', client.id);
+            console.log("Socket ID on disconnect:", client.id);
             this.userSockets.delete(email);
             console.log(`Client disconnected: ${email}`);
-            console.log('Current socket count:', this.userSockets.size);
+            console.log("Current socket count:", this.userSockets.size);
         }
     }
 
@@ -43,7 +50,7 @@ export class MessageGateway implements OnGatewayConnection, OnGatewayDisconnect 
         // Notify recipient
         const recipientSocket = this.userSockets.get(message.to);
         if (recipientSocket) {
-            recipientSocket.emit('messageCreated');
+            recipientSocket.emit("messageCreated");
         }
 
         // Notify CC recipients
@@ -51,7 +58,7 @@ export class MessageGateway implements OnGatewayConnection, OnGatewayDisconnect 
             for (const ccEmail of message.cc) {
                 const ccSocket = this.userSockets.get(ccEmail);
                 if (ccSocket) {
-                    ccSocket.emit('messageCreated');
+                    ccSocket.emit("messageCreated");
                 }
             }
         }
