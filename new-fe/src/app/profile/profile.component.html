@@ -3,10 +3,22 @@
   <div class="profile-header">
     <div class="user-info">
       <h1 class="user-name">{{ currentUser?.fullName || 'User' }}</h1>
-      <div class="user-location">
-        <i class="pi pi-map-marker"></i>
-        <span>Location • Distance</span>
+      <div class="user-details">
+        <div class="user-location">
+          <i class="pi pi-map-marker"></i>
+          <span>{{ currentUser?.city || 'City not set' }}</span>
+        </div>
+        <div class="user-gender" *ngIf="currentUser?.gender">
+          <i class="pi pi-user"></i>
+          <span>{{ currentUser?.gender | titlecase }}</span>
+        </div>
       </div>
+      <p-button
+        icon="pi pi-pencil"
+        label="Edit Profile"
+        styleClass="p-button-sm p-button-outlined"
+        (onClick)="openEditDialog()">
+      </p-button>
     </div>
     <div class="user-avatar">
       <p-avatar
@@ -70,7 +82,7 @@
                 <div *ngIf="userPhotos.length > 0" class="photos-grid">
                   <div *ngFor="let photo of userPhotos" class="photo-item">
                     <img
-                      [src]="getPhotoUrl(photo.id)"
+                      [src]="getPhotoUrl(photo.id!)"
                       [alt]="photo.name"
                       class="photo-image">
                     <div class="photo-overlay">
@@ -167,39 +179,91 @@
           </div>
         </div>
 
-        <!-- Looking For Section -->
+        <!-- Gender Section -->
         <div class="sidebar-section">
           <div class="section-header">
-            <h4>LOOKING FOR</h4>
+            <h4>GENDER</h4>
             <p-button
               label="Edit"
+              icon="pi pi-pencil"
+              (onClick)="openEditDialog()"
               styleClass="p-button-text p-button-sm">
             </p-button>
           </div>
-          <div class="looking-for-content">
-            <i class="pi pi-users"></i>
-            <span>Not specified</span>
+          <div class="info-content">
+            <i class="pi pi-user"></i>
+            <span>{{ currentUser?.gender ? (currentUser?.gender | titlecase) : 'Not specified' }}</span>
           </div>
         </div>
 
-        <!-- Swing Status Section -->
+        <!-- City Section -->
         <div class="sidebar-section">
           <div class="section-header">
-            <h4>SWING STATUS</h4>
+            <h4>CITY</h4>
             <p-button
               label="Edit"
+              icon="pi pi-pencil"
+              (onClick)="openEditDialog()"
               styleClass="p-button-text p-button-sm">
             </p-button>
           </div>
-          <div class="swing-status-content">
-            <i class="pi pi-users"></i>
-            <span>Not specified</span>
+          <div class="info-content">
+            <i class="pi pi-map-marker"></i>
+            <span>{{ currentUser?.city || 'Not specified' }}</span>
           </div>
         </div>
       </div>
     </div>
   </div>
 </div>
+
+<!-- Edit Profile Dialog -->
+<p-dialog
+  [(visible)]="showEditDialog"
+  header="Edit Profile"
+  [modal]="true"
+  [style]="{ width: '450px' }"
+  [draggable]="false"
+  [resizable]="false">
+  
+  <div class="edit-form">
+    <div class="field">
+      <label for="gender">Gender</label>
+      <p-dropdown
+        id="gender"
+        [(ngModel)]="editForm.gender"
+        [options]="genderOptions"
+        placeholder="Select Gender"
+        [style]="{ width: '100%' }">
+      </p-dropdown>
+    </div>
+
+    <div class="field">
+      <label for="city">City</label>
+      <input
+        id="city"
+        type="text"
+        pInputText
+        [(ngModel)]="editForm.city"
+        placeholder="Enter your city"
+        [style]="{ width: '100%' }" />
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <p-button
+      label="Cancel"
+      icon="pi pi-times"
+      (onClick)="showEditDialog = false"
+      styleClass="p-button-text">
+    </p-button>
+    <p-button
+      label="Save"
+      icon="pi pi-check"
+      (onClick)="saveProfile()">
+    </p-button>
+  </ng-template>
+</p-dialog>
 
 <!-- Loading Spinner -->
 <p-progressSpinner

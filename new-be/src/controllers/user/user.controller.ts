@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, UploadedFile, UseInterceptors, Param, Res, Req } from "@nestjs/common";
+import { Body, Controller, Get, Post, Put, UploadedFile, UseInterceptors, Param, Res, Req } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { AuthMiddleware } from "src/middlewares/auth.middleware";
 import { UserService } from "src/services/user.service";
@@ -108,5 +108,24 @@ export class UserController {
         const photo = await this.userService.getPhoto(photoId);
         res.set("Content-Type", "image/jpeg");
         res.send(Buffer.from(photo.data));
+    }
+
+    @Put("profile")
+    @ApiOperation({ summary: "Update user profile" })
+    @ApiResponse({ status: 200, description: "Profile updated successfully", type: UserDTO })
+    async updateProfile(
+        @Body() updateData: Partial<UserDTO>,
+        @Req() req: any
+    ): Promise<any> {
+        const updatedUser = await this.userService.updateProfile(updateData, req);
+        const token = this.authMiddleware.signForUser(updatedUser);
+        return { token, expiresIn: 3600, user: this.userService.mapUserToDTO(updatedUser) };
+    }
+
+    @Get("user")
+    @ApiOperation({ summary: "Get current user" })
+    @ApiResponse({ status: 200, description: "Returns current user", type: UserDTO })
+    async getUser(@Req() req: any): Promise<UserDTO> {
+        return this.userService.getUser(req);
     }
 }

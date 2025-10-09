@@ -96,7 +96,7 @@ export class UserService implements OnModuleInit {
         const photo = new UserPhoto();
         photo.userId = userId;
         photo.name = file.originalname;
-        photo.data = file.buffer;
+        photo.data = file.buffer as any;
 
         const saved = await this.entityManager.save(photo);
 
@@ -134,5 +134,51 @@ export class UserService implements OnModuleInit {
         }
 
         return photo;
+    }
+
+    async getUser(req: any): Promise<UserDTO> {
+        const userId = this.getUserIdFromRequest(req);
+        
+        const user = await this.entityManager.findOne(User, {
+            where: { id: userId }
+        });
+
+        if (!user) {
+            throw new NotFoundException("User not found");
+        }
+
+        return this.userMapper.entityToDTO(user);
+    }
+
+    async updateProfile(updateData: Partial<UserDTO>, req: any): Promise<User> {
+        const userId = this.getUserIdFromRequest(req);
+        
+        const user = await this.entityManager.findOne(User, {
+            where: { id: userId }
+        });
+
+        if (!user) {
+            throw new NotFoundException("User not found");
+        }
+
+        // Update allowed fields
+        if (updateData.gender !== undefined) {
+            user.gender = updateData.gender;
+        }
+        if (updateData.city !== undefined) {
+            user.city = updateData.city;
+        }
+        if (updateData.fullName !== undefined) {
+            const names = updateData.fullName.split(" ");
+            user.firstname = names[0];
+            user.lastname = names[names.length - 1];
+        }
+
+        const updatedUser = await this.entityManager.save(user);
+        return updatedUser;
+    }
+
+    mapUserToDTO(user: User): UserDTO {
+        return this.userMapper.entityToDTO(user);
     }
 }

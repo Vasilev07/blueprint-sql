@@ -1,7 +1,9 @@
 import { DataSource } from "typeorm";
 import { User } from "./entities/user.entity";
+import { UserPhoto } from "./entities/user-photo.entity";
 import { Message } from "./entities/message.entity";
 import { Role } from "./enums/role.enum";
+import { Gender } from "./enums/gender.enum";
 import * as bcrypt from "bcrypt";
 
 const dataSource = new DataSource({
@@ -11,7 +13,7 @@ const dataSource = new DataSource({
     username: "postgres",
     password: "postgres",
     database: "blueprint-sql",
-    entities: [User, Message],
+    entities: [User, UserPhoto, Message],
     synchronize: true,
 });
 
@@ -37,8 +39,18 @@ async function seed() {
         adminUser.firstname = "Admin";
         adminUser.lastname = "User";
         adminUser.roles = [Role.Admin];
+        adminUser.gender = Gender.Male;
+        adminUser.city = "Sofia";
         await dataSource.getRepository(User).save(adminUser);
         console.log("Created admin user");
+
+        // Bulgarian cities for seed data
+        const bulgarianCities = [
+            "Sofia", "Plovdiv", "Varna", "Burgas", "Ruse", 
+            "Stara Zagora", "Pleven", "Sliven", "Dobrich", "Shumen",
+            "Pernik", "Haskovo", "Yambol", "Pazardzhik", "Blagoevgrad",
+            "Veliko Tarnovo", "Vratsa", "Gabrovo", "Asenovgrad", "Vidin"
+        ];
 
         // Create test users
         const testUsers = [
@@ -48,6 +60,8 @@ async function seed() {
                 firstname: "John",
                 lastname: "Doe",
                 roles: [Role.User],
+                gender: Gender.Male,
+                city: "Sofia",
             },
             {
                 email: "jane.smith@example.com",
@@ -55,6 +69,8 @@ async function seed() {
                 firstname: "Jane",
                 lastname: "Smith",
                 roles: [Role.User],
+                gender: Gender.Female,
+                city: "Plovdiv",
             },
             {
                 email: "mike.wilson@example.com",
@@ -62,6 +78,8 @@ async function seed() {
                 firstname: "Mike",
                 lastname: "Wilson",
                 roles: [Role.User],
+                gender: Gender.Male,
+                city: "Varna",
             },
             {
                 email: "sarah.johnson@example.com",
@@ -69,6 +87,8 @@ async function seed() {
                 firstname: "Sarah",
                 lastname: "Johnson",
                 roles: [Role.User],
+                gender: Gender.Female,
+                city: "Burgas",
             },
             {
                 email: "david.brown@example.com",
@@ -76,6 +96,8 @@ async function seed() {
                 firstname: "David",
                 lastname: "Brown",
                 roles: [Role.User],
+                gender: Gender.Male,
+                city: "Ruse",
             },
         ];
 
@@ -87,6 +109,8 @@ async function seed() {
             user.firstname = userData.firstname;
             user.lastname = userData.lastname;
             user.roles = userData.roles;
+            user.gender = userData.gender;
+            user.city = userData.city;
             const savedUser = await dataSource.getRepository(User).save(user);
             createdUsers.push(savedUser);
             console.log(`Created user: ${userData.email}`);
@@ -116,6 +140,10 @@ async function seed() {
             u.firstname = `${base.firstname}${i}`; // append index
             u.lastname = base.lastname; // keep the same
             u.roles = base.roles;
+            // Randomly assign gender and city
+            const genders = [Gender.Male, Gender.Female, Gender.Other];
+            u.gender = genders[i % genders.length];
+            u.city = bulgarianCities[i % bulgarianCities.length];
 
             await usersRepo.save(u);
             if (i % 25 === 0) {

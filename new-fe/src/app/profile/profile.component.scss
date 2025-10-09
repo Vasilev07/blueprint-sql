@@ -345,15 +345,22 @@
   }
 }
 
-.looking-for-content,
-.swing-status-content {
+.info-content {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  color: #b0b0b0;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
   
   i {
     color: #ff6b9d;
+    font-size: 1.1rem;
+  }
+  
+  span {
+    color: white;
+    font-weight: 500;
   }
 }
 

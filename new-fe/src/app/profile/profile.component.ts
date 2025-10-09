@@ -23,6 +23,14 @@ export class ProfileComponent implements OnInit, OnDestroy {
     friends: FriendDTO[] = [];
     isLoading = false;
     isUploading = false;
+    showEditDialog = false;
+    editForm: any = {};
+
+    genderOptions = [
+        { label: 'Male', value: 'male' },
+        { label: 'Female', value: 'female' },
+        { label: 'Other', value: 'other' }
+    ];
 
     constructor(
         private messageService: MessageService,
@@ -45,21 +53,34 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
 
     private loadCurrentUser(): void {
-        const token = localStorage.getItem("id_token");
-        if (token) {
-            try {
-                const payload = JSON.parse(atob(token.split(".")[1]));
-                this.currentUser = {
-                    id: payload.id,
-                    email: payload.email,
-                    fullName: payload.name || "User",
-                    password: "",
-                    confirmPassword: "",
-                };
-            } catch (error) {
-                console.error("Error parsing token:", error);
-            }
-        }
+        this.userService.getUser()
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+                next: (user: any) => {
+                    this.currentUser = user;
+                },
+                error: (error: any) => {
+                    console.error("Error loading user profile:", error);
+                    // Fallback to token parsing if API fails
+                    const token = localStorage.getItem("id_token");
+                    if (token) {
+                        try {
+                            const payload = JSON.parse(atob(token.split(".")[1]));
+                            this.currentUser = {
+                                id: payload.id,
+                                email: payload.email,
+                                fullName: payload.name || "User",
+                                password: "",
+                                confirmPassword: "",
+                                gender: payload.gender,
+                                city: payload.city
+                            };
+                        } catch (error: any) {
+                            console.error("Error parsing token:", error);
+                        }
+                    }
+                }
+            });
     }
 
     loadUserPhotos(): void {
@@ -104,36 +125,27 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
         this.isUploading = true;
 
-        // Use fetch for file upload since the generated API client doesn't support FormData
-        const formData = new FormData();
-        formData.append("photo", file);
-
-        const token = localStorage.getItem("id_token");
-        fetch("http://localhost:3000/auth/photos/upload", {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${token}`
-            },
-            body: formData,
-        })
-            .then((response) => response.json())
-            .then((photo: UserPhotoDTO) => {
-                this.userPhotos.unshift(photo);
-                this.isUploading = false;
-                this.messageService.add({
-                    severity: "success",
-                    summary: "Success",
-                    detail: "Photo uploaded successfully",
-                });
-            })
-            .catch((error) => {
-                console.error("Error uploading photo:", error);
-                this.isUploading = false;
-                this.messageService.add({
-                    severity: "error",
-                    summary: "Error",
-                    detail: "Failed to upload photo",
-                });
+        this.userService.uploadPhoto(file)
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+                next: (photo) => {
+                    this.userPhotos.unshift(photo);
+                    this.isUploading = false;
+                    this.messageService.add({
+                        severity: "success",
+                        summary: "Success",
+                        detail: "Photo uploaded successfully",
+                    });
+                },
+                error: (error) => {
+                    console.error("Error uploading photo:", error);
+                    this.isUploading = false;
+                    this.messageService.add({
+                        severity: "error",
+                        summary: "Error",
+                        detail: "Failed to upload photo",
+                    });
+                }
             });
     }
 
@@ -147,5 +159,45 @@ export class ProfileComponent implements OnInit, OnDestroy {
         const first = nameParts[0]?.charAt(0) || "";
         const last = nameParts[1]?.charAt(0) || "";
         return (first + last).toUpperCase() || "U";
+    }
+
+    openEditDialog(): void {
+        this.editForm = {
+            gender: this.currentUser?.gender || null,
+            city: this.currentUser?.city || ''
+        };
+        this.showEditDialog = true;
+    }
+
+    saveProfile(): void {
+        this.userService.updateProfile({
+            gender: this.editForm.gender,
+            city: this.editForm.city
+        } as any)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+            next: (response: any) => {
+                // Update token if provided
+                if (response.token) {
+                    localStorage.setItem("id_token", response.token);
+                }
+                // Reload user data
+                this.loadCurrentUser();
+                this.showEditDialog = false;
+                this.messageService.add({
+                    severity: "success",
+                    summary: "Success",
+                    detail: "Profile updated successfully",
+                });
+            },
+            error: (error: any) => {
+                console.error("Error updating profile:", error);
+                this.messageService.add({
+                    severity: "error",
+                    summary: "Error",
+                    detail: "Failed to update profile",
+                });
+            }
+        });
     }
 }

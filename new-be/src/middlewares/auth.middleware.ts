@@ -23,7 +23,9 @@ export class AuthMiddleware implements NestMiddleware {
             firstname: user.firstname, 
             lastname: user.lastname, 
             name: `${user.firstname} ${user.lastname}`, 
-            email: user.email 
+            email: user.email,
+            gender: user.gender,
+            city: user.city
         }, "secred", {
             expiresIn: "1h",
         });

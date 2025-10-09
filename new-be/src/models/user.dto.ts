@@ -1,4 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
+import { Gender } from "../enums/gender.enum";
 
 export class UserDTO {
     @ApiProperty()
@@ -15,4 +16,10 @@ export class UserDTO {
 
     @ApiProperty()
     confirmPassword: string;
+
+    @ApiProperty({ enum: Gender, required: false })
+    gender?: Gender;
+
+    @ApiProperty({ required: false })
+    city?: string;
 }
