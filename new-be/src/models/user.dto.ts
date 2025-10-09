@@ -22,4 +22,7 @@ export class UserDTO {
 
     @ApiProperty({ required: false })
     city?: string;
+
+    @ApiProperty({ required: false })
+    lastOnline?: Date;
 }

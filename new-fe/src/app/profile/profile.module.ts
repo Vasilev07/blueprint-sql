@@ -13,6 +13,7 @@ import { ProgressSpinnerModule } from "primeng/progressspinner";
 import { DialogModule } from "primeng/dialog";
 import { DropdownModule } from "primeng/dropdown";
 import { InputTextModule } from "primeng/inputtext";
+import { TooltipModule } from "primeng/tooltip";
 import { MessageService } from "primeng/api";
 import { ToastModule } from "primeng/toast";
 import {
@@ -36,6 +37,7 @@ import {
         DialogModule,
         DropdownModule,
         InputTextModule,
+        TooltipModule,
         ToastModule,
     ],
     providers: [MessageService, UserService, FriendsService],

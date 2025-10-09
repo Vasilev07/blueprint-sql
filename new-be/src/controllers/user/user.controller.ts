@@ -1,12 +1,29 @@
-import { Body, Controller, Get, Post, Put, UploadedFile, UseInterceptors, Param, Res, Req } from "@nestjs/common";
+import {
+    Body,
+    Controller,
+    Get,
+    Post,
+    Put,
+    UploadedFile,
+    UseInterceptors,
+    Param,
+    Res,
+    Req,
+} from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { AuthMiddleware } from "src/middlewares/auth.middleware";
 import { UserService } from "src/services/user.service";
 import { CryptoService } from "src/services/crypto.service";
-import { ApiTags, ApiBody, ApiResponse, ApiConsumes, ApiOperation } from "@nestjs/swagger";
+import { ChatGateway } from "src/gateways/chat.gateway";
+import {
+    ApiTags,
+    ApiBody,
+    ApiResponse,
+    ApiConsumes,
+    ApiOperation,
+} from "@nestjs/swagger";
 import { User } from "@entities/user.entity";
 import { UserDTO } from "../../models/user.dto";
-import { UserLoginDto } from "../../models/user-login.dto";
 import { UserPhotoDTO } from "../../models/user-photo.dto";
 import { Response } from "express";
 
@@ -17,6 +34,7 @@ export class UserController {
         private userService: UserService,
         private cryptoService: CryptoService,
         private authMiddleware: AuthMiddleware,
+        private chatGateway: ChatGateway,
     ) {}
 
     @Get("/all")
@@ -27,39 +45,49 @@ export class UserController {
     @Post("/login")
     @ApiBody({
         schema: {
-            type: 'object',
+            type: "object",
             properties: {
-                email: { type: 'string', example: 'user@example.com' },
-                password: { type: 'string', example: 'password123' }
+                email: { type: "string", example: "user@example.com" },
+                password: { type: "string", example: "password123" },
             },
-            required: ['email', 'password']
-        }
+            required: ["email", "password"],
+        },
     })
-    @ApiResponse({ status: 201, description: 'Login successful', schema: { type: 'object', properties: { token: { type: 'string' }, expiresIn: { type: 'number' } } } })
+    @ApiResponse({
+        status: 201,
+        description: "Login successful",
+        schema: {
+            type: "object",
+            properties: {
+                token: { type: "string" },
+                expiresIn: { type: "number" },
+            },
+        },
+    })
     async login(@Body() administratorLoginDTO: any): Promise<any> {
-        console.log('Login attempt:', administratorLoginDTO);
+        console.log("Login attempt:", administratorLoginDTO);
 
         const admin: User = await this.userService.findOneByEmail(
             administratorLoginDTO.email,
         );
-        
-        console.log('Found user:', admin);
+
+        console.log("Found user:", admin);
 
         if (!admin) {
             throw new Error("Invalid email or password");
         }
 
-        console.log('Comparing passwords:', {
+        console.log("Comparing passwords:", {
             provided: administratorLoginDTO.password,
-            stored: admin.password
+            stored: admin.password,
         });
-        
+
         const passwordMatch = await this.cryptoService.comparePasswords(
             administratorLoginDTO.password,
             admin.password,
         );
-        
-        console.log('Password match:', passwordMatch);
+
+        console.log("Password match:", passwordMatch);
 
         if (!passwordMatch) {
             throw new Error("Invalid email or password");
@@ -84,27 +112,35 @@ export class UserController {
     @ApiConsumes("multipart/form-data")
     @ApiBody({
         schema: {
-            type: 'object',
+            type: "object",
             properties: {
                 photo: {
-                    type: 'string',
-                    format: 'binary',
+                    type: "string",
+                    format: "binary",
                 },
             },
         },
     })
-    @ApiResponse({ status: 201, description: "Photo uploaded successfully", type: UserPhotoDTO })
+    @ApiResponse({
+        status: 201,
+        description: "Photo uploaded successfully",
+        type: UserPhotoDTO,
+    })
     @UseInterceptors(FileInterceptor("photo"))
     async uploadPhoto(
         @UploadedFile() file: Express.Multer.File,
-        @Req() req: any
+        @Req() req: any,
     ): Promise<UserPhotoDTO> {
         return this.userService.uploadPhoto(file, req);
     }
 
     @Get("photos")
     @ApiOperation({ summary: "Get all photos for current user" })
-    @ApiResponse({ status: 200, description: "Returns user photos", type: [UserPhotoDTO] })
+    @ApiResponse({
+        status: 200,
+        description: "Returns user photos",
+        type: [UserPhotoDTO],
+    })
     async getUserPhotos(@Req() req: any): Promise<UserPhotoDTO[]> {
         return this.userService.getUserPhotos(req);
     }
@@ -114,7 +150,7 @@ export class UserController {
     @ApiResponse({ status: 200, description: "Returns photo data" })
     async getPhoto(
         @Param("photoId") photoId: number,
-        @Res() res: Response
+        @Res() res: Response,
     ): Promise<void> {
         const photo = await this.userService.getPhoto(photoId);
         res.set("Content-Type", "image/jpeg");
@@ -124,20 +160,45 @@ export class UserController {
     @Put("profile")
     @ApiOperation({ summary: "Update user profile" })
     @ApiBody({ type: UserDTO })
-    @ApiResponse({ status: 200, description: "Profile updated successfully", type: UserDTO })
+    @ApiResponse({
+        status: 200,
+        description: "Profile updated successfully",
+        type: UserDTO,
+    })
     async updateProfile(
         @Body() updateData: Partial<UserDTO>,
-        @Req() req: any
+        @Req() req: any,
     ): Promise<any> {
-        const updatedUser = await this.userService.updateProfile(updateData, req);
+        const updatedUser = await this.userService.updateProfile(
+            updateData,
+            req,
+        );
         const token = this.authMiddleware.signForUser(updatedUser);
-        return { token, expiresIn: 3600, user: this.userService.mapUserToDTO(updatedUser) };
+        return {
+            token,
+            expiresIn: 3600,
+            user: this.userService.mapUserToDTO(updatedUser),
+        };
     }
 
     @Get("user")
     @ApiOperation({ summary: "Get current user" })
-    @ApiResponse({ status: 200, description: "Returns current user", type: UserDTO })
+    @ApiResponse({
+        status: 200,
+        description: "Returns current user",
+        type: UserDTO,
+    })
     async getUser(@Req() req: any): Promise<UserDTO> {
         return this.userService.getUser(req);
+    }
+
+    @Get("online-users")
+    @ApiOperation({ summary: "Get online user IDs" })
+    @ApiResponse({
+        status: 200,
+        description: "Returns array of online user IDs",
+    })
+    async getOnlineUsers(): Promise<number[]> {
+        return this.chatGateway.getOnlineUserIds();
     }
 }

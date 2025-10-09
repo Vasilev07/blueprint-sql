@@ -256,6 +256,7 @@ export class FriendService {
                       firstname: request.user.firstname,
                       lastname: request.user.lastname,
                       email: request.user.email,
+                      lastOnline: request.user.lastOnline,
                   }
                 : undefined,
         }));
@@ -282,6 +283,7 @@ export class FriendService {
                       firstname: request.friend.firstname,
                       lastname: request.friend.lastname,
                       email: request.friend.email,
+                      lastOnline: request.friend.lastOnline,
                   }
                 : undefined,
         }));
@@ -298,26 +300,33 @@ export class FriendService {
             relations: ["user", "friend"],
         });
 
-        return acceptedFriends.map((friendship) => ({
-            userId: friendship.userId,
-            friendId: friendship.friendId,
-            status: friendship.status,
-            user: friendship.user
-                ? {
-                      id: friendship.user.id,
-                      firstname: friendship.user.firstname,
-                      lastname: friendship.user.lastname,
-                      email: friendship.user.email,
-                  }
-                : undefined,
-            friend: friendship.friend
-                ? {
-                      id: friendship.friend.id,
-                      firstname: friendship.friend.firstname,
-                      lastname: friendship.friend.lastname,
-                      email: friendship.friend.email,
-                  }
-                : undefined,
-        }));
+        // Use a Map to deduplicate friends by their ID
+        const friendsMap = new Map<number, FriendDTO>();
+
+        acceptedFriends.forEach((friendship) => {
+            // Determine which user is the actual friend (not the logged-in user)
+            const isUserTheLoggedInUser = friendship.userId === userId;
+            const actualFriend = isUserTheLoggedInUser ? friendship.friend : friendship.user;
+            const actualFriendId = isUserTheLoggedInUser ? friendship.friendId : friendship.userId;
+            
+            // Only add if not already in map (prevents duplicates)
+            if (actualFriend && !friendsMap.has(actualFriendId)) {
+                friendsMap.set(actualFriendId, {
+                    userId: friendship.userId,
+                    friendId: actualFriendId,
+                    status: friendship.status,
+                    user: {
+                        id: actualFriend.id,
+                        firstname: actualFriend.firstname,
+                        lastname: actualFriend.lastname,
+                        email: actualFriend.email,
+                        lastOnline: actualFriend.lastOnline,
+                    },
+                    friend: undefined,
+                });
+            }
+        });
+
+        return Array.from(friendsMap.values());
     }
 }

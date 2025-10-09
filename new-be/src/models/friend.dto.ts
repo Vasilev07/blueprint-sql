@@ -17,6 +17,7 @@ export class FriendDTO {
         firstname: string;
         lastname: string;
         email: string;
+        lastOnline?: Date;
     };
 
     @ApiProperty({ required: false })
@@ -25,5 +26,6 @@ export class FriendDTO {
         firstname: string;
         lastname: string;
         email: string;
+        lastOnline?: Date;
     };
 }

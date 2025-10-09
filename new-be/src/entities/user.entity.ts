@@ -30,6 +30,9 @@ export class User {
     @Column({ type: "text", nullable: true })
     city: string;
 
+    @Column({ type: "timestamp", nullable: true })
+    lastOnline: Date;
+
     @Column({
         type: "enum",
         enum: Role,

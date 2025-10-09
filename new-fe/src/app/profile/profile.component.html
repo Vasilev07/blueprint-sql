@@ -36,22 +36,6 @@
         <!-- Photos Tab -->
         <p-tabPanel header="Photos">
           <div class="photos-content">
-            <!-- Create Gallery Button -->
-            <div class="gallery-actions">
-              <p-button
-                label="+ Create New Gallery"
-                styleClass="p-button-outlined create-gallery-btn">
-              </p-button>
-            </div>
-
-            <!-- Photo Galleries Section -->
-            <div class="galleries-section">
-              <h3 class="section-title">PHOTO GALLERIES</h3>
-              <div class="empty-galleries">
-                <p>No galleries created yet</p>
-              </div>
-            </div>
-
             <!-- Profile Images Section -->
             <div class="profile-images-section">
               <h3 class="section-title">PROFILE IMAGES</h3>
@@ -168,10 +152,26 @@
           </div>
           <div class="friends-list">
             <div *ngFor="let friend of friends" class="friend-item">
-              <p-avatar
-                [label]="friend.user?.firstname?.charAt(0) || 'F'">
-              </p-avatar>
-              <span class="friend-name">{{ friend.user?.firstname }}</span>
+              <div class="friend-avatar-container">
+                <p-avatar
+                  [label]="friend.user?.firstname?.charAt(0) || 'F'"
+                  styleClass="friend-avatar">
+                </p-avatar>
+                <span class="online-status" [class.online]="isOnline(friend.friendId)"></span>
+              </div>
+              <div class="friend-info">
+                <span class="friend-name">{{ friend.user?.firstname }}</span>
+                <span class="friend-status" *ngIf="isOnline(friend.friendId)">Online</span>
+              </div>
+              <p-button
+                icon="pi pi-comment"
+                (onClick)="startChat(friend)"
+                [rounded]="true"
+                [text]="true"
+                styleClass="chat-button"
+                pTooltip="Chat"
+                tooltipPosition="left">
+              </p-button>
             </div>
             <div *ngIf="friends.length === 0" class="no-friends">
               <p>No friends yet</p>
@@ -273,3 +273,60 @@
 
 <!-- Toast Messages -->
 <p-toast></p-toast>
+<!-- Edit Profile Dialog -->
+<p-dialog
+  [(visible)]="showEditDialog"
+  header="Edit Profile"
+  [modal]="true"
+  [style]="{ width: '450px' }"
+  [draggable]="false"
+  [resizable]="false">
+  
+  <div class="edit-form">
+    <div class="field">
+      <label for="gender">Gender</label>
+      <p-dropdown
+        id="gender"
+        [(ngModel)]="editForm.gender"
+        [options]="genderOptions"
+        placeholder="Select Gender"
+        [style]="{ width: '100%' }">
+      </p-dropdown>
+    </div>
+
+    <div class="field">
+      <label for="city">City</label>
+      <input
+        id="city"
+        type="text"
+        pInputText
+        [(ngModel)]="editForm.city"
+        placeholder="Enter your city"
+        [style]="{ width: '100%' }" />
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <p-button
+      label="Cancel"
+      icon="pi pi-times"
+      (onClick)="showEditDialog = false"
+      styleClass="p-button-text">
+    </p-button>
+    <p-button
+      label="Save"
+      icon="pi pi-check"
+      (onClick)="saveProfile()">
+    </p-button>
+  </ng-template>
+</p-dialog>
+
+<!-- Loading Spinner -->
+<p-progressSpinner
+  *ngIf="isLoading || isUploading"
+  styleClass="loading-spinner">
+</p-progressSpinner>
+
+<!-- Toast Messages -->
+<p-toast></p-toast>
+

@@ -31,16 +31,23 @@
   background-clip: text;
 }
 
-.user-location {
+.user-details {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.user-location,
+.user-gender {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   color: #b0b0b0;
   font-size: 0.9rem;
-}
 
-.user-location i {
-  color: #ff6b9d;
+  i {
+    color: #ff6b9d;
+  }
 }
 
 .profile-avatar {
@@ -324,16 +331,70 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 0.5rem 0;
+    padding: 0.75rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    transition: background 0.2s ease;
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.05);
+      
+      .chat-button {
+        opacity: 1;
+      }
+    }
     
     &:last-child {
       border-bottom: none;
     }
     
-    .friend-name {
-      color: white;
-      font-weight: 500;
+    .friend-avatar-container {
+      position: relative;
+      
+      .online-status {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #6c757d;
+        border: 2px solid #1a1a1a;
+        
+        &.online {
+          background: #22c55e;
+          box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
+        }
+      }
+    }
+    
+    .friend-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      
+      .friend-name {
+        color: white;
+        font-weight: 500;
+        font-size: 0.95rem;
+      }
+      
+      .friend-status {
+        color: #22c55e;
+        font-size: 0.75rem;
+        font-weight: 500;
+      }
+    }
+    
+    .chat-button {
+      color: #ff6b9d !important;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      
+      &:hover {
+        background: rgba(255, 107, 157, 0.1) !important;
+      }
     }
   }
   
@@ -372,6 +433,20 @@
   }
 }
 
+// Edit form styles
+.edit-form {
+  .field {
+    margin-bottom: 1.5rem;
+
+    label {
+      display: block;
+      color: #333;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+  }
+}
+
 // Loading spinner
 .loading-spinner {
   position: fixed;
@@ -387,6 +462,10 @@
 
 // Responsive design
 @media (max-width: 768px) {
+  .profile-container {
+    padding: 1rem;
+  }
+
   .main-content {
     grid-template-columns: 1fr;
     gap: 1rem;
@@ -394,19 +473,133 @@
   
   .right-sidebar {
     order: -1;
+    margin-bottom: 1rem;
   }
   
   .profile-header {
     flex-direction: column;
     text-align: center;
     gap: 1rem;
+    padding: 1rem;
+  }
+
+  .user-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .user-details {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
   }
   
   .user-name {
-    font-size: 2rem;
+    font-size: 1.5rem;
+  }
+
+  .user-location,
+  .user-gender {
+    font-size: 0.85rem;
+  }
+
+  .profile-avatar {
+    width: 80px !important;
+    height: 80px !important;
+    font-size: 1.5rem !important;
   }
   
   .photos-grid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)) !important;
+    gap: 0.5rem !important;
+  }
+
+  ::ng-deep .p-tabview {
+    .p-tabview-nav-link {
+      padding: 0.75rem 1rem;
+      font-size: 0.85rem;
+    }
+
+    .p-tabview-panels {
+      padding: 1rem;
+    }
+  }
+
+  .section-title {
+    font-size: 0.8rem;
+  }
+
+  .friend-item {
+    padding: 0.5rem;
+    
+    .friend-name {
+      font-size: 0.9rem;
+    }
+
+    .chat-button {
+      opacity: 1; // Always show on mobile
+    }
+  }
+
+  .sidebar-section {
+    margin-bottom: 1.5rem;
+  }
+
+  .info-content {
+    padding: 0.5rem;
+    font-size: 0.9rem;
+  }
+
+  ::ng-deep .p-dialog {
+    width: 95vw !important;
+    max-width: 400px !important;
+
+    .p-dialog-content {
+      padding: 1rem !important;
+    }
+
+    .edit-form {
+      .field {
+        margin-bottom: 1rem;
+
+        label {
+          font-size: 0.9rem;
+        }
+
+        input, .p-dropdown {
+          font-size: 0.9rem;
+        }
+      }
+    }
+  }
+}
+
+// Extra small devices
+@media (max-width: 480px) {
+  .profile-container {
+    padding: 0.5rem;
+  }
+
+  .profile-header {
+    padding: 0.75rem;
+  }
+
+  .user-name {
+    font-size: 1.25rem;
+  }
+
+  ::ng-deep .p-tabview {
+    .p-tabview-nav-link {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.75rem;
+    }
+  }
+
+  .photos-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
   }
 }

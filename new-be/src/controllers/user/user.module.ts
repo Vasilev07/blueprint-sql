@@ -5,9 +5,10 @@ import { UserController } from "./user.controller";
 import { UserService } from "@services/user.service";
 import { CryptoService } from "@services/crypto.service";
 import { AuthMiddleware } from "@middlewares/auth.middleware";
+import { ChatModule } from "../chat/chat.module";
 
 @Module({
-    imports: [TypeOrmModule.forFeature([User])],
+    imports: [TypeOrmModule.forFeature([User]), ChatModule],
     exports: [TypeOrmModule],
     controllers: [UserController],
     providers: [UserService, CryptoService, AuthMiddleware],

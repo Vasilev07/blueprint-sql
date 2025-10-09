@@ -8,6 +8,8 @@ import {
 import { Server, Socket } from "socket.io";
 import { Injectable } from "@nestjs/common";
 import { ChatService } from "../services/chat.service";
+import { EntityManager } from "typeorm";
+import { User } from "../entities/user.entity";
 
 @WebSocketGateway({
     cors: {
@@ -22,17 +24,70 @@ export class ChatGateway {
     server: Server;
 
     private userSockets = new Map<string, Socket>();
+    private userIdToEmail = new Map<number, string>();
 
-    constructor(private chatService: ChatService) {}
+    constructor(
+        private chatService: ChatService,
+        private entityManager: EntityManager,
+    ) {}
 
-    handleConnection(client: Socket) {
+    async handleConnection(client: Socket) {
         const email = client.handshake.query.email as string;
-        if (email) this.userSockets.set(email, client);
+        const userId = client.handshake.query.userId as string;
+
+        if (email) {
+            this.userSockets.set(email, client);
+            if (userId) {
+                const userIdNum = parseInt(userId);
+                this.userIdToEmail.set(userIdNum, email);
+
+                // Update lastOnline timestamp in database
+                await this.updateLastOnline(userIdNum);
+
+                // Broadcast online status change
+                this.server.emit("user:online", { email, userId: userIdNum });
+            }
+        }
     }
 
     handleDisconnect(client: Socket) {
         const email = client.handshake.query.email as string;
-        if (email) this.userSockets.delete(email);
+        const userId = client.handshake.query.userId as string;
+
+        if (email) {
+            this.userSockets.delete(email);
+            if (userId) {
+                this.userIdToEmail.delete(parseInt(userId));
+            }
+            // Broadcast offline status change
+            this.server.emit("user:offline", {
+                email,
+                userId: parseInt(userId),
+            });
+        }
+    }
+
+    getOnlineUserIds(): number[] {
+        return Array.from(this.userIdToEmail.keys());
+    }
+
+    isUserOnline(userId: number): boolean {
+        return this.userIdToEmail.has(userId);
+    }
+
+    private async updateLastOnline(userId: number): Promise<void> {
+        try {
+            await this.entityManager.update(
+                User,
+                { id: userId },
+                { lastOnline: new Date() },
+            );
+        } catch (error) {
+            console.error(
+                `Failed to update lastOnline for user ${userId}:`,
+                error,
+            );
+        }
     }
 
     @SubscribeMessage("chat:send")
@@ -47,6 +102,9 @@ export class ChatGateway {
         @ConnectedSocket() client: Socket,
     ) {
         try {
+            // Update sender's lastOnline timestamp
+            await this.updateLastOnline(payload.senderId);
+
             let conversationId = payload.conversationId;
             if (!conversationId) {
                 const conv = await this.chatService.getOrCreateConversation(

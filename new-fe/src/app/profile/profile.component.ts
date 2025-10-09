@@ -1,14 +1,19 @@
 import { Component, OnInit, OnDestroy } from "@angular/core";
 import { Subject, takeUntil } from "rxjs";
 import { MessageService } from "primeng/api";
-import { HttpClient } from "@angular/common/http";
+import { Router } from "@angular/router";
 import { AuthService } from "../services/auth.service";
-import { UserDTO, FriendDTO, UserPhotoDTO } from "src/typescript-api-client/src/model/models";
+import { OnlineStatusService } from "../services/online-status.service";
+import { environment } from "src/environments/environment";
+import {
+    UserDTO,
+    FriendDTO,
+    UserPhotoDTO,
+} from "src/typescript-api-client/src/model/models";
 import {
     UserService,
     FriendsService,
 } from "src/typescript-api-client/src/api/api";
-
 
 @Component({
     selector: "app-profile",
@@ -27,17 +32,18 @@ export class ProfileComponent implements OnInit, OnDestroy {
     editForm: any = {};
 
     genderOptions = [
-        { label: 'Male', value: 'male' },
-        { label: 'Female', value: 'female' },
-        { label: 'Other', value: 'other' }
+        { label: "Male", value: "male" },
+        { label: "Female", value: "female" },
+        { label: "Other", value: "other" },
     ];
 
     constructor(
         private messageService: MessageService,
-        private http: HttpClient,
         private authService: AuthService,
         private userService: UserService,
         private friendsService: FriendsService,
+        private router: Router,
+        public onlineStatusService: OnlineStatusService,
     ) {}
 
     ngOnInit(): void {
@@ -51,9 +57,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
         this.destroy$.complete();
     }
 
-
     private loadCurrentUser(): void {
-        this.userService.getUser()
+        this.userService
+            .getUser()
             .pipe(takeUntil(this.destroy$))
             .subscribe({
                 next: (user: any) => {
@@ -65,7 +71,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
                     const token = localStorage.getItem("id_token");
                     if (token) {
                         try {
-                            const payload = JSON.parse(atob(token.split(".")[1]));
+                            const payload = JSON.parse(
+                                atob(token.split(".")[1]),
+                            );
                             this.currentUser = {
                                 id: payload.id,
                                 email: payload.email,
@@ -73,20 +81,21 @@ export class ProfileComponent implements OnInit, OnDestroy {
                                 password: "",
                                 confirmPassword: "",
                                 gender: payload.gender,
-                                city: payload.city
+                                city: payload.city,
                             };
                         } catch (error: any) {
                             console.error("Error parsing token:", error);
                         }
                     }
-                }
+                },
             });
     }
 
     loadUserPhotos(): void {
         this.isLoading = true;
 
-        this.userService.getUserPhotos()
+        this.userService
+            .getUserPhotos()
             .pipe(takeUntil(this.destroy$))
             .subscribe({
                 next: (photos) => {
@@ -125,7 +134,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
         this.isUploading = true;
 
-        this.userService.uploadPhoto(file)
+        this.userService
+            .uploadPhoto(file)
             .pipe(takeUntil(this.destroy$))
             .subscribe({
                 next: (photo) => {
@@ -145,12 +155,12 @@ export class ProfileComponent implements OnInit, OnDestroy {
                         summary: "Error",
                         detail: "Failed to upload photo",
                     });
-                }
+                },
             });
     }
 
     getPhotoUrl(photoId: number): string {
-        return `http://localhost:3000/auth/photos/${photoId}`;
+        return `${environment.apiUrl}/auth/photos/${photoId}`;
     }
 
     getUserInitials(): string {
@@ -164,40 +174,58 @@ export class ProfileComponent implements OnInit, OnDestroy {
     openEditDialog(): void {
         this.editForm = {
             gender: this.currentUser?.gender || null,
-            city: this.currentUser?.city || ''
+            city: this.currentUser?.city || "",
         };
         this.showEditDialog = true;
     }
 
     saveProfile(): void {
-        this.userService.updateProfile({
-            gender: this.editForm.gender,
-            city: this.editForm.city
-        } as any)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-            next: (response: any) => {
-                // Update token if provided
-                if (response.token) {
-                    localStorage.setItem("id_token", response.token);
-                }
-                // Reload user data
-                this.loadCurrentUser();
-                this.showEditDialog = false;
-                this.messageService.add({
-                    severity: "success",
-                    summary: "Success",
-                    detail: "Profile updated successfully",
-                });
-            },
-            error: (error: any) => {
-                console.error("Error updating profile:", error);
-                this.messageService.add({
-                    severity: "error",
-                    summary: "Error",
-                    detail: "Failed to update profile",
-                });
-            }
-        });
+        this.userService
+            .updateProfile({
+                gender: this.editForm.gender,
+                city: this.editForm.city,
+            } as any)
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+                next: (response: any) => {
+                    // Update token if provided
+                    if (response.token) {
+                        localStorage.setItem("id_token", response.token);
+                    }
+                    // Reload user data
+                    this.loadCurrentUser();
+                    this.showEditDialog = false;
+                    this.messageService.add({
+                        severity: "success",
+                        summary: "Success",
+                        detail: "Profile updated successfully",
+                    });
+                },
+                error: (error: any) => {
+                    console.error("Error updating profile:", error);
+                    this.messageService.add({
+                        severity: "error",
+                        summary: "Error",
+                        detail: "Failed to update profile",
+                    });
+                },
+            });
+    }
+
+    isOnline(userId: number | undefined): boolean {
+        if (!userId) return false;
+
+        // Find the friend's lastOnline timestamp
+        const friend = this.friends.find((f) => f.friendId === userId);
+        const lastOnline = friend?.user?.lastOnline;
+
+        return this.onlineStatusService.isOnline(lastOnline);
+    }
+
+    startChat(friend: FriendDTO): void {
+        // Navigate to chat conversation with this friend
+        if (friend.friendId) {
+            this.router.navigate(["/chat/conversation", friend.friendId]);
+        }
     }
 }
