@@ -66,6 +66,11 @@ const routes: Routes = [
                 loadChildren: () =>
                     import("./subscriptions/subscriptions.module").then((m) => m.SubscriptionsModule),
             },
+            {
+                path: "profile",
+                loadChildren: () =>
+                    import("./profile/profile.module").then((m) => m.ProfileModule),
+            },
         ],
         canActivate: [AuthGuard],
     },
