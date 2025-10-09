@@ -18,7 +18,13 @@ export class AuthMiddleware implements NestMiddleware {
     }
 
     signForUser(user: User) {
-        return sign({ id: user.id, name: user.lastname, email: user.email }, "secred", {
+        return sign({ 
+            id: user.id, 
+            firstname: user.firstname, 
+            lastname: user.lastname, 
+            name: `${user.firstname} ${user.lastname}`, 
+            email: user.email 
+        }, "secred", {
             expiresIn: "1h",
         });
     }
