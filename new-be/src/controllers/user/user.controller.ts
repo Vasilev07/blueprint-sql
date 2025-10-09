@@ -1,11 +1,14 @@
-import { Body, Controller, Get, Post } from "@nestjs/common";
+import { Body, Controller, Get, Post, UploadedFile, UseInterceptors, Param, Res, Req } from "@nestjs/common";
+import { FileInterceptor } from "@nestjs/platform-express";
 import { AuthMiddleware } from "src/middlewares/auth.middleware";
 import { UserService } from "src/services/user.service";
 import { CryptoService } from "src/services/crypto.service";
-import { ApiTags, ApiBody, ApiResponse } from "@nestjs/swagger";
+import { ApiTags, ApiBody, ApiResponse, ApiConsumes, ApiOperation } from "@nestjs/swagger";
 import { User } from "@entities/user.entity";
 import { UserDTO } from "../../models/user.dto";
 import { UserLoginDto } from "../../models/user-login.dto";
+import { UserPhotoDTO } from "../../models/user-photo.dto";
+import { Response } from "express";
 
 @Controller("/auth")
 @ApiTags("User")
@@ -74,5 +77,36 @@ export class UserController {
         } catch (error) {
             console.error("Error registering admin.", error);
         }
+    }
+
+    @Post("photos/upload")
+    @ApiOperation({ summary: "Upload a user photo" })
+    @ApiConsumes("multipart/form-data")
+    @ApiResponse({ status: 201, description: "Photo uploaded successfully", type: UserPhotoDTO })
+    @UseInterceptors(FileInterceptor("photo"))
+    async uploadPhoto(
+        @UploadedFile() file: Express.Multer.File,
+        @Req() req: any
+    ): Promise<UserPhotoDTO> {
+        return this.userService.uploadPhoto(file, req);
+    }
+
+    @Get("photos")
+    @ApiOperation({ summary: "Get all photos for current user" })
+    @ApiResponse({ status: 200, description: "Returns user photos", type: [UserPhotoDTO] })
+    async getUserPhotos(@Req() req: any): Promise<UserPhotoDTO[]> {
+        return this.userService.getUserPhotos(req);
+    }
+
+    @Get("photos/:photoId")
+    @ApiOperation({ summary: "Get a specific photo by ID" })
+    @ApiResponse({ status: 200, description: "Returns photo data" })
+    async getPhoto(
+        @Param("photoId") photoId: number,
+        @Res() res: Response
+    ): Promise<void> {
+        const photo = await this.userService.getPhoto(photoId);
+        res.set("Content-Type", "image/jpeg");
+        res.send(Buffer.from(photo.data));
     }
 }

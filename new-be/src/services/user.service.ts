@@ -1,9 +1,11 @@
-import { Inject, Injectable, OnModuleInit } from "@nestjs/common";
+import { Inject, Injectable, OnModuleInit, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { UserDTO } from "../models/user.dto";
+import { UserPhotoDTO } from "../models/user-photo.dto";
 import { sign } from "jsonwebtoken";
 import { CryptoService } from "./crypto.service";
 import { EntityManager } from "typeorm";
 import { User } from "@entities/user.entity";
+import { UserPhoto } from "@entities/user-photo.entity";
 import { UserMapper } from "@mappers/implementations/user.mapper";
 import { MapperService } from "@mappers/mapper.service";
 
@@ -70,5 +72,67 @@ export class UserService implements OnModuleInit {
             // Don't include passwords in the list
             return this.userMapper.entityToDTO(user);
         });
+    }
+
+    private getUserIdFromRequest(req: any): number {
+        const token = req.headers.authorization?.split(" ")[1];
+        if (!token) throw new UnauthorizedException("No token provided");
+        
+        try {
+            const decoded = JSON.parse(Buffer.from(token.split(".")[1], "base64").toString());
+            return decoded.id;
+        } catch {
+            throw new UnauthorizedException("Invalid token");
+        }
+    }
+
+    async uploadPhoto(file: Express.Multer.File, req: any): Promise<UserPhotoDTO> {
+        if (!file) {
+            throw new Error("No file provided");
+        }
+
+        const userId = this.getUserIdFromRequest(req);
+        
+        const photo = new UserPhoto();
+        photo.userId = userId;
+        photo.name = file.originalname;
+        photo.data = file.buffer;
+
+        const saved = await this.entityManager.save(photo);
+
+        return {
+            id: saved.id,
+            name: saved.name,
+            userId: saved.userId,
+            uploadedAt: saved.uploadedAt
+        };
+    }
+
+    async getUserPhotos(req: any): Promise<UserPhotoDTO[]> {
+        const userId = this.getUserIdFromRequest(req);
+        
+        const photos = await this.entityManager.find(UserPhoto, {
+            where: { userId },
+            order: { uploadedAt: "DESC" }
+        });
+
+        return photos.map(p => ({
+            id: p.id,
+            name: p.name,
+            userId: p.userId,
+            uploadedAt: p.uploadedAt
+        }));
+    }
+
+    async getPhoto(photoId: number): Promise<UserPhoto> {
+        const photo = await this.entityManager.findOne(UserPhoto, {
+            where: { id: photoId }
+        });
+
+        if (!photo) {
+            throw new NotFoundException("Photo not found");
+        }
+
+        return photo;
     }
 }

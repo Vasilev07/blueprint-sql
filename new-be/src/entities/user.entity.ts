@@ -1,5 +1,6 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn, OneToMany } from "typeorm";
 import { Role } from "../enums/role.enum";
+import { UserPhoto } from "./user-photo.entity";
 
 @Entity()
 export class User {
@@ -25,4 +26,7 @@ export class User {
         default: [Role.User],
     })
     public roles: Role[];
+
+    @OneToMany(() => UserPhoto, (photo) => photo.user, { cascade: true })
+    photos: UserPhoto[];
 }
