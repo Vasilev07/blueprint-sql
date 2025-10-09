@@ -8,9 +8,9 @@
     "scripts": {
         "build": "nest build",
         "start": "npm run build && npm run migration:run && ts-node -r tsconfig-paths/register dist/main.js",
-        "start:dev": "npm run start --watch",
-        "start:debug": "npm run start --debug --watch",
-        "start:prod": "npm run start",
+        "start:dev": "cross-env NODE_ENV=development nest start --watch",
+        "start:debug": "cross-env NODE_ENV=development nest start --debug --watch",
+        "start:prod": "cross-env NODE_ENV=production node dist/main",
         "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
         "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
         "db:create": "ts-node ./node_modules/typeorm-extension/bin/cli.cjs db:create",
@@ -22,7 +22,8 @@
         "test:e2e:watch": "jest --config ./test/jest-e2e.json --watch --no-cache",
         "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js -d src/config/data-source.ts",
         "migration:run": "npm run typeorm -- migration:run",
-        "seed": "ts-node -r tsconfig-paths/register src/seed.ts"
+        "seed": "cross-env NODE_ENV=development ts-node -r tsconfig-paths/register src/seed.ts",
+        "seed:prod": "cross-env NODE_ENV=production ts-node -r tsconfig-paths/register src/seed.ts"
     },
     "dependencies": {
         "@nestjs/common": "^10.0.0",
@@ -58,6 +59,7 @@
         "@types/supertest": "^6.0.0",
         "@typescript-eslint/eslint-plugin": "^6.0.0",
         "@typescript-eslint/parser": "^6.0.0",
+        "cross-env": "^10.1.0",
         "eslint": "^8.42.0",
         "eslint-config-prettier": "^9.0.0",
         "eslint-plugin-jest": "^28.10.0",
