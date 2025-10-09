@@ -2,20 +2,13 @@
   <!-- Header -->
       <div class="stories-header">
       <div class="header-left">
-        <h1>Live TV</h1>
-        <p>Watch live streams and discover amazing content from around the world</p>
+        <h1>Stories</h1>
+        <p>Share moments and discover amazing content from friends</p>
       </div>
       
       <div class="header-right">
         <button pButton 
-          label="Test Navigation" 
-          icon="pi pi-external-link" 
-          class="p-button-secondary"
-          (click)="testNavigation()"
-          style="margin-right: 10px;">
-        </button>
-        <button pButton 
-          label="Go Live" 
+          label="Upload Story" 
           icon="pi pi-plus" 
           class="p-button-primary upload-btn"
           (click)="onUploadClick()">
@@ -30,7 +23,7 @@
         <i class="pi pi-search"></i>
         <input pInputText 
           type="text" 
-          placeholder="Search live streams, users, or tags..."
+          placeholder="Search stories, users, or tags..."
           [(ngModel)]="searchQuery"
           (keyup.enter)="onSearch()">
       </span>

@@ -46,30 +46,40 @@ const routes: Routes = [
                 loadChildren: () =>
                     import("./chat/chat.module").then((m) => m.ChatModule),
             },
-    {
-        path: "messages",
-        loadChildren: () =>
-            import("./messages/messages.module").then((m) => m.MessagesModule),
-    },
-    {
-        path: "friends",
-        loadChildren: () =>
-            import("./friends/friends.module").then((m) => m.FriendsModule),
-    },
+            {
+                path: "messages",
+                loadChildren: () =>
+                    import("./messages/messages.module").then(
+                        (m) => m.MessagesModule,
+                    ),
+            },
+            {
+                path: "friends",
+                loadChildren: () =>
+                    import("./friends/friends.module").then(
+                        (m) => m.FriendsModule,
+                    ),
+            },
             {
                 path: "live-tv",
                 loadChildren: () =>
-                    import("./stories/stories.module").then((m) => m.StoriesModule),
+                    import("./stories/story.module").then(
+                        (m) => m.StoryModule,
+                    ),
             },
             {
                 path: "subscriptions",
                 loadChildren: () =>
-                    import("./subscriptions/subscriptions.module").then((m) => m.SubscriptionsModule),
+                    import("./subscriptions/subscriptions.module").then(
+                        (m) => m.SubscriptionsModule,
+                    ),
             },
             {
                 path: "profile",
                 loadChildren: () =>
-                    import("./profile/profile.module").then((m) => m.ProfileModule),
+                    import("./profile/profile.module").then(
+                        (m) => m.ProfileModule,
+                    ),
             },
         ],
         canActivate: [AuthGuard],
@@ -77,9 +87,7 @@ const routes: Routes = [
     {
         path: "login",
         loadChildren: () =>
-            import("./login/login.module").then(
-                (m) => m.LoginModule,
-            ),
+            import("./login/login.module").then((m) => m.LoginModule),
     },
 ];
 

@@ -81,11 +81,13 @@ export class ChatComponent implements OnInit, OnDestroy {
 
     private loadConversation(userId: string): void {
         this.isLoading = true;
+
         const otherUserId = Number(userId);
         if (!Number.isFinite(otherUserId) || otherUserId <= 0) {
             this.isLoading = false;
             return;
         }
+
         this.chatService
             .getOrCreateConversation(otherUserId)
             .pipe(takeUntil(this.destroy$))

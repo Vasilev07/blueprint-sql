@@ -26,8 +26,8 @@ export class AppMenuComponent implements OnInit {
                         routerLink: ["/chat"],
                     },
                     {
-                        label: "Live TV",
-                        icon: "pi pi-fw pi-video",
+                        label: "Stories",
+                        icon: "pi pi-fw pi-images",
                         routerLink: ["/live-tv"],
                     },
                     {
