@@ -82,6 +82,17 @@ export class UserController {
     @Post("photos/upload")
     @ApiOperation({ summary: "Upload a user photo" })
     @ApiConsumes("multipart/form-data")
+    @ApiBody({
+        schema: {
+            type: 'object',
+            properties: {
+                photo: {
+                    type: 'string',
+                    format: 'binary',
+                },
+            },
+        },
+    })
     @ApiResponse({ status: 201, description: "Photo uploaded successfully", type: UserPhotoDTO })
     @UseInterceptors(FileInterceptor("photo"))
     async uploadPhoto(
@@ -112,6 +123,7 @@ export class UserController {
 
     @Put("profile")
     @ApiOperation({ summary: "Update user profile" })
+    @ApiBody({ type: UserDTO })
     @ApiResponse({ status: 200, description: "Profile updated successfully", type: UserDTO })
     async updateProfile(
         @Body() updateData: Partial<UserDTO>,
