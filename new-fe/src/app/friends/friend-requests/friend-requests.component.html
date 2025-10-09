@@ -1,0 +1,45 @@
+<div *ngIf="incomingRequests.length === 0" class="text-center p-4">
+  <i class="pi pi-inbox text-4xl text-gray-400 mb-3"></i>
+  <p class="text-gray-500">No pending friend requests</p>
+</div>
+
+<div *ngIf="incomingRequests.length > 0" class="friend-requests-list">
+  <div *ngFor="let request of incomingRequests" 
+       class="friend-request-item">
+    <div class="friend-request-info">
+      <span class="avatar-wrapper">
+        <p-avatar [label]="getUserInitials(request.user) || 'U'" 
+                 size="large" 
+                 shape="circle"
+                 [style]="{'background-color': '#3498db', 'color': '#ffffff'}">
+        </p-avatar>
+        <span class="presence-dot" 
+              [class.online]="presenceService.isOnline(request.user?.email)" 
+              [class.offline]="!presenceService.isOnline(request.user?.email)">
+        </span>
+      </span>
+      <div class="friend-request-details">
+        <h3 class="friend-name">{{ getUserFullName(request.user) || 'Unknown User' }}</h3>
+        <p class="friend-email">{{ request.user?.email }}</p>
+        <p class="friend-status">Wants to be your friend</p>
+      </div>
+    </div>
+    <div class="friend-request-actions">
+      <button pButton 
+              type="button" 
+              label="Accept" 
+              icon="pi pi-check" 
+              class="p-button-success p-button-sm"
+              (click)="acceptFriendRequest(+request.userId)">
+      </button>
+      <button pButton 
+              type="button" 
+              label="Decline" 
+              icon="pi pi-times" 
+              class="p-button-outlined p-button-danger p-button-sm"
+              (click)="declineFriendRequest(+request.userId)">
+      </button>
+    </div>
+  </div>
+</div>
+

@@ -3,6 +3,7 @@ import { ApiTags, ApiOperation, ApiResponse } from "@nestjs/swagger";
 import { FriendService } from "../../services/friend.service";
 import { FriendshipStatus } from "../../entities/friend.entity";
 import { FriendDTO } from "../../models/friend.dto";
+import { RespondFriendRequestDTO } from "../../models/respond-friend-request.dto";
 
 @ApiTags("Friends")
 @Controller("friends")
@@ -26,12 +27,14 @@ export class FriendController {
     }
 
     @Put("respond/:userId")
+    @ApiOperation({ summary: "Respond to a friend request" })
+    @ApiResponse({ status: 200, description: "Friend request updated", type: FriendDTO })
     async respondToRequest(
         @Param("userId") userId: number,
-        @Body("status") status: FriendshipStatus,
+        @Body() body: RespondFriendRequestDTO,
         @Req() req: any,
     ): Promise<FriendDTO> {
-        return this.friendService.updateFriendshipStatus(userId, status, req);
+        return this.friendService.updateFriendshipStatus(userId, body.status, req);
     }
 
     @Get("requests/incoming")

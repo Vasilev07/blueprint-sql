@@ -15,6 +15,9 @@ import { ChipModule } from 'primeng/chip';
 import { MessageService, ConfirmationService } from 'primeng/api';
 
 import { FriendsComponent } from './friends.component';
+import { AllUsersComponent } from './all-users/all-users.component';
+import { FriendRequestsComponent } from './friend-requests/friend-requests.component';
+import { MyFriendsComponent } from './my-friends/my-friends.component';
 import { UserService } from 'src/typescript-api-client/src/api/api';
 
 const routes: Routes = [
@@ -26,7 +29,10 @@ const routes: Routes = [
 
 @NgModule({
   declarations: [
-    FriendsComponent
+    FriendsComponent,
+    AllUsersComponent,
+    FriendRequestsComponent,
+    MyFriendsComponent
   ],
   imports: [
     CommonModule,

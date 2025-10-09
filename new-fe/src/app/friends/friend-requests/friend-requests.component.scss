@@ -1,0 +1,75 @@
+.friend-requests-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.friend-request-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+  transition: box-shadow 0.2s;
+
+  &:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.friend-request-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+}
+
+.avatar-wrapper {
+  position: relative;
+}
+
+.presence-dot {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid white;
+  
+  &.online {
+    background: #28a745;
+  }
+  
+  &.offline {
+    background: #6c757d;
+  }
+}
+
+.friend-request-details {
+  .friend-name {
+    margin: 0 0 0.25rem 0;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .friend-email {
+    margin: 0 0 0.25rem 0;
+    font-size: 0.875rem;
+    color: #6c757d;
+  }
+
+  .friend-status {
+    margin: 0;
+    font-size: 0.875rem;
+    color: #007bff;
+  }
+}
+
+.friend-request-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+

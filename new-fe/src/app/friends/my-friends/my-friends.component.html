@@ -1,0 +1,28 @@
+<div *ngIf="myFriends.length === 0" class="text-center p-4">
+  <i class="pi pi-users text-4xl text-gray-400 mb-3"></i>
+  <p class="text-gray-500">No friends yet</p>
+  <p class="text-sm text-gray-400">Start by sending friend requests to other users</p>
+</div>
+
+<div *ngIf="myFriends.length > 0" class="friends-grid">
+  <div *ngFor="let friend of myFriends" 
+       class="friend-card">
+    <span class="avatar-wrapper">
+      <p-avatar [label]="getFriendInitials(friend) || 'F'" 
+               size="large" 
+               shape="circle"
+               [style]="{'background-color': '#27ae60', 'color': '#ffffff'}">
+      </p-avatar>
+      <span class="presence-dot" 
+            [class.online]="presenceService.isOnline(getFriendEmail(friend))" 
+            [class.offline]="!presenceService.isOnline(getFriendEmail(friend))">
+      </span>
+    </span>
+    <div class="friend-info">
+      <h3 class="friend-name">{{ getFriendDisplayName(friend) || 'Unknown Friend' }}</h3>
+      <p class="friend-email">{{ getFriendEmail(friend) }}</p>
+      <p class="friend-status">Friends</p>
+    </div>
+  </div>
+</div>
+

@@ -1,0 +1,64 @@
+.friends-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.friend-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+  transition: box-shadow 0.2s, transform 0.2s;
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+  }
+}
+
+.avatar-wrapper {
+  position: relative;
+}
+
+.presence-dot {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid white;
+  
+  &.online {
+    background: #28a745;
+  }
+  
+  &.offline {
+    background: #6c757d;
+  }
+}
+
+.friend-info {
+  .friend-name {
+    margin: 0 0 0.25rem 0;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .friend-email {
+    margin: 0 0 0.25rem 0;
+    font-size: 0.875rem;
+    color: #6c757d;
+  }
+
+  .friend-status {
+    margin: 0;
+    font-size: 0.875rem;
+    color: #28a745;
+  }
+}
+
