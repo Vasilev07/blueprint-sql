@@ -15,4 +15,8 @@ export class FriendsComponent implements OnInit {
     ngOnInit() {
         this.currentUserEmail = this.authService.getUserEmail();
     }
+
+    onRequestCountChange(count: number) {
+        this.incomingRequestsCount = count;
+    }
 }

@@ -16,8 +16,17 @@
     </p-tabPanel>
 
     <!-- Friend Requests Tab -->
-    <p-tabPanel header="Friend Requests">
-      <app-friend-requests></app-friend-requests>
+    <p-tabPanel>
+      <ng-template pTemplate="header">
+        <span style="display: flex; align-items: center; gap: 0.5rem;">
+          Friend Requests
+          <p-badge *ngIf="incomingRequestsCount > 0" 
+                   [value]="incomingRequestsCount.toString()" 
+                   severity="danger">
+          </p-badge>
+        </span>
+      </ng-template>
+      <app-friend-requests (requestCountChange)="onRequestCountChange($event)"></app-friend-requests>
     </p-tabPanel>
 
     <!-- My Friends Tab -->

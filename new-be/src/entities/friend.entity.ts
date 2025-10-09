@@ -4,7 +4,7 @@ import { User } from "./user.entity";
 export enum FriendshipStatus {
     PENDING = "pending",
     ACCEPTED = "accepted",
-    BLOCKED = "blocked"
+    BLOCKED = "blocked",
 }
 
 @Entity()
@@ -26,7 +26,7 @@ export class UserFriend {
     @Column({
         type: "varchar",
         enum: FriendshipStatus,
-        default: FriendshipStatus.PENDING
+        default: FriendshipStatus.PENDING,
     })
     status: FriendshipStatus;
 }

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from "@angular/core";
+import { Component, OnInit, OnDestroy, Output, EventEmitter } from "@angular/core";
 import { MessageService } from "primeng/api";
 import { FriendsService } from "src/typescript-api-client/src/api/api";
 import { FriendDTO } from "src/typescript-api-client/src/model/models";
@@ -15,6 +15,8 @@ import { switchMap } from "rxjs/operators";
 export class FriendRequestsComponent implements OnInit, OnDestroy {
     private destroy$ = new Subject<void>();
     incomingRequests: FriendDTO[] = [];
+    
+    @Output() requestCountChange = new EventEmitter<number>();
 
     constructor(
         private friendsService: FriendsService,
@@ -52,9 +54,11 @@ export class FriendRequestsComponent implements OnInit, OnDestroy {
         this.friendsService.getIncomingRequests().subscribe({
             next: (requests) => {
                 this.incomingRequests = requests;
+                this.requestCountChange.emit(requests.length);
             },
             error: (error) => {
                 console.error("Error loading incoming requests:", error);
+                this.requestCountChange.emit(0);
             },
         });
     }
@@ -67,6 +71,7 @@ export class FriendRequestsComponent implements OnInit, OnDestroy {
             .subscribe({
                 next: (incoming) => {
                     this.incomingRequests = incoming;
+                    this.requestCountChange.emit(incoming.length);
                     this.messageService.add({
                         severity: "success",
                         summary: "Success",
@@ -92,6 +97,7 @@ export class FriendRequestsComponent implements OnInit, OnDestroy {
             .subscribe({
                 next: (incoming) => {
                     this.incomingRequests = incoming;
+                    this.requestCountChange.emit(incoming.length);
                     this.messageService.add({
                         severity: "info",
                         summary: "Declined",

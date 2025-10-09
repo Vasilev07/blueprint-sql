@@ -35,12 +35,14 @@ export class AllUsersComponent implements OnInit, OnDestroy {
         this.websocketService.onFriendRequestUpdated()
             .pipe(takeUntil(this.destroy$))
             .subscribe(() => {
+                console.log('Friend request updated event received - reloading statuses');
                 this.loadFriendshipStatuses();
             });
         
         this.websocketService.onFriendListUpdated()
             .pipe(takeUntil(this.destroy$))
             .subscribe(() => {
+                console.log('Friend list updated event received - reloading statuses');
                 this.loadFriendshipStatuses();
             });
     }
@@ -91,60 +93,47 @@ export class AllUsersComponent implements OnInit, OnDestroy {
     }
 
     async loadFriendshipStatuses() {
-        console.log('Loading friendship statuses for', this.users.length, 'users');
-        for (const user of this.users) {
-            if (user.id && user.id !== this.currentUserId) {
-                try {
-                    const status = await this.friendsService.getFriendshipStatus(user.id).toPromise();
-                    console.log(`Status for user ${user.id} (${user.fullName}):`, status);
-                    this.friendRequests.set(user.id, status ?? "none");
-                } catch (error) {
-                    console.error(`Error loading friendship status for user ${user.id}:`, error);
-                    this.friendRequests.set(user.id, "none");
-                }
+        console.log('Loading friendship statuses in batch');
+        try {
+            const statusMap = await this.friendsService.getBatchFriendshipStatuses().toPromise() as any;
+            
+            console.log('Batch statuses received:', statusMap);
+            
+            // Clear existing statuses
+            this.friendRequests.clear();
+            
+            // Set statuses from the batch response
+            if (statusMap && typeof statusMap === 'object') {
+                Object.entries(statusMap).forEach(([userIdStr, status]: [string, any]) => {
+                    const userId = Number(userIdStr);
+                    this.friendRequests.set(userId, status ?? "none");
+                });
             }
+            
+            console.log('Friendship statuses map after batch load:', this.friendRequests);
+        } catch (error) {
+            console.error('Error loading batch friendship statuses:', error);
         }
-        console.log('Friendship statuses map:', this.friendRequests);
     }
 
     getButtonClass(userId: number): string {
         const status = this.friendRequests.get(userId);
-        switch (status) {
-            case "pending":
-                return "p-button-warning";
-            case "accepted":
-                return "p-button-success";
-            case "blocked":
-                return "p-button-danger";
-            case "none":
-            case null:
-            case undefined:
-            case "":
-                return "p-button-primary";
-            default:
-                console.warn(`Unknown friendship status: ${status}`);
-                return "p-button-primary";
-        }
+        if (status === "pending") return "p-button-warning";
+        if (status === "accepted") return "p-button-success";
+        if (status === "blocked") return "p-button-danger";
+        if (status === null || status === undefined) return "p-button-primary";
+        console.warn(`Unknown friendship status: ${status} for user ${userId}`);
+        return "p-button-primary";
     }
 
     getButtonLabel(userId: number): string {
         const status = this.friendRequests.get(userId);
-        switch (status) {
-            case "pending":
-                return "Request Sent";
-            case "accepted":
-                return "Friends";
-            case "blocked":
-                return "Blocked";
-                case "none":
-            case null:
-            case undefined:
-            case "":
-                return "Add Friend";
-            default:
-                console.warn(`Unknown friendship status: ${status}`);
-                return "Add Friend";
-        }
+        if (status === "pending") return "Request Sent";
+        if (status === "accepted") return "Friends";
+        if (status === "blocked") return "Blocked";
+        if (status === null || status === undefined) return "Add Friend";
+        console.warn(`Unknown friendship status: ${status} for user ${userId}`);
+        return "Add Friend";
     }
 
     sendFriendRequest(userId: number) {
