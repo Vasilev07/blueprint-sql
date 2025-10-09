@@ -2,6 +2,7 @@ import { DataSource } from "typeorm";
 import { User } from "./entities/user.entity";
 import { UserPhoto } from "./entities/user-photo.entity";
 import { Message } from "./entities/message.entity";
+import { UserFriend, FriendshipStatus } from "./entities/friend.entity";
 import { Role } from "./enums/role.enum";
 import { Gender } from "./enums/gender.enum";
 import * as bcrypt from "bcrypt";
@@ -13,7 +14,7 @@ const dataSource = new DataSource({
     username: "postgres",
     password: "postgres",
     database: "blueprint-sql",
-    entities: [User, UserPhoto, Message],
+    entities: [User, UserPhoto, Message, UserFriend],
     synchronize: true,
 });
 
@@ -263,10 +264,51 @@ async function seed() {
             console.log(`Created message: ${messageData.subject}`);
         }
 
+        // Create friend relationships
+        console.log("Creating friend relationships...");
+        const friendRepo = dataSource.getRepository(UserFriend);
+        
+        // Admin becomes friends with first 10 test users (or all if less than 10)
+        const friendCount = Math.min(10, createdUsers.length);
+        for (let i = 0; i < friendCount; i++) {
+            const friend = new UserFriend();
+            friend.userId = adminUser.id;
+            friend.friendId = createdUsers[i].id;
+            friend.status = FriendshipStatus.ACCEPTED;
+            await friendRepo.save(friend);
+
+            // Create reciprocal relationship
+            const friendReciprocal = new UserFriend();
+            friendReciprocal.userId = createdUsers[i].id;
+            friendReciprocal.friendId = adminUser.id;
+            friendReciprocal.status = FriendshipStatus.ACCEPTED;
+            await friendRepo.save(friendReciprocal);
+            
+            console.log(`Created friendship: Admin <-> ${createdUsers[i].email}`);
+        }
+
+        // Create some friendships between test users
+        if (createdUsers.length >= 2) {
+            const friend = new UserFriend();
+            friend.userId = createdUsers[0].id;
+            friend.friendId = createdUsers[1].id;
+            friend.status = FriendshipStatus.ACCEPTED;
+            await friendRepo.save(friend);
+
+            const friendReciprocal = new UserFriend();
+            friendReciprocal.userId = createdUsers[1].id;
+            friendReciprocal.friendId = createdUsers[0].id;
+            friendReciprocal.status = FriendshipStatus.ACCEPTED;
+            await friendRepo.save(friendReciprocal);
+            
+            console.log(`Created friendship: ${createdUsers[0].email} <-> ${createdUsers[1].email}`);
+        }
+
         const finalCount = await dataSource.getRepository(User).count();
+        const friendshipCount = await friendRepo.count();
         console.log("✅ Seed data created successfully!");
         console.log(
-            `Total users in DB: ${finalCount}. Messages created: ${messages.length}`,
+            `Total users in DB: ${finalCount}. Messages created: ${messages.length}. Friendships: ${friendshipCount}`,
         );
     } catch (error) {
         console.error("Error seeding database:", error);
