@@ -3,6 +3,7 @@ import { Socket, io } from "socket.io-client";
 import { Observable } from "rxjs";
 import { MessageDTO } from "../../typescript-api-client/src/model/models";
 import { AuthService } from "./auth.service";
+import { environment } from "../../environments/environment";
 
 @Injectable({
     providedIn: "root",
@@ -25,7 +26,7 @@ export class WebsocketService {
             }
         }
 
-        this.socket = io("http://localhost:3000", {
+        this.socket = io(environment.socketUrl, {
             query: {
                 email: email || "",
                 userId: userId,

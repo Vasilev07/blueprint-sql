@@ -1,169 +1,124 @@
 <div class="stories-container">
   <!-- Header -->
-      <div class="stories-header">
-      <div class="header-left">
-        <h1>Stories</h1>
-        <p>Share moments and discover amazing content from friends</p>
-      </div>
-      
-      <div class="header-right">
-        <button pButton 
-          label="Upload Story" 
-          icon="pi pi-plus" 
-          class="p-button-primary upload-btn"
-          (click)="onUploadClick()">
-        </button>
-      </div>
-    </div>
-
-  <!-- Search and Filters -->
-  <div class="stories-controls">
-    <div class="search-container">
-      <span class="p-input-icon-left">
-        <i class="pi pi-search"></i>
-        <input pInputText 
-          type="text" 
-          placeholder="Search stories, users, or tags..."
-          [(ngModel)]="searchQuery"
-          (keyup.enter)="onSearch()">
-      </span>
-    </div>
-    
-    <div class="category-filters">
-      <p-dropdown 
-        [options]="categories" 
-        [(ngModel)]="selectedCategory"
-        optionLabel="label"
-        optionValue="value"
-        placeholder="Select Category"
-        (onChange)="onCategoryChange()">
-      </p-dropdown>
-    </div>
+  <div class="stories-header">
+    <h1>Stories</h1>
   </div>
 
-  <!-- Stories Grid -->
-  <div class="stories-content">
+  <!-- Hot Stories Section -->
+  <div class="hot-stories-section">
     <div *ngIf="isLoading" class="loading-container">
       <i class="pi pi-spin pi-spinner"></i>
-      <p>Loading amazing stories...</p>
+      <p>Loading stories...</p>
     </div>
 
     <div *ngIf="!isLoading && stories.length === 0" class="empty-state">
       <i class="pi pi-video"></i>
-      <h3>No stories found</h3>
-      <p>Try adjusting your search or filters</p>
+      <h3>No stories yet</h3>
+      <p>Be the first to share a story</p>
       <button pButton 
-        label="Upload First Story" 
+        label="Create Story" 
         icon="pi pi-plus" 
         class="p-button-primary"
         (click)="onUploadClick()">
       </button>
     </div>
 
-    <div *ngIf="!isLoading && stories.length > 0" class="stories-grid">
-      <div class="story-card" 
-           *ngFor="let story of stories" 
-           (click)="onStoryClick(story)"
-           style="cursor: pointer;">
-        
-        <!-- Story Thumbnail -->
-        <div class="story-thumbnail" (click)="onStoryClick(story)">
-          <img [src]="story.thumbnailUrl" [alt]="story.caption">
-          
-          <!-- Duration Badge -->
-          <div class="duration-badge">
-            {{ formatDuration(story.duration) }}
+    <div *ngIf="!isLoading" class="hot-stories-content">
+      <h2 class="section-title">HOT STORIES</h2>
+      
+      <div class="stories-cards-container">
+        <!-- Create Story Cards -->
+        <div class="create-story-card" (click)="onUploadClick()">
+          <div class="card-content">
+            <div class="create-icon">
+              <i class="pi pi-plus"></i>
+            </div>
+            <span class="create-text">Create story</span>
           </div>
-          
-          <!-- Time Remaining -->
-          <div class="time-remaining">
-            {{ getTimeRemaining(story.expiresAt) }}
-          </div>
-          
-          <!-- Play Button Overlay -->
-          <div class="play-overlay">
-            <i class="pi pi-play"></i>
+          <div class="shield-icon">
+            <i class="pi pi-shield"></i>
           </div>
         </div>
 
-        <!-- Story Info -->
-        <div class="story-info">
-          <div class="user-info">
-            <p-avatar 
-              [image]="story.userAvatar" 
-              [label]="story.userName?.charAt(0)?.toUpperCase() || '?'"
-              size="normal"
-              shape="circle">
-            </p-avatar>
-            <div class="user-details">
-              <span class="user-name">{{ story.userName }}</span>
-              <span class="story-time">{{ formatTime(story.createdAt) }}</span>
+        <!-- User Story Cards -->
+        <div class="story-card" 
+             *ngFor="let story of stories" 
+             (click)="onStoryClick(story)"
+             [class.viewed]="story.isViewed">
+          <div class="card-content">
+            <div class="story-avatar"
+                 [style.background-image]="story.userAvatar ? 'url(' + story.userAvatar + ')' : 'none'">
+              <span *ngIf="!story.userAvatar">{{ story.userName?.charAt(0)?.toUpperCase() }}</span>
+            </div>
+            <span class="username">{{ story.userName }}</span>
+            <div class="story-stats">
+              <span class="views">{{ story.views | number }}</span>
             </div>
           </div>
-
-          <div class="story-caption">
-            {{ story.caption }}
+          <div class="shield-icon">
+            <i class="pi pi-shield"></i>
           </div>
-
-          <div class="story-stats">
-            <div class="stat-item">
-              <i class="pi pi-eye"></i>
-              <span>{{ story.views.toLocaleString() }}</span>
-            </div>
-            <div class="stat-item">
-              <i class="pi pi-heart" [class.liked]="story.isLiked"></i>
-              <span>{{ story.likes.toLocaleString() }}</span>
-            </div>
-            <div class="stat-item">
-              <i class="pi pi-comments"></i>
-              <span>{{ story.comments.toLocaleString() }}</span>
-            </div>
-          </div>
-
-          <!-- Story Tags -->
-          <div class="story-tags">
-            <span class="tag" *ngFor="let tag of story.tags">
-              #{{ tag }}
-            </span>
-          </div>
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="story-actions" (click)="$event.stopPropagation()">
-          <button pButton 
-            type="button"
-            icon="pi pi-heart" 
-            [class]="story.isLiked ? 'p-button-danger p-button-outlined' : 'p-button-outlined'"
-            [class.liked]="story.isLiked"
-            (click)="onLikeStory(story, $event)"
-            pTooltip="Like">
-          </button>
-          
-          <button pButton 
-            type="button"
-            icon="pi pi-share-alt" 
-            class="p-button-outlined"
-            (click)="onShareStory(story, $event)"
-            pTooltip="Share">
-          </button>
-          
-          <button pButton 
-            type="button"
-            icon="pi pi-ellipsis-v" 
-            class="p-button-outlined"
-            (click)="onMoreOptions(story, $event)"
-            pTooltip="More Options">
-          </button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Floating Upload Button -->
-  <button pButton 
-    icon="pi pi-plus" 
-    class="p-button-rounded p-button-primary floating-upload-btn"
-    (click)="onUploadClick()"
-    pTooltip="Upload Story">
+  <!-- Stories Grid (Alternative View) -->
+  <div class="stories-grid-section" *ngIf="!isLoading && stories.length > 0">
+    <div class="section-header">
+      <h2>All Stories</h2>
+      <div class="filter-buttons">
+        <button 
+          *ngFor="let category of categories"
+          class="filter-btn"
+          [class.active]="selectedCategory === category.value"
+          (click)="selectedCategory = category.value; onCategoryChange()">
+          {{ category.label }}
+        </button>
+      </div>
+    </div>
+
+    <div class="stories-grid">
+      <div class="story-grid-card" 
+           *ngFor="let story of stories" 
+           (click)="onStoryClick(story)">
+        
+        <div class="story-thumbnail">
+          <img [src]="story.thumbnailUrl" [alt]="story.caption">
+          
+          <div class="story-overlay">
+            <div class="user-badge">
+              <div class="user-avatar-small"
+                   [style.background-image]="story.userAvatar ? 'url(' + story.userAvatar + ')' : 'none'">
+                <span *ngIf="!story.userAvatar">{{ story.userName?.charAt(0)?.toUpperCase() }}</span>
+              </div>
+              <span class="user-name">{{ story.userName }}</span>
+            </div>
+            
+            <div class="story-stats-overlay">
+              <div class="stat">
+                <i class="pi pi-eye"></i>
+                <span>{{ story.views | number }}</span>
+              </div>
+              <div class="stat">
+                <i class="pi pi-heart" [class.liked]="story.isLiked"></i>
+                <span>{{ story.likes | number }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="time-badge">
+            {{ formatTime(story.createdAt) }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Upload Button (Mobile) -->
+  <button 
+    class="floating-upload-btn"
+    (click)="onUploadClick()">
+    <i class="pi pi-plus"></i>
   </button>
-</div> 
+</div>

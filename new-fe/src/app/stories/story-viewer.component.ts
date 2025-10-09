@@ -4,6 +4,7 @@ import {
     OnDestroy,
     ViewChild,
     ElementRef,
+    HostListener,
 } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
 import { Subject, takeUntil } from "rxjs";
@@ -42,6 +43,16 @@ export class StoryViewerComponent implements OnInit, OnDestroy {
     liveViewerCount = 0;
     private viewerInterval: any;
 
+    // Touch gesture handling
+    private touchStartX = 0;
+    private touchStartY = 0;
+    private touchEndX = 0;
+    private touchEndY = 0;
+
+    // Progress tracking
+    private progressInterval: any;
+    storyProgress = 0;
+
     constructor(
         private route: ActivatedRoute,
         private router: Router,
@@ -71,6 +82,30 @@ export class StoryViewerComponent implements OnInit, OnDestroy {
         this.destroy$.next();
         this.destroy$.complete();
         this.stopLiveViewerSimulation();
+        this.stopProgressAnimation();
+    }
+
+    @HostListener("document:keydown.escape", ["$event"])
+    onEscapeKey(event: KeyboardEvent): void {
+        this.onClose();
+    }
+
+    @HostListener("document:keydown.arrowleft", ["$event"])
+    onLeftArrowKey(event: KeyboardEvent): void {
+        event.preventDefault();
+        this.previousStory();
+    }
+
+    @HostListener("document:keydown.arrowright", ["$event"])
+    onRightArrowKey(event: KeyboardEvent): void {
+        event.preventDefault();
+        this.nextStory();
+    }
+
+    @HostListener("document:keydown.space", ["$event"])
+    onSpaceKey(event: KeyboardEvent): void {
+        event.preventDefault();
+        this.togglePlayPause();
     }
 
     private loadStories(): void {
@@ -193,6 +228,7 @@ export class StoryViewerComponent implements OnInit, OnDestroy {
         if (this.videoPlayer?.nativeElement) {
             this.duration = this.videoPlayer.nativeElement.duration;
             console.log("Video duration:", this.duration);
+            this.startProgressAnimation();
         }
     }
 
@@ -376,5 +412,76 @@ export class StoryViewerComponent implements OnInit, OnDestroy {
 
     onClose(): void {
         this.router.navigate(["/live-tv"]);
+    }
+
+    // Touch gesture handlers for mobile
+    onTouchStart(event: TouchEvent): void {
+        this.touchStartX = event.changedTouches[0].screenX;
+        this.touchStartY = event.changedTouches[0].screenY;
+    }
+
+    onTouchMove(event: TouchEvent): void {
+        this.touchEndX = event.changedTouches[0].screenX;
+        this.touchEndY = event.changedTouches[0].screenY;
+    }
+
+    onTouchEnd(event: TouchEvent): void {
+        this.handleSwipeGesture();
+    }
+
+    private handleSwipeGesture(): void {
+        const deltaX = this.touchEndX - this.touchStartX;
+        const deltaY = this.touchEndY - this.touchStartY;
+        const minSwipeDistance = 50;
+
+        // Horizontal swipe (left/right navigation)
+        if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > minSwipeDistance) {
+            if (deltaX > 0) {
+                // Swipe right - previous story
+                this.previousStory();
+            } else {
+                // Swipe left - next story
+                this.nextStory();
+            }
+        }
+        // Vertical swipe down (close)
+        else if (deltaY > minSwipeDistance && Math.abs(deltaY) > Math.abs(deltaX)) {
+            this.onClose();
+        }
+    }
+
+    // Progress bar calculation
+    getProgressWidth(index: number): number {
+        if (index < this.currentStoryIndex) {
+            return 100; // Completed
+        } else if (index === this.currentStoryIndex) {
+            return this.storyProgress; // Active
+        }
+        return 0; // Not started
+    }
+
+    private startProgressAnimation(): void {
+        this.storyProgress = 0;
+        this.stopProgressAnimation();
+
+        if (this.duration > 0) {
+            const updateInterval = 100; // Update every 100ms
+            this.progressInterval = setInterval(() => {
+                if (this.isPlaying && this.duration > 0) {
+                    this.storyProgress = (this.currentTime / this.duration) * 100;
+                    
+                    if (this.storyProgress >= 100) {
+                        this.stopProgressAnimation();
+                    }
+                }
+            }, updateInterval);
+        }
+    }
+
+    private stopProgressAnimation(): void {
+        if (this.progressInterval) {
+            clearInterval(this.progressInterval);
+            this.progressInterval = null;
+        }
     }
 }

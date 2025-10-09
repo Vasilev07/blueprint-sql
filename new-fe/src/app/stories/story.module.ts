@@ -21,6 +21,7 @@ import { ToastModule } from "primeng/toast";
 import { ConfirmDialogModule } from "primeng/confirmdialog";
 import { SliderModule } from "primeng/slider";
 import { CheckboxModule } from "primeng/checkbox";
+import { MessageService } from "primeng/api";
 
 import { StoryHomeComponent } from "./story-home.component";
 import { StoryViewerComponent } from "./story-viewer.component";
@@ -79,6 +80,7 @@ const routes: Routes = [
         SliderModule,
         CheckboxModule,
     ],
+    providers: [MessageService],
 })
 export class StoryModule {}
 

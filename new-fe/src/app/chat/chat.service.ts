@@ -10,6 +10,7 @@ import {
 import { FriendsService } from "src/typescript-api-client/src/api/friends.service";
 import { ChatService as ChatApiService } from "src/typescript-api-client/src/api/chat.service";
 import { WebsocketService } from "../services/websocket.service";
+import { environment } from "../../environments/environment";
 
 export interface User {
     id: string;
@@ -274,7 +275,7 @@ export class ChatService {
     getOrCreateConversation(otherUserId: number): Observable<{ id: number }> {
         const currentUserId = this.getCurrentUserId();
         return this.httpClient.post<{ id: number }>(
-            "http://localhost:3000/chat/conversation",
+            `${environment.apiUrl}/chat/conversation`,
             { userId: currentUserId, otherUserId },
             { headers: this.getAuthHeaders() },
         );
