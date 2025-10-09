@@ -98,6 +98,8 @@ export class StoryHomeComponent implements OnInit, OnDestroy {
 
     onCategoryChange(): void {
         this.loadStories();
+        console.log('asd');
+
     }
 
     onSearch(): void {
