@@ -22,12 +22,12 @@ export class MyFriendsComponent implements OnInit, OnDestroy {
     ) {}
 
     ngOnInit() {
-        this.applyAuthHeaders();
         this.getCurrentUserId();
         this.loadMyFriends();
 
         // Listen for friend list updates
-        this.websocketService.onFriendListUpdated()
+        this.websocketService
+            .onFriendListUpdated()
             .pipe(takeUntil(this.destroy$))
             .subscribe(() => {
                 this.loadMyFriends();
@@ -37,14 +37,6 @@ export class MyFriendsComponent implements OnInit, OnDestroy {
     ngOnDestroy() {
         this.destroy$.next();
         this.destroy$.complete();
-    }
-
-    private applyAuthHeaders() {
-        const token = localStorage.getItem("id_token");
-        if (token) {
-            const authHeader = `Bearer ${token}`;
-            this.friendsService.defaultHeaders = this.friendsService.defaultHeaders.set("Authorization", authHeader);
-        }
     }
 
     getCurrentUserId() {
@@ -97,4 +89,3 @@ export class MyFriendsComponent implements OnInit, OnDestroy {
         return "";
     }
 }
-

@@ -1,10 +1,16 @@
-import { Component, OnInit, OnDestroy, Output, EventEmitter } from "@angular/core";
+import {
+    Component,
+    OnInit,
+    OnDestroy,
+    Output,
+    EventEmitter,
+} from "@angular/core";
 import { MessageService } from "primeng/api";
 import { FriendsService } from "src/typescript-api-client/src/api/api";
 import { FriendDTO } from "src/typescript-api-client/src/model/models";
 import { WebsocketService } from "../../services/websocket.service";
 import { PresenceService } from "../../services/presence.service";
-import { forkJoin, Subject, takeUntil } from "rxjs";
+import { Subject, takeUntil } from "rxjs";
 import { switchMap } from "rxjs/operators";
 
 @Component({
@@ -15,7 +21,7 @@ import { switchMap } from "rxjs/operators";
 export class FriendRequestsComponent implements OnInit, OnDestroy {
     private destroy$ = new Subject<void>();
     incomingRequests: FriendDTO[] = [];
-    
+
     @Output() requestCountChange = new EventEmitter<number>();
 
     constructor(
@@ -30,7 +36,8 @@ export class FriendRequestsComponent implements OnInit, OnDestroy {
         this.loadIncomingRequests();
 
         // Listen for new friend requests
-        this.websocketService.onFriendRequestCreated()
+        this.websocketService
+            .onFriendRequestCreated()
             .pipe(takeUntil(this.destroy$))
             .subscribe(() => {
                 this.loadIncomingRequests();
@@ -46,7 +53,11 @@ export class FriendRequestsComponent implements OnInit, OnDestroy {
         const token = localStorage.getItem("id_token");
         if (token) {
             const authHeader = `Bearer ${token}`;
-            this.friendsService.defaultHeaders = this.friendsService.defaultHeaders.set("Authorization", authHeader);
+            this.friendsService.defaultHeaders =
+                this.friendsService.defaultHeaders.set(
+                    "Authorization",
+                    authHeader,
+                );
         }
     }
 
@@ -64,10 +75,9 @@ export class FriendRequestsComponent implements OnInit, OnDestroy {
     }
 
     acceptFriendRequest(friendId: number) {
-        this.friendsService.respondToRequest(friendId, { status: "accepted" } as any)
-            .pipe(
-                switchMap(() => this.friendsService.getIncomingRequests())
-            )
+        this.friendsService
+            .respondToRequest(friendId, { status: "accepted" } as any)
+            .pipe(switchMap(() => this.friendsService.getIncomingRequests()))
             .subscribe({
                 next: (incoming) => {
                     this.incomingRequests = incoming;
@@ -90,10 +100,9 @@ export class FriendRequestsComponent implements OnInit, OnDestroy {
     }
 
     declineFriendRequest(friendId: number) {
-        this.friendsService.respondToRequest(friendId, { status: "blocked" } as any)
-            .pipe(
-                switchMap(() => this.friendsService.getIncomingRequests())
-            )
+        this.friendsService
+            .respondToRequest(friendId, { status: "blocked" } as any)
+            .pipe(switchMap(() => this.friendsService.getIncomingRequests()))
             .subscribe({
                 next: (incoming) => {
                     this.incomingRequests = incoming;
@@ -129,4 +138,3 @@ export class FriendRequestsComponent implements OnInit, OnDestroy {
         return "U";
     }
 }
-

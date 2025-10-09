@@ -2,7 +2,6 @@ import { Component, OnInit, OnDestroy } from "@angular/core";
 import { Subject, takeUntil } from "rxjs";
 import { MessageService } from "primeng/api";
 import { Router } from "@angular/router";
-import { AuthService } from "../services/auth.service";
 import { OnlineStatusService } from "../services/online-status.service";
 import { environment } from "src/environments/environment";
 import {
@@ -39,7 +38,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
     constructor(
         private messageService: MessageService,
-        private authService: AuthService,
         private userService: UserService,
         private friendsService: FriendsService,
         private router: Router,
@@ -187,11 +185,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
             } as any)
             .pipe(takeUntil(this.destroy$))
             .subscribe({
-                next: (response: any) => {
-                    // Update token if provided
-                    if (response.token) {
-                        localStorage.setItem("id_token", response.token);
-                    }
+                next: () => {
                     // Reload user data
                     this.loadCurrentUser();
                     this.showEditDialog = false;

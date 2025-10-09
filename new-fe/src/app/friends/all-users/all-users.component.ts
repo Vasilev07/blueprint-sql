@@ -1,6 +1,9 @@
 import { Component, OnInit, OnDestroy } from "@angular/core";
 import { MessageService } from "primeng/api";
-import { UserService, FriendsService } from "src/typescript-api-client/src/api/api";
+import {
+    UserService,
+    FriendsService,
+} from "src/typescript-api-client/src/api/api";
 import { UserDTO } from "src/typescript-api-client/src/model/models";
 import { AuthService } from "../../services/auth.service";
 import { WebsocketService } from "../../services/websocket.service";
@@ -32,17 +35,23 @@ export class AllUsersComponent implements OnInit, OnDestroy {
         this.loadUsers();
 
         // Listen for friendship changes and reload statuses
-        this.websocketService.onFriendRequestUpdated()
+        this.websocketService
+            .onFriendRequestUpdated()
             .pipe(takeUntil(this.destroy$))
             .subscribe(() => {
-                console.log('Friend request updated event received - reloading statuses');
+                console.log(
+                    "Friend request updated event received - reloading statuses",
+                );
                 this.loadFriendshipStatuses();
             });
-        
-        this.websocketService.onFriendListUpdated()
+
+        this.websocketService
+            .onFriendListUpdated()
             .pipe(takeUntil(this.destroy$))
             .subscribe(() => {
-                console.log('Friend list updated event received - reloading statuses');
+                console.log(
+                    "Friend list updated event received - reloading statuses",
+                );
                 this.loadFriendshipStatuses();
             });
     }
@@ -56,8 +65,16 @@ export class AllUsersComponent implements OnInit, OnDestroy {
         const token = localStorage.getItem("id_token");
         if (token) {
             const authHeader = `Bearer ${token}`;
-            this.userService.defaultHeaders = this.userService.defaultHeaders.set("Authorization", authHeader);
-            this.friendsService.defaultHeaders = this.friendsService.defaultHeaders.set("Authorization", authHeader);
+            this.userService.defaultHeaders =
+                this.userService.defaultHeaders.set(
+                    "Authorization",
+                    authHeader,
+                );
+            this.friendsService.defaultHeaders =
+                this.friendsService.defaultHeaders.set(
+                    "Authorization",
+                    authHeader,
+                );
         }
     }
 
@@ -93,26 +110,33 @@ export class AllUsersComponent implements OnInit, OnDestroy {
     }
 
     async loadFriendshipStatuses() {
-        console.log('Loading friendship statuses in batch');
+        console.log("Loading friendship statuses in batch");
         try {
-            const statusMap = await this.friendsService.getBatchFriendshipStatuses().toPromise() as any;
-            
-            console.log('Batch statuses received:', statusMap);
-            
+            const statusMap = (await this.friendsService
+                .getBatchFriendshipStatuses()
+                .toPromise()) as any;
+
+            console.log("Batch statuses received:", statusMap);
+
             // Clear existing statuses
             this.friendRequests.clear();
-            
+
             // Set statuses from the batch response
-            if (statusMap && typeof statusMap === 'object') {
-                Object.entries(statusMap).forEach(([userIdStr, status]: [string, any]) => {
-                    const userId = Number(userIdStr);
-                    this.friendRequests.set(userId, status ?? "none");
-                });
+            if (statusMap && typeof statusMap === "object") {
+                Object.entries(statusMap).forEach(
+                    ([userIdStr, status]: [string, any]) => {
+                        const userId = Number(userIdStr);
+                        this.friendRequests.set(userId, status ?? "none");
+                    },
+                );
             }
-            
-            console.log('Friendship statuses map after batch load:', this.friendRequests);
+
+            console.log(
+                "Friendship statuses map after batch load:",
+                this.friendRequests,
+            );
         } catch (error) {
-            console.error('Error loading batch friendship statuses:', error);
+            console.error("Error loading batch friendship statuses:", error);
         }
     }
 
@@ -175,4 +199,3 @@ export class AllUsersComponent implements OnInit, OnDestroy {
         });
     }
 }
-
