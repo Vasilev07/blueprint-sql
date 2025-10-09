@@ -1,7 +1,7 @@
 .profile-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-  color: white;
+  background: var(--surface-ground);
+  color: var(--text-color);
   padding: 2rem;
 }
 
@@ -11,10 +11,9 @@
   align-items: center;
   margin-bottom: 2rem;
   padding: 1.5rem;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--surface-card);
   border-radius: 12px;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--surface-border);
 }
 
 .user-info {
@@ -25,7 +24,7 @@
   font-size: 2.5rem;
   font-weight: 700;
   margin: 0 0 0.5rem 0;
-  background: linear-gradient(45deg, #ff6b9d, #ff8fab);
+  background: linear-gradient(45deg, var(--primary-color), var(--primary-600));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -42,16 +41,16 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: #b0b0b0;
+  color: var(--text-color-secondary);
   font-size: 0.9rem;
 
   i {
-    color: #ff6b9d;
+    color: var(--primary-color);
   }
 }
 
 .profile-avatar {
-  background: linear-gradient(45deg, #ff6b9d, #ff8fab) !important;
+  background: linear-gradient(45deg, var(--primary-color), var(--primary-600)) !important;
   font-size: 2rem !important;
   width: 120px !important;
   height: 120px !important;
@@ -64,10 +63,9 @@
 }
 
 .content-area {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--surface-card);
   border-radius: 12px;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--surface-border);
   overflow: hidden;
 }
 
@@ -80,20 +78,20 @@
     .p-tabview-nav-link {
       background: transparent;
       border: none;
-      color: #b0b0b0;
+      color: var(--text-color-secondary);
       padding: 1rem 1.5rem;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       
       &:hover {
-        color: white;
-        background: rgba(255, 107, 157, 0.1);
+        color: var(--text-color);
+        background: rgba(var(--primary-color-rgb), 0.1);
       }
       
       &.p-highlight {
-        color: #ff6b9d;
-        border-bottom: 3px solid #ff6b9d;
+        color: var(--primary-color);
+        border-bottom: 3px solid var(--primary-color);
         background: transparent;
       }
     }
@@ -111,7 +109,7 @@
   }
   
   .create-gallery-btn {
-    background: linear-gradient(45deg, #ff6b9d, #ff8fab) !important;
+    background: var(--primary-color) !important;
     border: none !important;
     color: white !important;
     padding: 0.75rem 1.5rem !important;
@@ -121,14 +119,15 @@
     border-radius: 8px !important;
     
     &:hover {
+      background: var(--primary-600) !important;
       transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(255, 107, 157, 0.3);
+      box-shadow: 0 8px 25px rgba(var(--primary-color-rgb), 0.3);
     }
   }
 }
 
 .section-title {
-  color: #ff6b9d;
+  color: var(--primary-color);
   font-size: 0.9rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -137,7 +136,7 @@
 }
 
 .empty-galleries {
-  color: #b0b0b0;
+  color: var(--text-color-secondary);
   font-style: italic;
   margin-bottom: 2rem;
 }
@@ -147,8 +146,8 @@
     margin-bottom: 1rem;
     
     .visibility-label {
-      background: rgba(255, 107, 157, 0.2);
-      color: #ff6b9d;
+      background: rgba(var(--primary-color-rgb), 0.2);
+      color: var(--primary-color);
       padding: 0.25rem 0.75rem;
       border-radius: 20px;
       font-size: 0.8rem;
@@ -161,7 +160,7 @@
 
 .profile-images-gallery {
   .empty-gallery {
-    background: linear-gradient(135deg, #ff6b9d, #ff8fab);
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-600));
     border-radius: 12px;
     padding: 3rem;
     text-align: center;
@@ -196,7 +195,7 @@
       aspect-ratio: 1;
       border-radius: 12px;
       overflow: hidden;
-      background: rgba(255, 255, 255, 0.1);
+      background: var(--surface-100);
       
       .photo-image {
         width: 100%;
@@ -233,14 +232,14 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      border: 2px dashed rgba(255, 107, 157, 0.5);
+      border: 2px dashed var(--primary-color);
       border-radius: 12px;
-      background: rgba(255, 107, 157, 0.1);
+      background: rgba(var(--primary-color-rgb), 0.1);
       transition: all 0.3s ease;
       
       &:hover {
-        border-color: #ff6b9d;
-        background: rgba(255, 107, 157, 0.2);
+        border-color: var(--primary-600);
+        background: rgba(var(--primary-color-rgb), 0.2);
       }
     }
   }
@@ -249,15 +248,15 @@
 // File upload styling
 ::ng-deep .upload-button {
   .p-button {
-    background: white !important;
-    color: #ff6b9d !important;
-    border: none !important;
+    background: var(--surface-card) !important;
+    color: var(--primary-color) !important;
+    border: 1px solid var(--primary-color) !important;
     padding: 0.75rem 1.5rem !important;
     font-weight: 600 !important;
     border-radius: 8px !important;
     
     &:hover {
-      background: #f8f9fa !important;
+      background: rgba(var(--primary-color-rgb), 0.1) !important;
       transform: translateY(-2px);
     }
   }
@@ -266,15 +265,15 @@
 ::ng-deep .add-photo-button {
   .p-button {
     background: transparent !important;
-    color: #ff6b9d !important;
-    border: 2px solid #ff6b9d !important;
+    color: var(--primary-color) !important;
+    border: 2px solid var(--primary-color) !important;
     width: 60px !important;
     height: 60px !important;
     border-radius: 50% !important;
     font-size: 1.5rem !important;
     
     &:hover {
-      background: #ff6b9d !important;
+      background: var(--primary-color) !important;
       color: white !important;
     }
   }
@@ -282,10 +281,9 @@
 
 // Right Sidebar
 .right-sidebar {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--surface-card);
   border-radius: 12px;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--surface-border);
   padding: 1.5rem;
   height: fit-content;
 }
@@ -305,7 +303,7 @@
       margin-bottom: 1rem;
       
       h4 {
-        color: #ff6b9d;
+        color: var(--primary-color);
         font-size: 0.9rem;
         font-weight: 700;
         text-transform: uppercase;
@@ -314,12 +312,12 @@
       }
       
       i {
-        color: #ff6b9d;
+        color: var(--primary-color);
         margin-right: 0.5rem;
       }
       
       span {
-        color: white;
+        color: var(--text-color);
         font-weight: 600;
       }
     }
@@ -332,12 +330,12 @@
     align-items: center;
     gap: 0.75rem;
     padding: 0.75rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid var(--surface-border);
     border-radius: 8px;
     transition: background 0.2s ease;
     
     &:hover {
-      background: rgba(255, 255, 255, 0.05);
+      background: var(--surface-100);
       
       .chat-button {
         opacity: 1;
@@ -358,12 +356,12 @@
         width: 12px;
         height: 12px;
         border-radius: 50%;
-        background: #6c757d;
-        border: 2px solid #1a1a1a;
+        background: var(--surface-400);
+        border: 2px solid var(--surface-ground);
         
         &.online {
-          background: #22c55e;
-          box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
+          background: var(--green-500);
+          box-shadow: 0 0 8px rgba(var(--green-500-rgb), 0.5);
         }
       }
     }
@@ -375,31 +373,31 @@
       gap: 0.25rem;
       
       .friend-name {
-        color: white;
+        color: var(--text-color);
         font-weight: 500;
         font-size: 0.95rem;
       }
       
       .friend-status {
-        color: #22c55e;
+        color: var(--green-500);
         font-size: 0.75rem;
         font-weight: 500;
       }
     }
     
     .chat-button {
-      color: #ff6b9d !important;
+      color: var(--primary-color) !important;
       opacity: 0;
       transition: opacity 0.2s ease;
       
       &:hover {
-        background: rgba(255, 107, 157, 0.1) !important;
+        background: rgba(var(--primary-color-rgb), 0.1) !important;
       }
     }
   }
   
   .no-friends {
-    color: #b0b0b0;
+    color: var(--text-color-secondary);
     font-style: italic;
     text-align: center;
     padding: 1rem 0;
@@ -411,25 +409,25 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--surface-100);
   border-radius: 8px;
   
   i {
-    color: #ff6b9d;
+    color: var(--primary-color);
     font-size: 1.1rem;
   }
   
   span {
-    color: white;
+    color: var(--text-color);
     font-weight: 500;
   }
 }
 
 .add-friend-btn {
-  color: #ff6b9d !important;
+  color: var(--primary-color) !important;
   
   &:hover {
-    background: rgba(255, 107, 157, 0.1) !important;
+    background: rgba(var(--primary-color-rgb), 0.1) !important;
   }
 }
 
@@ -440,7 +438,7 @@
 
     label {
       display: block;
-      color: #333;
+      color: var(--text-color);
       font-weight: 600;
       margin-bottom: 0.5rem;
     }
@@ -457,7 +455,7 @@
 }
 
 ::ng-deep .p-progress-spinner-circle {
-  stroke: #ff6b9d !important;
+  stroke: var(--primary-color) !important;
 }
 
 // Responsive design
