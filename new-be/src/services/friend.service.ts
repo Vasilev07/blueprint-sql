@@ -122,22 +122,24 @@ export class FriendService {
         return friendship?.status || null;
     }
 
-    async getBatchFriendshipStatuses(req: any): Promise<Record<number, FriendshipStatus | null>> {
+    async getBatchFriendshipStatuses(
+        req: any,
+    ): Promise<Record<number, FriendshipStatus | null>> {
         const userId = this.getUserIdFromRequest(req);
 
         // Get all friendships where current user is involved
         const friendships = await this.entityManager.find(UserFriend, {
-            where: [
-                { userId },
-                { friendId: userId },
-            ],
+            where: [{ userId }, { friendId: userId }],
         });
 
         const statusMap: Record<number, FriendshipStatus | null> = {};
-        
+
         for (const friendship of friendships) {
             // Determine the other user's ID
-            const otherUserId = friendship.userId === userId ? friendship.friendId : friendship.userId;
+            const otherUserId =
+                friendship.userId === userId
+                    ? friendship.friendId
+                    : friendship.userId;
             statusMap[otherUserId] = friendship.status;
         }
 
