@@ -3,7 +3,6 @@ import { InjectEntityManager } from "@nestjs/typeorm";
 import { EntityManager } from "typeorm";
 import { UserFriend, FriendshipStatus } from "../entities/friend.entity";
 import { FriendDTO } from "../models/friend.dto";
-import * as jwt from "jsonwebtoken";
 import { FriendGateway } from "../gateways/friend.gateway";
 import { User } from "../entities/user.entity";
 
@@ -15,21 +14,7 @@ export class FriendService {
     ) {}
 
     private getUserIdFromRequest(req: any): number {
-        console.log("Request headers:", req.headers);
-        const authHeader = req.headers.authorization;
-        if (!authHeader) {
-            console.error("No authorization header found");
-            throw new Error("No authorization header");
-        }
-
-        const token = authHeader.split(" ")[1];
-        if (!token) {
-            console.error("No token found in authorization header");
-            throw new Error("No token found in authorization header");
-        }
-
-        const decoded = jwt.verify(token, "secred") as any;
-        return decoded.id;
+        return req.user.id;
     }
 
     async createFriendRequest(friendId: number, req: any): Promise<FriendDTO> {

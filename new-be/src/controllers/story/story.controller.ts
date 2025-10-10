@@ -24,6 +24,7 @@ import { StoryService } from "../../services/story.service";
 import { StoryDTO } from "../../models/story.dto";
 import { StoryUploadResponseDTO } from "../../models/story-upload-response.dto";
 import { Response } from "express";
+import { Public } from "../../decorators/public.decorator";
 import * as path from "path";
 import * as fs from "fs";
 
@@ -183,18 +184,6 @@ export class StoryController {
     }
 
     private getUserIdFromRequest(req: any): number {
-        const token = req.headers.authorization?.split(" ")[1];
-        if (!token) {
-            throw new BadRequestException("No token provided");
-        }
-
-        try {
-            const decoded = JSON.parse(
-                Buffer.from(token.split(".")[1], "base64").toString(),
-            );
-            return decoded.id;
-        } catch {
-            throw new BadRequestException("Invalid token");
-        }
+        return req.user.id;
     }
 }

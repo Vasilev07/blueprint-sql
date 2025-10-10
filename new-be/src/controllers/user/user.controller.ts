@@ -29,6 +29,7 @@ import { User } from "@entities/user.entity";
 import { UserDTO } from "../../models/user.dto";
 import { UserPhotoDTO } from "../../models/user-photo.dto";
 import { Response } from "express";
+import { Public } from "../../decorators/public.decorator";
 
 @Controller("/auth")
 @ApiTags("User")
@@ -66,6 +67,7 @@ export class UserController {
         return await this.userService.checkEmailAvailability(email);
     }
 
+    @Public()
     @Post("/login")
     @ApiBody({
         schema: {
@@ -122,6 +124,7 @@ export class UserController {
         return { token, expiresIn: 3600 };
     }
 
+    @Public()
     @Post("/register")
     @HttpCode(HttpStatus.CREATED)
     @ApiOperation({ summary: "Register a new user" })

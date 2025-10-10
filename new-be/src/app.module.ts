@@ -1,4 +1,5 @@
 import { Module } from "@nestjs/common";
+import { APP_GUARD } from "@nestjs/core";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { UserModule } from "./controllers/user/user.module";
@@ -15,6 +16,7 @@ import { MessageGateway } from "./gateways/message.gateway";
 import { ChatModule } from "./controllers/chat/chat.module";
 import { StoryModule } from "./controllers/story/story.module";
 import { ConfigModule } from "@nestjs/config";
+import { AuthGuard } from "./guards/auth.guard";
 
 @Module({
     imports: [
@@ -37,6 +39,14 @@ import { ConfigModule } from "@nestjs/config";
         StoryModule,
     ],
     controllers: [AppController],
-    providers: [AppService, MulterConfigService, MessageGateway],
+    providers: [
+        AppService,
+        MulterConfigService,
+        MessageGateway,
+        {
+            provide: APP_GUARD,
+            useClass: AuthGuard,
+        },
+    ],
 })
 export class AppModule {}

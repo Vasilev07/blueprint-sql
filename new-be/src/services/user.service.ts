@@ -1,4 +1,13 @@
-import { Inject, Injectable, OnModuleInit, NotFoundException, UnauthorizedException, ConflictException, BadRequestException } from "@nestjs/common";
+import {
+    Inject,
+    Injectable,
+    OnModuleInit,
+    NotFoundException,
+    UnauthorizedException,
+    ConflictException,
+    BadRequestException,
+} from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { UserDTO } from "../models/user.dto";
 import { UserPhotoDTO } from "../models/user-photo.dto";
 import { sign } from "jsonwebtoken";
@@ -16,6 +25,7 @@ export class UserService implements OnModuleInit {
     constructor(
         private cryptoService: CryptoService,
         private entityManager: EntityManager,
+        private configService: ConfigService,
         @Inject(MapperService) private readonly mapperService: MapperService,
     ) {
         // this.userMapper = this.mapperService.getMapper("User");
@@ -25,14 +35,16 @@ export class UserService implements OnModuleInit {
         this.userMapper = this.mapperService.getMapper("User");
     }
 
-    async checkEmailAvailability(email: string): Promise<{ available: boolean }> {
+    async checkEmailAvailability(
+        email: string,
+    ): Promise<{ available: boolean }> {
         const user = await this.findOneByEmail(email);
         return { available: user === null || user === undefined };
     }
 
     async register(dto: UserDTO) {
         // Validate email
-        if (!dto.email || !dto.email.includes('@')) {
+        if (!dto.email || !dto.email.includes("@")) {
             throw new BadRequestException("Invalid email address");
         }
 
@@ -49,7 +61,9 @@ export class UserService implements OnModuleInit {
 
         // Validate password strength (optional but recommended)
         if (dto.password.length < 6) {
-            throw new BadRequestException("Password must be at least 6 characters long");
+            throw new BadRequestException(
+                "Password must be at least 6 characters long",
+            );
         }
 
         // Validate full name
@@ -59,7 +73,9 @@ export class UserService implements OnModuleInit {
 
         const names = dto.fullName.trim().split(" ");
         if (names.length < 2) {
-            throw new BadRequestException("Please provide both first name and last name");
+            throw new BadRequestException(
+                "Please provide both first name and last name",
+            );
         }
 
         const adminToSave: User = new User();
@@ -71,7 +87,7 @@ export class UserService implements OnModuleInit {
         adminToSave.password = hashedPassword;
         adminToSave.firstname = names[0];
         adminToSave.lastname = names[names.length - 1];
-        
+
         // Set optional fields
         if (dto.gender) {
             adminToSave.gender = dto.gender;
@@ -86,9 +102,23 @@ export class UserService implements OnModuleInit {
     }
 
     signForUser = (admin: User) => {
-        return sign({ name: admin.lastname, email: admin.email, id: admin.id }, "secred", {
-            expiresIn: "1h",
-        });
+        const jwtSecret = this.configService.get<string>("JWT_SECRET");
+        const jwtExpiresIn = this.configService.get<string>(
+            "JWT_EXPIRES_IN",
+            "1h",
+        );
+
+        return sign(
+            {
+                name: admin.lastname,
+                email: admin.email,
+                id: admin.id,
+            },
+            jwtSecret,
+            {
+                expiresIn: jwtExpiresIn,
+            },
+        );
     };
 
     async findOneByEmail(email: string) {
@@ -108,22 +138,27 @@ export class UserService implements OnModuleInit {
     private getUserIdFromRequest(req: any): number {
         const token = req.headers.authorization?.split(" ")[1];
         if (!token) throw new UnauthorizedException("No token provided");
-        
+
         try {
-            const decoded = JSON.parse(Buffer.from(token.split(".")[1], "base64").toString());
+            const decoded = JSON.parse(
+                Buffer.from(token.split(".")[1], "base64").toString(),
+            );
             return decoded.id;
         } catch {
             throw new UnauthorizedException("Invalid token");
         }
     }
 
-    async uploadPhoto(file: Express.Multer.File, req: any): Promise<UserPhotoDTO> {
+    async uploadPhoto(
+        file: Express.Multer.File,
+        req: any,
+    ): Promise<UserPhotoDTO> {
         if (!file) {
             throw new Error("No file provided");
         }
 
         const userId = this.getUserIdFromRequest(req);
-        
+
         const photo = new UserPhoto();
         photo.userId = userId;
         photo.name = file.originalname;
@@ -135,29 +170,29 @@ export class UserService implements OnModuleInit {
             id: saved.id,
             name: saved.name,
             userId: saved.userId,
-            uploadedAt: saved.uploadedAt
+            uploadedAt: saved.uploadedAt,
         };
     }
 
     async getUserPhotos(req: any): Promise<UserPhotoDTO[]> {
         const userId = this.getUserIdFromRequest(req);
-        
+
         const photos = await this.entityManager.find(UserPhoto, {
             where: { userId },
-            order: { uploadedAt: "DESC" }
+            order: { uploadedAt: "DESC" },
         });
 
-        return photos.map(p => ({
+        return photos.map((p) => ({
             id: p.id,
             name: p.name,
             userId: p.userId,
-            uploadedAt: p.uploadedAt
+            uploadedAt: p.uploadedAt,
         }));
     }
 
     async getPhoto(photoId: number): Promise<UserPhoto> {
         const photo = await this.entityManager.findOne(UserPhoto, {
-            where: { id: photoId }
+            where: { id: photoId },
         });
 
         if (!photo) {
@@ -169,9 +204,9 @@ export class UserService implements OnModuleInit {
 
     async getUser(req: any): Promise<UserDTO> {
         const userId = this.getUserIdFromRequest(req);
-        
+
         const user = await this.entityManager.findOne(User, {
-            where: { id: userId }
+            where: { id: userId },
         });
 
         if (!user) {
@@ -183,9 +218,9 @@ export class UserService implements OnModuleInit {
 
     async updateProfile(updateData: Partial<UserDTO>, req: any): Promise<User> {
         const userId = this.getUserIdFromRequest(req);
-        
+
         const user = await this.entityManager.findOne(User, {
-            where: { id: userId }
+            where: { id: userId },
         });
 
         if (!user) {
