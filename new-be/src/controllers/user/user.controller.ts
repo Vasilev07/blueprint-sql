@@ -191,6 +191,17 @@ export class UserController {
         return this.userService.getUserPhotos(req);
     }
 
+    @Get("photos/user/:userId")
+    @ApiOperation({ summary: "Get all photos for a specific user" })
+    @ApiResponse({
+        status: 200,
+        description: "Returns user photos",
+        type: [UserPhotoDTO],
+    })
+    async getUserPhotosByUserId(@Param("userId") userId: number): Promise<UserPhotoDTO[]> {
+        return this.userService.getUserPhotosByUserId(userId);
+    }
+
     @Get("photos/:photoId")
     @ApiOperation({ summary: "Get a specific photo by ID" })
     @ApiResponse({ 
@@ -255,6 +266,18 @@ export class UserController {
     })
     async getUser(@Req() req: any): Promise<UserDTO> {
         return this.userService.getUser(req);
+    }
+
+    @Get("user/:userId")
+    @ApiOperation({ summary: "Get user by ID" })
+    @ApiResponse({
+        status: 200,
+        description: "Returns user by ID",
+        type: UserDTO,
+    })
+    @ApiResponse({ status: 404, description: "User not found" })
+    async getUserById(@Param("userId") userId: number): Promise<UserDTO> {
+        return this.userService.getUserById(userId);
     }
 
     @Get("online-users")
@@ -334,6 +357,42 @@ export class UserController {
         @Res() res: Response,
     ): Promise<void> {
         const photo = await this.userService.getProfilePicture(req);
+        
+        if (!photo) {
+            res.status(404).send("Profile picture not found");
+            return;
+        }
+
+        res.set("Content-Type", "image/jpeg");
+        res.send(Buffer.from(photo.data));
+    }
+
+    @Get("profile-picture/user/:userId")
+    @ApiOperation({ summary: "Get profile picture for a specific user" })
+    @ApiResponse({
+        status: 200,
+        description: "Returns profile picture data",
+        content: {
+            "image/jpeg": {
+                schema: {
+                    type: "string",
+                    format: "binary",
+                },
+            },
+            "image/png": {
+                schema: {
+                    type: "string",
+                    format: "binary",
+                },
+            },
+        },
+    })
+    @ApiResponse({ status: 404, description: "Profile picture not found" })
+    async getProfilePictureByUserId(
+        @Param("userId") userId: number,
+        @Res() res: Response,
+    ): Promise<void> {
+        const photo = await this.userService.getProfilePictureByUserId(userId);
         
         if (!photo) {
             res.status(404).send("Profile picture not found");

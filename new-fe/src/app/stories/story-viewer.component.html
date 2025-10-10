@@ -26,7 +26,7 @@
 
     <!-- Top Header (User Info & Close) -->
     <div class="story-header">
-      <div class="user-section" (click)="onClose()">
+      <div class="user-section" (click)="navigateToProfile()">
         <div class="user-avatar" 
              [style.background-image]="story.userAvatar ? 'url(' + story.userAvatar + ')' : 'none'">
           <span *ngIf="!story.userAvatar">{{ story.userName?.charAt(0)?.toUpperCase() }}</span>

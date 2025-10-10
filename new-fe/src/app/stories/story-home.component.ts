@@ -258,5 +258,15 @@ export class StoryHomeComponent implements OnInit, OnDestroy {
     getTotalLikes(group: UserStoryGroup): number {
         return group.stories.reduce((sum, s) => sum + s.likes, 0);
     }
+
+    navigateToUserProfile(group: UserStoryGroup, event: Event): void {
+        // Prevent triggering the story card click
+        event.stopPropagation();
+        
+        if (group.userId) {
+            console.log("Navigating to user profile:", group.userId);
+            this.router.navigate(['/profile', group.userId]);
+        }
+    }
 }
 

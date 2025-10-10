@@ -97,6 +97,15 @@
         align-items: center;
         gap: 10px;
         cursor: pointer;
+        transition: opacity 0.2s ease;
+
+        &:hover {
+          opacity: 0.8;
+        }
+
+        &:active {
+          opacity: 0.6;
+        }
 
         .user-avatar {
           width: 32px;

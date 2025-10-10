@@ -49,26 +49,13 @@
   }
 }
 
-.user-avatar {
-  position: relative;
-  
-  .profile-avatar {
-    background: linear-gradient(45deg, var(--primary-color), var(--primary-600)) !important;
-    font-size: 2rem !important;
-    width: 120px !important;
-    height: 120px !important;
-  }
-  
-  .avatar-upload {
-    margin-top: 0.75rem;
-    text-align: center;
-    
-    ::ng-deep .p-button {
-      font-size: 0.85rem !important;
-      padding: 0.5rem 1rem !important;
-    }
-  }
+.profile-avatar {
+  background: linear-gradient(45deg, var(--primary-color), var(--primary-600)) !important;
+  font-size: 2rem !important;
+  width: 120px !important;
+  height: 120px !important;
 }
+
 
 .main-content {
   display: grid;
@@ -153,6 +140,14 @@
   color: var(--text-color-secondary);
   font-style: italic;
   margin-bottom: 2rem;
+}
+
+.viewing-message {
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin: 0;
+  text-align: center;
 }
 
 .profile-images-section {
@@ -547,10 +542,32 @@
     font-size: 0.85rem;
   }
 
-  .profile-avatar {
-    width: 80px !important;
-    height: 80px !important;
-    font-size: 1.5rem !important;
+  .user-avatar {
+    .avatar-wrapper {
+      padding: 4px;
+      
+      &::before {
+        top: -3px;
+        left: -3px;
+        right: -3px;
+        bottom: -3px;
+        filter: blur(10px);
+      }
+    }
+    
+    .profile-avatar {
+      width: 100px !important;
+      height: 100px !important;
+      font-size: 1.5rem !important;
+      border-width: 3px !important;
+    }
+    
+    .avatar-upload {
+      ::ng-deep .p-button {
+        font-size: 0.8rem !important;
+        padding: 0.4rem 0.8rem !important;
+      }
+    }
   }
   
   .photos-grid {

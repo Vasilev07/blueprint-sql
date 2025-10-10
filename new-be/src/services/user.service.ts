@@ -191,6 +191,20 @@ export class UserService implements OnModuleInit {
         }));
     }
 
+    async getUserPhotosByUserId(userId: number): Promise<UserPhotoDTO[]> {
+        const photos = await this.entityManager.find(UserPhoto, {
+            where: { userId },
+            order: { uploadedAt: "DESC" },
+        });
+
+        return photos.map((p) => ({
+            id: p.id,
+            name: p.name,
+            userId: p.userId,
+            uploadedAt: p.uploadedAt,
+        }));
+    }
+
     async getPhoto(photoId: number, req: any): Promise<UserPhoto> {
         const userId = this.getUserIdFromRequest(req);
         
@@ -213,6 +227,18 @@ export class UserService implements OnModuleInit {
     async getUser(req: any): Promise<UserDTO> {
         const userId = this.getUserIdFromRequest(req);
 
+        const user = await this.entityManager.findOne(User, {
+            where: { id: userId },
+        });
+
+        if (!user) {
+            throw new NotFoundException("User not found");
+        }
+
+        return this.userMapper.entityToDTO(user);
+    }
+
+    async getUserById(userId: number): Promise<UserDTO> {
         const user = await this.entityManager.findOne(User, {
             where: { id: userId },
         });
@@ -321,6 +347,22 @@ export class UserService implements OnModuleInit {
     async getProfilePicture(req: any): Promise<UserPhoto | null> {
         const userId = this.getUserIdFromRequest(req);
 
+        const user = await this.entityManager.findOne(User, {
+            where: { id: userId },
+        });
+
+        if (!user || !user.profilePictureId) {
+            return null;
+        }
+
+        const photo = await this.entityManager.findOne(UserPhoto, {
+            where: { id: user.profilePictureId },
+        });
+
+        return photo;
+    }
+
+    async getProfilePictureByUserId(userId: number): Promise<UserPhoto | null> {
         const user = await this.entityManager.findOne(User, {
             where: { id: userId },
         });

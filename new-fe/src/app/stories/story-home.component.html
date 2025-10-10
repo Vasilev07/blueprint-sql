@@ -43,9 +43,8 @@
         <!-- User Story Cards -->
         <div class="story-card" 
              *ngFor="let group of groupedStories" 
-             (click)="onUserStoryGroupClick(group)"
              [class.viewed]="!group.hasUnviewed">
-          <div class="card-content">
+          <div class="card-content" (click)="onUserStoryGroupClick(group)">
             <div class="story-avatar"
                  [style.background-image]="group.userAvatar ? 'url(' + group.userAvatar + ')' : 'none'"
                  [class.has-multiple]="group.stories.length > 1">
@@ -57,9 +56,16 @@
               <span class="views">{{ group.totalViews | number }}</span>
             </div>
           </div>
-          <div class="shield-icon">
-            <i class="pi pi-shield"></i>
-          </div>
+          <button 
+            class="profile-icon-btn"
+            pButton
+            icon="pi pi-user"
+            [rounded]="true"
+            [text]="true"
+            (click)="navigateToUserProfile(group, $event)"
+            pTooltip="View Profile"
+            tooltipPosition="left">
+          </button>
         </div>
       </div>
     </div>

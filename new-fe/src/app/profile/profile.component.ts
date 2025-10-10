@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from "@angular/core";
 import { Subject, takeUntil } from "rxjs";
 import { MessageService } from "primeng/api";
-import { Router } from "@angular/router";
+import { Router, ActivatedRoute } from "@angular/router";
 import { OnlineStatusService } from "../services/online-status.service";
 import {
     UserDTO,
@@ -22,6 +22,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     private destroy$ = new Subject<void>();
 
     currentUser: UserDTO | null = null;
+    viewingUser: UserDTO | null = null;
     userPhotos: UserPhotoDTO[] = [];
     photoBlobUrls: Map<number, string> = new Map();
     profilePictureBlobUrl: string | null = null;
@@ -30,6 +31,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
     isUploading = false;
     showEditDialog = false;
     editForm: any = {};
+    isOwnProfile = true;
+    viewingUserId: number | null = null;
 
     genderOptions = [
         { label: "Male", value: "male" },
@@ -42,14 +45,27 @@ export class ProfileComponent implements OnInit, OnDestroy {
         private userService: UserService,
         private friendsService: FriendsService,
         private router: Router,
+        private route: ActivatedRoute,
         public onlineStatusService: OnlineStatusService,
     ) {}
 
     ngOnInit(): void {
-        this.loadCurrentUser();
-        this.loadUserPhotos();
-        this.loadFriends();
-        this.loadProfilePicture();
+        // Check if viewing another user's profile or own profile
+        this.route.paramMap.pipe(takeUntil(this.destroy$)).subscribe((params) => {
+            const userId = params.get('userId');
+            if (userId) {
+                this.viewingUserId = parseInt(userId, 10);
+                this.isOwnProfile = false;
+                this.loadOtherUserProfile(this.viewingUserId);
+            } else {
+                this.isOwnProfile = true;
+                this.viewingUserId = null;
+                this.loadCurrentUser();
+                this.loadUserPhotos();
+                this.loadFriends();
+                this.loadProfilePicture();
+            }
+        });
     }
 
     ngOnDestroy(): void {
@@ -158,6 +174,15 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
 
     onPhotoUpload(event: any): void {
+        if (!this.isOwnProfile) {
+            this.messageService.add({
+                severity: "error",
+                summary: "Error",
+                detail: "You cannot upload photos to another user's profile",
+            });
+            return;
+        }
+
         const file = event.files[0];
         if (!file) return;
 
@@ -207,6 +232,15 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
 
     openEditDialog(): void {
+        if (!this.isOwnProfile) {
+            this.messageService.add({
+                severity: "error",
+                summary: "Error",
+                detail: "You cannot edit another user's profile",
+            });
+            return;
+        }
+
         this.editForm = {
             gender: this.currentUser?.gender || null,
             city: this.currentUser?.city || "",
@@ -215,6 +249,15 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
 
     saveProfile(): void {
+        if (!this.isOwnProfile) {
+            this.messageService.add({
+                severity: "error",
+                summary: "Error",
+                detail: "You cannot save changes to another user's profile",
+            });
+            return;
+        }
+
         this.userService
             .updateProfile({
                 gender: this.editForm.gender,
@@ -282,6 +325,15 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
 
     onProfilePictureUpload(event: any): void {
+        if (!this.isOwnProfile) {
+            this.messageService.add({
+                severity: "error",
+                summary: "Error",
+                detail: "You cannot upload a profile picture for another user",
+            });
+            return;
+        }
+
         const file = event.files[0];
         if (!file) return;
 
@@ -314,6 +366,15 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
 
     setPhotoAsProfilePicture(photoId: number): void {
+        if (!this.isOwnProfile) {
+            this.messageService.add({
+                severity: "error",
+                summary: "Error",
+                detail: "You cannot set profile picture for another user",
+            });
+            return;
+        }
+
         // @ts-ignore - setProfilePicture will be available after regeneration
         this.userService.setProfilePicture(photoId)
             .pipe(takeUntil(this.destroy$))
@@ -344,5 +405,74 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
     hasProfilePicture(): boolean {
         return !!this.profilePictureBlobUrl;
+    }
+
+    loadOtherUserProfile(userId: number): void {
+        this.isLoading = true;
+
+        // @ts-ignore - getUserById will be available after regeneration
+        this.userService.getUserById(userId)
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+                next: (user: UserDTO) => {
+                    this.viewingUser = user;
+                    this.currentUser = user; // Also set currentUser for template compatibility
+                    this.loadOtherUserPhotos(userId);
+                    this.loadOtherUserProfilePicture(userId);
+                    this.isLoading = false;
+                },
+                error: (error: any) => {
+                    console.error("Error loading user profile:", error);
+                    this.messageService.add({
+                        severity: "error",
+                        summary: "Error",
+                        detail: "Failed to load user profile",
+                    });
+                    this.isLoading = false;
+                    this.router.navigate(["/profile"]);
+                }
+            });
+    }
+
+    loadOtherUserPhotos(userId: number): void {
+        // @ts-ignore - getUserPhotosByUserId will be available after regeneration
+        this.userService.getUserPhotosByUserId(userId)
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+                next: (photos: UserPhotoDTO[]) => {
+                    this.userPhotos = photos;
+                    
+                    // Load blob URLs for all photos
+                    photos.forEach(photo => {
+                        if (photo.id) {
+                            this.loadPhotoBlobUrl(photo.id);
+                        }
+                    });
+                },
+                error: (error: any) => {
+                    console.error("Error loading photos:", error);
+                }
+            });
+    }
+
+    loadOtherUserProfilePicture(userId: number): void {
+        // @ts-ignore - getProfilePictureByUserId will be available after regeneration
+        this.userService.getProfilePictureByUserId(userId, 'response')
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+                next: (response: any) => {
+                    const blob = response.body as Blob;
+                    if (this.profilePictureBlobUrl) {
+                        URL.revokeObjectURL(this.profilePictureBlobUrl);
+                    }
+                    this.profilePictureBlobUrl = URL.createObjectURL(blob);
+                },
+                error: (error: any) => {
+                    // Profile picture not found is okay, user might not have one
+                    if (error.status !== 404) {
+                        console.error("Error loading profile picture:", error);
+                    }
+                }
+            });
     }
 }

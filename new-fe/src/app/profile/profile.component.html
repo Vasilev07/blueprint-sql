@@ -14,6 +14,7 @@
         </div>
       </div>
       <p-button
+        *ngIf="isOwnProfile"
         icon="pi pi-pencil"
         label="Edit Profile"
         styleClass="p-button-sm p-button-outlined"
@@ -33,7 +34,7 @@
         size="xlarge"
         styleClass="profile-avatar">
       </p-avatar>
-      <div class="avatar-upload">
+      <div class="avatar-upload" *ngIf="isOwnProfile">
         <p-fileUpload
           mode="basic"
           name="photo"
@@ -71,6 +72,7 @@
                       This gallery is still empty. This gallery is only visible to you since it is empty.
                     </p>
                     <p-fileUpload
+                      *ngIf="isOwnProfile"
                       mode="basic"
                       name="photo"
                       accept="image/*"
@@ -80,6 +82,9 @@
                       chooseLabel="Choose Photo"
                       styleClass="upload-button">
                     </p-fileUpload>
+                    <p *ngIf="!isOwnProfile" class="viewing-message">
+                      You are viewing {{ currentUser?.fullName }}'s profile
+                    </p>
                   </div>
                 </div>
 
@@ -92,7 +97,7 @@
                     <div class="photo-overlay">
                       <span class="photo-name">{{ photo.name }}</span>
                       <p-button
-                        *ngIf="currentUser?.profilePictureId !== photo.id"
+                        *ngIf="isOwnProfile && currentUser?.profilePictureId !== photo.id"
                         icon="pi pi-user"
                         (onClick)="setPhotoAsProfilePicture(photo.id!)"
                         [rounded]="true"
@@ -110,7 +115,7 @@
                   </div>
 
                   <!-- Add more photos button -->
-                  <div class="add-photo-item">
+                  <div class="add-photo-item" *ngIf="isOwnProfile">
                     <p-fileUpload
                       mode="basic"
                       name="photo"
@@ -177,7 +182,7 @@
         </div>
 
         <!-- Friends Section -->
-        <div class="sidebar-section">
+        <div class="sidebar-section" *ngIf="isOwnProfile">
           <div class="section-header">
             <h4>FRIENDS {{ friends.length }}</h4>
             <p-button
@@ -219,6 +224,7 @@
           <div class="section-header">
             <h4>GENDER</h4>
             <p-button
+              *ngIf="isOwnProfile"
               label="Edit"
               icon="pi pi-pencil"
               (onClick)="openEditDialog()"
@@ -236,6 +242,7 @@
           <div class="section-header">
             <h4>CITY</h4>
             <p-button
+              *ngIf="isOwnProfile"
               label="Edit"
               icon="pi pi-pencil"
               (onClick)="openEditDialog()"

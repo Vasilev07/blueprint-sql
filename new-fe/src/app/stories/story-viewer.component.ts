@@ -437,6 +437,14 @@ export class StoryViewerComponent implements OnInit, OnDestroy {
         this.router.navigate(["/stories"]);
     }
 
+    navigateToProfile(): void {
+        if (this.story && this.story.userId) {
+            console.log("Navigating to profile:", this.story.userId);
+            // Navigate to the user's profile
+            this.router.navigate(['/profile', this.story.userId]);
+        }
+    }
+
     onClose(): void {
         this.router.navigate(["/stories"]);
     }

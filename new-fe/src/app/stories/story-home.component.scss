@@ -73,15 +73,19 @@
           min-width: 120px;
           height: 160px;
           border-radius: 12px;
-          cursor: pointer;
           transition: transform 0.2s ease, box-shadow 0.2s ease;
           flex-shrink: 0;
           display: flex;
           flex-direction: column;
+          position: relative;
 
           &:hover {
             transform: translateY(-4px);
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+
+            .profile-icon-btn {
+              opacity: 1;
+            }
           }
 
           &:active {
@@ -97,6 +101,26 @@
             padding: 16px;
             border-radius: 12px;
             text-align: center;
+            cursor: pointer;
+          }
+
+          .profile-icon-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            z-index: 10;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            background: rgba(255, 255, 255, 0.9) !important;
+            color: var(--primary-color) !important;
+            width: 32px !important;
+            height: 32px !important;
+            min-width: 32px !important;
+
+            &:hover {
+              background: rgba(255, 255, 255, 1) !important;
+              transform: scale(1.1);
+            }
           }
 
           .shield-icon {
