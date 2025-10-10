@@ -7,34 +7,40 @@ import {
     StoryUploadResponseDTO,
 } from "src/typescript-api-client/src";
 
+// Re-export backend types
+export type { StoryDTO, StoryUploadResponseDTO };
+
+// UI wrapper around backend DTO
 export interface Story {
-    id: string;
-    userId: string;
-    userName: string;
-    userAvatar: string;
+    // From backend
+    id: string; // Converted to string for router
+    userId: string; // Converted to string for UI
+    userName?: string;
+    filePath: string;
+    originalFilename: string;
+    fileSize: number;
+    duration?: number;
+    mimeType: string;
+    width?: number;
+    height?: number;
+    thumbnailPath?: string;
+    views: number;
+    createdAt: string;
+    expiresAt: string;
+    isProcessed: boolean;
+    
+    // UI-specific fields
+    userAvatar?: string;
     videoUrl: string;
     thumbnailUrl: string;
-    caption: string;
-    duration: number; // in seconds
-    views: number;
-    likes: number;
-    comments: number;
-    createdAt: Date;
-    expiresAt: Date; // Stories expire after 24 hours
-    tags: string[];
-    isLiked: boolean;
-    isViewed: boolean;
-}
-
-export interface StoryComment {
-    id: string;
-    storyId: string;
-    userId: string;
-    userName: string;
-    userAvatar: string;
-    content: string;
-    createdAt: Date;
-    likes: number;
+    
+    // Future features
+    caption?: string;
+    tags?: string[];
+    likes?: number;
+    comments?: number;
+    isLiked?: boolean;
+    isViewed?: boolean;
 }
 
 @Injectable({
@@ -42,10 +48,8 @@ export interface StoryComment {
 })
 export class StoryService {
     private storiesSubject = new BehaviorSubject<Story[]>([]);
-    private commentsSubject = new BehaviorSubject<StoryComment[]>([]);
 
     public stories$ = this.storiesSubject.asObservable();
-    public comments$ = this.commentsSubject.asObservable();
 
     constructor(
         private storiesApiService: StoriesService
@@ -99,30 +103,8 @@ export class StoryService {
         return of(story);
     }
 
-    getCommentsByStoryId(storyId: string): Observable<StoryComment[]> {
-        return of([]);
-    }
-
     likeStory(storyId: string): Observable<boolean> {
-        const stories = this.storiesSubject.value;
-        const storyIndex = stories.findIndex((s) => s.id === storyId);
-
-        if (storyIndex !== -1) {
-            const updatedStories = [...stories];
-            const story = updatedStories[storyIndex];
-
-            if (story.isLiked) {
-                story.likes--;
-                story.isLiked = false;
-            } else {
-                story.likes++;
-                story.isLiked = true;
-            }
-
-            this.storiesSubject.next(updatedStories);
-            return of(true);
-        }
-
+        // TODO: Implement backend like endpoint
         return of(false);
     }
 
@@ -143,34 +125,6 @@ export class StoryService {
         );
     }
 
-    addComment(storyId: string, content: string): Observable<StoryComment> {
-        const newComment: StoryComment = {
-            id: Date.now().toString(),
-            storyId,
-            userId: "1", // Current user
-            userName: "You",
-            userAvatar:
-                "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
-            content,
-            createdAt: new Date(),
-            likes: 0,
-        };
-
-        const comments = this.commentsSubject.value;
-        const updatedComments = [...comments, newComment];
-        this.commentsSubject.next(updatedComments);
-
-        // Update story comment count
-        const stories = this.storiesSubject.value;
-        const storyIndex = stories.findIndex((s) => s.id === storyId);
-        if (storyIndex !== -1) {
-            const updatedStories = [...stories];
-            updatedStories[storyIndex].comments++;
-            this.storiesSubject.next(updatedStories);
-        }
-
-        return of(newComment);
-    }
 
     uploadStory(videoFile: File): Observable<StoryUploadResponseDTO> {
         return this.storiesApiService
@@ -185,10 +139,6 @@ export class StoryService {
                 const stories = this.storiesSubject.value;
                 const updatedStories = stories.filter((s) => s.id !== storyId);
                 this.storiesSubject.next(updatedStories);
-
-                const comments = this.commentsSubject.value;
-                const updatedComments = comments.filter((c) => c.storyId !== storyId);
-                this.commentsSubject.next(updatedComments);
             }),
             map(() => true)
         );
@@ -197,13 +147,13 @@ export class StoryService {
     getExpiredStories(): Story[] {
         const now = new Date();
         return this.storiesSubject.value.filter(
-            (story) => story.expiresAt < now,
+            (story) => new Date(story.expiresAt) < now,
         );
     }
 
     cleanupExpiredStories(): void {
         const validStories = this.storiesSubject.value.filter(
-            (story) => story.expiresAt > new Date(),
+            (story) => new Date(story.expiresAt) > new Date(),
         );
         this.storiesSubject.next(validStories);
     }
@@ -239,20 +189,15 @@ export class StoryService {
         const thumbnailFilename = dto.thumbnailPath?.split("/").pop();
 
         return {
+            ...dto,
             id: dto.id.toString(),
             userId: dto.userId.toString(),
-            userName: dto.userName || "Unknown",
             userAvatar: "",
             videoUrl: videoFilename,
             thumbnailUrl: thumbnailFilename || "",
-            caption: "",
-            duration: dto.duration || 0,
-            views: dto.views,
+            // Future features (not in backend yet)
             likes: 0,
             comments: 0,
-            createdAt: new Date(dto.createdAt),
-            expiresAt: new Date(dto.expiresAt),
-            tags: [],
             isLiked: false,
             isViewed: false,
         };

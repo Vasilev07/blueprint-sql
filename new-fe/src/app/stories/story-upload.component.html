@@ -17,46 +17,48 @@
     <div class="upload-form-container">
       <form [formGroup]="uploadForm" (ngSubmit)="uploadStory()" class="upload-form">
         
-        <!-- Video Upload Section -->
+        <!-- Media Upload Section -->
         <div class="upload-section">
-          <h3>Select Video</h3>
+          <h3>Select Image or Video</h3>
           <p class="section-description">
-            Choose a video file (max 60 seconds, 100MB)
+            Choose an image or video file (max 60s for videos, 30MB)
           </p>
           
           <div class="video-upload-area" *ngIf="!selectedFile">
             <p-fileUpload 
               mode="basic" 
               name="video" 
-              accept="video/*" 
-              maxFileSize="104857600"
+              accept="image/*,video/*" 
+              maxFileSize="31457280"
               (onSelect)="onFileSelect($event)"
-              chooseLabel="Choose Video"
+              chooseLabel="Choose File"
               [auto]="true"
               [showCancelButton]="false"
               [showUploadButton]="false">
             </p-fileUpload>
             
             <div class="upload-hint">
-              <i class="pi pi-video"></i>
-              <p>Drag and drop your video here or click to browse</p>
-              <small>Supported formats: MP4, MOV, AVI, WebM</small>
+              <i class="pi pi-images"></i>
+              <p>Drag and drop your image or video here or click to browse</p>
+              <small>Videos: MP4, MOV, AVI, WebM | Images: JPG, PNG, WebP (30s display)</small>
             </div>
           </div>
 
-          <!-- Video Preview -->
+          <!-- Media Preview -->
           <div class="video-preview" *ngIf="selectedFile">
             <div class="preview-container">
-              <img [src]="videoPreview" alt="Video thumbnail" *ngIf="videoPreview">
+              <img [src]="mediaPreview" [alt]="isImage ? 'Image preview' : 'Video thumbnail'" *ngIf="mediaPreview">
               <div class="video-info">
                 <div class="file-details">
                   <h4>{{ selectedFile.name }}</h4>
-                  <p>{{ formatDuration(videoDuration) }} • {{ (selectedFile.size / (1024 * 1024)).toFixed(1) }} MB</p>
+                  <p>{{ formatDuration(mediaDuration) }} • {{ (selectedFile.size / (1024 * 1024)).toFixed(1) }} MB</p>
+                  <span class="media-type-badge" *ngIf="isImage">📷 Image Story (30s)</span>
+                  <span class="media-type-badge" *ngIf="isVideo">🎥 Video Story</span>
                 </div>
                 
-                <div class="duration-warning" *ngIf="videoDuration > maxDuration">
+                <div class="duration-warning" *ngIf="isVideo && mediaDuration > maxVideoDuration">
                   <i class="pi pi-exclamation-triangle"></i>
-                  <span>Video exceeds maximum duration ({{ maxDuration }}s)</span>
+                  <span>Video exceeds maximum duration ({{ maxVideoDuration }}s)</span>
                 </div>
                 
                 <button pButton 
@@ -97,7 +99,7 @@
             label="Upload Story" 
             icon="pi pi-upload"
             class="p-button-primary upload-submit-btn"
-            [disabled]="!selectedFile || isUploading || videoDuration > maxDuration">
+            [disabled]="!selectedFile || isUploading || (isVideo && mediaDuration > maxVideoDuration)">
           </button>
         </div>
       </form>

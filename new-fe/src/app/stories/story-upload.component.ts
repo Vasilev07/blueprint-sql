@@ -17,9 +17,12 @@ export class StoryUploadComponent implements OnInit, OnDestroy {
     isUploading = false;
     uploadProgress = 0;
     selectedFile: File | null = null;
-    videoPreview: string | null = null;
-    videoDuration = 0;
-    maxDuration = 60;
+    mediaPreview: string | null = null;
+    mediaDuration = 0;
+    maxVideoDuration = 60;
+    imageStoryDuration = 30; // Default duration for image stories
+    isVideo = false;
+    isImage = false;
 
     constructor(
         private fb: FormBuilder,
@@ -41,26 +44,33 @@ export class StoryUploadComponent implements OnInit, OnDestroy {
     onFileSelect(event: any): void {
         const file = event.files[0];
         if (file) {
-            if (!file.type.startsWith("video/")) {
+            this.isVideo = file.type.startsWith("video/");
+            this.isImage = file.type.startsWith("image/");
+
+            if (!this.isVideo && !this.isImage) {
                 this.messageService.add({
                     severity: "error",
                     summary: "Invalid File",
-                    detail: "Please select a valid video file",
+                    detail: "Please select a valid image or video file",
                 });
                 return;
             }
 
-            if (file.size > 100 * 1024 * 1024) {
+            if (file.size > 30 * 1024 * 1024) {
                 this.messageService.add({
                     severity: "error",
                     summary: "File Too Large",
-                    detail: "Video file size must be less than 100MB",
+                    detail: "File size must be less than 30MB",
                 });
                 return;
             }
 
             this.selectedFile = file;
-            this.createVideoPreview(file);
+            if (this.isVideo) {
+                this.createVideoPreview(file);
+            } else if (this.isImage) {
+                this.createImagePreview(file);
+            }
         }
     }
 
@@ -69,13 +79,13 @@ export class StoryUploadComponent implements OnInit, OnDestroy {
         const url = URL.createObjectURL(file);
 
         video.onloadedmetadata = () => {
-            this.videoDuration = video.duration;
+            this.mediaDuration = video.duration;
 
-            if (this.videoDuration > this.maxDuration) {
+            if (this.mediaDuration > this.maxVideoDuration) {
                 this.messageService.add({
                     severity: "warn",
                     summary: "Video Too Long",
-                    detail: `Video duration (${Math.round(this.videoDuration)}s) exceeds the maximum allowed duration (${this.maxDuration}s)`,
+                    detail: `Video duration (${Math.round(this.mediaDuration)}s) exceeds maximum (${this.maxVideoDuration}s)`,
                 });
             }
 
@@ -87,7 +97,7 @@ export class StoryUploadComponent implements OnInit, OnDestroy {
                 const ctx = canvas.getContext("2d");
                 if (ctx) {
                     ctx.drawImage(video, 0, 0);
-                    this.videoPreview = canvas.toDataURL("image/jpeg");
+                    this.mediaPreview = canvas.toDataURL("image/jpeg");
                 }
                 URL.revokeObjectURL(url);
             };
@@ -96,11 +106,22 @@ export class StoryUploadComponent implements OnInit, OnDestroy {
         video.src = url;
     }
 
+    private createImagePreview(file: File): void {
+        const reader = new FileReader();
+        reader.onload = (e: any) => {
+            this.mediaPreview = e.target.result;
+            this.mediaDuration = this.imageStoryDuration; // Images display for 30 seconds
+        };
+        reader.readAsDataURL(file);
+    }
+
     onRemoveFile(): void {
         this.selectedFile = null;
-        this.videoPreview = null;
-        this.videoDuration = 0;
+        this.mediaPreview = null;
+        this.mediaDuration = 0;
         this.uploadProgress = 0;
+        this.isVideo = false;
+        this.isImage = false;
     }
 
     formatDuration(seconds: number): string {
@@ -113,17 +134,17 @@ export class StoryUploadComponent implements OnInit, OnDestroy {
         if (!this.selectedFile) {
             this.messageService.add({
                 severity: "error",
-                summary: "No Video Selected",
-                detail: "Please select a video file",
+                summary: "No File Selected",
+                detail: "Please select an image or video file",
             });
             return;
         }
 
-        if (this.videoDuration > this.maxDuration) {
+        if (this.isVideo && this.mediaDuration > this.maxVideoDuration) {
             this.messageService.add({
                 severity: "error",
                 summary: "Video Too Long",
-                detail: `Please select a video shorter than ${this.maxDuration} seconds`,
+                detail: `Please select a video shorter than ${this.maxVideoDuration} seconds`,
             });
             return;
         }
@@ -139,10 +160,11 @@ export class StoryUploadComponent implements OnInit, OnDestroy {
                     this.uploadProgress = 100;
 
                     setTimeout(() => {
+                        const mediaType = this.isImage ? "Image" : "Video";
                         this.messageService.add({
                             severity: "success",
                             summary: "Upload Successful",
-                            detail: "Your story has been uploaded successfully!",
+                            detail: `Your ${mediaType.toLowerCase()} story has been uploaded successfully!`,
                         });
 
                         this.router.navigate(["/stories"]);
@@ -164,9 +186,9 @@ export class StoryUploadComponent implements OnInit, OnDestroy {
 
     onCancel(): void {
         if (this.selectedFile) {
+            const mediaType = this.isImage ? "image" : "video";
             this.confirmationService.confirm({
-                message:
-                    "Are you sure you want to cancel? Your video will not be uploaded.",
+                message: `Are you sure you want to cancel? Your ${mediaType} will not be uploaded.`,
                 header: "Confirm Cancellation",
                 icon: "pi pi-exclamation-triangle",
                 accept: () => {

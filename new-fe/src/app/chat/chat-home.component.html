@@ -25,7 +25,7 @@
         
         <div class="chat-meta">
           <div class="chat-time">{{ formatTime(conversation.lastMessageTime) }}</div>
-          <div *ngIf="conversation.unreadCount > 0" class="unread-badge">
+          <div *ngIf="(conversation.unreadCount || 0) > 0" class="unread-badge">
             {{ conversation.unreadCount }}
           </div>
         </div>
@@ -78,6 +78,7 @@
         <div class="card-content">
           <app-recent-messages 
             [messages]="(recentMessages$ | async) ?? []"
+            [users]="(users$ | async) ?? []"
             (messageClick)="startChat($event)">
           </app-recent-messages>
         </div>

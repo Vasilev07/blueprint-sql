@@ -41,10 +41,10 @@ export class StoryCardComponent {
         }
     }
 
-    formatTime(date: Date | undefined): string {
+    formatTime(date: string | Date | undefined): string {
         if (!date) return "Unknown time";
         const now = new Date();
-        const diff = now.getTime() - date.getTime();
+        const diff = now.getTime() - new Date(date).getTime();
         const minutes = Math.floor(diff / (1000 * 60));
         const hours = Math.floor(diff / (1000 * 60 * 60));
         const days = Math.floor(diff / (1000 * 60 * 60 * 24));
@@ -61,10 +61,10 @@ export class StoryCardComponent {
         return `${mins}:${secs.toString().padStart(2, "0")}`;
     }
 
-    getTimeRemaining(expiresAt: Date | undefined): string {
+    getTimeRemaining(expiresAt: string | Date | undefined): string {
         if (!expiresAt) return "Expired";
         const now = new Date();
-        const diff = expiresAt.getTime() - now.getTime();
+        const diff = new Date(expiresAt).getTime() - now.getTime();
         const hours = Math.floor(diff / (1000 * 60 * 60));
         const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
 

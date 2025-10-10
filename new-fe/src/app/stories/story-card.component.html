@@ -47,10 +47,6 @@
         <i class="pi pi-heart" [class.liked]="story?.isLiked"></i>
         <span>{{ (story?.likes || 0).toLocaleString() }}</span>
       </div>
-      <div class="stat-item">
-        <i class="pi pi-comments"></i>
-        <span>{{ (story?.comments || 0).toLocaleString() }}</span>
-      </div>
     </div>
 
     <!-- Story Tags -->

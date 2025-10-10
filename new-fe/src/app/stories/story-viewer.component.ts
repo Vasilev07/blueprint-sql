@@ -9,7 +9,7 @@ import {
 import { ActivatedRoute, Router } from "@angular/router";
 import { Subject, takeUntil } from "rxjs";
 // import { MessageService } from 'primeng/api';
-import { Story, StoryComment, StoryService } from "./story.service";
+import { Story, StoryService } from "./story.service";
 
 @Component({
     selector: "app-story-viewer",
@@ -24,18 +24,18 @@ export class StoryViewerComponent implements OnInit, OnDestroy {
     story: Story | null = null;
     videoBlobUrl: string = "";
     thumbnailBlobUrl: string = "";
-    comments: StoryComment[] = [];
     isLoading = true;
     isPlaying = false;
     currentTime = 0;
     duration = 0;
     volume = 1;
     isMuted = false;
-    showComments = false;
-    newComment = "";
     isLiked = false;
     isFullscreen = false;
     autoPlay = true;
+    isImage = false; // Track if current story is an image
+    isVideo = false; // Track if current story is a video
+    private imageTimerInterval: any; // Timer for image stories
 
     // Story navigation
     allStories: Story[] = [];
@@ -86,6 +86,7 @@ export class StoryViewerComponent implements OnInit, OnDestroy {
         this.destroy$.complete();
         this.stopLiveViewerSimulation();
         this.stopProgressAnimation();
+        this.stopImageTimer();
     }
 
     @HostListener("document:keydown.escape", ["$event"])
@@ -140,35 +141,45 @@ export class StoryViewerComponent implements OnInit, OnDestroy {
                 console.log("Story loaded:", story);
                 if (story) {
                     this.story = story;
-                    this.isLiked = story.isLiked;
+                    this.isLiked = story.isLiked || false;
+                    
+                    // Determine if story is image or video based on mimeType
+                    this.isImage = story.mimeType?.startsWith('image/') || false;
+                    this.isVideo = story.mimeType?.startsWith('video/') || false;
                     
                     // Filter allStories to only include stories from the same user
                     this.allStories = this.allStoriesOriginal.filter(s => s.userId === story.userId)
-                        .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+                        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
                     
                     // Find the index of current story within this user's stories
                     this.currentStoryIndex = this.allStories.findIndex(
                         (s) => s.id === storyId,
                     );
                     
-                    this.loadComments(storyId);
                     this.markAsViewed(storyId);
                     this.startLiveViewerSimulation();
 
+                    // Load media based on type
                     this.storyService.getVideoBlobUrl(story.videoUrl).subscribe(blobUrl => {
                         this.videoBlobUrl = blobUrl;
                         
-                        setTimeout(() => {
-                            console.log("Attempting to play video...");
-                            if (this.autoPlay && this.videoPlayer?.nativeElement) {
-                                console.log("Video element found, playing...");
-                                this.playVideo();
-                            } else {
-                                console.log(
-                                    "Video element not found or autoPlay disabled",
-                                );
-                            }
-                        }, 500);
+                        if (this.isVideo) {
+                            setTimeout(() => {
+                                console.log("Attempting to play video...");
+                                if (this.autoPlay && this.videoPlayer?.nativeElement) {
+                                    console.log("Video element found, playing...");
+                                    this.playVideo();
+                                } else {
+                                    console.log("Video element not found or autoPlay disabled");
+                                }
+                            }, 500);
+                        } else if (this.isImage) {
+                            // For images, set duration and start auto-advance timer
+                            this.duration = story.duration || 30; // Default to 30 seconds
+                            this.isPlaying = true;
+                            this.startImageTimer();
+                            this.startProgressAnimation();
+                        }
                     });
 
                     if (story.thumbnailUrl) {
@@ -181,15 +192,6 @@ export class StoryViewerComponent implements OnInit, OnDestroy {
                     this.router.navigate(["/stories"]);
                 }
                 this.isLoading = false;
-            });
-    }
-
-    private loadComments(storyId: string): void {
-        this.storyService
-            .getCommentsByStoryId(storyId)
-            .pipe(takeUntil(this.destroy$))
-            .subscribe((comments) => {
-                this.comments = comments;
             });
     }
 
@@ -213,10 +215,14 @@ export class StoryViewerComponent implements OnInit, OnDestroy {
     }
 
     togglePlayPause(): void {
-        if (this.isPlaying) {
-            this.pauseVideo();
-        } else {
-            this.playVideo();
+        if (this.isImage) {
+            this.toggleImagePlayPause();
+        } else if (this.isVideo) {
+            if (this.isPlaying) {
+                this.pauseVideo();
+            } else {
+                this.playVideo();
+            }
         }
     }
 
@@ -358,7 +364,7 @@ export class StoryViewerComponent implements OnInit, OnDestroy {
                         this.isLiked = !this.isLiked;
                         if (this.story) {
                             this.story.isLiked = this.isLiked;
-                            this.story.likes += this.isLiked ? 1 : -1;
+                            this.story.likes = (this.story.likes || 0) + (this.isLiked ? 1 : -1);
                         }
                     }
                 });
@@ -387,42 +393,18 @@ export class StoryViewerComponent implements OnInit, OnDestroy {
         }
     }
 
-    onAddComment(): void {
-        if (this.newComment.trim() && this.story) {
-            this.storyService
-                .addComment(this.story.id, this.newComment.trim())
-                .pipe(takeUntil(this.destroy$))
-                .subscribe((comment) => {
-                    this.comments.unshift(comment);
-                    this.newComment = "";
 
-                    // Update story comment count
-                    if (this.story) {
-                        this.story.comments++;
-                    }
-
-                    // this.messageService.add({
-                    //   severity: 'success',
-                    //   summary: 'Comment Added',
-                    //   detail: 'Your comment has been posted'
-                    // });
-                });
+    formatTime(date: string | Date | number): string {
+        // If it's a number, treat as seconds (duration)
+        if (typeof date === 'number') {
+            const mins = Math.floor(date / 60);
+            const secs = Math.floor(date % 60);
+            return `${mins}:${secs.toString().padStart(2, "0")}`;
         }
-    }
-
-    toggleComments(): void {
-        this.showComments = !this.showComments;
-    }
-
-    formatTime(seconds: number): string {
-        const mins = Math.floor(seconds / 60);
-        const secs = Math.floor(seconds % 60);
-        return `${mins}:${secs.toString().padStart(2, "0")}`;
-    }
-
-    formatDate(date: Date): string {
+        
+        // If it's a date, format as time ago
         const now = new Date();
-        const diff = now.getTime() - date.getTime();
+        const diff = now.getTime() - new Date(date).getTime();
         const minutes = Math.floor(diff / (1000 * 60));
         const hours = Math.floor(diff / (1000 * 60 * 60));
         const days = Math.floor(diff / (1000 * 60 * 60 * 24));
@@ -432,6 +414,7 @@ export class StoryViewerComponent implements OnInit, OnDestroy {
         if (hours < 24) return `${hours}h ago`;
         return `${days}d ago`;
     }
+
 
     onGoBack(): void {
         this.router.navigate(["/stories"]);
@@ -517,6 +500,51 @@ export class StoryViewerComponent implements OnInit, OnDestroy {
         if (this.progressInterval) {
             clearInterval(this.progressInterval);
             this.progressInterval = null;
+        }
+    }
+
+    // Image story timer methods
+    private startImageTimer(): void {
+        this.stopImageTimer();
+        this.currentTime = 0;
+        
+        const updateInterval = 100; // Update every 100ms
+        this.imageTimerInterval = setInterval(() => {
+            if (this.isPlaying && this.isImage) {
+                this.currentTime += 0.1; // Add 100ms in seconds
+                
+                if (this.currentTime >= this.duration) {
+                    this.stopImageTimer();
+                    this.onImageTimerEnd();
+                }
+            }
+        }, updateInterval);
+    }
+
+    private stopImageTimer(): void {
+        if (this.imageTimerInterval) {
+            clearInterval(this.imageTimerInterval);
+            this.imageTimerInterval = null;
+        }
+    }
+
+    private onImageTimerEnd(): void {
+        this.isPlaying = false;
+        this.currentTime = 0;
+        
+        // Auto-advance to next story
+        setTimeout(() => {
+            this.nextStory();
+        }, 500);
+    }
+
+    // Toggle play/pause for images
+    toggleImagePlayPause(): void {
+        this.isPlaying = !this.isPlaying;
+        if (!this.isPlaying) {
+            this.stopImageTimer();
+        } else {
+            this.startImageTimer();
         }
     }
 }

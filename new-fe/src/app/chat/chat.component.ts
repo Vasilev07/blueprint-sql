@@ -2,7 +2,8 @@ import { Component, OnInit, OnDestroy } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { Subject, takeUntil } from "rxjs";
-import { User, Message, ChatService } from "./chat.service";
+import { ChatService, User, Message } from "./chat.service";
+import { UserService } from "src/typescript-api-client/src/api/api";
 
 @Component({
     selector: "app-chat",
@@ -21,6 +22,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     allUsers: User[] = [];
     friends: User[] = [];
     showFriendsPicker = false;
+    profilePictureBlobUrl: string | null = null;
 
     // Header computed properties
     get otherUserName(): string {
@@ -46,6 +48,7 @@ export class ChatComponent implements OnInit, OnDestroy {
         private router: Router,
         public chatService: ChatService,
         private fb: FormBuilder,
+        private userService: UserService,
     ) {
         this.messageForm = this.fb.group({
             content: ["", [Validators.required, Validators.maxLength(1000)]],
@@ -77,6 +80,11 @@ export class ChatComponent implements OnInit, OnDestroy {
     ngOnDestroy(): void {
         this.destroy$.next();
         this.destroy$.complete();
+        
+        // Cleanup profile picture blob URL
+        if (this.profilePictureBlobUrl) {
+            URL.revokeObjectURL(this.profilePictureBlobUrl);
+        }
     }
 
     private loadConversation(userId: string): void {
@@ -98,17 +106,19 @@ export class ChatComponent implements OnInit, OnDestroy {
                         .loadConversationMessages(conv.id)
                         .pipe(takeUntil(this.destroy$))
                         .subscribe({
-                            next: (messages: any[]) => {
-                                this.messages = (messages || []).map(
-                                    (m: any) => ({
-                                        ...m,
-                                        timestamp: m.timestamp
-                                            ? new Date(m.timestamp)
-                                            : new Date(
-                                                  m.createdAt || Date.now(),
-                                              ),
-                                    }),
-                                );
+                            next: (messages) => {
+                                // Map ChatMessageDTO[] to Message[] for UI
+                                this.messages = (messages || []).map(m => ({
+                                    id: String(m.id),
+                                    conversationId: m.conversationId,
+                                    senderId: String(m.senderId),
+                                    content: m.content,
+                                    type: m.type,
+                                    isRead: m.isRead,
+                                    createdAt: m.createdAt,
+                                    updatedAt: m.updatedAt,
+                                    timestamp: new Date(m.createdAt || Date.now()),
+                                }));
                                 this.isLoading = false;
                                 this.scrollToBottom();
                             },
@@ -126,6 +136,7 @@ export class ChatComponent implements OnInit, OnDestroy {
                             );
                             const mapped = {
                                 ...msg,
+                                id: String(msg.id),
                                 senderId: String(msg.senderId),
                                 timestamp: msg.timestamp
                                     ? new Date(msg.timestamp)
@@ -235,6 +246,38 @@ export class ChatComponent implements OnInit, OnDestroy {
             .subscribe((users) => {
                 this.currentUser =
                     users.find((user) => user.id === userId) || null;
+            });
+        
+        // Load profile picture
+        this.loadProfilePicture(userId);
+    }
+
+    private loadProfilePicture(userId: string): void {
+        const numericUserId = parseInt(userId, 10);
+        
+        if (!numericUserId) {
+            return;
+        }
+
+        // Cleanup old blob URL if exists
+        if (this.profilePictureBlobUrl) {
+            URL.revokeObjectURL(this.profilePictureBlobUrl);
+            this.profilePictureBlobUrl = null;
+        }
+
+        this.userService.getProfilePictureByUserId(numericUserId, 'response')
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+                next: (response: any) => {
+                    const blob = response.body as Blob;
+                    this.profilePictureBlobUrl = URL.createObjectURL(blob);
+                },
+                error: (error) => {
+                    // Profile picture not found is okay
+                    if (error.status !== 404) {
+                        console.error(`Error loading profile picture for user ${userId}:`, error);
+                    }
+                }
             });
     }
 

@@ -4,6 +4,9 @@ import { Repository } from "typeorm";
 import { ChatConversation } from "../entities/chat-conversation.entity";
 import { ChatParticipant } from "../entities/chat-participant.entity";
 import { ChatMessage } from "../entities/chat-message.entity";
+import { ChatConversationDTO, OtherUserDTO } from "../models/chat-conversation.dto";
+import { ChatMessageDTO } from "../models/chat-message.dto";
+import { MapperService } from "@mappers/mapper.service";
 
 @Injectable()
 export class ChatService {
@@ -14,12 +17,13 @@ export class ChatService {
         private participantsRepo: Repository<ChatParticipant>,
         @InjectRepository(ChatMessage)
         private messagesRepo: Repository<ChatMessage>,
+        private mapperService: MapperService,
     ) {}
 
     async getOrCreateConversation(
         userId: number,
         otherUserId: number,
-    ): Promise<ChatConversation> {
+    ): Promise<ChatConversationDTO> {
         const a = Number(userId);
         const b = Number(otherUserId);
         if (!a || !b || a === b || !Number.isFinite(a) || !Number.isFinite(b)) {
@@ -44,10 +48,17 @@ export class ChatService {
             })
             .getOne();
 
-        if (existing) return existing;
+        if (existing) {
+            const dto = this.mapperService.entityToDTO<ChatConversation, ChatConversationDTO>(
+                "ChatConversation",
+                existing
+            );
+            dto.participants = [a, b];
+            return dto;
+        }
 
         // Transactionally create conversation and both participants
-        return await this.conversationsRepo.manager.transaction(async (trx) => {
+        const conversation = await this.conversationsRepo.manager.transaction(async (trx) => {
             const conversation = await trx
                 .getRepository(ChatConversation)
                 .save(trx.getRepository(ChatConversation).create({}));
@@ -66,9 +77,16 @@ export class ChatService {
             await trx.getRepository(ChatParticipant).save(participants);
             return conversation;
         });
+
+        const dto = this.mapperService.entityToDTO<ChatConversation, ChatConversationDTO>(
+            "ChatConversation",
+            conversation
+        );
+        dto.participants = [a, b];
+        return dto;
     }
 
-    async getConversationsForUser(userId: number) {
+    async getConversationsForUser(userId: number): Promise<ChatConversationDTO[]> {
         // Filter membership via inner join alias, but still load ALL participants for each conversation
         const conversations = await this.conversationsRepo
             .createQueryBuilder("c")
@@ -113,23 +131,33 @@ export class ChatService {
                     : undefined;
             }
         }
-        // Return a normalized shape: participants as userId[] only
-        return conversations.map((c: any) => ({
-            id: c.id,
-            participants: (c.participants || []).map((p: any) => p.userId),
-            messages: c.messages,
-            unreadCount: (c as any).unreadCount ?? 0,
-            otherUser: (c as any).otherUser,
-            createdAt: c.createdAt,
-            updatedAt: c.updatedAt,
-        }));
+
+        // Map to DTOs
+        return conversations.map((c: any) => {
+            const dto: ChatConversationDTO = {
+                id: c.id,
+                participants: (c.participants || []).map((p: any) => p.userId),
+                messages: (c.messages || []).map((m: ChatMessage) => 
+                    this.mapperService.entityToDTO<ChatMessage, ChatMessageDTO>("ChatMessage", m)
+                ),
+                unreadCount: (c as any).unreadCount ?? 0,
+                otherUser: (c as any).otherUser,
+                createdAt: c.createdAt,
+                updatedAt: c.updatedAt,
+            };
+            return dto;
+        });
     }
 
-    async getMessagesForConversation(conversationId: number) {
-        return this.messagesRepo.find({
+    async getMessagesForConversation(conversationId: number): Promise<ChatMessageDTO[]> {
+        const messages = await this.messagesRepo.find({
             where: { conversationId },
             order: { createdAt: "ASC" },
         });
+
+        return messages.map(message => 
+            this.mapperService.entityToDTO<ChatMessage, ChatMessageDTO>("ChatMessage", message)
+        );
     }
 
     async sendMessage(
@@ -137,7 +165,7 @@ export class ChatService {
         senderId: number,
         content: string,
         type: "text" | "image" | "file" = "text",
-    ) {
+    ): Promise<ChatMessageDTO> {
         const message = await this.messagesRepo.save(
             this.messagesRepo.create({
                 conversationId,
@@ -153,6 +181,6 @@ export class ChatService {
             .where("conversationId = :conversationId", { conversationId })
             .andWhere("userId != :senderId", { senderId })
             .execute();
-        return message;
+        return this.mapperService.entityToDTO<ChatMessage, ChatMessageDTO>("ChatMessage", message);
     }
 }

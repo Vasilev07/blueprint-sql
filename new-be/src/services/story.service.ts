@@ -29,12 +29,19 @@ export class StoryService {
     private readonly uploadDir: string;
     private readonly storiesDir: string;
     private readonly maxFileSize = 30 * 1024 * 1024;
-    private readonly allowedMimeTypes = [
+    private readonly allowedVideoMimeTypes = [
         "video/mp4",
         "video/quicktime",
         "video/x-msvideo",
         "video/webm",
     ];
+    private readonly allowedImageMimeTypes = [
+        "image/jpeg",
+        "image/jpg",
+        "image/png",
+        "image/webp",
+    ];
+    private readonly imageStoryDuration = 30; // Default duration for image stories in seconds
 
     constructor(
         private entityManager: EntityManager,
@@ -59,14 +66,19 @@ export class StoryService {
         }
     }
 
-    private validateVideoFile(file: Express.Multer.File): void {
+    private validateStoryFile(file: Express.Multer.File): void {
         if (!file) {
-            throw new BadRequestException("No video file provided");
+            throw new BadRequestException("No file provided");
         }
 
-        if (!this.allowedMimeTypes.includes(file.mimetype)) {
+        const allAllowedMimeTypes = [
+            ...this.allowedVideoMimeTypes,
+            ...this.allowedImageMimeTypes,
+        ];
+
+        if (!allAllowedMimeTypes.includes(file.mimetype)) {
             throw new BadRequestException(
-                `Invalid file type. Allowed: ${this.allowedMimeTypes.join(", ")}`,
+                `Invalid file type. Allowed videos: ${this.allowedVideoMimeTypes.join(", ")}. Allowed images: ${this.allowedImageMimeTypes.join(", ")}`,
             );
         }
 
@@ -75,6 +87,14 @@ export class StoryService {
                 `File too large. Maximum size: ${this.maxFileSize / 1024 / 1024}MB`,
             );
         }
+    }
+
+    private isVideoFile(mimetype: string): boolean {
+        return this.allowedVideoMimeTypes.includes(mimetype);
+    }
+
+    private isImageFile(mimetype: string): boolean {
+        return this.allowedImageMimeTypes.includes(mimetype);
     }
 
     private generateFilename(userId: number, originalName: string): string {
@@ -177,34 +197,61 @@ export class StoryService {
         file: Express.Multer.File,
         userId: number,
     ): Promise<Story> {
-        this.validateVideoFile(file);
+        this.validateStoryFile(file);
 
         const filename = this.generateFilename(userId, file.originalname);
         const filePath = path.join(this.storiesDir, filename);
         const relativeFilePath = path.join("stories", filename);
 
-        await fs.writeFile(filePath, file.buffer);
+        try {
+            await fs.writeFile(filePath, file.buffer as any);
+        } catch (error) {
+            this.logger.error(`Failed to write file ${filePath}: ${error}`);
+            throw new BadRequestException("Failed to save uploaded file");
+        }
+
+        const isVideo = this.isVideoFile(file.mimetype);
+        const isImage = this.isImageFile(file.mimetype);
 
         try {
-            const metadata = await this.extractVideoMetadata(filePath);
+            let metadata = { duration: 0, width: 0, height: 0 };
+            let relativeThumbnailPath: string | null = null;
 
-            const thumbnailFilename = filename.replace(
-                path.extname(filename),
-                ".jpg",
-            );
-            const thumbnailPath = path.join(this.storiesDir, thumbnailFilename);
-            const relativeThumbnailPath = path.join(
-                "stories",
-                thumbnailFilename,
-            );
+            if (isVideo) {
+                // Extract video metadata
+                metadata = await this.extractVideoMetadata(filePath);
 
-            let thumbnailCreated = false;
-            try {
-                await this.generateThumbnail(filePath, thumbnailPath);
-                const exists = await fs.access(thumbnailPath).then(() => true).catch(() => false);
-                thumbnailCreated = exists;
-            } catch (error) {
-                this.logger.warn(`Thumbnail generation failed: ${error}`);
+                // Generate video thumbnail
+                const thumbnailFilename = filename.replace(
+                    path.extname(filename),
+                    ".jpg",
+                );
+                const thumbnailPath = path.join(this.storiesDir, thumbnailFilename);
+                relativeThumbnailPath = path.join("stories", thumbnailFilename);
+
+                try {
+                    await this.generateThumbnail(filePath, thumbnailPath);
+                    const exists = await fs.access(thumbnailPath).then(() => true).catch(() => false);
+                    if (!exists) {
+                        relativeThumbnailPath = null;
+                    }
+                } catch (error) {
+                    this.logger.warn(`Thumbnail generation failed: ${error}`);
+                    relativeThumbnailPath = null;
+                }
+            } else if (isImage) {
+                // For images, set default duration and use image as its own thumbnail
+                metadata.duration = this.imageStoryDuration;
+                relativeThumbnailPath = relativeFilePath; // Image is its own thumbnail
+                
+                // Try to extract image dimensions using ffprobe (works for images too)
+                try {
+                    const imgMetadata = await this.extractVideoMetadata(filePath);
+                    metadata.width = imgMetadata.width;
+                    metadata.height = imgMetadata.height;
+                } catch (error) {
+                    this.logger.warn(`Could not extract image dimensions: ${error}`);
+                }
             }
 
             const story = new Story();
@@ -216,20 +263,23 @@ export class StoryService {
             story.duration = metadata.duration;
             story.width = metadata.width;
             story.height = metadata.height;
-            story.thumbnailPath = thumbnailCreated ? relativeThumbnailPath : null;
+            story.thumbnailPath = relativeThumbnailPath;
             story.createdAt = new Date();
             story.expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
-            story.isProcessed = false;
+            story.isProcessed = isImage; // Images are instantly processed, videos need compression
 
             const savedStory = await this.entityManager.save(story);
 
-            this.compressVideoAsync(savedStory.id, filePath, filename).catch(
-                (error) => {
-                    this.logger.error(
-                        `Async compression failed for story ${savedStory.id}: ${error.message}`,
-                    );
-                },
-            );
+            // Only compress videos, not images
+            if (isVideo) {
+                this.compressVideoAsync(savedStory.id, filePath, filename).catch(
+                    (error) => {
+                        this.logger.error(
+                            `Async compression failed for story ${savedStory.id}: ${error.message}`,
+                        );
+                    },
+                );
+            }
 
             return savedStory;
         } catch (error) {

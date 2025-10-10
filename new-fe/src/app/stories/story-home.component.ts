@@ -132,16 +132,16 @@ export class StoryHomeComponent implements OnInit, OnDestroy {
         switch (this.selectedCategory) {
             case "trending":
                 filtered = filtered.sort(
-                    (a, b) => b.likes + b.comments - (a.likes + a.comments),
+                    (a, b) => (b.likes || 0) + b.views - ((a.likes || 0) + a.views),
                 );
                 break;
             case "recent":
                 filtered = filtered.sort(
-                    (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
+                    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
                 );
                 break;
             case "most-liked":
-                filtered = filtered.sort((a, b) => b.likes - a.likes);
+                filtered = filtered.sort((a, b) => (b.likes || 0) - (a.likes || 0));
                 break;
             case "most-viewed":
                 filtered = filtered.sort((a, b) => b.views - a.views);
@@ -153,9 +153,9 @@ export class StoryHomeComponent implements OnInit, OnDestroy {
             const query = this.searchQuery.toLowerCase();
             filtered = filtered.filter(
                 (story) =>
-                    story.caption.toLowerCase().includes(query) ||
-                    story.userName.toLowerCase().includes(query) ||
-                    story.tags.some((tag) => tag.toLowerCase().includes(query)),
+                    (story.caption?.toLowerCase() || '').includes(query) ||
+                    (story.userName?.toLowerCase() || '').includes(query) ||
+                    (story.tags || []).some((tag) => tag.toLowerCase().includes(query)),
             );
         }
 
@@ -187,14 +187,7 @@ export class StoryHomeComponent implements OnInit, OnDestroy {
     onUserStoryGroupClick(group: UserStoryGroup): void {
         console.log("User story group clicked:", group);
         
-        // If it's the current user's story, navigate to their profile
-        if (this.currentUserId && group.userId === this.currentUserId.toString()) {
-            console.log("Own story clicked, navigating to profile");
-            this.router.navigate(["/profile"]);
-            return;
-        }
-
-        // Otherwise, navigate to the first story of this user's group
+        // Navigate to the first story of this user's group (including own stories)
         const firstStory = group.stories[0];
         console.log("Navigating to first story:", firstStory.id);
 
@@ -220,8 +213,8 @@ export class StoryHomeComponent implements OnInit, OnDestroy {
                 console.log('Creating new group for userId:', story.userId);
                 groupMap.set(story.userId, {
                     userId: story.userId,
-                    userName: story.userName,
-                    userAvatar: story.userAvatar,
+                    userName: story.userName || "Unknown",
+                    userAvatar: story.userAvatar || "",
                     stories: [],
                     totalViews: 0,
                     hasUnviewed: false,
@@ -240,19 +233,19 @@ export class StoryHomeComponent implements OnInit, OnDestroy {
             }
 
             // Keep the latest story as the representative
-            if (story.createdAt > group.latestStory.createdAt) {
+            if (new Date(story.createdAt) > new Date(group.latestStory?.createdAt || 0)) {
                 group.latestStory = story;
             }
         });
 
         // Sort stories within each group by creation date (newest first)
         groupMap.forEach(group => {
-            group.stories.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+            group.stories.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
         });
 
         // Convert map to array and sort by latest story date
         const result = Array.from(groupMap.values()).sort(
-            (a, b) => b.latestStory.createdAt.getTime() - a.latestStory.createdAt.getTime()
+            (a, b) => new Date(b.latestStory.createdAt).getTime() - new Date(a.latestStory.createdAt).getTime()
         );
         
         console.log('Final groups:', result.map(g => ({ userId: g.userId, userName: g.userName, storyCount: g.stories.length })));
@@ -286,9 +279,9 @@ export class StoryHomeComponent implements OnInit, OnDestroy {
         console.log("More options for story:", story.id);
     }
 
-    formatTime(date: Date): string {
+    formatTime(date: string | Date): string {
         const now = new Date();
-        const diff = now.getTime() - date.getTime();
+        const diff = now.getTime() - new Date(date).getTime();
         const minutes = Math.floor(diff / (1000 * 60));
         const hours = Math.floor(diff / (1000 * 60 * 60));
         const days = Math.floor(diff / (1000 * 60 * 60 * 24));
@@ -305,9 +298,9 @@ export class StoryHomeComponent implements OnInit, OnDestroy {
         return `${mins}:${secs.toString().padStart(2, "0")}`;
     }
 
-    getTimeRemaining(expiresAt: Date): string {
+    getTimeRemaining(expiresAt: string | Date): string {
         const now = new Date();
-        const diff = expiresAt.getTime() - now.getTime();
+        const diff = new Date(expiresAt).getTime() - now.getTime();
         const hours = Math.floor(diff / (1000 * 60 * 60));
         const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
 
@@ -318,7 +311,7 @@ export class StoryHomeComponent implements OnInit, OnDestroy {
     }
 
     getTotalLikes(group: UserStoryGroup): number {
-        return group.stories.reduce((sum, s) => sum + s.likes, 0);
+        return group.stories.reduce((sum, s) => sum + (s.likes || 0), 0);
     }
 
     navigateToUserProfile(group: UserStoryGroup, event: Event): void {

@@ -33,7 +33,7 @@
         </div>
         <div class="user-info">
           <span class="user-name">{{ story.userName }}</span>
-          <span class="story-time">{{ formatDate(story.createdAt) }}</span>
+          <span class="story-time">{{ formatTime(story.createdAt) }}</span>
         </div>
       </div>
       
@@ -45,9 +45,11 @@
       </button>
     </div>
     
-    <!-- Video Player (Full Screen) -->
+    <!-- Media Container (Image or Video) -->
     <div class="video-container">
+      <!-- Video Player -->
       <video #videoPlayer
+        *ngIf="isVideo"
         [src]="videoBlobUrl"
         (timeupdate)="onVideoTimeUpdate()"
         (ended)="onVideoEnded()"
@@ -60,6 +62,13 @@
         loop="false">
         Your browser does not support the video tag.
       </video>
+
+      <!-- Image Display -->
+      <img *ngIf="isImage"
+        [src]="videoBlobUrl"
+        class="image-player"
+        alt="Story image"
+        (click)="togglePlayPause()">
 
       <!-- Tap Zones for Navigation (Instagram Style) -->
       <div class="tap-zone tap-zone-left" (click)="previousStory()"></div>
@@ -80,78 +89,16 @@
 
       <!-- Action Buttons -->
       <div class="story-actions">
-        <!-- Left Side: Comment Input -->
-        <div class="comment-input-section" (click)="toggleComments()">
-          <input type="text" 
-                 placeholder="Send message..." 
-                 class="comment-input"
-                 readonly>
-        </div>
-
-        <!-- Right Side: Actions -->
         <div class="action-buttons">
           <button class="action-btn" (click)="onLikeStory()">
             <i [class]="isLiked ? 'pi pi-heart-fill liked' : 'pi pi-heart'"></i>
-            <span>{{ story.likes | number }}</span>
+            <span>{{ story.likes || 0 }}</span>
           </button>
           
-          <button class="action-btn" (click)="toggleComments()">
-            <i class="pi pi-comments"></i>
-            <span>{{ story.comments | number }}</span>
-          </button>
-          
-          <button class="action-btn" (click)="toggleMute()">
+          <button class="action-btn" (click)="toggleMute()" *ngIf="isVideo">
             <i [class]="isMuted ? 'pi pi-volume-off' : 'pi pi-volume-up'"></i>
           </button>
         </div>
-      </div>
-    </div>
-
-    <!-- Comments Panel (Bottom Sheet Style) -->
-    <div class="comments-panel" [class.show]="showComments" (click)="$event.stopPropagation()">
-      <div class="comments-handle" (click)="toggleComments()">
-        <div class="handle-bar"></div>
-      </div>
-
-      <div class="comments-header">
-        <h3>Comments ({{ story.comments }})</h3>
-        <button class="close-comments" (click)="toggleComments()">
-          <i class="pi pi-times"></i>
-        </button>
-      </div>
-
-      <div class="comments-list">
-        <div *ngIf="comments.length === 0" class="no-comments">
-          <i class="pi pi-comments"></i>
-          <p>No comments yet</p>
-        </div>
-        
-        <div class="comment-item" *ngFor="let comment of comments">
-          <div class="comment-avatar" 
-               [style.background-image]="comment.userAvatar ? 'url(' + comment.userAvatar + ')' : 'none'">
-            <span *ngIf="!comment.userAvatar">{{ comment.userName?.charAt(0)?.toUpperCase() }}</span>
-          </div>
-          <div class="comment-content">
-            <div class="comment-header">
-              <span class="comment-author">{{ comment.userName }}</span>
-              <span class="comment-time">{{ formatDate(comment.createdAt) }}</span>
-            </div>
-            <p class="comment-text">{{ comment.content }}</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="comment-input-box">
-        <input type="text" 
-          placeholder="Add a comment..."
-          [(ngModel)]="newComment"
-          (keyup.enter)="onAddComment()"
-          class="comment-field">
-        <button class="send-btn" 
-                (click)="onAddComment()"
-                [disabled]="!newComment.trim()">
-          <i class="pi pi-send"></i>
-        </button>
       </div>
     </div>
   </div>

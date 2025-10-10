@@ -39,7 +39,7 @@ export class StoryController {
 
     @Post("/upload")
     @HttpCode(HttpStatus.CREATED)
-    @ApiOperation({ summary: "Upload a new story video" })
+    @ApiOperation({ summary: "Upload a new story (image or video)" })
     @ApiConsumes("multipart/form-data")
     @ApiBody({
         schema: {
@@ -48,19 +48,19 @@ export class StoryController {
                 video: {
                     type: "string",
                     format: "binary",
-                    description: "Video file (max 30MB, .mp4/.mov/.avi/.webm)",
+                    description: "Image or Video file (max 30MB). Videos: .mp4/.mov/.avi/.webm. Images: .jpg/.jpeg/.png/.webp. Images display for 30 seconds.",
                 },
             },
         },
     })
     @ApiResponse({
         status: 201,
-        description: "Story uploaded successfully",
+        description: "Story uploaded successfully. Videos process in background, images are instant.",
         type: StoryUploadResponseDTO,
     })
     @ApiResponse({
         status: 400,
-        description: "Invalid file or validation error",
+        description: "Invalid file type or validation error",
     })
     @UseInterceptors(FileInterceptor("video"))
     async uploadStory(
@@ -70,10 +70,15 @@ export class StoryController {
         const userId = this.getUserIdFromRequest(req);
         const story = await this.storyService.uploadStory(file, userId);
 
+        const isImage = story.mimeType.startsWith('image/');
+        const message = isImage 
+            ? "Image story uploaded successfully!"
+            : "Video story uploaded successfully. Processing in background...";
+
         return {
             id: story.id,
             filePath: story.filePath,
-            message: "Story uploaded successfully. Processing in background...",
+            message,
         };
     }
 
@@ -142,32 +147,20 @@ export class StoryController {
     }
 
     @Get("/video/:filename")
-    @ApiOperation({ summary: "Stream story video file" })
+    @ApiOperation({ summary: "Stream story media file (image or video)" })
     @ApiResponse({ 
         status: 200, 
-        description: "Returns video stream",
+        description: "Returns media stream (image or video)",
         content: {
-            'video/mp4': {
-                schema: {
-                    type: 'string',
-                    format: 'binary'
-                }
-            },
-            'video/webm': {
-                schema: {
-                    type: 'string',
-                    format: 'binary'
-                }
-            },
-            'video/quicktime': {
-                schema: {
-                    type: 'string',
-                    format: 'binary'
-                }
-            }
+            'video/mp4': { schema: { type: 'string', format: 'binary' } },
+            'video/webm': { schema: { type: 'string', format: 'binary' } },
+            'video/quicktime': { schema: { type: 'string', format: 'binary' } },
+            'image/jpeg': { schema: { type: 'string', format: 'binary' } },
+            'image/png': { schema: { type: 'string', format: 'binary' } },
+            'image/webp': { schema: { type: 'string', format: 'binary' } }
         }
     })
-    @ApiResponse({ status: 404, description: "Video not found" })
+    @ApiResponse({ status: 404, description: "Media file not found" })
     async streamVideo(
         @Param("filename") filename: string,
         @Res() res: Response,
@@ -178,14 +171,14 @@ export class StoryController {
         );
         const filePath = path.join(uploadsDir, "stories", filename);
 
-        console.log("Video request:", {
+        console.log("Story media request:", {
             filename,
             filePath,
             exists: fs.existsSync(filePath),
         });
 
         if (!fs.existsSync(filePath)) {
-            res.status(404).send("Video not found");
+            res.status(404).send("Media file not found");
             return;
         }
 
@@ -248,11 +241,17 @@ export class StoryController {
     private getMimeTypeFromExtension(filename: string): string {
         const ext = path.extname(filename).toLowerCase();
         const mimeTypes: Record<string, string> = {
+            // Video types
             '.mp4': 'video/mp4',
             '.mov': 'video/quicktime',
             '.avi': 'video/x-msvideo',
             '.webm': 'video/webm',
+            // Image types
+            '.jpg': 'image/jpeg',
+            '.jpeg': 'image/jpeg',
+            '.png': 'image/png',
+            '.webp': 'image/webp',
         };
-        return mimeTypes[ext] || 'video/mp4';
+        return mimeTypes[ext] || 'application/octet-stream';
     }
 }

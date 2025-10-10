@@ -11,7 +11,7 @@
 
     <div class="chat-user-info">
       <p-avatar [label]="(currentUser?.name || '?').charAt(0).toUpperCase()"
-                [image]="currentUser?.avatar"
+                [image]="profilePictureBlobUrl || currentUser?.avatar"
                 shape="circle"
                 styleClass="mr-2"></p-avatar>
       <div class="user-details">

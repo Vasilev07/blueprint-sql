@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { BehaviorSubject, Observable, of, forkJoin } from "rxjs";
+import { BehaviorSubject, Observable, of } from "rxjs";
 import { map } from "rxjs/operators";
 import { HttpClient, HttpHeaders } from "@angular/common/http";
 import { AuthService } from "../services/auth.service";
@@ -7,39 +7,39 @@ import {
     MessagesService,
     UserService,
 } from "src/typescript-api-client/src/api/api";
+import { UserDTO } from "src/typescript-api-client/src/model/user-dto";
+import { ChatMessageDTO } from "src/typescript-api-client/src/model/chat-message-dto";
+import { ChatConversationDTO } from "src/typescript-api-client/src/model/chat-conversation-dto";
+import { CreateConversationDTO } from "src/typescript-api-client/src/model/create-conversation-dto";
 import { FriendsService } from "src/typescript-api-client/src/api/friends.service";
 import { ChatService as ChatApiService } from "src/typescript-api-client/src/api/chat.service";
 import { WebsocketService } from "../services/websocket.service";
 import { environment } from "../../environments/environment";
 
-export interface User {
-    id: string;
-    name: string;
-    email: string;
-    avatar?: string;
-    isOnline: boolean;
-    lastSeen?: Date;
+// UI Extensions - extend backend DTOs with UI-specific fields only
+export interface User extends Omit<UserDTO, 'id' | 'password' | 'confirmPassword'> {
+    id: string; // Convert number to string for UI routing
+    name?: string; // Computed from fullName for display
+    avatar?: string; // Blob URL for profile picture
+    isOnline?: boolean; // Real-time WebSocket status
+    lastSeen?: Date; // Parsed date for UI
 }
 
-export interface Message {
-    id: string;
-    senderId: string;
-    receiverId: string;
-    content: string;
-    timestamp: Date;
-    isRead: boolean;
-    type: "text" | "image" | "file";
+export interface Message extends Omit<ChatMessageDTO, 'id' | 'senderId'> {
+    id: string; // Convert number to string for UI
+    senderId: string; // Convert number to string for UI
+    receiverId?: string; // Computed for bilateral conversations
+    timestamp?: Date; // Parsed date helper
 }
 
-export interface Conversation {
-    id: string;
-    participants: string[];
-    lastMessage?: string;
-    lastMessageTime?: Date;
-    unreadCount: number;
-    name?: string;
-    avatar?: string;
-    isOnline?: boolean;
+export interface Conversation extends Omit<ChatConversationDTO, 'id' | 'participants'> {
+    id: string; // Convert number to string for UI
+    participants: string[]; // Convert number[] to string[] for UI
+    lastMessage?: string; // Computed from messages
+    lastMessageTime?: Date; // Parsed date helper
+    name?: string; // Display name from otherUser
+    avatar?: string; // Blob URL
+    isOnline?: boolean; // Real-time status
 }
 
 @Injectable({
@@ -78,7 +78,7 @@ export class ChatService {
             // Append message to stream
             const nextMsg: Message = {
                 id: String(
-                    message.id ?? `${message.senderId}-${message.createdAt}`,
+                    message.id ?? `${message.senderId}-${message.createdAt}`
                 ),
                 senderId: String(message.senderId),
                 receiverId: String(otherUserId || ""),
@@ -86,6 +86,9 @@ export class ChatService {
                 timestamp: new Date(message.createdAt ?? Date.now()),
                 isRead: Number(message.senderId) === currentUserId,
                 type: "text",
+                conversationId: 0,
+                createdAt: "",
+                updatedAt: "",
             };
             this.messagesSubject.next([...this.messagesSubject.value, nextMsg]);
 
@@ -176,40 +179,34 @@ export class ChatService {
         const userId = this.getCurrentUserId();
         if (!userId) return;
         this.chatApi.getConversations(userId).subscribe({
-            next: (convs: any[]) => {
+            next: (convs: ChatConversationDTO[]) => {
                 const selfId = String(userId);
-                const mapped: Conversation[] = (convs || []).map((c: any) => {
-                    // Backend returns participants as userId[] numbers; normalize to string ids for FE
-                    const participantIds = (c.participants || []).map(
-                        (p: any) => String(p),
-                    );
-                    const last =
-                        Array.isArray(c.messages) && c.messages.length > 0
-                            ? c.messages[c.messages.length - 1]
-                            : undefined;
+                const mapped: Conversation[] = (convs || []).map((c: ChatConversationDTO) => {
+                    // Backend DTOs return participants as number[], map to string[] for FE
+                    const participantIds = (c.participants || []).map(p => String(p));
+                    
+                    const last = (c.messages && c.messages.length > 0)
+                        ? c.messages[c.messages.length - 1]
+                        : undefined;
+                    
                     const other = c.otherUser;
-                    const otherId = participantIds.find(
-                        (pid: string) => pid !== selfId,
-                    );
+                    const otherId = participantIds.find(pid => pid !== selfId);
                     const friend = this.friendsSubject.value.find(
-                        (f) =>
-                            String(f.id) === String(otherId) ||
-                            f.email === otherId,
+                        f => String(f.id) === String(otherId) || f.email === otherId
                     );
+                    
                     return {
                         id: String(c.id),
                         participants: participantIds,
-                        unreadCount: Number((c as any).unreadCount ?? 0),
+                        messages: c.messages, // Include messages from backend
+                        unreadCount: c.unreadCount ?? 0,
+                        otherUser: c.otherUser, // Include otherUser info
                         lastMessage: last?.content,
-                        lastMessageTime: last?.createdAt
-                            ? new Date(last.createdAt)
-                            : undefined,
-                        name:
-                            friend?.name ||
-                            (other
-                                ? `${other.firstname ?? ""} ${other.lastname ?? ""}`.trim() ||
-                                  other.email
-                                : undefined),
+                        lastMessageTime: last?.createdAt ? new Date(last.createdAt) : undefined,
+                        name: friend?.name || 
+                              (other ? `${other.firstname ?? ""} ${other.lastname ?? ""}`.trim() || other.email : undefined),
+                        createdAt: c.createdAt,
+                        updatedAt: c.updatedAt,
                     } as Conversation;
                 });
                 this.conversationsSubject.next(mapped);
@@ -224,16 +221,21 @@ export class ChatService {
         this.applyAuthHeadersToApiServices();
         this.userService.getAll().subscribe({
             next: (users: any[]) => {
-                const mapped: User[] = (users || []).map((u) => ({
-                    id: String(u.id ?? u.email),
-                    name:
-                        `${u.firstname ?? ""} ${u.lastname ?? ""}`.trim() ||
-                        u.fullName ||
-                        u.email,
-                    email: u.email,
-                    avatar: undefined,
-                    isOnline: false,
-                }));
+                const mapped: User[] = (users || []).map((u) => {
+                    const fullName = `${u.firstname ?? ""} ${u.lastname ?? ""}`.trim() || u.fullName || u.email;
+                    return {
+                        id: String(u.id ?? u.email),
+                        name: fullName,
+                        fullName: fullName,
+                        email: u.email,
+                        avatar: undefined,
+                        isOnline: false,
+                        gender: u.gender,
+                        city: u.city,
+                        lastOnline: u.lastOnline,
+                        profilePictureId: u.profilePictureId,
+                    };
+                });
                 this.usersSubject.next(mapped);
             },
             error: () => {
@@ -249,16 +251,19 @@ export class ChatService {
                 const currentEmail = this.authService.getUserEmail();
                 const mapped: User[] = (friends || [])
                     .map((f: any) => {
-                        const other =
-                            f.user?.email === currentEmail ? f.friend : f.user;
+                        const other = f.user?.email === currentEmail ? f.friend : f.user;
+                        const fullName = `${other?.firstname ?? ""} ${other?.lastname ?? ""}`.trim() || other?.email;
                         return {
                             id: String(other?.id ?? other?.email),
-                            name:
-                                `${other?.firstname ?? ""} ${other?.lastname ?? ""}`.trim() ||
-                                other?.email,
+                            name: fullName,
+                            fullName: fullName,
                             email: other?.email,
                             avatar: undefined,
                             isOnline: false,
+                            gender: other?.gender,
+                            city: other?.city,
+                            lastOnline: other?.lastOnline,
+                            profilePictureId: other?.profilePictureId,
                         } as User;
                     })
                     .filter((u: User) => !!u.email);
@@ -271,18 +276,18 @@ export class ChatService {
         });
     }
 
-    // New chat-specific API
-    getOrCreateConversation(otherUserId: number): Observable<{ id: number }> {
+    // New chat-specific API using proper DTOs
+    getOrCreateConversation(otherUserId: number): Observable<ChatConversationDTO> {
         const currentUserId = this.getCurrentUserId();
-        return this.httpClient.post<{ id: number }>(
-            `${environment.apiUrl}/chat/conversation`,
-            { userId: currentUserId, otherUserId },
-            { headers: this.getAuthHeaders() },
-        );
+        const dto: CreateConversationDTO = { 
+            userId: currentUserId, 
+            otherUserId 
+        };
+        return this.chatApi.getOrCreateConversation(dto);
     }
 
-    loadConversationMessages(conversationId: number): Observable<Message[]> {
-        return this.chatApi.getMessages(conversationId) as any;
+    loadConversationMessages(conversationId: number): Observable<ChatMessageDTO[]> {
+        return this.chatApi.getMessages(conversationId);
     }
 
     subscribeToConversation(conversationId: number): Observable<any> {
@@ -319,10 +324,33 @@ export class ChatService {
     }
 
     getRecentMessages(limit: number = 5): Observable<Message[]> {
-        return this.messages$.pipe(
-            map((messages) => {
-                const sorted = [...messages].sort(
-                    (a, b) => b.timestamp.getTime() - a.timestamp.getTime(),
+        // Get recent messages from conversations (backend data)
+        return this.conversations$.pipe(
+            map((conversations) => {
+                const allMessages: Message[] = [];
+                
+                // Extract all messages from all conversations
+                conversations.forEach(conv => {
+                    if (conv.messages && conv.messages.length > 0) {
+                        conv.messages.forEach(msg => {
+                            allMessages.push({
+                                id: String(msg.id),
+                                conversationId: msg.conversationId,
+                                senderId: String(msg.senderId),
+                                content: msg.content,
+                                type: msg.type,
+                                isRead: msg.isRead,
+                                createdAt: msg.createdAt,
+                                updatedAt: msg.updatedAt,
+                                timestamp: new Date(msg.createdAt || Date.now()),
+                            });
+                        });
+                    }
+                });
+                
+                // Sort by timestamp and return top N
+                const sorted = allMessages.sort(
+                    (a, b) => (b.timestamp?.getTime() || 0) - (a.timestamp?.getTime() || 0)
                 );
                 return sorted.slice(0, limit);
             }),
@@ -331,7 +359,7 @@ export class ChatService {
 
     getConversation(userId: string): Observable<Conversation | null> {
         const conversation = this.conversationsSubject.value.find((conv) =>
-            conv.participants.includes(userId),
+            (conv.participants || []).includes(userId),
         );
         return of(conversation || null);
     }
@@ -343,7 +371,11 @@ export class ChatService {
                     (msg.senderId === userId && msg.receiverId === "1") ||
                     (msg.senderId === "1" && msg.receiverId === userId),
             )
-            .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+            .sort(
+                (a, b) =>
+                    (a.timestamp?.getTime() || 0) -
+                    (b.timestamp?.getTime() || 0),
+            );
         return of(messages);
     }
 
@@ -361,7 +393,7 @@ export class ChatService {
 
         // Update conversation
         const conversation = this.conversationsSubject.value.find((conv) =>
-            conv.participants.includes(message.receiverId),
+            (conv.participants || []).includes(message.receiverId || ""),
         );
 
         if (conversation) {
@@ -374,8 +406,8 @@ export class ChatService {
                               lastMessageTime: newMessage.timestamp,
                               unreadCount:
                                   message.senderId === "1"
-                                      ? conv.unreadCount
-                                      : conv.unreadCount + 1,
+                                      ? conv.unreadCount || 0
+                                      : (conv.unreadCount || 0) + 1,
                           }
                         : conv,
             );
@@ -395,7 +427,7 @@ export class ChatService {
     searchUsers(query: string): Observable<User[]> {
         const users = this.usersSubject.value.filter(
             (user) =>
-                user.name.toLowerCase().includes(query.toLowerCase()) ||
+                user?.name?.toLowerCase().includes(query.toLowerCase()) ||
                 user.email.toLowerCase().includes(query.toLowerCase()),
         );
         return of(users);
