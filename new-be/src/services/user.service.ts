@@ -1,4 +1,4 @@
-import { Inject, Injectable, OnModuleInit, NotFoundException, UnauthorizedException } from "@nestjs/common";
+import { Inject, Injectable, OnModuleInit, NotFoundException, UnauthorizedException, ConflictException, BadRequestException } from "@nestjs/common";
 import { UserDTO } from "../models/user.dto";
 import { UserPhotoDTO } from "../models/user-photo.dto";
 import { sign } from "jsonwebtoken";
@@ -25,29 +25,60 @@ export class UserService implements OnModuleInit {
         this.userMapper = this.mapperService.getMapper("User");
     }
 
+    async checkEmailAvailability(email: string): Promise<{ available: boolean }> {
+        const user = await this.findOneByEmail(email);
+        return { available: user === null || user === undefined };
+    }
+
     async register(dto: UserDTO) {
-        const isEmailAvailable = await this.findOneByEmail(dto.email);
-        console.log("isEmailAvailable", isEmailAvailable);
-
-        if (isEmailAvailable !== null && isEmailAvailable !== undefined) {
-            throw new Error("Email already in use");
+        // Validate email
+        if (!dto.email || !dto.email.includes('@')) {
+            throw new BadRequestException("Invalid email address");
         }
 
+        // Check if email is already in use
+        const existingUser = await this.findOneByEmail(dto.email);
+        if (existingUser !== null && existingUser !== undefined) {
+            throw new ConflictException("Email already in use");
+        }
+
+        // Validate passwords match
         if (dto.password !== dto.confirmPassword) {
-            throw new Error("Passwords do not match");
+            throw new BadRequestException("Passwords do not match");
         }
 
-        const names = dto.fullName.split(" ");
+        // Validate password strength (optional but recommended)
+        if (dto.password.length < 6) {
+            throw new BadRequestException("Password must be at least 6 characters long");
+        }
+
+        // Validate full name
+        if (!dto.fullName || dto.fullName.trim().length === 0) {
+            throw new BadRequestException("Full name is required");
+        }
+
+        const names = dto.fullName.trim().split(" ");
+        if (names.length < 2) {
+            throw new BadRequestException("Please provide both first name and last name");
+        }
 
         const adminToSave: User = new User();
         const hashedPassword = await this.cryptoService.hashPassword(
             dto.password,
         );
 
-        adminToSave.email = dto.email;
+        adminToSave.email = dto.email.toLowerCase().trim();
         adminToSave.password = hashedPassword;
         adminToSave.firstname = names[0];
         adminToSave.lastname = names[names.length - 1];
+        
+        // Set optional fields
+        if (dto.gender) {
+            adminToSave.gender = dto.gender;
+        }
+        if (dto.city) {
+            adminToSave.city = dto.city;
+        }
 
         const savedAdmin = await this.entityManager.save(adminToSave);
 

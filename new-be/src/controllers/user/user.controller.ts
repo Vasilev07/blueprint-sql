@@ -9,6 +9,9 @@ import {
     Param,
     Res,
     Req,
+    Query,
+    HttpCode,
+    HttpStatus,
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { AuthMiddleware } from "src/middlewares/auth.middleware";
@@ -40,6 +43,27 @@ export class UserController {
     @Get("/all")
     async getAll(): Promise<UserDTO[]> {
         return await this.userService.getAll();
+    }
+
+    @Get("/check-email")
+    @ApiOperation({ summary: "Check if email is available for registration" })
+    @ApiResponse({
+        status: 200,
+        description: "Returns email availability status",
+        schema: {
+            type: "object",
+            properties: {
+                available: { type: "boolean" },
+            },
+        },
+    })
+    async checkEmail(
+        @Query("email") email: string,
+    ): Promise<{ available: boolean }> {
+        if (!email) {
+            return { available: false };
+        }
+        return await this.userService.checkEmailAvailability(email);
     }
 
     @Post("/login")
@@ -99,12 +123,31 @@ export class UserController {
     }
 
     @Post("/register")
+    @HttpCode(HttpStatus.CREATED)
+    @ApiOperation({ summary: "Register a new user" })
+    @ApiBody({ type: UserDTO })
+    @ApiResponse({
+        status: 201,
+        description: "User registered successfully",
+        schema: {
+            type: "object",
+            properties: {
+                token: { type: "string" },
+                expiresIn: { type: "number" },
+            },
+        },
+    })
+    @ApiResponse({
+        status: 400,
+        description: "Bad request - validation failed",
+    })
+    @ApiResponse({
+        status: 409,
+        description: "Conflict - email already in use",
+    })
     async register(@Body() userDTO: UserDTO): Promise<any> {
-        try {
-            return await this.userService.register(userDTO);
-        } catch (error) {
-            console.error("Error registering admin.", error);
-        }
+        const token = await this.userService.register(userDTO);
+        return { token, expiresIn: 3600 };
     }
 
     @Post("photos/upload")

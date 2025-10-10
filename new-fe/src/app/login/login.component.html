@@ -17,7 +17,11 @@
                         </div>
                         <a class="font-medium no-underline ml-2 text-right cursor-pointer" style="color: var(--primary-color)">Forgot password?</a>
                     </div>
-                    <button pButton pRipple label="Sign In" class="w-full p-3 text-xl" (click)="login()"></button>
+                    <button pButton pRipple label="Sign In" class="w-full p-3 text-xl mb-3" (click)="login()"></button>
+                    <div class="text-center">
+                        <span class="text-600 font-medium">Don't have an account? </span>
+                        <a routerLink="/register" class="font-medium no-underline cursor-pointer" style="color: var(--primary-color)">Sign Up</a>
+                    </div>
                 </div>
             </div>
         </div>

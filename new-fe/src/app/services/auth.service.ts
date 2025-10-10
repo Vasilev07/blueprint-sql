@@ -3,7 +3,8 @@ import { HttpClient } from "@angular/common/http";
 import moment from "moment";
 import { JwtHelperService } from "@auth0/angular-jwt";
 import { Router } from "@angular/router";
-import { UserService } from "src/typescript-api-client/src";
+import { UserService, UserDTO } from "src/typescript-api-client/src";
+import { Observable } from "rxjs";
 
 @Injectable({ providedIn: "root" })
 export class AuthService {
@@ -22,6 +23,25 @@ export class AuthService {
                 this.setSession(res);
                 this.router.navigate(["/"]);
             });
+    }
+
+    register(userDTO: UserDTO): Observable<any> {
+        return this.userService.register(userDTO);
+    }
+
+    checkEmailExists(email: string): Observable<boolean> {
+        return new Observable(observer => {
+            this.userService.checkEmail(email).subscribe(
+                (response) => {
+                    // Return true if email EXISTS (i.e., NOT available)
+                    observer.next(!response.available);
+                    observer.complete();
+                },
+                (error) => {
+                    observer.error(error);
+                }
+            );
+        });
     }
 
     logout() {
