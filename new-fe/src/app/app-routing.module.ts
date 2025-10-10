@@ -61,7 +61,7 @@ const routes: Routes = [
                     ),
             },
             {
-                path: "live-tv",
+                path: "stories",
                 loadChildren: () =>
                     import("./stories/story.module").then(
                         (m) => m.StoryModule,

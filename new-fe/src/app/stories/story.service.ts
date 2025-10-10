@@ -1,6 +1,11 @@
 import { Injectable } from "@angular/core";
 import { BehaviorSubject, Observable, of } from "rxjs";
-import { delay } from "rxjs/operators";
+import { delay, tap } from "rxjs/operators";
+import {
+    StoriesService,
+    StoryDTO,
+    StoryUploadResponseDTO,
+} from "src/typescript-api-client/src";
 
 export interface Story {
     id: string;
@@ -42,8 +47,19 @@ export class StoryService {
     public stories$ = this.storiesSubject.asObservable();
     public comments$ = this.commentsSubject.asObservable();
 
-    constructor() {
+    constructor(private storiesApiService: StoriesService) {
         this.initializeMockData();
+    }
+
+    loadStories(): void {
+        this.storiesApiService
+            .getAllStories()
+            .subscribe((stories: StoryDTO[]) => {
+                const mappedStories = stories.map((dto) =>
+                    this.mapDTOToStory(dto),
+                );
+                this.storiesSubject.next(mappedStories);
+            });
     }
 
     private initializeMockData() {
@@ -287,36 +303,10 @@ export class StoryService {
         return of(newComment);
     }
 
-    uploadStory(
-        storyData: Omit<
-            Story,
-            | "id"
-            | "createdAt"
-            | "expiresAt"
-            | "views"
-            | "likes"
-            | "comments"
-            | "isLiked"
-            | "isViewed"
-        >,
-    ): Observable<Story> {
-        const newStory: Story = {
-            ...storyData,
-            id: Date.now().toString(),
-            createdAt: new Date(),
-            expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24), // 24 hours from now
-            views: 0,
-            likes: 0,
-            comments: 0,
-            isLiked: false,
-            isViewed: false,
-        };
-
-        const stories = this.storiesSubject.value;
-        const updatedStories = [newStory, ...stories]; // Add to beginning
-        this.storiesSubject.next(updatedStories);
-
-        return of(newStory);
+    uploadStory(videoFile: File): Observable<StoryUploadResponseDTO> {
+        return this.storiesApiService
+            .uploadStory(videoFile)
+            .pipe(tap(() => this.loadStories()));
     }
 
     deleteStory(storyId: string): Observable<boolean> {
@@ -345,5 +335,30 @@ export class StoryService {
         );
         this.storiesSubject.next(validStories);
     }
-}
 
+    private mapDTOToStory(dto: StoryDTO): Story {
+        const videoFilename = dto.filePath.split("/").pop();
+        const thumbnailFilename = dto.thumbnailPath?.split("/").pop();
+
+        return {
+            id: dto.id.toString(),
+            userId: dto.userId.toString(),
+            userName: dto.userName || "Unknown",
+            userAvatar: "",
+            videoUrl: `${this.storiesApiService.configuration.basePath}/stories/video/${videoFilename}`,
+            thumbnailUrl: thumbnailFilename
+                ? `${this.storiesApiService.configuration.basePath}/stories/thumbnail/${thumbnailFilename}`
+                : "",
+            caption: "",
+            duration: dto.duration || 0,
+            views: dto.views,
+            likes: 0,
+            comments: 0,
+            createdAt: new Date(dto.createdAt),
+            expiresAt: new Date(dto.expiresAt),
+            tags: [],
+            isLiked: false,
+            isViewed: false,
+        };
+    }
+}

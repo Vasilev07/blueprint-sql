@@ -71,90 +71,6 @@
           </div>
         </div>
 
-        <!-- Story Details Section -->
-        <div class="upload-section">
-          <h3>Story Details</h3>
-          
-          <div class="form-group">
-            <label for="caption">Caption *</label>
-            <textarea pInputTextarea 
-              id="caption"
-              formControlName="caption"
-              rows="3"
-              placeholder="What's happening in your story?"
-              [maxlength]="200"
-              class="caption-input">
-            </textarea>
-            <div class="character-count" [class.near-limit]="getRemainingCharacters() <= 20">
-              {{ getRemainingCharacters() }} characters remaining
-            </div>
-            <div class="validation-error" *ngIf="uploadForm.get('caption')?.invalid && uploadForm.get('caption')?.touched">
-              <small *ngIf="uploadForm.get('caption')?.errors?.['required']">Caption is required</small>
-              <small *ngIf="uploadForm.get('caption')?.errors?.['maxlength']">Caption is too long</small>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="category">Category *</label>
-            <p-dropdown 
-              id="category"
-              [options]="categories" 
-              formControlName="category"
-              optionLabel="label"
-              optionValue="value"
-              placeholder="Select a category"
-              class="category-dropdown">
-            </p-dropdown>
-            <div class="validation-error" *ngIf="uploadForm.get('category')?.invalid && uploadForm.get('category')?.touched">
-              <small>Please select a category</small>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="tags">Tags</label>
-            <input pInputText 
-              id="tags"
-              type="text" 
-              formControlName="tags"
-              placeholder="#lifestyle #fun #vibes"
-              (input)="onTagsInput($event)"
-              class="tags-input">
-            <small class="form-hint">Add hashtags to help others discover your story</small>
-          </div>
-
-          <div class="form-group">
-            <label>Privacy Settings</label>
-            <div class="privacy-options">
-              <div class="privacy-option">
-                <p-checkbox 
-                  formControlName="isPublic" 
-                  [binary]="true"
-                  label="Make story public">
-                </p-checkbox>
-                <small>Public stories can be seen by everyone</small>
-              </div>
-              
-              <div class="privacy-option">
-                <p-checkbox 
-                  formControlName="allowComments" 
-                  [binary]="true"
-                  label="Allow comments">
-                </p-checkbox>
-                <small>Let others comment on your story</small>
-              </div>
-              
-              <div class="privacy-option">
-                <p-checkbox 
-                  formControlName="allowLikes" 
-                  [binary]="true"
-                  label="Allow likes">
-                </p-checkbox>
-                <small>Let others like your story</small>
-              </div>
-            </div>
-          </div>
-        </div>
-
         <!-- Upload Progress -->
         <div class="upload-progress" *ngIf="isUploading">
           <h3>Uploading Your Story</h3>
@@ -181,7 +97,7 @@
             label="Upload Story" 
             icon="pi pi-upload"
             class="p-button-primary upload-submit-btn"
-            [disabled]="uploadForm.invalid || !selectedFile || isUploading">
+            [disabled]="!selectedFile || isUploading || videoDuration > maxDuration">
           </button>
         </div>
       </form>

@@ -155,7 +155,7 @@ export class StoryViewerComponent implements OnInit, OnDestroy {
                     //   summary: 'Live Stream Not Found',
                     //   detail: 'The requested live stream could not be found'
                     // });
-                    this.router.navigate(["/live-tv"]);
+                    this.router.navigate(["/stories"]);
                 }
                 this.isLoading = false;
             });
@@ -306,7 +306,7 @@ export class StoryViewerComponent implements OnInit, OnDestroy {
         if (this.currentStoryIndex > 0) {
             this.currentStoryIndex--;
             const story = this.allStories[this.currentStoryIndex];
-            this.router.navigate(["/live-tv/view", story.id]);
+            this.router.navigate(["/stories/view", story.id]);
         }
     }
 
@@ -314,7 +314,7 @@ export class StoryViewerComponent implements OnInit, OnDestroy {
         if (this.currentStoryIndex < this.allStories.length - 1) {
             this.currentStoryIndex++;
             const story = this.allStories[this.currentStoryIndex];
-            this.router.navigate(["/live-tv/view", story.id]);
+            this.router.navigate(["/stories/view", story.id]);
         } else {
             // End of stories, go back to stories list
             this.router.navigate(["/live-tv"]);

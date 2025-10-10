@@ -25,7 +25,7 @@
     
     i {
       font-size: 48px;
-      color: #999;
+      color: var(--text-color-secondary);
       margin-bottom: 16px;
       display: block;
     }
@@ -52,9 +52,8 @@
       .section-title {
         font-size: 18px;
         font-weight: 600;
-        color: #fff;
+        color: var(--text-color);
         margin: 0 0 20px 0;
-        text-shadow: 0 1px 2px rgba(0,0,0,0.1);
       }
 
       .stories-cards-container {
@@ -120,15 +119,15 @@
         }
 
         .create-story-card {
-          background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
-          box-shadow: 0 4px 16px rgba(0, 123, 255, 0.3);
+          background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-600) 100%);
+          box-shadow: 0 4px 16px rgba(var(--primary-color-rgb), 0.3);
 
           .card-content {
             .create-icon {
               width: 48px;
               height: 48px;
               border-radius: 50%;
-              background: rgba(255, 255, 255, 0.9);
+              background: var(--surface-card);
               display: flex;
               align-items: center;
               justify-content: center;
@@ -136,7 +135,7 @@
 
               i {
                 font-size: 24px;
-                color: #007bff;
+                color: var(--primary-color);
                 font-weight: bold;
               }
             }
@@ -151,20 +150,21 @@
         }
 
         .story-card {
-          background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
-          box-shadow: 0 4px 16px rgba(0, 123, 255, 0.3);
+          background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-600) 100%);
+          box-shadow: 0 4px 16px rgba(var(--primary-color-rgb), 0.3);
 
           &.viewed {
-            background: linear-gradient(135deg, #e0e0e0 0%, #f0f0f0 100%);
+            background: var(--surface-hover);
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--surface-border);
 
             .story-avatar {
-              border-color: #e0e0e0;
+              border-color: var(--surface-border);
             }
 
             .username,
             .views {
-              color: #666;
+              color: var(--text-color-secondary);
             }
           }
 
@@ -173,7 +173,7 @@
               width: 48px;
               height: 48px;
               border-radius: 50%;
-              background-color: #fff;
+              background-color: var(--surface-card);
               background-size: cover;
               background-position: center;
               border: 3px solid #fff;
@@ -186,7 +186,7 @@
               span {
                 font-size: 18px;
                 font-weight: 600;
-                color: #007bff;
+                color: var(--primary-color);
               }
             }
 
@@ -243,22 +243,22 @@
         .filter-btn {
           padding: 6px 16px;
           border-radius: 8px;
-          border: 1px solid #dbdbdb;
-          background: #fff;
-          color: #262626;
+          border: 1px solid var(--surface-border);
+          background: var(--surface-card);
+          color: var(--text-color);
           font-size: 14px;
           font-weight: 500;
           cursor: pointer;
           transition: all 0.2s ease;
 
           &:hover {
-            border-color: #007bff;
-            color: #007bff;
+            border-color: var(--primary-color);
+            color: var(--primary-color);
           }
 
           &.active {
-            background: #007bff;
-            border-color: #007bff;
+            background: var(--primary-color);
+            border-color: var(--primary-color);
             color: #fff;
           }
         }
@@ -321,7 +321,7 @@
                 width: 32px;
                 height: 32px;
                 border-radius: 50%;
-                background-color: #262626;
+                background-color: var(--surface-card);
                 background-size: cover;
                 background-position: center;
                 border: 2px solid #fff;
@@ -332,7 +332,7 @@
                 span {
                   font-size: 12px;
                   font-weight: 600;
-                  color: #fff;
+                  color: var(--primary-color);
                 }
               }
 
@@ -362,7 +362,7 @@
                   font-size: 16px;
 
                   &.liked {
-                    color: #ed4956;
+                    color: var(--red-500);
                   }
                 }
               }
@@ -393,12 +393,12 @@
     width: 56px;
     height: 56px;
     border-radius: 50%;
-    background: #007bff;
+    background: var(--primary-color);
     border: none;
     color: #fff;
     font-size: 24px;
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
+    box-shadow: 0 4px 12px rgba(var(--primary-color-rgb), 0.4);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -406,7 +406,7 @@
 
     &:hover {
       transform: scale(1.1);
-      box-shadow: 0 6px 16px rgba(0, 123, 255, 0.5);
+      box-shadow: 0 6px 16px rgba(var(--primary-color-rgb), 0.5);
     }
 
     &:active {

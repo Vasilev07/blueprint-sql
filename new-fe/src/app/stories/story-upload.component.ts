@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy } from "@angular/core";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { Router } from "@angular/router";
 import { Subject, takeUntil } from "rxjs";
-// import { MessageService, ConfirmationService } from 'primeng/api';
+import { MessageService, ConfirmationService } from "primeng/api";
 import { Story, StoryService } from "./story.service";
 
 @Component({
@@ -19,38 +19,16 @@ export class StoryUploadComponent implements OnInit, OnDestroy {
     selectedFile: File | null = null;
     videoPreview: string | null = null;
     videoDuration = 0;
-    maxDuration = 60; // Maximum 60 seconds for stories
-
-    categories = [
-        { label: "Lifestyle", value: "lifestyle" },
-        { label: "Food & Cooking", value: "food" },
-        { label: "Travel", value: "travel" },
-        { label: "Fitness & Health", value: "fitness" },
-        { label: "Music & Dance", value: "music" },
-        { label: "Art & Creativity", value: "art" },
-        { label: "Technology", value: "technology" },
-        { label: "Fashion & Beauty", value: "fashion" },
-        { label: "Sports", value: "sports" },
-        { label: "Education", value: "education" },
-        { label: "Comedy", value: "comedy" },
-        { label: "Other", value: "other" },
-    ];
+    maxDuration = 60;
 
     constructor(
         private fb: FormBuilder,
         private router: Router,
         private storyService: StoryService,
-        // private messageService: MessageService,
-        // private confirmationService: ConfirmationService
+        private messageService: MessageService,
+        private confirmationService: ConfirmationService,
     ) {
-        this.uploadForm = this.fb.group({
-            caption: ["", [Validators.required, Validators.maxLength(200)]],
-            category: ["", Validators.required],
-            tags: [""],
-            isPublic: [true],
-            allowComments: [true],
-            allowLikes: [true],
-        });
+        this.uploadForm = this.fb.group({});
     }
 
     ngOnInit(): void {}
@@ -63,23 +41,21 @@ export class StoryUploadComponent implements OnInit, OnDestroy {
     onFileSelect(event: any): void {
         const file = event.files[0];
         if (file) {
-            // Validate file type
             if (!file.type.startsWith("video/")) {
-                // this.messageService.add({
-                //   severity: 'error',
-                //   summary: 'Invalid File',
-                //   detail: 'Please select a valid video file'
-                // });
+                this.messageService.add({
+                    severity: "error",
+                    summary: "Invalid File",
+                    detail: "Please select a valid video file",
+                });
                 return;
             }
 
-            // Validate file size (max 100MB)
             if (file.size > 100 * 1024 * 1024) {
-                // this.messageService.add({
-                //   severity: 'error',
-                //   summary: 'File Too Large',
-                //   detail: 'Video file size must be less than 100MB'
-                // });
+                this.messageService.add({
+                    severity: "error",
+                    summary: "File Too Large",
+                    detail: "Video file size must be less than 100MB",
+                });
                 return;
             }
 
@@ -96,14 +72,13 @@ export class StoryUploadComponent implements OnInit, OnDestroy {
             this.videoDuration = video.duration;
 
             if (this.videoDuration > this.maxDuration) {
-                // this.messageService.add({
-                //   severity: 'warn',
-                //   summary: 'Video Too Long',
-                //   detail: `Video duration (${Math.round(this.videoDuration)}s) exceeds the maximum allowed duration (${this.maxDuration}s)`
-                // });
+                this.messageService.add({
+                    severity: "warn",
+                    summary: "Video Too Long",
+                    detail: `Video duration (${Math.round(this.videoDuration)}s) exceeds the maximum allowed duration (${this.maxDuration}s)`,
+                });
             }
 
-            // Create thumbnail from video
             video.currentTime = 1;
             video.onseeked = () => {
                 const canvas = document.createElement("canvas");
@@ -128,14 +103,6 @@ export class StoryUploadComponent implements OnInit, OnDestroy {
         this.uploadProgress = 0;
     }
 
-    onTagsInput(event: any): void {
-        const value = event.target.value;
-        // Auto-add # if user types without it
-        if (value && !value.startsWith("#")) {
-            this.uploadForm.patchValue({ tags: "#" + value });
-        }
-    }
-
     formatDuration(seconds: number): string {
         const mins = Math.floor(seconds / 60);
         const secs = Math.floor(seconds % 60);
@@ -143,118 +110,71 @@ export class StoryUploadComponent implements OnInit, OnDestroy {
     }
 
     async uploadStory(): Promise<void> {
-        if (!this.selectedFile || this.uploadForm.invalid) {
-            // this.messageService.add({
-            //   severity: 'error',
-            //   summary: 'Validation Error',
-            //   detail: 'Please fill in all required fields and select a video file'
-            // });
+        if (!this.selectedFile) {
+            this.messageService.add({
+                severity: "error",
+                summary: "No Video Selected",
+                detail: "Please select a video file",
+            });
             return;
         }
 
         if (this.videoDuration > this.maxDuration) {
-            // this.messageService.add({
-            //   severity: 'error',
-            //   summary: 'Video Too Long',
-            //   detail: `Please select a video shorter than ${this.maxDuration} seconds`
-            // });
+            this.messageService.add({
+                severity: "error",
+                summary: "Video Too Long",
+                detail: `Please select a video shorter than ${this.maxDuration} seconds`,
+            });
             return;
         }
 
         this.isUploading = true;
         this.uploadProgress = 0;
 
-        // Simulate upload progress
-        const progressInterval = setInterval(() => {
-            if (this.uploadProgress < 90) {
-                this.uploadProgress += Math.random() * 10;
-            }
-        }, 200);
+        this.storyService
+            .uploadStory(this.selectedFile)
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+                next: () => {
+                    this.uploadProgress = 100;
 
-        try {
-            // Simulate file upload delay
-            await new Promise((resolve) => setTimeout(resolve, 3000));
+                    setTimeout(() => {
+                        this.messageService.add({
+                            severity: "success",
+                            summary: "Upload Successful",
+                            detail: "Your story has been uploaded successfully!",
+                        });
 
-            // Parse tags
-            const tagsInput = this.uploadForm.get("tags")?.value || "";
-            const tags = tagsInput
-                .split(" ")
-                .filter((tag: string) => tag.trim() && tag.startsWith("#"))
-                .map((tag: string) => tag.substring(1).toLowerCase());
+                        this.router.navigate(["/stories"]);
+                    }, 500);
+                },
+                error: (error) => {
+                    this.isUploading = false;
 
-            // Create story data
-            const storyData = {
-                userId: "1", // Current user
-                userName: "You",
-                userAvatar:
-                    "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
-                videoUrl: URL.createObjectURL(this.selectedFile), // In real app, this would be the uploaded URL
-                thumbnailUrl:
-                    this.videoPreview || "https://via.placeholder.com/400x600",
-                caption: this.uploadForm.get("caption")?.value,
-                duration: this.videoDuration,
-                tags: tags,
-            };
-
-            // Upload story
-            this.storyService
-                .uploadStory(storyData)
-                .pipe(takeUntil(this.destroy$))
-                .subscribe({
-                    next: (story) => {
-                        clearInterval(progressInterval);
-                        this.uploadProgress = 100;
-
-                        setTimeout(() => {
-                            // this.messageService.add({
-                            //   severity: 'success',
-                            //   summary: 'Upload Successful',
-                            //   detail: 'Your story has been uploaded successfully!'
-                            // });
-
-                            this.router.navigate(["/stories"]);
-                        }, 500);
-                    },
-                    error: (error) => {
-                        clearInterval(progressInterval);
-                        this.isUploading = false;
-
-                        // this.messageService.add({
-                        //   severity: 'error',
-                        //   summary: 'Upload Failed',
-                        //   detail: 'Failed to upload story. Please try again.'
-                        // });
-                    },
-                });
-        } catch (error) {
-            clearInterval(progressInterval);
-            this.isUploading = false;
-
-            // this.messageService.add({
-            //   severity: 'error',
-            //   summary: 'Upload Failed',
-            //   detail: 'An unexpected error occurred. Please try again.'
-            // });
-        }
+                    this.messageService.add({
+                        severity: "error",
+                        summary: "Upload Failed",
+                        detail:
+                            error.error?.message ||
+                            "Failed to upload story. Please try again.",
+                    });
+                },
+            });
     }
 
     onCancel(): void {
-        if (this.selectedFile || this.uploadForm.dirty) {
-            // this.confirmationService.confirm({
-            //   message: 'Are you sure you want to cancel? All progress will be lost.',
-            //   header: 'Confirm Cancellation',
-            //   icon: 'pi pi-exclamation-triangle',
-            //   accept: () => {
-            //     this.router.navigate(['/stories']);
-            //   }
-            // });
+        if (this.selectedFile) {
+            this.confirmationService.confirm({
+                message:
+                    "Are you sure you want to cancel? Your video will not be uploaded.",
+                header: "Confirm Cancellation",
+                icon: "pi pi-exclamation-triangle",
+                accept: () => {
+                    this.router.navigate(["/stories"]);
+                },
+            });
         } else {
             this.router.navigate(["/stories"]);
         }
-    }
-
-    getRemainingCharacters(): number {
-        const caption = this.uploadForm.get("caption")?.value || "";
-        return 200 - caption.length;
     }
 }

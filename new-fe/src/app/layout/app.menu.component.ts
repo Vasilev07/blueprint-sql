@@ -28,7 +28,7 @@ export class AppMenuComponent implements OnInit {
                     {
                         label: "Stories",
                         icon: "pi pi-fw pi-images",
-                        routerLink: ["/live-tv"],
+                        routerLink: ["/stories"],
                     },
                     {
                         label: "Messages",

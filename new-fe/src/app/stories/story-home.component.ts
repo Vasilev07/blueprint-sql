@@ -106,29 +106,25 @@ export class StoryHomeComponent implements OnInit, OnDestroy {
 
     onStoryClick(story: Story): void {
         console.log("Story clicked:", story);
-        console.log("Navigating to:", `/live-tv/view/${story.id}`);
+        console.log("Navigating to:", `/stories/view/${story.id}`);
 
-        // Try different navigation approaches
         this.router
-            .navigate(["/live-tv/view", story.id])
+            .navigate(["/stories/view", story.id])
             .then((success) => {
                 console.log("Navigation success:", success);
             })
             .catch((error) => {
                 console.error("Navigation error:", error);
             });
-
-        // Also try with absolute path
-        // this.router.navigate(['/live-tv/view', story.id], { relativeTo: this.route });
     }
 
     onUploadClick(): void {
-        this.router.navigate(["/live-tv/upload"]);
+        this.router.navigate(["/stories/upload"]);
     }
 
     testNavigation(): void {
         console.log("Testing navigation...");
-        this.router.navigate(["/live-tv/view", "1"]);
+        this.router.navigate(["/stories/view", "1"]);
     }
 
     onLikeStory(story: Story, event: Event): void {
