@@ -13,6 +13,7 @@ import { MessageModule } from "./controllers/message/message.module";
 import { FriendModule } from "./controllers/friend/friend.module";
 import { MessageGateway } from "./gateways/message.gateway";
 import { ChatModule } from "./controllers/chat/chat.module";
+import { StoryModule } from "./controllers/story/story.module";
 import { ConfigModule } from "@nestjs/config";
 
 @Module({
@@ -33,6 +34,7 @@ import { ConfigModule } from "@nestjs/config";
         MessageModule,
         FriendModule,
         ChatModule,
+        StoryModule,
     ],
     controllers: [AppController],
     providers: [AppService, MulterConfigService, MessageGateway],
