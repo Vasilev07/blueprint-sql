@@ -16,6 +16,8 @@ import { CryptoService } from "./crypto.service";
 import { EntityManager } from "typeorm";
 import { User } from "@entities/user.entity";
 import { UserPhoto } from "@entities/user-photo.entity";
+import { PhotoLike } from "@entities/photo-like.entity";
+import { UserFriend, FriendshipStatus } from "@entities/friend.entity";
 import { UserMapper } from "@mappers/implementations/user.mapper";
 import { MapperService } from "@mappers/mapper.service";
 
@@ -176,37 +178,69 @@ export class UserService implements OnModuleInit {
     }
 
     async getUserPhotos(req: any): Promise<UserPhotoDTO[]> {
-        const userId = this.getUserIdFromRequest(req);
+        const currentUserId = this.getUserIdFromRequest(req);
+        const userId = currentUserId; // Get own photos
 
         const photos = await this.entityManager.find(UserPhoto, {
             where: { userId },
             order: { uploadedAt: "DESC" },
         });
 
-        return photos.map((p) => ({
-            id: p.id,
-            name: p.name,
-            userId: p.userId,
-            uploadedAt: p.uploadedAt,
-        }));
+        return await this.mapPhotosToDTO(photos, currentUserId);
     }
 
-    async getUserPhotosByUserId(userId: number): Promise<UserPhotoDTO[]> {
+    async getUserPhotosByUserId(userId: number, currentUserId?: number): Promise<UserPhotoDTO[]> {
+        // Check if currentUser can view these photos
+        if (currentUserId && currentUserId !== userId) {
+            const areFriends = await this.areUsersFriends(currentUserId, userId);
+            if (!areFriends) {
+                throw new ForbiddenException("You must be friends to view this user's photos");
+            }
+        }
+
         const photos = await this.entityManager.find(UserPhoto, {
             where: { userId },
             order: { uploadedAt: "DESC" },
         });
+
+        return await this.mapPhotosToDTO(photos, currentUserId);
+    }
+
+    private async areUsersFriends(userId1: number, userId2: number): Promise<boolean> {
+        // Check if users are friends in either direction
+        const friendship = await this.entityManager.findOne(UserFriend, {
+            where: [
+                { userId: userId1, friendId: userId2, status: FriendshipStatus.ACCEPTED },
+                { userId: userId2, friendId: userId1, status: FriendshipStatus.ACCEPTED }
+            ]
+        });
+
+        return !!friendship;
+    }
+
+    private async mapPhotosToDTO(photos: UserPhoto[], currentUserId?: number): Promise<UserPhotoDTO[]> {
+        // Get all liked photo IDs for the current user in one query
+        let likedPhotoIds: Set<number> = new Set();
+        if (currentUserId) {
+            const likes = await this.entityManager.find(PhotoLike, {
+                where: { userId: currentUserId },
+                select: ["photoId"],
+            });
+            likedPhotoIds = new Set(likes.map((like) => like.photoId));
+        }
 
         return photos.map((p) => ({
             id: p.id,
             name: p.name,
             userId: p.userId,
             uploadedAt: p.uploadedAt,
+            likesCount: p.likesCount || 0,
+            isLikedByCurrentUser: currentUserId ? likedPhotoIds.has(p.id) : false,
         }));
     }
 
     async getPhoto(photoId: number, req: any): Promise<UserPhoto> {
-        const userId = this.getUserIdFromRequest(req);
+        const currentUserId = this.getUserIdFromRequest(req);
         
         const photo = await this.entityManager.findOne(UserPhoto, {
             where: { id: photoId },
@@ -216,9 +250,15 @@ export class UserService implements OnModuleInit {
             throw new NotFoundException("Photo not found");
         }
 
-        // Authorization check: ensure the photo belongs to the requesting user
-        if (photo.userId !== userId) {
-            throw new ForbiddenException("You don't have permission to access this photo");
+        // Allow if it's the user's own photo
+        if (photo.userId === currentUserId) {
+            return photo;
+        }
+
+        // Check if users are friends
+        const areFriends = await this.areUsersFriends(currentUserId, photo.userId);
+        if (!areFriends) {
+            throw new ForbiddenException("You must be friends to view this photo");
         }
 
         return photo;
@@ -393,5 +433,115 @@ export class UserService implements OnModuleInit {
         const updatedUser = await this.entityManager.save(user);
 
         return this.userMapper.entityToDTO(updatedUser);
+    }
+
+    async likePhoto(photoId: number, req: any): Promise<{ likesCount: number; isLiked: boolean }> {
+        const userId = this.getUserIdFromRequest(req);
+
+        // Check if photo exists
+        const photo = await this.entityManager.findOne(UserPhoto, {
+            where: { id: photoId },
+        });
+
+        if (!photo) {
+            throw new NotFoundException("Photo not found");
+        }
+
+        // Check if already liked
+        const existingLike = await this.entityManager.findOne(PhotoLike, {
+            where: { userId, photoId },
+        });
+
+        if (existingLike) {
+            throw new BadRequestException("Photo already liked");
+        }
+
+        // Create like
+        const like = new PhotoLike();
+        like.userId = userId;
+        like.photoId = photoId;
+        await this.entityManager.save(like);
+
+        // Increment like count
+        await this.entityManager.increment(UserPhoto, { id: photoId }, "likesCount", 1);
+
+        // Get updated count
+        const updatedPhoto = await this.entityManager.findOne(UserPhoto, {
+            where: { id: photoId },
+        });
+
+        return {
+            likesCount: updatedPhoto?.likesCount || 1,
+            isLiked: true,
+        };
+    }
+
+    async unlikePhoto(photoId: number, req: any): Promise<{ likesCount: number; isLiked: boolean }> {
+        const userId = this.getUserIdFromRequest(req);
+
+        // Check if photo exists
+        const photo = await this.entityManager.findOne(UserPhoto, {
+            where: { id: photoId },
+        });
+
+        if (!photo) {
+            throw new NotFoundException("Photo not found");
+        }
+
+        // Check if like exists
+        const existingLike = await this.entityManager.findOne(PhotoLike, {
+            where: { userId, photoId },
+        });
+
+        if (!existingLike) {
+            throw new BadRequestException("Photo not liked yet");
+        }
+
+        // Delete like
+        await this.entityManager.delete(PhotoLike, { userId, photoId });
+
+        // Decrement like count
+        await this.entityManager.decrement(UserPhoto, { id: photoId }, "likesCount", 1);
+
+        // Get updated count
+        const updatedPhoto = await this.entityManager.findOne(UserPhoto, {
+            where: { id: photoId },
+        });
+
+        return {
+            likesCount: Math.max(updatedPhoto?.likesCount || 0, 0),
+            isLiked: false,
+        };
+    }
+
+    async deletePhoto(photoId: number, req: any): Promise<void> {
+        const userId = this.getUserIdFromRequest(req);
+
+        // Find the photo
+        const photo = await this.entityManager.findOne(UserPhoto, {
+            where: { id: photoId },
+        });
+
+        if (!photo) {
+            throw new NotFoundException("Photo not found");
+        }
+
+        // Check ownership
+        if (photo.userId !== userId) {
+            throw new ForbiddenException("You can only delete your own photos");
+        }
+
+        // If it's the profile picture, remove it
+        const user = await this.entityManager.findOne(User, {
+            where: { id: userId },
+        });
+
+        if (user && user.profilePictureId === photoId) {
+            user.profilePictureId = null;
+            await this.entityManager.save(user);
+        }
+
+        // Delete the photo (likes will be cascade deleted)
+        await this.entityManager.delete(UserPhoto, { id: photoId });
     }
 }

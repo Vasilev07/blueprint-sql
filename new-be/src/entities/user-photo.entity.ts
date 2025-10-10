@@ -20,6 +20,9 @@ export class UserPhoto {
     @Column("int")
     userId: number;
 
+    @Column({ name: "likes_count", type: "int", default: 0 })
+    likesCount: number;
+
     @CreateDateColumn()
     uploadedAt: Date;
 }

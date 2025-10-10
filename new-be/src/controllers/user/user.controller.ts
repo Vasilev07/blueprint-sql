@@ -4,6 +4,7 @@ import {
     Get,
     Post,
     Put,
+    Delete,
     UploadedFile,
     UseInterceptors,
     Param,
@@ -198,8 +199,19 @@ export class UserController {
         description: "Returns user photos",
         type: [UserPhotoDTO],
     })
-    async getUserPhotosByUserId(@Param("userId") userId: number): Promise<UserPhotoDTO[]> {
-        return this.userService.getUserPhotosByUserId(userId);
+    @ApiResponse({ status: 403, description: "Forbidden - Must be friends to view photos" })
+    async getUserPhotosByUserId(
+        @Param("userId") userId: number,
+        @Req() req: any
+    ): Promise<UserPhotoDTO[]> {
+        // Try to get current user ID if authenticated
+        let currentUserId: number | undefined;
+        try {
+            currentUserId = req.user?.id;
+        } catch {
+            currentUserId = undefined;
+        }
+        return this.userService.getUserPhotosByUserId(userId, currentUserId);
     }
 
     @Get("photos/:photoId")
@@ -222,7 +234,8 @@ export class UserController {
             }
         }
     })
-    @ApiResponse({ status: 403, description: "Forbidden - Not your photo" })
+    @ApiResponse({ status: 403, description: "Forbidden - Must be friends to view photo" })
+    @ApiResponse({ status: 404, description: "Photo not found" })
     async getPhoto(
         @Param("photoId") photoId: number,
         @Req() req: any,
@@ -412,5 +425,65 @@ export class UserController {
     })
     async removeProfilePicture(@Req() req: any): Promise<void> {
         await this.userService.removeProfilePicture(req);
+    }
+
+    @Post("photos/:photoId/like")
+    @ApiOperation({ summary: "Like a photo" })
+    @ApiResponse({
+        status: 200,
+        description: "Photo liked successfully",
+        schema: {
+            type: "object",
+            properties: {
+                likesCount: { type: "number" },
+                isLiked: { type: "boolean" },
+            },
+        },
+    })
+    @ApiResponse({ status: 400, description: "Photo already liked" })
+    @ApiResponse({ status: 404, description: "Photo not found" })
+    async likePhoto(
+        @Param("photoId") photoId: number,
+        @Req() req: any,
+    ): Promise<{ likesCount: number; isLiked: boolean }> {
+        return this.userService.likePhoto(photoId, req);
+    }
+
+    @Delete("photos/:photoId/like")
+    @ApiOperation({ summary: "Unlike a photo" })
+    @ApiResponse({
+        status: 200,
+        description: "Photo unliked successfully",
+        schema: {
+            type: "object",
+            properties: {
+                likesCount: { type: "number" },
+                isLiked: { type: "boolean" },
+            },
+        },
+    })
+    @ApiResponse({ status: 400, description: "Photo not liked yet" })
+    @ApiResponse({ status: 404, description: "Photo not found" })
+    async unlikePhoto(
+        @Param("photoId") photoId: number,
+        @Req() req: any,
+    ): Promise<{ likesCount: number; isLiked: boolean }> {
+        return this.userService.unlikePhoto(photoId, req);
+    }
+
+    @Delete("photos/:photoId")
+    @HttpCode(HttpStatus.NO_CONTENT)
+    @ApiOperation({ summary: "Delete a photo" })
+    @ApiResponse({
+        status: 204,
+        description: "Photo deleted successfully",
+    })
+    @ApiResponse({ status: 403, description: "Forbidden - Not your photo" })
+    @ApiResponse({ status: 404, description: "Photo not found" })
+    async deletePhoto(
+        @Param("photoId") photoId: number,
+        @Req() req: any,
+    ): Promise<void> {
+        await this.userService.deletePhoto(photoId, req);
     }
 }

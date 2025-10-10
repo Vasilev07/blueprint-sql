@@ -14,7 +14,9 @@ import { DialogModule } from "primeng/dialog";
 import { DropdownModule } from "primeng/dropdown";
 import { InputTextModule } from "primeng/inputtext";
 import { TooltipModule } from "primeng/tooltip";
-import { MessageService } from "primeng/api";
+import { DividerModule } from "primeng/divider";
+import { ConfirmDialogModule } from "primeng/confirmdialog";
+import { MessageService, ConfirmationService } from "primeng/api";
 import { ToastModule } from "primeng/toast";
 import {
     UserService,
@@ -39,7 +41,9 @@ import {
         InputTextModule,
         TooltipModule,
         ToastModule,
+        DividerModule,
+        ConfirmDialogModule,
     ],
-    providers: [MessageService, UserService, FriendsService],
+    providers: [MessageService, ConfirmationService, UserService, FriendsService],
 })
 export class ProfileModule {}

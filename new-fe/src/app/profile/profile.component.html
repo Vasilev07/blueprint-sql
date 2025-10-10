@@ -89,43 +89,61 @@
                 </div>
 
                 <div *ngIf="userPhotos.length > 0" class="photos-grid">
-                  <div *ngFor="let photo of userPhotos" class="photo-item">
+                  <div *ngFor="let photo of userPhotos" class="photo-item" (click)="openPhotoDialog(photo)">
                     <img
                       [src]="getPhotoUrl(photo.id!)"
                       [alt]="photo.name"
                       class="photo-image">
                     <div class="photo-overlay">
-                      <span class="photo-name">{{ photo.name }}</span>
-                      <p-button
-                        *ngIf="isOwnProfile && currentUser?.profilePictureId !== photo.id"
-                        icon="pi pi-user"
-                        (onClick)="setPhotoAsProfilePicture(photo.id!)"
-                        [rounded]="true"
-                        [text]="true"
-                        styleClass="set-profile-pic-btn"
-                        pTooltip="Set as profile picture"
-                        tooltipPosition="top">
-                      </p-button>
-                      <span
-                        *ngIf="currentUser?.profilePictureId === photo.id"
-                        class="profile-pic-badge">
-                        <i class="pi pi-check-circle"></i> Profile Picture
-                      </span>
+                      <!-- Instagram-like stats overlay -->
+                      <div class="photo-stats">
+                        <div class="stat-item">
+                          <i [class]="photo.isLikedByCurrentUser ? 'pi pi-heart-fill' : 'pi pi-heart'"></i>
+                          <span>{{ photo.likesCount || 0 }}</span>
+                        </div>
+                      </div>
+                      
+                      <!-- Profile picture badge -->
+                      <div *ngIf="currentUser?.profilePictureId === photo.id" class="profile-pic-badge">
+                        <i class="pi pi-check-circle"></i>
+                        <span>Profile Picture</span>
+                      </div>
+                      
+                      <!-- Action buttons (only visible on own profile) -->
+                      <div *ngIf="isOwnProfile" class="photo-actions" (click)="$event.stopPropagation()">
+                        <p-button
+                          *ngIf="currentUser?.profilePictureId !== photo.id"
+                          label="Set as Profile"
+                          icon="pi pi-check-circle"
+                          styleClass="p-button-sm p-button-outlined"
+                          (onClick)="setPhotoAsProfilePicture(photo.id!); $event.stopPropagation()">
+                        </p-button>
+                        <p-button
+                          label="Delete"
+                          icon="pi pi-trash"
+                          styleClass="p-button-sm p-button-outlined p-button-danger"
+                          (onClick)="deletePhoto(photo.id!); $event.stopPropagation()">
+                        </p-button>
+                      </div>
                     </div>
                   </div>
 
                   <!-- Add more photos button -->
                   <div class="add-photo-item" *ngIf="isOwnProfile">
-                    <p-fileUpload
-                      mode="basic"
-                      name="photo"
-                      accept="image/*"
-                      maxFileSize="10000000"
-                      (onUpload)="onPhotoUpload($event)"
-                      (onSelect)="onPhotoUpload($event)"
-                      chooseLabel="+"
-                      styleClass="add-photo-button">
-                    </p-fileUpload>
+                    <div class="add-photo-content">
+                      <i class="pi pi-plus"></i>
+                      <span>Add Photo</span>
+                      <p-fileUpload
+                        mode="basic"
+                        name="photo"
+                        accept="image/*"
+                        maxFileSize="10000000"
+                        (onUpload)="onPhotoUpload($event)"
+                        (onSelect)="onPhotoUpload($event)"
+                        chooseLabel="Choose File"
+                        styleClass="p-button-sm">
+                      </p-fileUpload>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -307,6 +325,46 @@
   </ng-template>
 </p-dialog>
 
+<!-- Photo Detail Dialog -->
+<p-dialog
+  [(visible)]="showPhotoDialog"
+  [modal]="true"
+  [style]="{ width: '90vw', maxWidth: '900px' }"
+  [dismissableMask]="true"
+  styleClass="photo-dialog">
+  
+  <ng-template pTemplate="header">
+    <div class="dialog-header">
+      <span>Photo Details</span>
+    </div>
+  </ng-template>
+
+  <div class="photo-dialog-content" *ngIf="selectedPhoto">
+    <div class="photo-display">
+      <img [src]="getPhotoUrl(selectedPhoto.id!)" [alt]="selectedPhoto.name">
+    </div>
+    
+    <div class="photo-info">
+      <div class="photo-actions-bar">
+        <p-button
+          [icon]="selectedPhoto.isLikedByCurrentUser ? 'pi pi-heart-fill' : 'pi pi-heart'"
+          [label]="(selectedPhoto.likesCount || 0).toString()"
+          styleClass="p-button-text p-button-lg like-button"
+          [class.liked]="selectedPhoto.isLikedByCurrentUser"
+          (onClick)="togglePhotoLike(selectedPhoto)">
+        </p-button>
+      </div>
+      
+      <p-divider></p-divider>
+      
+      <div class="photo-metadata">
+        <p><strong>Uploaded:</strong> {{ selectedPhoto.uploadedAt | date: 'medium' }}</p>
+        <p><strong>Likes:</strong> {{ selectedPhoto.likesCount || 0 }}</p>
+      </div>
+    </div>
+  </div>
+</p-dialog>
+
 <!-- Loading Spinner -->
 <p-progressSpinner
   *ngIf="isLoading || isUploading"
@@ -315,4 +373,7 @@
 
 <!-- Toast Messages -->
 <p-toast></p-toast>
+
+<!-- Confirmation Dialog -->
+<p-confirmDialog></p-confirmDialog>
 

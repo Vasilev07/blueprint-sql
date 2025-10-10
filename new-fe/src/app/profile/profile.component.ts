@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from "@angular/core";
 import { Subject, takeUntil } from "rxjs";
-import { MessageService } from "primeng/api";
+import { MessageService, ConfirmationService } from "primeng/api";
 import { Router, ActivatedRoute } from "@angular/router";
 import { OnlineStatusService } from "../services/online-status.service";
 import {
@@ -30,6 +30,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
     isLoading = false;
     isUploading = false;
     showEditDialog = false;
+    showPhotoDialog = false;
+    selectedPhoto: UserPhotoDTO | null = null;
     editForm: any = {};
     isOwnProfile = true;
     viewingUserId: number | null = null;
@@ -42,6 +44,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
     constructor(
         private messageService: MessageService,
+        private confirmationService: ConfirmationService,
         private userService: UserService,
         private friendsService: FriendsService,
         private router: Router,
@@ -451,6 +454,14 @@ export class ProfileComponent implements OnInit, OnDestroy {
                 },
                 error: (error: any) => {
                     console.error("Error loading photos:", error);
+                    if (error.status === 403) {
+                        this.messageService.add({
+                            severity: "warn",
+                            summary: "Access Denied",
+                            detail: "You must be friends to view this user's photos",
+                            life: 5000
+                        });
+                    }
                 }
             });
     }
@@ -474,5 +485,75 @@ export class ProfileComponent implements OnInit, OnDestroy {
                     }
                 }
             });
+    }
+
+    openPhotoDialog(photo: UserPhotoDTO): void {
+        this.selectedPhoto = photo;
+        this.showPhotoDialog = true;
+    }
+
+    togglePhotoLike(photo: UserPhotoDTO): void {
+        if (!photo.id) return;
+
+        if (photo.isLikedByCurrentUser) {
+            this.userService.unlikePhoto(photo.id).subscribe({
+                next: (response) => {
+                    photo.likesCount = response.likesCount;
+                    photo.isLikedByCurrentUser = false;
+                },
+                error: (error) => {
+                    console.error('Error unliking photo:', error);
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: 'Failed to unlike photo'
+                    });
+                }
+            });
+        } else {
+            this.userService.likePhoto(photo.id).subscribe({
+                next: (response) => {
+                    photo.likesCount = response.likesCount;
+                    photo.isLikedByCurrentUser = true;
+                },
+                error: (error) => {
+                    console.error('Error liking photo:', error);
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: 'Failed to like photo'
+                    });
+                }
+            });
+        }
+    }
+
+    deletePhoto(photoId: number): void {
+        this.confirmationService.confirm({
+            message: 'Are you sure you want to delete this photo?',
+            header: 'Confirm Delete',
+            icon: 'pi pi-exclamation-triangle',
+            accept: () => {
+                this.userService.deletePhoto(photoId).subscribe({
+                    next: () => {
+                        this.userPhotos = this.userPhotos.filter(p => p.id !== photoId);
+                        this.messageService.add({
+                            severity: 'success',
+                            summary: 'Deleted',
+                            detail: 'Photo deleted successfully'
+                        });
+                        this.loadCurrentUser();
+                    },
+                    error: (error) => {
+                        console.error('Error deleting photo:', error);
+                        this.messageService.add({
+                            severity: 'error',
+                            summary: 'Error',
+                            detail: 'Failed to delete photo'
+                        });
+                    }
+                });
+            }
+        });
     }
 }

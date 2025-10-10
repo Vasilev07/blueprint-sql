@@ -12,5 +12,11 @@ export class UserPhotoDTO {
 
     @ApiProperty()
     uploadedAt?: Date;
+
+    @ApiProperty({ required: false })
+    likesCount?: number;
+
+    @ApiProperty({ required: false, description: "Whether the current user has liked this photo" })
+    isLikedByCurrentUser?: boolean;
 }
 
