@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy } from "@angular/core";
 import { Router } from "@angular/router";
 import { Subject, takeUntil } from "rxjs";
 import { Story, StoryService } from "./story.service";
+import { UserService } from "src/typescript-api-client/src/api/api";
 
 export interface UserStoryGroup {
     userId: string;
@@ -26,6 +27,8 @@ export class StoryHomeComponent implements OnInit, OnDestroy {
     isLoading = false;
     selectedCategory = "all";
     searchQuery = "";
+    currentUserId: number | null = null;
+    profilePictures: Map<string, string> = new Map(); // userId -> blob URL
 
     categories = [
         { label: "All Stories", value: "all" },
@@ -38,9 +41,22 @@ export class StoryHomeComponent implements OnInit, OnDestroy {
     constructor(
         private router: Router,
         private storyService: StoryService,
+        private userService: UserService,
     ) {}
 
     ngOnInit(): void {
+        // Load current user
+        this.userService.getUser()
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+                next: (user) => {
+                    this.currentUserId = user.id ?? null;
+                },
+                error: (error) => {
+                    console.error("Error loading current user:", error);
+                }
+            });
+
         this.loadStories();
 
         // Cleanup expired stories every hour
@@ -55,6 +71,10 @@ export class StoryHomeComponent implements OnInit, OnDestroy {
     ngOnDestroy(): void {
         this.destroy$.next();
         this.destroy$.complete();
+        
+        // Cleanup profile picture blob URLs
+        this.profilePictures.forEach(url => URL.revokeObjectURL(url));
+        this.profilePictures.clear();
     }
 
     loadStories(): void {
@@ -67,8 +87,42 @@ export class StoryHomeComponent implements OnInit, OnDestroy {
                 this.stories = this.filterStories(stories);
                 this.groupedStories = this.groupStoriesByUser(this.stories);
                 console.log("Grouped stories:", this.groupedStories);
+                
+                // Load profile pictures for all users
+                this.loadProfilePictures();
+                
                 this.isLoading = false;
             });
+    }
+
+    loadProfilePictures(): void {
+        const uniqueUserIds = new Set(this.groupedStories.map(g => g.userId));
+        
+        uniqueUserIds.forEach(userIdStr => {
+            const userId = parseInt(userIdStr, 10);
+            
+            this.userService.getProfilePictureByUserId(userId, 'response')
+                .pipe(takeUntil(this.destroy$))
+                .subscribe({
+                    next: (response: any) => {
+                        const blob = response.body as Blob;
+                        const blobUrl = URL.createObjectURL(blob);
+                        this.profilePictures.set(userIdStr, blobUrl);
+                        
+                        // Update the group with the profile picture
+                        const group = this.groupedStories.find(g => g.userId === userIdStr);
+                        if (group) {
+                            group.userAvatar = blobUrl;
+                        }
+                    },
+                    error: (error) => {
+                        // Profile picture not found is okay
+                        if (error.status !== 404) {
+                            console.error(`Error loading profile picture for user ${userId}:`, error);
+                        }
+                    }
+                });
+        });
     }
 
     filterStories(stories: Story[]): Story[] {
@@ -131,9 +185,17 @@ export class StoryHomeComponent implements OnInit, OnDestroy {
     }
 
     onUserStoryGroupClick(group: UserStoryGroup): void {
-        // Navigate to the first story of this user's group
-        const firstStory = group.stories[0];
         console.log("User story group clicked:", group);
+        
+        // If it's the current user's story, navigate to their profile
+        if (this.currentUserId && group.userId === this.currentUserId.toString()) {
+            console.log("Own story clicked, navigating to profile");
+            this.router.navigate(["/profile"]);
+            return;
+        }
+
+        // Otherwise, navigate to the first story of this user's group
+        const firstStory = group.stories[0];
         console.log("Navigating to first story:", firstStory.id);
 
         this.router
