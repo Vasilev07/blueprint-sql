@@ -9,12 +9,10 @@ export class MapperService {
         key: string,
         mapper: BaseMapper<Entity, DTO>,
     ): void {
-        console.log(`MAPPER REGISTERED [${key}]`);
         this.mappers.set(key, mapper);
     }
 
     public getMapper<Entity, DTO>(key: string): BaseMapper<Entity, DTO> {
-        console.log(this.mappers, "mappers");
         if (!this.mappers.has(key)) {
             throw new Error(`Mapper with key ${key} not found`);
         }

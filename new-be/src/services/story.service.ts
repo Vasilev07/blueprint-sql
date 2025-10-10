@@ -86,26 +86,31 @@ export class StoryService {
     private async extractVideoMetadata(
         filePath: string,
     ): Promise<{ duration: number; width: number; height: number }> {
-        return new Promise((resolve, reject) => {
-            ffmpeg.ffprobe(filePath, (err, metadata) => {
-                if (err) {
-                    this.logger.error(`FFprobe error: ${err.message}`);
-                    return reject(err);
-                }
+        return new Promise((resolve) => {
+            try {
+                ffmpeg.ffprobe(filePath, (err, metadata) => {
+                    if (err) {
+                        this.logger.warn(`FFprobe error: ${err.message}`);
+                        return resolve({ duration: 0, width: 0, height: 0 });
+                    }
 
-                const videoStream = metadata.streams.find(
-                    (s) => s.codec_type === "video",
-                );
-                if (!videoStream) {
-                    return reject(new Error("No video stream found"));
-                }
+                    const videoStream = metadata.streams.find(
+                        (s) => s.codec_type === "video",
+                    );
+                    if (!videoStream) {
+                        return resolve({ duration: 0, width: 0, height: 0 });
+                    }
 
-                resolve({
-                    duration: metadata.format.duration || 0,
-                    width: videoStream.width || 0,
-                    height: videoStream.height || 0,
+                    resolve({
+                        duration: metadata.format.duration || 0,
+                        width: videoStream.width || 0,
+                        height: videoStream.height || 0,
+                    });
                 });
-            });
+            } catch (error) {
+                this.logger.warn(`FFmpeg not available: ${error}`);
+                resolve({ duration: 0, width: 0, height: 0 });
+            }
         });
     }
 
@@ -114,15 +119,23 @@ export class StoryService {
         thumbnailPath: string,
     ): Promise<void> {
         return new Promise((resolve, reject) => {
-            ffmpeg(videoPath)
-                .screenshots({
-                    timestamps: ["00:00:01"],
-                    filename: path.basename(thumbnailPath),
-                    folder: path.dirname(thumbnailPath),
-                    size: "720x?",
-                })
-                .on("end", () => resolve())
-                .on("error", (err) => reject(err));
+            try {
+                ffmpeg(videoPath)
+                    .screenshots({
+                        timestamps: ["00:00:01"],
+                        filename: path.basename(thumbnailPath),
+                        folder: path.dirname(thumbnailPath),
+                        size: "720x?",
+                    })
+                    .on("end", () => resolve())
+                    .on("error", (err) => {
+                        this.logger.warn(`Thumbnail generation failed: ${err.message}`);
+                        resolve();
+                    });
+            } catch (error) {
+                this.logger.warn(`FFmpeg not available: ${error}`);
+                resolve();
+            }
         });
     }
 
@@ -131,27 +144,32 @@ export class StoryService {
         outputPath: string,
     ): Promise<void> {
         return new Promise((resolve, reject) => {
-            ffmpeg(inputPath)
-                .videoCodec("libx264")
-                .audioCodec("aac")
-                .outputOptions([
-                    "-preset medium",
-                    "-crf 23",
-                    "-maxrate 1.5M",
-                    "-bufsize 3M",
-                    "-vf scale=-2:720",
-                    "-movflags +faststart",
-                ])
-                .output(outputPath)
-                .on("end", () => {
-                    this.logger.log(`Video compressed: ${outputPath}`);
-                    resolve();
-                })
-                .on("error", (err) => {
-                    this.logger.error(`Compression error: ${err.message}`);
-                    reject(err);
-                })
-                .run();
+            try {
+                ffmpeg(inputPath)
+                    .videoCodec("libx264")
+                    .audioCodec("aac")
+                    .outputOptions([
+                        "-preset medium",
+                        "-crf 23",
+                        "-maxrate 1.5M",
+                        "-bufsize 3M",
+                        "-vf scale=-2:720",
+                        "-movflags +faststart",
+                    ])
+                    .output(outputPath)
+                    .on("end", () => {
+                        this.logger.log(`Video compressed: ${outputPath}`);
+                        resolve();
+                    })
+                    .on("error", (err) => {
+                        this.logger.warn(`Compression error: ${err.message}`);
+                        reject(err);
+                    })
+                    .run();
+            } catch (error) {
+                this.logger.warn(`FFmpeg not available: ${error}`);
+                reject(error);
+            }
         });
     }
 
