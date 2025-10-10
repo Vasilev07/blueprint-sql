@@ -3,6 +3,16 @@ import { Router } from "@angular/router";
 import { Subject, takeUntil } from "rxjs";
 import { Story, StoryService } from "./story.service";
 
+export interface UserStoryGroup {
+    userId: string;
+    userName: string;
+    userAvatar: string;
+    stories: Story[];
+    totalViews: number;
+    hasUnviewed: boolean;
+    latestStory: Story;
+}
+
 @Component({
     selector: "app-story-home",
     templateUrl: "./story-home.component.html",
@@ -12,6 +22,7 @@ export class StoryHomeComponent implements OnInit, OnDestroy {
     private destroy$ = new Subject<void>();
 
     stories: Story[] = [];
+    groupedStories: UserStoryGroup[] = [];
     isLoading = false;
     selectedCategory = "all";
     searchQuery = "";
@@ -54,7 +65,8 @@ export class StoryHomeComponent implements OnInit, OnDestroy {
             .subscribe((stories) => {
                 console.log("Stories loaded:", stories);
                 this.stories = this.filterStories(stories);
-                console.log("Filtered stories:", this.stories);
+                this.groupedStories = this.groupStoriesByUser(this.stories);
+                console.log("Grouped stories:", this.groupedStories);
                 this.isLoading = false;
             });
     }
@@ -118,6 +130,74 @@ export class StoryHomeComponent implements OnInit, OnDestroy {
             });
     }
 
+    onUserStoryGroupClick(group: UserStoryGroup): void {
+        // Navigate to the first story of this user's group
+        const firstStory = group.stories[0];
+        console.log("User story group clicked:", group);
+        console.log("Navigating to first story:", firstStory.id);
+
+        this.router
+            .navigate(["/stories/view", firstStory.id])
+            .then((success) => {
+                console.log("Navigation success:", success);
+            })
+            .catch((error) => {
+                console.error("Navigation error:", error);
+            });
+    }
+
+    groupStoriesByUser(stories: Story[]): UserStoryGroup[] {
+        const groupMap = new Map<string, UserStoryGroup>();
+
+        console.log('Grouping stories:', stories.map(s => ({ id: s.id, userId: s.userId, userName: s.userName })));
+
+        stories.forEach(story => {
+            console.log('Processing story:', story.id, 'userId:', story.userId, 'type:', typeof story.userId);
+            
+            if (!groupMap.has(story.userId)) {
+                console.log('Creating new group for userId:', story.userId);
+                groupMap.set(story.userId, {
+                    userId: story.userId,
+                    userName: story.userName,
+                    userAvatar: story.userAvatar,
+                    stories: [],
+                    totalViews: 0,
+                    hasUnviewed: false,
+                    latestStory: story
+                });
+            } else {
+                console.log('Adding to existing group for userId:', story.userId);
+            }
+
+            const group = groupMap.get(story.userId)!;
+            group.stories.push(story);
+            group.totalViews += story.views;
+            
+            if (!story.isViewed) {
+                group.hasUnviewed = true;
+            }
+
+            // Keep the latest story as the representative
+            if (story.createdAt > group.latestStory.createdAt) {
+                group.latestStory = story;
+            }
+        });
+
+        // Sort stories within each group by creation date (newest first)
+        groupMap.forEach(group => {
+            group.stories.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+        });
+
+        // Convert map to array and sort by latest story date
+        const result = Array.from(groupMap.values()).sort(
+            (a, b) => b.latestStory.createdAt.getTime() - a.latestStory.createdAt.getTime()
+        );
+        
+        console.log('Final groups:', result.map(g => ({ userId: g.userId, userName: g.userName, storyCount: g.stories.length })));
+        
+        return result;
+    }
+
     onUploadClick(): void {
         this.router.navigate(["/stories/upload"]);
     }
@@ -173,6 +253,10 @@ export class StoryHomeComponent implements OnInit, OnDestroy {
             return `${hours}h ${minutes}m left`;
         }
         return `${minutes}m left`;
+    }
+
+    getTotalLikes(group: UserStoryGroup): number {
+        return group.stories.reduce((sum, s) => sum + s.likes, 0);
     }
 }
 

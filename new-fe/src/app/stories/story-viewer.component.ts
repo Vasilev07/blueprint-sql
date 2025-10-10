@@ -39,6 +39,7 @@ export class StoryViewerComponent implements OnInit, OnDestroy {
 
     // Story navigation
     allStories: Story[] = [];
+    allStoriesOriginal: Story[] = [];
     currentStoryIndex = 0;
 
     // Live viewer simulation
@@ -115,7 +116,7 @@ export class StoryViewerComponent implements OnInit, OnDestroy {
             .getStories()
             .pipe(takeUntil(this.destroy$))
             .subscribe((stories) => {
-                this.allStories = stories;
+                this.allStoriesOriginal = stories;
             });
     }
 
@@ -140,9 +141,16 @@ export class StoryViewerComponent implements OnInit, OnDestroy {
                 if (story) {
                     this.story = story;
                     this.isLiked = story.isLiked;
+                    
+                    // Filter allStories to only include stories from the same user
+                    this.allStories = this.allStoriesOriginal.filter(s => s.userId === story.userId)
+                        .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+                    
+                    // Find the index of current story within this user's stories
                     this.currentStoryIndex = this.allStories.findIndex(
                         (s) => s.id === storyId,
                     );
+                    
                     this.loadComments(storyId);
                     this.markAsViewed(storyId);
                     this.startLiveViewerSimulation();

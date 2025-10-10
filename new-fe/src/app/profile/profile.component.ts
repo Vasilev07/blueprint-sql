@@ -3,7 +3,6 @@ import { Subject, takeUntil } from "rxjs";
 import { MessageService } from "primeng/api";
 import { Router } from "@angular/router";
 import { OnlineStatusService } from "../services/online-status.service";
-import { environment } from "src/environments/environment";
 import {
     UserDTO,
     FriendDTO,
@@ -24,6 +23,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
     currentUser: UserDTO | null = null;
     userPhotos: UserPhotoDTO[] = [];
+    photoBlobUrls: Map<number, string> = new Map();
     friends: FriendDTO[] = [];
     isLoading = false;
     isUploading = false;
@@ -53,6 +53,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
     ngOnDestroy(): void {
         this.destroy$.next();
         this.destroy$.complete();
+        
+        // Revoke all blob URLs to free memory
+        this.photoBlobUrls.forEach(url => URL.revokeObjectURL(url));
+        this.photoBlobUrls.clear();
     }
 
     private loadCurrentUser(): void {
@@ -98,6 +102,14 @@ export class ProfileComponent implements OnInit, OnDestroy {
             .subscribe({
                 next: (photos) => {
                     this.userPhotos = photos;
+                    
+                    // Load blob URLs for all photos
+                    photos.forEach(photo => {
+                        if (photo.id) {
+                            this.loadPhotoBlobUrl(photo.id);
+                        }
+                    });
+                    
                     this.isLoading = false;
                 },
                 error: (error) => {
@@ -110,6 +122,19 @@ export class ProfileComponent implements OnInit, OnDestroy {
                     });
                 },
             });
+    }
+
+    private loadPhotoBlobUrl(photoId: number): void {
+        this.userService.getPhoto(photoId, 'response').subscribe({
+            next: (response: any) => {
+                const blob = response.body as Blob;
+                const blobUrl = URL.createObjectURL(blob);
+                this.photoBlobUrls.set(photoId, blobUrl);
+            },
+            error: (error) => {
+                console.error(`Error loading photo ${photoId}:`, error);
+            }
+        });
     }
 
     loadFriends(): void {
@@ -138,6 +163,12 @@ export class ProfileComponent implements OnInit, OnDestroy {
             .subscribe({
                 next: (photo) => {
                     this.userPhotos.unshift(photo);
+                    
+                    // Load blob URL for the newly uploaded photo
+                    if (photo.id) {
+                        this.loadPhotoBlobUrl(photo.id);
+                    }
+                    
                     this.isUploading = false;
                     this.messageService.add({
                         severity: "success",
@@ -158,7 +189,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
 
     getPhotoUrl(photoId: number): string {
-        return `${environment.apiUrl}/auth/photos/${photoId}`;
+        return this.photoBlobUrls.get(photoId) || '';
     }
 
     getUserInitials(): string {

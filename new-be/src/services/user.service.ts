@@ -6,6 +6,7 @@ import {
     UnauthorizedException,
     ConflictException,
     BadRequestException,
+    ForbiddenException,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { UserDTO } from "../models/user.dto";
@@ -190,13 +191,20 @@ export class UserService implements OnModuleInit {
         }));
     }
 
-    async getPhoto(photoId: number): Promise<UserPhoto> {
+    async getPhoto(photoId: number, req: any): Promise<UserPhoto> {
+        const userId = this.getUserIdFromRequest(req);
+        
         const photo = await this.entityManager.findOne(UserPhoto, {
             where: { id: photoId },
         });
 
         if (!photo) {
             throw new NotFoundException("Photo not found");
+        }
+
+        // Authorization check: ensure the photo belongs to the requesting user
+        if (photo.userId !== userId) {
+            throw new ForbiddenException("You don't have permission to access this photo");
         }
 
         return photo;

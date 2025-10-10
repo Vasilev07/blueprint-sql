@@ -142,7 +142,6 @@ export class StoryController {
     }
 
     @Get("/video/:filename")
-    @Public()
     @ApiOperation({ summary: "Stream story video file" })
     @ApiResponse({ 
         status: 200, 
@@ -202,7 +201,6 @@ export class StoryController {
     }
 
     @Get("/thumbnail/:filename")
-    @Public()
     @ApiOperation({ summary: "Get story thumbnail" })
     @ApiResponse({ 
         status: 200, 

@@ -193,12 +193,31 @@ export class UserController {
 
     @Get("photos/:photoId")
     @ApiOperation({ summary: "Get a specific photo by ID" })
-    @ApiResponse({ status: 200, description: "Returns photo data" })
+    @ApiResponse({ 
+        status: 200, 
+        description: "Returns photo data",
+        content: {
+            'image/jpeg': {
+                schema: {
+                    type: 'string',
+                    format: 'binary'
+                }
+            },
+            'image/png': {
+                schema: {
+                    type: 'string',
+                    format: 'binary'
+                }
+            }
+        }
+    })
+    @ApiResponse({ status: 403, description: "Forbidden - Not your photo" })
     async getPhoto(
         @Param("photoId") photoId: number,
+        @Req() req: any,
         @Res() res: Response,
     ): Promise<void> {
-        const photo = await this.userService.getPhoto(photoId);
+        const photo = await this.userService.getPhoto(photoId, req);
         res.set("Content-Type", "image/jpeg");
         res.send(Buffer.from(photo.data));
     }

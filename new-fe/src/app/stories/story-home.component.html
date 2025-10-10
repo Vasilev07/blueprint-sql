@@ -42,17 +42,19 @@
 
         <!-- User Story Cards -->
         <div class="story-card" 
-             *ngFor="let story of stories" 
-             (click)="onStoryClick(story)"
-             [class.viewed]="story.isViewed">
+             *ngFor="let group of groupedStories" 
+             (click)="onUserStoryGroupClick(group)"
+             [class.viewed]="!group.hasUnviewed">
           <div class="card-content">
             <div class="story-avatar"
-                 [style.background-image]="story.userAvatar ? 'url(' + story.userAvatar + ')' : 'none'">
-              <span *ngIf="!story.userAvatar">{{ story.userName?.charAt(0)?.toUpperCase() }}</span>
+                 [style.background-image]="group.userAvatar ? 'url(' + group.userAvatar + ')' : 'none'"
+                 [class.has-multiple]="group.stories.length > 1">
+              <span *ngIf="!group.userAvatar">{{ group.userName?.charAt(0)?.toUpperCase() }}</span>
+              <span *ngIf="group.stories.length > 1" class="story-count">{{ group.stories.length }}</span>
             </div>
-            <span class="username">{{ story.userName }}</span>
+            <span class="username">{{ group.userName }}</span>
             <div class="story-stats">
-              <span class="views">{{ story.views | number }}</span>
+              <span class="views">{{ group.totalViews | number }}</span>
             </div>
           </div>
           <div class="shield-icon">
@@ -64,7 +66,7 @@
   </div>
 
   <!-- Stories Grid (Alternative View) -->
-  <div class="stories-grid-section" *ngIf="!isLoading && stories.length > 0">
+  <div class="stories-grid-section" *ngIf="!isLoading && groupedStories.length > 0">
     <div class="section-header">
       <h2>All Stories</h2>
       <div class="filter-buttons">
@@ -80,35 +82,36 @@
 
     <div class="stories-grid">
       <div class="story-grid-card" 
-           *ngFor="let story of stories" 
-           (click)="onStoryClick(story)">
+           *ngFor="let group of groupedStories" 
+           (click)="onUserStoryGroupClick(group)">
         
         <div class="story-thumbnail">
-          <img [src]="story.thumbnailUrl" [alt]="story.caption">
+          <img [src]="group.latestStory.thumbnailUrl" [alt]="group.latestStory.caption">
           
           <div class="story-overlay">
             <div class="user-badge">
               <div class="user-avatar-small"
-                   [style.background-image]="story.userAvatar ? 'url(' + story.userAvatar + ')' : 'none'">
-                <span *ngIf="!story.userAvatar">{{ story.userName?.charAt(0)?.toUpperCase() }}</span>
+                   [style.background-image]="group.userAvatar ? 'url(' + group.userAvatar + ')' : 'none'">
+                <span *ngIf="!group.userAvatar">{{ group.userName?.charAt(0)?.toUpperCase() }}</span>
               </div>
-              <span class="user-name">{{ story.userName }}</span>
+              <span class="user-name">{{ group.userName }}</span>
+              <span *ngIf="group.stories.length > 1" class="story-count-badge">{{ group.stories.length }}</span>
             </div>
             
             <div class="story-stats-overlay">
               <div class="stat">
                 <i class="pi pi-eye"></i>
-                <span>{{ story.views | number }}</span>
+                <span>{{ group.totalViews | number }}</span>
               </div>
               <div class="stat">
-                <i class="pi pi-heart" [class.liked]="story.isLiked"></i>
-                <span>{{ story.likes | number }}</span>
+                <i class="pi pi-heart"></i>
+                <span>{{ getTotalLikes(group) | number }}</span>
               </div>
             </div>
           </div>
 
           <div class="time-badge">
-            {{ formatTime(story.createdAt) }}
+            {{ formatTime(group.latestStory.createdAt) }}
           </div>
         </div>
       </div>
