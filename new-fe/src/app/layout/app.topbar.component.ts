@@ -3,6 +3,8 @@ import { MenuItem } from "primeng/api";
 import { LayoutService } from "./service/app.layout.service";
 import { Menu } from "primeng/menu";
 import { ThemeService } from "../services/theme.service";
+import { AuthService } from "../services/auth.service";
+import { Router } from "@angular/router";
 
 @Component({
     selector: "app-topbar",
@@ -33,6 +35,8 @@ export class AppTopBarComponent implements OnInit {
     constructor(
         public layoutService: LayoutService,
         public themeService: ThemeService,
+        private authService: AuthService,
+        private router: Router,
     ) {}
 
     ngOnInit() {
@@ -51,6 +55,7 @@ export class AppTopBarComponent implements OnInit {
                     {
                         label: "Logout",
                         icon: "pi pi-sign-out",
+                        command: () => this.logout(),
                     },
                 ],
             },
@@ -78,5 +83,10 @@ export class AppTopBarComponent implements OnInit {
 
     private toggleDarkTheme(): void {
         this.themeService.switchTheme(this.themes[0].id);
+    }
+
+    private logout(): void {
+        this.authService.logout();
+        this.router.navigate(["/login"]);
     }
 }

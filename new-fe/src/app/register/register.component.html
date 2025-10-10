@@ -8,11 +8,12 @@
                     <span class="text-600 font-medium">Fill in the details to register</span>
                 </div>
 
-                <div>
+                <form (ngSubmit)="register()">
                     <label for="fullName" class="block text-900 text-xl font-medium mb-2">Full Name *</label>
                     <input 
                         id="fullName" 
-                        [(ngModel)]="fullName" 
+                        [(ngModel)]="fullName"
+                        name="fullName"
                         type="text" 
                         placeholder="Enter your full name" 
                         pInputText 
@@ -23,7 +24,8 @@
                     <label for="email" class="block text-900 text-xl font-medium mb-2">Email *</label>
                     <input 
                         id="email" 
-                        [(ngModel)]="email" 
+                        [(ngModel)]="email"
+                        name="email"
                         type="email" 
                         placeholder="Email address" 
                         pInputText 
@@ -48,7 +50,8 @@
                     <label for="password" class="block text-900 font-medium text-xl mb-2">Password *</label>
                     <p-password 
                         id="password" 
-                        [(ngModel)]="password" 
+                        [(ngModel)]="password"
+                        name="password"
                         placeholder="Password" 
                         [toggleMask]="true" 
                         styleClass="mb-5" 
@@ -59,7 +62,8 @@
                     <label for="confirmPassword" class="block text-900 font-medium text-xl mb-2">Confirm Password *</label>
                     <p-password 
                         id="confirmPassword" 
-                        [(ngModel)]="confirmPassword" 
+                        [(ngModel)]="confirmPassword"
+                        name="confirmPassword"
                         placeholder="Confirm password" 
                         [toggleMask]="true" 
                         styleClass="mb-5" 
@@ -70,7 +74,8 @@
                     <label for="gender" class="block text-900 text-xl font-medium mb-2">Gender</label>
                     <p-dropdown 
                         id="gender" 
-                        [(ngModel)]="gender" 
+                        [(ngModel)]="gender"
+                        name="gender"
                         [options]="genderOptions" 
                         optionLabel="label" 
                         optionValue="value" 
@@ -82,7 +87,8 @@
                     <label for="city" class="block text-900 text-xl font-medium mb-2">City</label>
                     <input 
                         id="city" 
-                        [(ngModel)]="city" 
+                        [(ngModel)]="city"
+                        name="city"
                         type="text" 
                         placeholder="Enter your city" 
                         pInputText 
@@ -93,9 +99,9 @@
                     <button 
                         pButton 
                         pRipple 
+                        type="submit"
                         label="Register" 
                         class="w-full p-3 text-xl mb-3" 
-                        (click)="register()"
                         [disabled]="emailExists"
                     ></button>
 
@@ -109,7 +115,7 @@
                             Sign In
                         </a>
                     </div>
-                </div>
+                </form>
             </div>
         </div>
     </div>
