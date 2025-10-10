@@ -291,9 +291,13 @@ export class FriendService {
         acceptedFriends.forEach((friendship) => {
             // Determine which user is the actual friend (not the logged-in user)
             const isUserTheLoggedInUser = friendship.userId === userId;
-            const actualFriend = isUserTheLoggedInUser ? friendship.friend : friendship.user;
-            const actualFriendId = isUserTheLoggedInUser ? friendship.friendId : friendship.userId;
-            
+            const actualFriend = isUserTheLoggedInUser
+                ? friendship.friend
+                : friendship.user;
+            const actualFriendId = isUserTheLoggedInUser
+                ? friendship.friendId
+                : friendship.userId;
+
             // Only add if not already in map (prevents duplicates)
             if (actualFriend && !friendsMap.has(actualFriendId)) {
                 friendsMap.set(actualFriendId, {
