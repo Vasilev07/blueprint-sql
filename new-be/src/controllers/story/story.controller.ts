@@ -12,6 +12,7 @@ import {
     HttpStatus,
     BadRequestException,
 } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { FileInterceptor } from "@nestjs/platform-express";
 import {
     ApiTags,
@@ -31,7 +32,10 @@ import * as fs from "fs";
 @Controller("/stories")
 @ApiTags("Stories")
 export class StoryController {
-    constructor(private storyService: StoryService) {}
+    constructor(
+        private storyService: StoryService,
+        private configService: ConfigService,
+    ) {}
 
     @Post("/upload")
     @HttpCode(HttpStatus.CREATED)
@@ -138,23 +142,57 @@ export class StoryController {
     }
 
     @Get("/video/:filename")
+    @Public()
     @ApiOperation({ summary: "Stream story video file" })
-    @ApiResponse({ status: 200, description: "Returns video stream" })
+    @ApiResponse({ 
+        status: 200, 
+        description: "Returns video stream",
+        content: {
+            'video/mp4': {
+                schema: {
+                    type: 'string',
+                    format: 'binary'
+                }
+            },
+            'video/webm': {
+                schema: {
+                    type: 'string',
+                    format: 'binary'
+                }
+            },
+            'video/quicktime': {
+                schema: {
+                    type: 'string',
+                    format: 'binary'
+                }
+            }
+        }
+    })
     @ApiResponse({ status: 404, description: "Video not found" })
     async streamVideo(
         @Param("filename") filename: string,
         @Res() res: Response,
     ): Promise<void> {
-        const uploadsDir = process.env.UPLOAD_DIR || "./uploads";
+        const uploadsDir = this.configService.get<string>(
+            "UPLOAD_DIR",
+            "./uploads",
+        );
         const filePath = path.join(uploadsDir, "stories", filename);
 
+        console.log("Video request:", {
+            filename,
+            filePath,
+            exists: fs.existsSync(filePath),
+        });
+
         if (!fs.existsSync(filePath)) {
-            throw new BadRequestException("Video not found");
+            res.status(404).send("Video not found");
+            return;
         }
 
         const stat = fs.statSync(filePath);
         res.set({
-            "Content-Type": "video/mp4",
+            "Content-Type": this.getMimeTypeFromExtension(filename),
             "Content-Length": stat.size,
             "Accept-Ranges": "bytes",
         });
@@ -164,18 +202,40 @@ export class StoryController {
     }
 
     @Get("/thumbnail/:filename")
+    @Public()
     @ApiOperation({ summary: "Get story thumbnail" })
-    @ApiResponse({ status: 200, description: "Returns thumbnail image" })
+    @ApiResponse({ 
+        status: 200, 
+        description: "Returns thumbnail image",
+        content: {
+            'image/jpeg': {
+                schema: {
+                    type: 'string',
+                    format: 'binary'
+                }
+            }
+        }
+    })
     @ApiResponse({ status: 404, description: "Thumbnail not found" })
     async getThumbnail(
         @Param("filename") filename: string,
         @Res() res: Response,
     ): Promise<void> {
-        const uploadsDir = process.env.UPLOAD_DIR || "./uploads";
+        const uploadsDir = this.configService.get<string>(
+            "UPLOAD_DIR",
+            "./uploads",
+        );
         const filePath = path.join(uploadsDir, "stories", filename);
 
+        console.log("Thumbnail request:", {
+            filename,
+            filePath,
+            exists: fs.existsSync(filePath),
+        });
+
         if (!fs.existsSync(filePath)) {
-            throw new BadRequestException("Thumbnail not found");
+            res.status(404).send("Thumbnail not found");
+            return;
         }
 
         res.set("Content-Type", "image/jpeg");
@@ -185,5 +245,16 @@ export class StoryController {
 
     private getUserIdFromRequest(req: any): number {
         return req.user.id;
+    }
+
+    private getMimeTypeFromExtension(filename: string): string {
+        const ext = path.extname(filename).toLowerCase();
+        const mimeTypes: Record<string, string> = {
+            '.mp4': 'video/mp4',
+            '.mov': 'video/quicktime',
+            '.avi': 'video/x-msvideo',
+            '.webm': 'video/webm',
+        };
+        return mimeTypes[ext] || 'video/mp4';
     }
 }

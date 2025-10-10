@@ -22,6 +22,8 @@ export class StoryViewerComponent implements OnInit, OnDestroy {
     private destroy$ = new Subject<void>();
 
     story: Story | null = null;
+    videoBlobUrl: string = "";
+    thumbnailBlobUrl: string = "";
     comments: StoryComment[] = [];
     isLoading = true;
     isPlaying = false;
@@ -121,6 +123,15 @@ export class StoryViewerComponent implements OnInit, OnDestroy {
         console.log("Loading story with ID:", storyId);
         this.isLoading = true;
 
+        if (this.videoBlobUrl) {
+            URL.revokeObjectURL(this.videoBlobUrl);
+            this.videoBlobUrl = "";
+        }
+        if (this.thumbnailBlobUrl) {
+            URL.revokeObjectURL(this.thumbnailBlobUrl);
+            this.thumbnailBlobUrl = "";
+        }
+
         this.storyService
             .getStoryById(storyId)
             .pipe(takeUntil(this.destroy$))
@@ -136,25 +147,29 @@ export class StoryViewerComponent implements OnInit, OnDestroy {
                     this.markAsViewed(storyId);
                     this.startLiveViewerSimulation();
 
-                    // Auto-play video after a short delay
-                    setTimeout(() => {
-                        console.log("Attempting to play video...");
-                        if (this.autoPlay && this.videoPlayer?.nativeElement) {
-                            console.log("Video element found, playing...");
-                            this.playVideo();
-                        } else {
-                            console.log(
-                                "Video element not found or autoPlay disabled",
-                            );
-                        }
-                    }, 500);
+                    this.storyService.getVideoBlobUrl(story.videoUrl).subscribe(blobUrl => {
+                        this.videoBlobUrl = blobUrl;
+                        
+                        setTimeout(() => {
+                            console.log("Attempting to play video...");
+                            if (this.autoPlay && this.videoPlayer?.nativeElement) {
+                                console.log("Video element found, playing...");
+                                this.playVideo();
+                            } else {
+                                console.log(
+                                    "Video element not found or autoPlay disabled",
+                                );
+                            }
+                        }, 500);
+                    });
+
+                    if (story.thumbnailUrl) {
+                        this.storyService.getThumbnailBlobUrl(story.thumbnailUrl).subscribe(blobUrl => {
+                            this.thumbnailBlobUrl = blobUrl;
+                        });
+                    }
                 } else {
                     console.log("Story not found");
-                    // this.messageService.add({
-                    //   severity: 'error',
-                    //   summary: 'Live Stream Not Found',
-                    //   detail: 'The requested live stream could not be found'
-                    // });
                     this.router.navigate(["/stories"]);
                 }
                 this.isLoading = false;
@@ -216,11 +231,15 @@ export class StoryViewerComponent implements OnInit, OnDestroy {
 
     onVideoError(event: any): void {
         console.error("Video error:", event);
-        // this.messageService.add({
-        //   severity: 'error',
-        //   summary: 'Video Error',
-        //   detail: 'Failed to load video. Please try again.'
-        // });
+        console.error("Video src:", this.story?.videoUrl);
+        console.error("Video element:", this.videoPlayer?.nativeElement);
+        if (this.videoPlayer?.nativeElement) {
+            console.error("Video error details:", {
+                error: this.videoPlayer.nativeElement.error,
+                networkState: this.videoPlayer.nativeElement.networkState,
+                readyState: this.videoPlayer.nativeElement.readyState
+            });
+        }
     }
 
     onVideoLoaded(): void {
@@ -317,7 +336,7 @@ export class StoryViewerComponent implements OnInit, OnDestroy {
             this.router.navigate(["/stories/view", story.id]);
         } else {
             // End of stories, go back to stories list
-            this.router.navigate(["/live-tv"]);
+            this.router.navigate(["/stories"]);
         }
     }
 
@@ -407,11 +426,11 @@ export class StoryViewerComponent implements OnInit, OnDestroy {
     }
 
     onGoBack(): void {
-        this.router.navigate(["/live-tv"]);
+        this.router.navigate(["/stories"]);
     }
 
     onClose(): void {
-        this.router.navigate(["/live-tv"]);
+        this.router.navigate(["/stories"]);
     }
 
     // Touch gesture handlers for mobile

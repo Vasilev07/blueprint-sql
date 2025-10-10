@@ -5,7 +5,7 @@
     import { BE_PORT } from "./constants";
     import { IoAdapter } from "@nestjs/platform-socket.io";
     import "reflect-metadata";
-import { ConfigService } from "@nestjs/config";
+    import { ConfigService } from "@nestjs/config";
 
     async function bootstrap() {
         const app = await NestFactory.create(AppModule, {
@@ -15,6 +15,7 @@ import { ConfigService } from "@nestjs/config";
         const apiUrl = configService.get('API_URL') || 'http://localhost:3000';
         console.log(apiUrl, 'apiUrl');
         console.log('NODE_ENV:', process.env.NODE_ENV);
+
         app.enableCors({
             origin: ["http://localhost:4200", 'https://app.impulseapp.net'],
             credentials: true,

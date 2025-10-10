@@ -48,7 +48,7 @@
     <!-- Video Player (Full Screen) -->
     <div class="video-container">
       <video #videoPlayer
-        [src]="story.videoUrl"
+        [src]="videoBlobUrl"
         (timeupdate)="onVideoTimeUpdate()"
         (ended)="onVideoEnded()"
         (error)="onVideoError($event)"

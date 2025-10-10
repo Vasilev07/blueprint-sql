@@ -88,7 +88,7 @@ export class StoryService {
     ): Promise<{ duration: number; width: number; height: number }> {
         return new Promise((resolve) => {
             try {
-                ffmpeg.ffprobe(filePath, (err, metadata) => {
+                ffmpeg.ffprobe(filePath, 0, (err, metadata) => {
                     if (err) {
                         this.logger.warn(`FFprobe error: ${err.message}`);
                         return resolve({ duration: 0, width: 0, height: 0 });
@@ -198,8 +198,11 @@ export class StoryService {
                 thumbnailFilename,
             );
 
+            let thumbnailCreated = false;
             try {
                 await this.generateThumbnail(filePath, thumbnailPath);
+                const exists = await fs.access(thumbnailPath).then(() => true).catch(() => false);
+                thumbnailCreated = exists;
             } catch (error) {
                 this.logger.warn(`Thumbnail generation failed: ${error}`);
             }
@@ -213,7 +216,7 @@ export class StoryService {
             story.duration = metadata.duration;
             story.width = metadata.width;
             story.height = metadata.height;
-            story.thumbnailPath = relativeThumbnailPath;
+            story.thumbnailPath = thumbnailCreated ? relativeThumbnailPath : null;
             story.createdAt = new Date();
             story.expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
             story.isProcessed = false;
