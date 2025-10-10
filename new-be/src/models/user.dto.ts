@@ -25,4 +25,7 @@ export class UserDTO {
 
     @ApiProperty({ required: false })
     lastOnline?: Date;
+
+    @ApiProperty({ required: false })
+    profilePictureId?: number;
 }

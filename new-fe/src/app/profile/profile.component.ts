@@ -24,6 +24,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     currentUser: UserDTO | null = null;
     userPhotos: UserPhotoDTO[] = [];
     photoBlobUrls: Map<number, string> = new Map();
+    profilePictureBlobUrl: string | null = null;
     friends: FriendDTO[] = [];
     isLoading = false;
     isUploading = false;
@@ -48,6 +49,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
         this.loadCurrentUser();
         this.loadUserPhotos();
         this.loadFriends();
+        this.loadProfilePicture();
     }
 
     ngOnDestroy(): void {
@@ -57,6 +59,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
         // Revoke all blob URLs to free memory
         this.photoBlobUrls.forEach(url => URL.revokeObjectURL(url));
         this.photoBlobUrls.clear();
+        
+        if (this.profilePictureBlobUrl) {
+            URL.revokeObjectURL(this.profilePictureBlobUrl);
+        }
     }
 
     private loadCurrentUser(): void {
@@ -252,5 +258,91 @@ export class ProfileComponent implements OnInit, OnDestroy {
         if (friend.friendId) {
             this.router.navigate(["/chat/conversation", friend.friendId]);
         }
+    }
+
+    loadProfilePicture(): void {
+        // @ts-ignore - getProfilePicture will be available after regeneration
+        this.userService.getProfilePicture('response')
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+                next: (response: any) => {
+                    const blob = response.body as Blob;
+                    if (this.profilePictureBlobUrl) {
+                        URL.revokeObjectURL(this.profilePictureBlobUrl);
+                    }
+                    this.profilePictureBlobUrl = URL.createObjectURL(blob);
+                },
+                error: (error: any) => {
+                    // Profile picture not found is okay, user might not have one
+                    if (error.status !== 404) {
+                        console.error("Error loading profile picture:", error);
+                    }
+                }
+            });
+    }
+
+    onProfilePictureUpload(event: any): void {
+        const file = event.files[0];
+        if (!file) return;
+
+        this.isUploading = true;
+
+        // @ts-ignore - uploadProfilePicture will be available after regeneration
+        this.userService.uploadProfilePicture(file)
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+                next: (user: UserDTO) => {
+                    this.currentUser = user;
+                    this.loadProfilePicture(); // Reload the profile picture
+                    this.isUploading = false;
+                    this.messageService.add({
+                        severity: "success",
+                        summary: "Success",
+                        detail: "Profile picture uploaded successfully",
+                    });
+                },
+                error: (error: any) => {
+                    console.error("Error uploading profile picture:", error);
+                    this.isUploading = false;
+                    this.messageService.add({
+                        severity: "error",
+                        summary: "Error",
+                        detail: "Failed to upload profile picture",
+                    });
+                },
+            });
+    }
+
+    setPhotoAsProfilePicture(photoId: number): void {
+        // @ts-ignore - setProfilePicture will be available after regeneration
+        this.userService.setProfilePicture(photoId)
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+                next: (user: UserDTO) => {
+                    this.currentUser = user;
+                    this.loadProfilePicture(); // Reload the profile picture
+                    this.messageService.add({
+                        severity: "success",
+                        summary: "Success",
+                        detail: "Profile picture updated successfully",
+                    });
+                },
+                error: (error: any) => {
+                    console.error("Error setting profile picture:", error);
+                    this.messageService.add({
+                        severity: "error",
+                        summary: "Error",
+                        detail: "Failed to update profile picture",
+                    });
+                },
+            });
+    }
+
+    getProfilePictureUrl(): string {
+        return this.profilePictureBlobUrl || '';
+    }
+
+    hasProfilePicture(): boolean {
+        return !!this.profilePictureBlobUrl;
     }
 }

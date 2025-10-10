@@ -22,10 +22,30 @@
     </div>
     <div class="user-avatar">
       <p-avatar
+        *ngIf="!hasProfilePicture()"
         [label]="getUserInitials()"
         size="xlarge"
         styleClass="profile-avatar">
       </p-avatar>
+      <p-avatar
+        *ngIf="hasProfilePicture()"
+        [image]="getProfilePictureUrl()"
+        size="xlarge"
+        styleClass="profile-avatar">
+      </p-avatar>
+      <div class="avatar-upload">
+        <p-fileUpload
+          mode="basic"
+          name="photo"
+          accept="image/*"
+          maxFileSize="10000000"
+          (onUpload)="onProfilePictureUpload($event)"
+          (onSelect)="onProfilePictureUpload($event)"
+          chooseIcon="pi pi-camera"
+          [chooseLabel]="hasProfilePicture() ? 'Change' : 'Upload'"
+          styleClass="p-button-sm p-button-rounded">
+        </p-fileUpload>
+      </div>
     </div>
   </div>
 
@@ -71,6 +91,21 @@
                       class="photo-image">
                     <div class="photo-overlay">
                       <span class="photo-name">{{ photo.name }}</span>
+                      <p-button
+                        *ngIf="currentUser?.profilePictureId !== photo.id"
+                        icon="pi pi-user"
+                        (onClick)="setPhotoAsProfilePicture(photo.id!)"
+                        [rounded]="true"
+                        [text]="true"
+                        styleClass="set-profile-pic-btn"
+                        pTooltip="Set as profile picture"
+                        tooltipPosition="top">
+                      </p-button>
+                      <span
+                        *ngIf="currentUser?.profilePictureId === photo.id"
+                        class="profile-pic-badge">
+                        <i class="pi pi-check-circle"></i> Profile Picture
+                      </span>
                     </div>
                   </div>
 
@@ -217,62 +252,6 @@
   </div>
 </div>
 
-<!-- Edit Profile Dialog -->
-<p-dialog
-  [(visible)]="showEditDialog"
-  header="Edit Profile"
-  [modal]="true"
-  [style]="{ width: '450px' }"
-  [draggable]="false"
-  [resizable]="false">
-  
-  <div class="edit-form">
-    <div class="field">
-      <label for="gender">Gender</label>
-      <p-dropdown
-        id="gender"
-        [(ngModel)]="editForm.gender"
-        [options]="genderOptions"
-        placeholder="Select Gender"
-        [style]="{ width: '100%' }">
-      </p-dropdown>
-    </div>
-
-    <div class="field">
-      <label for="city">City</label>
-      <input
-        id="city"
-        type="text"
-        pInputText
-        [(ngModel)]="editForm.city"
-        placeholder="Enter your city"
-        [style]="{ width: '100%' }" />
-    </div>
-  </div>
-
-  <ng-template pTemplate="footer">
-    <p-button
-      label="Cancel"
-      icon="pi pi-times"
-      (onClick)="showEditDialog = false"
-      styleClass="p-button-text">
-    </p-button>
-    <p-button
-      label="Save"
-      icon="pi pi-check"
-      (onClick)="saveProfile()">
-    </p-button>
-  </ng-template>
-</p-dialog>
-
-<!-- Loading Spinner -->
-<p-progressSpinner
-  *ngIf="isLoading || isUploading"
-  styleClass="loading-spinner">
-</p-progressSpinner>
-
-<!-- Toast Messages -->
-<p-toast></p-toast>
 <!-- Edit Profile Dialog -->
 <p-dialog
   [(visible)]="showEditDialog"

@@ -266,4 +266,92 @@ export class UserController {
     async getOnlineUsers(): Promise<number[]> {
         return this.chatGateway.getOnlineUserIds();
     }
+
+    @Post("profile-picture/upload")
+    @ApiOperation({ summary: "Upload and set profile picture" })
+    @ApiConsumes("multipart/form-data")
+    @ApiBody({
+        schema: {
+            type: "object",
+            properties: {
+                photo: {
+                    type: "string",
+                    format: "binary",
+                },
+            },
+        },
+    })
+    @ApiResponse({
+        status: 201,
+        description: "Profile picture uploaded and set successfully",
+        type: UserDTO,
+    })
+    @UseInterceptors(FileInterceptor("photo"))
+    async uploadProfilePicture(
+        @UploadedFile() file: Express.Multer.File,
+        @Req() req: any,
+    ): Promise<UserDTO> {
+        return this.userService.uploadProfilePicture(file, req);
+    }
+
+    @Put("profile-picture/:photoId")
+    @ApiOperation({ summary: "Set an existing photo as profile picture" })
+    @ApiResponse({
+        status: 200,
+        description: "Profile picture set successfully",
+        type: UserDTO,
+    })
+    async setProfilePicture(
+        @Param("photoId") photoId: number,
+        @Req() req: any,
+    ): Promise<UserDTO> {
+        return this.userService.setProfilePicture(photoId, req);
+    }
+
+    @Get("profile-picture")
+    @ApiOperation({ summary: "Get current user's profile picture" })
+    @ApiResponse({
+        status: 200,
+        description: "Returns profile picture data",
+        content: {
+            "image/jpeg": {
+                schema: {
+                    type: "string",
+                    format: "binary",
+                },
+            },
+            "image/png": {
+                schema: {
+                    type: "string",
+                    format: "binary",
+                },
+            },
+        },
+    })
+    @ApiResponse({ status: 404, description: "Profile picture not found" })
+    async getProfilePicture(
+        @Req() req: any,
+        @Res() res: Response,
+    ): Promise<void> {
+        const photo = await this.userService.getProfilePicture(req);
+        
+        if (!photo) {
+            res.status(404).send("Profile picture not found");
+            return;
+        }
+
+        res.set("Content-Type", "image/jpeg");
+        res.send(Buffer.from(photo.data));
+    }
+
+    @HttpCode(HttpStatus.NO_CONTENT)
+    @Put("profile-picture/remove")
+    @ApiOperation({ summary: "Remove profile picture" })
+    @ApiResponse({
+        status: 204,
+        description: "Profile picture removed successfully",
+    })
+    async removeProfilePicture(@Req() req: any): Promise<void> {
+        await this.userService.removeProfilePicture(req);
+    }
 }

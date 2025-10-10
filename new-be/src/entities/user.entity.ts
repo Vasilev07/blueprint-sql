@@ -1,4 +1,4 @@
-import { Column, Entity, PrimaryGeneratedColumn, OneToMany } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn, OneToMany, ManyToOne, JoinColumn } from "typeorm";
 import { Role } from "../enums/role.enum";
 import { Gender } from "../enums/gender.enum";
 import { UserPhoto } from "./user-photo.entity";
@@ -43,4 +43,11 @@ export class User {
 
     @OneToMany(() => UserPhoto, (photo) => photo.user, { cascade: true })
     photos: UserPhoto[];
+
+    @Column({ type: "int", nullable: true })
+    profilePictureId: number;
+
+    @ManyToOne(() => UserPhoto, { nullable: true })
+    @JoinColumn({ name: "profilePictureId" })
+    profilePicture: UserPhoto;
 }

@@ -255,4 +255,101 @@ export class UserService implements OnModuleInit {
     mapUserToDTO(user: User): UserDTO {
         return this.userMapper.entityToDTO(user);
     }
+
+    async uploadProfilePicture(
+        file: Express.Multer.File,
+        req: any,
+    ): Promise<UserDTO> {
+        if (!file) {
+            throw new BadRequestException("No file provided");
+        }
+
+        const userId = this.getUserIdFromRequest(req);
+
+        // First, upload the photo
+        const photo = new UserPhoto();
+        photo.userId = userId;
+        photo.name = file.originalname;
+        photo.data = file.buffer as any;
+
+        const savedPhoto = await this.entityManager.save(photo);
+
+        // Then, set it as the profile picture
+        const user = await this.entityManager.findOne(User, {
+            where: { id: userId },
+        });
+
+        if (!user) {
+            throw new NotFoundException("User not found");
+        }
+
+        user.profilePictureId = savedPhoto.id;
+        const updatedUser = await this.entityManager.save(user);
+
+        return this.userMapper.entityToDTO(updatedUser);
+    }
+
+    async setProfilePicture(photoId: number, req: any): Promise<UserDTO> {
+        const userId = this.getUserIdFromRequest(req);
+
+        // Verify the photo exists and belongs to the user
+        const photo = await this.entityManager.findOne(UserPhoto, {
+            where: { id: photoId, userId },
+        });
+
+        if (!photo) {
+            throw new NotFoundException(
+                "Photo not found or doesn't belong to you",
+            );
+        }
+
+        // Set it as profile picture
+        const user = await this.entityManager.findOne(User, {
+            where: { id: userId },
+        });
+
+        if (!user) {
+            throw new NotFoundException("User not found");
+        }
+
+        user.profilePictureId = photoId;
+        const updatedUser = await this.entityManager.save(user);
+
+        return this.userMapper.entityToDTO(updatedUser);
+    }
+
+    async getProfilePicture(req: any): Promise<UserPhoto | null> {
+        const userId = this.getUserIdFromRequest(req);
+
+        const user = await this.entityManager.findOne(User, {
+            where: { id: userId },
+        });
+
+        if (!user || !user.profilePictureId) {
+            return null;
+        }
+
+        const photo = await this.entityManager.findOne(UserPhoto, {
+            where: { id: user.profilePictureId },
+        });
+
+        return photo;
+    }
+
+    async removeProfilePicture(req: any): Promise<UserDTO> {
+        const userId = this.getUserIdFromRequest(req);
+
+        const user = await this.entityManager.findOne(User, {
+            where: { id: userId },
+        });
+
+        if (!user) {
+            throw new NotFoundException("User not found");
+        }
+
+        user.profilePictureId = null;
+        const updatedUser = await this.entityManager.save(user);
+
+        return this.userMapper.entityToDTO(updatedUser);
+    }
 }
