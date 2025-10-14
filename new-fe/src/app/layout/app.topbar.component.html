@@ -14,10 +14,10 @@
 
   <div #topbarmenu class="layout-topbar-menu"
        [ngClass]="{'layout-topbar-menu-mobile-active': layoutService.state.profileSidebarVisible}">
-    <button class="p-link layout-topbar-button">
-      <i class="pi pi-calendar"></i>
-      <span>Calendar</span>
-    </button>
+    <!-- Notification Component replacing Calendar -->
+    <div class="layout-topbar-button notification-menu-item">
+      <app-notification></app-notification>
+    </div>
     <button class="p-link layout-topbar-button" routerLink="/profile">
       <i class="pi pi-user"></i>
       <span>Profile</span>

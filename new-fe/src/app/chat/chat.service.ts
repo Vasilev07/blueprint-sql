@@ -72,7 +72,7 @@ export class ChatService {
             const currentUserId = this.getCurrentUserId();
             const otherUserId =
                 Number(message.senderId) === currentUserId
-                    ? Number(message.recipientId)
+                    ? this.getOtherUserIdFromConversation(conversationId, currentUserId)
                     : Number(message.senderId);
 
             // Append message to stream
@@ -127,6 +127,22 @@ export class ChatService {
             );
             this.conversationsSubject.next([updated, ...convs]);
         });
+    }
+
+    private getOtherUserIdFromConversation(
+        conversationId: number,
+        currentUserId: number,
+    ): number {
+        const conv = this.conversationsSubject.value.find(
+            (c) => c.id === String(conversationId),
+        );
+        if (!conv || !conv.participants || conv.participants.length === 0) {
+            return 0;
+        }
+        const other = conv.participants
+            .map((p) => Number(p))
+            .find((p) => p !== currentUserId);
+        return other ?? 0;
     }
 
     private loadInitialData() {

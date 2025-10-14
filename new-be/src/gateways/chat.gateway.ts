@@ -41,6 +41,9 @@ export class ChatGateway {
                 const userIdNum = parseInt(userId);
                 this.userIdToEmail.set(userIdNum, email);
 
+                // Join user to their own room for targeted notifications
+                client.join(`user:${userIdNum}`);
+
                 // Update lastOnline timestamp in database
                 await this.updateLastOnline(userIdNum);
 
@@ -57,7 +60,11 @@ export class ChatGateway {
         if (email) {
             this.userSockets.delete(email);
             if (userId) {
-                this.userIdToEmail.delete(parseInt(userId));
+                const userIdNum = parseInt(userId);
+                this.userIdToEmail.delete(userIdNum);
+                
+                // Leave user room
+                client.leave(`user:${userIdNum}`);
             }
             // Broadcast offline status change
             this.server.emit("user:offline", {

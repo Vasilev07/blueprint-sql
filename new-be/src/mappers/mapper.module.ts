@@ -7,6 +7,7 @@ import { OrderMapper } from "@mappers/implementations/order.mapper";
 import { MessageMapper } from "@mappers/implementations/message.mapper";
 import { ChatMessageMapper } from "@mappers/implementations/chat-message.mapper";
 import { ChatConversationMapper } from "@mappers/implementations/chat-conversation.mapper";
+import { ProfileViewMapper } from "@mappers/implementations/profile-view.mapper";
 
 @Global()
 @Module({
@@ -19,6 +20,7 @@ import { ChatConversationMapper } from "@mappers/implementations/chat-conversati
         MessageMapper,
         ChatMessageMapper,
         ChatConversationMapper,
+        ProfileViewMapper,
     ],
     exports: [MapperService],
 })
@@ -32,13 +34,24 @@ export class MapperModule {
         private readonly messageMapper: MessageMapper,
         private readonly chatMessageMapper: ChatMessageMapper,
         private readonly chatConversationMapper: ChatConversationMapper,
+        private readonly profileViewMapper: ProfileViewMapper,
     ) {
         this.mapperService.registerMapper("User", this.userMapper);
         this.mapperService.registerMapper("Product", this.productMapper);
         this.mapperService.registerMapper("Category", this.categoryMapper);
         this.mapperService.registerMapper("Order", this.orderMapper);
         this.mapperService.registerMapper("Message", this.messageMapper);
-        this.mapperService.registerMapper("ChatMessage", this.chatMessageMapper);
-        this.mapperService.registerMapper("ChatConversation", this.chatConversationMapper);
+        this.mapperService.registerMapper(
+            "ChatMessage",
+            this.chatMessageMapper,
+        );
+        this.mapperService.registerMapper(
+            "ChatConversation",
+            this.chatConversationMapper,
+        );
+        this.mapperService.registerMapper(
+            "ProfileView",
+            this.profileViewMapper,
+        );
     }
 }

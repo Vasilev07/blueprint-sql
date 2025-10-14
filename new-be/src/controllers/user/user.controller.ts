@@ -17,6 +17,7 @@ import {
 import { FileInterceptor } from "@nestjs/platform-express";
 import { AuthMiddleware } from "src/middlewares/auth.middleware";
 import { UserService } from "src/services/user.service";
+import { ProfileViewService } from "src/services/profile-view.service";
 import { CryptoService } from "src/services/crypto.service";
 import { ChatGateway } from "src/gateways/chat.gateway";
 import {
@@ -29,6 +30,7 @@ import {
 import { User } from "@entities/user.entity";
 import { UserDTO } from "../../models/user.dto";
 import { UserPhotoDTO } from "../../models/user-photo.dto";
+import { ProfileViewDTO } from "../../models/profile-view.dto";
 import { Response } from "express";
 import { Public } from "../../decorators/public.decorator";
 
@@ -37,6 +39,7 @@ import { Public } from "../../decorators/public.decorator";
 export class UserController {
     constructor(
         private userService: UserService,
+        private profileViewService: ProfileViewService,
         private cryptoService: CryptoService,
         private authMiddleware: AuthMiddleware,
         private chatGateway: ChatGateway,
@@ -199,10 +202,13 @@ export class UserController {
         description: "Returns user photos",
         type: [UserPhotoDTO],
     })
-    @ApiResponse({ status: 403, description: "Forbidden - Must be friends to view photos" })
+    @ApiResponse({
+        status: 403,
+        description: "Forbidden - Must be friends to view photos",
+    })
     async getUserPhotosByUserId(
         @Param("userId") userId: number,
-        @Req() req: any
+        @Req() req: any,
     ): Promise<UserPhotoDTO[]> {
         // Try to get current user ID if authenticated
         let currentUserId: number | undefined;
@@ -216,25 +222,28 @@ export class UserController {
 
     @Get("photos/:photoId")
     @ApiOperation({ summary: "Get a specific photo by ID" })
-    @ApiResponse({ 
-        status: 200, 
+    @ApiResponse({
+        status: 200,
         description: "Returns photo data",
         content: {
-            'image/jpeg': {
+            "image/jpeg": {
                 schema: {
-                    type: 'string',
-                    format: 'binary'
-                }
+                    type: "string",
+                    format: "binary",
+                },
             },
-            'image/png': {
+            "image/png": {
                 schema: {
-                    type: 'string',
-                    format: 'binary'
-                }
-            }
-        }
+                    type: "string",
+                    format: "binary",
+                },
+            },
+        },
     })
-    @ApiResponse({ status: 403, description: "Forbidden - Must be friends to view photo" })
+    @ApiResponse({
+        status: 403,
+        description: "Forbidden - Must be friends to view photo",
+    })
     @ApiResponse({ status: 404, description: "Photo not found" })
     async getPhoto(
         @Param("photoId") photoId: number,
@@ -282,14 +291,60 @@ export class UserController {
     }
 
     @Get("user/:userId")
-    @ApiOperation({ summary: "Get user by ID" })
+    @ApiOperation({ summary: "Get user by ID and record profile view" })
     @ApiResponse({
         status: 200,
-        description: "Returns user by ID",
+        description: "Returns user by ID and records the profile view",
         type: UserDTO,
     })
     @ApiResponse({ status: 404, description: "User not found" })
-    async getUserById(@Param("userId") userId: number): Promise<UserDTO> {
+    async getUserById(
+        @Param("userId") userId: number,
+        @Req() req: any,
+    ): Promise<UserDTO> {
+        const viewerId = req.user?.id;
+
+        // Record profile view if viewer is authenticated
+        if (viewerId && viewerId !== Number(userId)) {
+            // Don't await - record async to not slow down response
+            this.profileViewService
+                .recordProfileView(Number(userId), viewerId)
+                .then(async () => {
+                    // Get viewer information for the notification
+                    try {
+                        const viewer =
+                            await this.userService.getUserById(viewerId);
+                        // Emit Socket.IO event to notify the profile owner
+                        this.chatGateway.server
+                            .to(`user:${userId}`)
+                            .emit("profile:view", {
+                                viewerId: viewerId,
+                                viewerName: viewer.fullName,
+                                viewerEmail: viewer.email,
+                                viewerProfilePictureId: viewer.profilePictureId,
+                                viewedAt: new Date().toISOString(),
+                                message: `${viewer.fullName} viewed your profile`,
+                            });
+                    } catch (error) {
+                        console.error(
+                            "Failed to get viewer info for notification:",
+                            error,
+                        );
+                        // Fallback notification without viewer details
+                        this.chatGateway.server
+                            .to(`user:${userId}`)
+                            .emit("profile:view", {
+                                viewerId: viewerId,
+                                viewedAt: new Date().toISOString(),
+                                message: "Someone viewed your profile",
+                            });
+                    }
+                })
+                .catch((err) =>
+                    console.error("Failed to record profile view:", err),
+                );
+        }
+
         return this.userService.getUserById(userId);
     }
 
@@ -370,7 +425,7 @@ export class UserController {
         @Res() res: Response,
     ): Promise<void> {
         const photo = await this.userService.getProfilePicture(req);
-        
+
         if (!photo) {
             res.status(404).send("Profile picture not found");
             return;
@@ -406,7 +461,7 @@ export class UserController {
         @Res() res: Response,
     ): Promise<void> {
         const photo = await this.userService.getProfilePictureByUserId(userId);
-        
+
         if (!photo) {
             res.status(404).send("Profile picture not found");
             return;
@@ -485,5 +540,45 @@ export class UserController {
         @Req() req: any,
     ): Promise<void> {
         await this.userService.deletePhoto(photoId, req);
+    }
+
+    @Get("profile-views")
+    @ApiOperation({ summary: "Get who viewed your profile" })
+    @ApiResponse({
+        status: 200,
+        description: "Returns list of profile views",
+        type: [ProfileViewDTO],
+    })
+    async getProfileViews(
+        @Req() req: any,
+        @Query("limit") limit?: number,
+    ): Promise<ProfileViewDTO[]> {
+        const userId = req.user.id;
+        return this.profileViewService.getProfileViews(userId, limit);
+    }
+
+    @Get("profile-views/stats")
+    @ApiOperation({ summary: "Get profile view statistics" })
+    @ApiResponse({
+        status: 200,
+        description: "Returns profile view statistics",
+        schema: {
+            type: "object",
+            properties: {
+                totalViews: { type: "number" },
+                uniqueViewers: { type: "number" },
+            },
+        },
+    })
+    async getProfileViewStats(@Req() req: any): Promise<{
+        totalViews: number;
+        uniqueViewers: number;
+    }> {
+        const userId = req.user.id;
+        const totalViews =
+            await this.profileViewService.getProfileViewCount(userId);
+        const uniqueViewers =
+            await this.profileViewService.getUniqueViewerCount(userId);
+        return { totalViews, uniqueViewers };
     }
 }

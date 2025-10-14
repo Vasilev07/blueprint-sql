@@ -1,0 +1,283 @@
+.notification-container {
+  position: relative;
+  display: inline-block;
+  
+  // Let the button inherit the standard topbar button styles
+  .notification-bell {
+    position: relative;
+    // Do not override colors here; inherit from topbar button styles
+  }
+}
+
+.notification-bell {
+  position: relative;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: scale(1.1);
+  }
+  
+  // Keep the icon color consistent with other topbar buttons; use badge for attention
+}
+
+.notification-badge {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  background: var(--red-500);
+  color: white;
+  border-radius: 50%;
+  min-width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: bold;
+  border: 2px solid var(--surface-card);
+  animation: bounce 0.5s ease-in-out;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-3px);
+  }
+  60% {
+    transform: translateY(-2px);
+  }
+}
+
+.notification-panel {
+  max-height: 500px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.notification-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid var(--surface-border);
+  background: var(--surface-card);
+  
+  h3 {
+    margin: 0;
+    color: var(--text-color);
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+}
+
+.notification-actions {
+  display: flex;
+  gap: 0.5rem;
+  
+  button {
+    color: var(--text-color-secondary);
+    
+    &:hover {
+      color: var(--primary-color);
+    }
+  }
+}
+
+.notification-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  color: var(--text-color-secondary);
+  
+  i {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  p {
+    margin: 0;
+    font-size: 0.9rem;
+  }
+}
+
+.notification-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+  color: var(--text-color-secondary);
+  
+  i {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: var(--surface-400);
+  }
+  
+  h4 {
+    margin: 0 0 0.5rem 0;
+    color: var(--text-color);
+    font-size: 1rem;
+  }
+  
+  p {
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.4;
+  }
+}
+
+.notification-list {
+  max-height: 350px;
+  overflow-y: auto;
+  padding: 0.5rem 0;
+}
+
+.notification-item {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--surface-border);
+  transition: background-color 0.2s ease;
+  cursor: pointer;
+  
+  &:hover {
+    background: var(--surface-hover);
+  }
+  
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.notification-avatar {
+  margin-right: 0.75rem;
+  flex-shrink: 0;
+}
+
+.notification-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-text {
+  margin-bottom: 0.25rem;
+  
+  strong {
+    color: var(--text-color);
+    font-weight: 600;
+  }
+  
+  .notification-action {
+    color: var(--text-color-secondary);
+    margin-left: 0.25rem;
+  }
+}
+
+.notification-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+}
+
+.notification-time {
+  color: var(--text-color-secondary);
+}
+
+.notification-friend-status {
+  padding: 0.125rem 0.375rem;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  
+  &.friend {
+    background: var(--green-100);
+    color: var(--green-700);
+  }
+  
+  &.not-friend {
+    background: var(--orange-100);
+    color: var(--orange-700);
+  }
+}
+
+.notification-status {
+  margin-left: 0.5rem;
+  flex-shrink: 0;
+  
+  .notification-friend-icon {
+    color: var(--green-500);
+    font-size: 1rem;
+  }
+  
+  .notification-stranger-icon {
+    color: var(--orange-500);
+    font-size: 1rem;
+  }
+}
+
+.notification-footer {
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--surface-border);
+  background: var(--surface-50);
+  text-align: center;
+}
+
+.notification-footer-text {
+  color: var(--text-color-secondary);
+  font-size: 0.8rem;
+}
+
+// Dark theme adjustments
+:host-context(.dark-theme) {
+  .notification-friend-status {
+    &.friend {
+      background: var(--green-900);
+      color: var(--green-300);
+    }
+    
+    &.not-friend {
+      background: var(--orange-900);
+      color: var(--orange-300);
+    }
+  }
+  
+  .notification-footer {
+    background: var(--surface-100);
+  }
+}
+
+// Mobile responsiveness
+@media (max-width: 768px) {
+  .notification-panel {
+    width: 90vw !important;
+    max-width: 350px;
+  }
+  
+  .notification-item {
+    padding: 0.5rem;
+  }
+  
+  .notification-content {
+    margin-right: 0.5rem;
+  }
+}

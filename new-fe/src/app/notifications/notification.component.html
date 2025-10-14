@@ -1,0 +1,124 @@
+<!-- Notification Bell Icon -->
+<div class="notification-container">
+  <button 
+    type="button" 
+    class="p-link layout-topbar-button notification-bell"
+    (click)="toggleNotificationPanel($event)"
+    [class.has-notifications]="unreadCount > 0"
+    pTooltip="Profile Views">
+    
+    <i class="pi pi-bell"></i>
+    <span>Notifications</span>
+    
+    <!-- Unread count badge -->
+    <span 
+      *ngIf="unreadCount > 0" 
+      class="notification-badge">
+      {{ unreadCount > 99 ? '99+' : unreadCount }}
+    </span>
+  </button>
+
+  <!-- Notification Panel -->
+  <p-overlayPanel 
+    #notificationPanel 
+    [style]="{ width: '400px' }"
+    [showCloseIcon]="true"
+    [dismissable]="true">
+    
+    <div class="notification-panel">
+      <!-- Header -->
+      <div class="notification-header">
+        <h3>Profile Views</h3>
+        <div class="notification-actions">
+          <button 
+            pButton 
+            type="button" 
+            icon="pi pi-refresh" 
+            class="p-button-text p-button-sm"
+            (click)="refreshNotifications()"
+            pTooltip="Refresh">
+          </button>
+          <button 
+            *ngIf="profileViews.length > 0"
+            pButton 
+            type="button" 
+            icon="pi pi-trash" 
+            class="p-button-text p-button-sm"
+            (click)="clearAllNotifications()"
+            pTooltip="Clear all">
+          </button>
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <div *ngIf="isLoading" class="notification-loading">
+        <i class="pi pi-spin pi-spinner"></i>
+        <p>Loading notifications...</p>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="!isLoading && profileViews.length === 0" class="notification-empty">
+        <i class="pi pi-eye-slash"></i>
+        <h4>No profile views yet</h4>
+        <p>When someone views your profile, it will appear here.</p>
+      </div>
+
+      <!-- Notification List -->
+      <div *ngIf="!isLoading && profileViews.length > 0" class="notification-list">
+        <div 
+          *ngFor="let view of profileViews; trackBy: trackByViewId" 
+          class="notification-item">
+          
+          <!-- User Avatar -->
+          <div class="notification-avatar">
+            <p-avatar 
+              [label]="getUserInitials(view.viewerName || 'Unknown')"
+              [image]="view.viewerProfilePictureId ? '/api/auth/photo/' + view.viewerProfilePictureId : undefined"
+              shape="circle"
+              size="large">
+            </p-avatar>
+          </div>
+
+          <!-- Notification Content -->
+          <div class="notification-content">
+            <div class="notification-text">
+              <strong>{{ view.viewerName || 'Unknown User' }}</strong>
+              <span class="notification-action">viewed your profile</span>
+            </div>
+            
+            <div class="notification-meta">
+              <span class="notification-time">{{ getTimeAgo(view.viewedAt!) }}</span>
+              <span 
+                class="notification-friend-status"
+                [class.friend]="isFriend(view)"
+                [class.not-friend]="!isFriend(view)">
+                {{ getFriendStatusText(view) }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Friend Status Icon -->
+          <div class="notification-status">
+            <i 
+              *ngIf="isFriend(view)"
+              class="pi pi-user-check notification-friend-icon"
+              pTooltip="Friend">
+            </i>
+            <i 
+              *ngIf="!isFriend(view)"
+              class="pi pi-user notification-stranger-icon"
+              pTooltip="Not a friend">
+            </i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div *ngIf="!isLoading && profileViews.length > 0" class="notification-footer">
+        <small class="notification-footer-text">
+          Showing recent profile views
+        </small>
+      </div>
+    </div>
+  </p-overlayPanel>
+</div>

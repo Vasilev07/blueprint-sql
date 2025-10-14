@@ -1,9 +1,20 @@
 import { Injectable } from "@angular/core";
 import { Socket, io } from "socket.io-client";
 import { Observable } from "rxjs";
-import { MessageDTO } from "../../typescript-api-client/src/model/models";
+import { MessageDTO, ChatMessageDTO, ProfileViewDTO } from "../../typescript-api-client/src/model/models";
 import { AuthService } from "./auth.service";
 import { environment } from "../../environments/environment";
+
+// Define proper types for Socket.IO events
+interface ChatMessagePayload {
+  conversationId: number;
+  message: ChatMessageDTO;
+}
+
+// Profile view notification extends the DTO with additional message field
+interface ProfileViewNotification extends Omit<ProfileViewDTO, 'id' | 'userId' | 'isFriend'> {
+  message: string;
+}
 
 @Injectable({
     providedIn: "root",
@@ -41,10 +52,10 @@ export class WebsocketService {
         this.socket.on("disconnect", (reason) => {
             console.log("Socket disconnected:", reason);
         });
-        this.socket.on("connect_error", (err: any) => {
+        this.socket.on("connect_error", (err: Error) => {
             console.error("Socket connect_error:", err?.message || err);
         });
-        this.socket.on("error", (err: any) => {
+        this.socket.on("error", (err: Error) => {
             console.error("Socket error:", err);
         });
         console.log("Socket created for:", email);
@@ -126,22 +137,19 @@ export class WebsocketService {
         this.socket.emit("chat:send", payload);
     }
 
-    onChatMessage(conversationId: number): Observable<any> {
-        return new Observable<any>((observer) => {
+    onChatMessage(conversationId: number): Observable<ChatMessageDTO> {
+        return new Observable<ChatMessageDTO>((observer) => {
             const event = `chat:message:${conversationId}`;
-            const handler = (message: any) => observer.next(message);
+            const handler = (message: ChatMessageDTO) => observer.next(message);
             this.socket.on(event, handler);
             return () => this.socket.off(event, handler);
         });
     }
 
-    onAnyChatMessage(): Observable<{ conversationId: number; message: any }> {
-        return new Observable<{ conversationId: number; message: any }>(
+    onAnyChatMessage(): Observable<ChatMessagePayload> {
+        return new Observable<ChatMessagePayload>(
             (observer) => {
-                const handler = (payload: {
-                    conversationId: number;
-                    message: any;
-                }) => observer.next(payload);
+                const handler = (payload: ChatMessagePayload) => observer.next(payload);
                 this.socket.on("chat:message", handler);
                 return () => this.socket.off("chat:message", handler);
             },
@@ -167,6 +175,17 @@ export class WebsocketService {
             };
             this.socket.on("user:offline", handler);
             return () => this.socket.off("user:offline", handler);
+        });
+    }
+
+    onProfileView(): Observable<ProfileViewNotification> {
+        return new Observable<ProfileViewNotification>((observer) => {
+            const handler = (payload: ProfileViewNotification) => {
+                console.log("Profile view notification received:", payload);
+                observer.next(payload);
+            };
+            this.socket.on("profile:view", handler);
+            return () => this.socket.off("profile:view", handler);
         });
     }
 

@@ -21,6 +21,7 @@ import { MenuModule } from "primeng/menu";
 import { Button } from "primeng/button";
 import { ToastModule } from "primeng/toast";
 import { ConfirmDialogModule } from "primeng/confirmdialog";
+import { NotificationsModule } from "../notifications/notifications.module";
 
 @NgModule({
     declarations: [
@@ -48,6 +49,7 @@ import { ConfirmDialogModule } from "primeng/confirmdialog";
         Button,
         ToastModule,
         ConfirmDialogModule,
+        NotificationsModule,
     ],
     exports: [AppLayoutComponent],
 })
