@@ -20,7 +20,7 @@ export interface HomeUser extends UserDTO {
     verified?: boolean; // Mocked for now
 }
 
-export type FilterType = "all" | "online" | "friends" | "nearby";
+export type FilterType = "all" | "online" | "friends" | "nearby" | "new";
 export type SortType = "recent" | "new" | "distance";
 
 @Injectable({
@@ -31,10 +31,12 @@ export class HomeService {
     private friendIdsSubject = new BehaviorSubject<number[]>([]);
     private filterSubject = new BehaviorSubject<FilterType>("all");
     private sortSubject = new BehaviorSubject<SortType>("recent");
+    private searchSubject = new BehaviorSubject<string>("");
 
     public users$ = this.usersSubject.asObservable();
     public filter$ = this.filterSubject.asObservable();
     public sort$ = this.sortSubject.asObservable();
+    public search$ = this.searchSubject.asObservable();
 
     constructor(
         private userService: UserService,
@@ -135,10 +137,8 @@ export class HomeService {
             isOnline: this.isUserOnline(user.lastOnline),
             isFriend: friendIds.includes(user.id!),
             verified: Math.random() > 0.7, // 30% verified
-            profilePictureUrl:
-                user.profilePictureId && user.profilePictureId > 0
-                    ? `/api/auth/photo/${user.profilePictureId}`
-                    : undefined,
+            // Always set profile picture URL - backend returns default if none exists
+            profilePictureUrl: `/api/auth/profile-picture/user/${user.id}`,
         };
     }
 
@@ -189,10 +189,23 @@ export class HomeService {
         this.sortSubject.next(sort);
     }
 
+    setSearch(search: string): void {
+        this.searchSubject.next(search);
+    }
+
     getFilteredAndSortedUsers(): Observable<HomeUser[]> {
-        return combineLatest([this.users$, this.filter$, this.sort$]).pipe(
-            map(([users, filter, sort]) => {
+        return combineLatest([this.users$, this.filter$, this.sort$, this.search$]).pipe(
+            map(([users, filter, sort, search]) => {
                 let filtered = [...users];
+
+                // Apply search filter
+                if (search && search.trim().length > 0) {
+                    const searchLower = search.toLowerCase().trim();
+                    filtered = filtered.filter((u) =>
+                        u.fullName?.toLowerCase().includes(searchLower) ||
+                        u.email?.toLowerCase().includes(searchLower)
+                    );
+                }
 
                 // Apply filters
                 switch (filter) {
@@ -208,6 +221,11 @@ export class HomeService {
                             0,
                             Math.floor(users.length / 2),
                         );
+                        break;
+                    case "new":
+                        // Show newest users (highest IDs)
+                        filtered.sort((a, b) => b.id! - a.id!);
+                        filtered = filtered.slice(0, 20);
                         break;
                 }
 

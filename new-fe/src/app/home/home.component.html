@@ -1,69 +1,63 @@
 <div class="home-container">
-  <!-- Header -->
-  <div class="home-header">
-    <div class="header-content">
-      <h1 class="page-title">
-        <i class="pi pi-users"></i>
-        Discover People
-      </h1>
-      <p class="page-subtitle">
-        Showing {{ totalUsers }} {{ currentFilter === 'all' ? 'users' : getFilterLabel().toLowerCase() }}
-        <span *ngIf="onlineCount > 0" class="online-badge">
-          <i class="pi pi-circle-fill"></i>
-          {{ onlineCount }} online now
-        </span>
-      </p>
+  <!-- Search and Filter Section -->
+  <div class="search-filter-section">
+    <!-- Search Bar -->
+    <div class="search-bar-wrapper">
+      <p-iconField iconPosition="left" class="search-field">
+        <p-inputIcon styleClass="pi pi-search"></p-inputIcon>
+        <input 
+          type="text" 
+          pInputText 
+          [(ngModel)]="searchTerm"
+          (input)="onSearchChange()"
+          placeholder="Search by location, age, interests..."
+          class="search-input" />
+      </p-iconField>
+      <button 
+        pButton 
+        type="button" 
+        icon="pi pi-refresh" 
+        class="p-button-text p-button-rounded refresh-btn"
+        (click)="onRefresh()"
+        pTooltip="Refresh">
+      </button>
     </div>
-    
-    <button 
-      pButton 
-      type="button" 
-      icon="pi pi-refresh" 
-      class="p-button-text p-button-rounded"
-      (click)="onRefresh()"
-      pTooltip="Refresh">
-    </button>
-  </div>
 
-  <!-- Filters and Sort -->
-  <div class="home-controls">
     <!-- Filter Buttons -->
-    <div class="filter-buttons">
+    <div class="filter-pills">
       <button 
         *ngFor="let filter of filterOptions"
         pButton 
         type="button" 
         [label]="filter.label"
-        [icon]="filter.icon"
-        class="p-button-outlined filter-btn"
-        [class.p-button-primary]="currentFilter === filter.value"
+        class="filter-pill"
+        [class.active]="currentFilter === filter.value"
         (click)="onFilterChange(filter.value)">
       </button>
     </div>
 
-    <!-- Sort Dropdown -->
-    <div class="sort-control">
-      <p-dropdown 
-        [options]="sortOptions" 
-        [(ngModel)]="currentSort"
-        (onChange)="onSortChange($event)"
-        optionLabel="label" 
-        optionValue="value"
-        [style]="{ minWidth: '200px' }"
-        placeholder="Sort by">
-        <ng-template pTemplate="selectedItem" let-option>
-          <div class="flex align-items-center gap-2">
-            <i class="pi pi-sort-alt"></i>
-            <span>{{ option.label }}</span>
-          </div>
-        </ng-template>
-        <ng-template pTemplate="item" let-option>
-          <div class="flex align-items-center gap-2">
-            <span>{{ option.label }}</span>
-          </div>
-        </ng-template>
-      </p-dropdown>
+    <!-- Advanced Filters Section -->
+    <div class="advanced-filters-section">
+      <span class="filters-locked">
+        <i class="pi pi-lock"></i>
+        Advanced filters locked
+      </span>
+      <a href="#" class="upgrade-link" (click)="$event.preventDefault()">
+        Upgrade for filters
+      </a>
     </div>
+  </div>
+
+  <!-- Sort Dropdown (Hidden by default, can be toggled) -->
+  <div class="sort-section" *ngIf="false">
+    <p-dropdown 
+      [options]="sortOptions" 
+      [(ngModel)]="currentSort"
+      (onChange)="onSortChange($event)"
+      optionLabel="label" 
+      optionValue="value"
+      placeholder="Sort by">
+    </p-dropdown>
   </div>
 
   <!-- Loading State -->

@@ -250,9 +250,20 @@ export class UserController {
         @Req() req: any,
         @Res() res: Response,
     ): Promise<void> {
-        const photo = await this.userService.getPhoto(photoId, req);
-        res.set("Content-Type", "image/jpeg");
-        res.send(Buffer.from(photo.data));
+        try {
+            const photo = await this.userService.getPhoto(photoId, req);
+            res.set("Content-Type", "image/jpeg");
+            res.send(Buffer.from(photo.data));
+        } catch (error) {
+            // Return default image for missing photos
+            const defaultAvatar = `<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
+                    <rect fill="#ddd" width="100" height="100"/>
+                    <circle cx="50" cy="35" r="15" fill="#999"/>
+                    <path d="M25 70 c20-10 30-10 50 0" stroke="#999" stroke-width="10" fill="none"/>
+                </svg>`;
+            res.set("Content-Type", "image/svg+xml");
+            res.send(defaultAvatar);
+        }
     }
 
     @Put("profile")
@@ -427,7 +438,14 @@ export class UserController {
         const photo = await this.userService.getProfilePicture(req);
 
         if (!photo) {
-            res.status(404).send("Profile picture not found");
+            // Return default avatar SVG instead of 404
+            const defaultAvatar = `<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
+                <rect fill="#ddd" width="100" height="100"/>
+                <circle cx="50" cy="35" r="15" fill="#999"/>
+                <path d="M25 70 c20-10 30-10 50 0" stroke="#999" stroke-width="10" fill="none"/>
+            </svg>`;
+            res.set("Content-Type", "image/svg+xml");
+            res.send(defaultAvatar);
             return;
         }
 
@@ -463,7 +481,14 @@ export class UserController {
         const photo = await this.userService.getProfilePictureByUserId(userId);
 
         if (!photo) {
-            res.status(404).send("Profile picture not found");
+            // Return default avatar SVG instead of 404
+            const defaultAvatar = `<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
+                <rect fill="#ddd" width="100" height="100"/>
+                <circle cx="50" cy="35" r="15" fill="#999"/>
+                <path d="M25 70 c20-10 30-10 50 0" stroke="#999" stroke-width="10" fill="none"/>
+            </svg>`;
+            res.set("Content-Type", "image/svg+xml");
+            res.send(defaultAvatar);
             return;
         }
 

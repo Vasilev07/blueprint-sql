@@ -11,6 +11,9 @@ import { TooltipModule } from "primeng/tooltip";
 import { ProgressSpinnerModule } from "primeng/progressspinner";
 import { ToastModule } from "primeng/toast";
 import { AvatarModule } from "primeng/avatar";
+import { InputTextModule } from "primeng/inputtext";
+import { IconFieldModule } from "primeng/iconfield";
+import { InputIconModule } from "primeng/inputicon";
 
 // Components
 import { HomeComponent } from "./home.component";
@@ -39,6 +42,9 @@ const routes: Routes = [
         ProgressSpinnerModule,
         ToastModule,
         AvatarModule,
+        InputTextModule,
+        IconFieldModule,
+        InputIconModule,
     ],
     providers: [HomeService],
 })

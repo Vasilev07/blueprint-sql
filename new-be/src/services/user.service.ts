@@ -189,14 +189,22 @@ export class UserService implements OnModuleInit {
         return await this.mapPhotosToDTO(photos, currentUserId);
     }
 
-    async getUserPhotosByUserId(userId: number, currentUserId?: number): Promise<UserPhotoDTO[]> {
+    async getUserPhotosByUserId(
+        userId: number,
+        currentUserId?: number,
+    ): Promise<UserPhotoDTO[]> {
         // Check if currentUser can view these photos
-        if (currentUserId && currentUserId !== userId) {
-            const areFriends = await this.areUsersFriends(currentUserId, userId);
-            if (!areFriends) {
-                throw new ForbiddenException("You must be friends to view this user's photos");
-            }
-        }
+        // if (currentUserId && currentUserId !== userId) {
+        //     const areFriends = await this.areUsersFriends(
+        //         currentUserId,
+        //         userId,
+        //     );
+        //     if (!areFriends) {
+        //         throw new ForbiddenException(
+        //             "You must be friends to view this user's photos",
+        //         );
+        //     }
+        // }
 
         const photos = await this.entityManager.find(UserPhoto, {
             where: { userId },
@@ -206,19 +214,33 @@ export class UserService implements OnModuleInit {
         return await this.mapPhotosToDTO(photos, currentUserId);
     }
 
-    private async areUsersFriends(userId1: number, userId2: number): Promise<boolean> {
+    private async areUsersFriends(
+        userId1: number,
+        userId2: number,
+    ): Promise<boolean> {
         // Check if users are friends in either direction
         const friendship = await this.entityManager.findOne(UserFriend, {
             where: [
-                { userId: userId1, friendId: userId2, status: FriendshipStatus.ACCEPTED },
-                { userId: userId2, friendId: userId1, status: FriendshipStatus.ACCEPTED }
-            ]
+                {
+                    userId: userId1,
+                    friendId: userId2,
+                    status: FriendshipStatus.ACCEPTED,
+                },
+                {
+                    userId: userId2,
+                    friendId: userId1,
+                    status: FriendshipStatus.ACCEPTED,
+                },
+            ],
         });
 
         return !!friendship;
     }
 
-    private async mapPhotosToDTO(photos: UserPhoto[], currentUserId?: number): Promise<UserPhotoDTO[]> {
+    private async mapPhotosToDTO(
+        photos: UserPhoto[],
+        currentUserId?: number,
+    ): Promise<UserPhotoDTO[]> {
         // Get all liked photo IDs for the current user in one query
         let likedPhotoIds: Set<number> = new Set();
         if (currentUserId) {
@@ -235,13 +257,15 @@ export class UserService implements OnModuleInit {
             userId: p.userId,
             uploadedAt: p.uploadedAt,
             likesCount: p.likesCount || 0,
-            isLikedByCurrentUser: currentUserId ? likedPhotoIds.has(p.id) : false,
+            isLikedByCurrentUser: currentUserId
+                ? likedPhotoIds.has(p.id)
+                : false,
         }));
     }
 
     async getPhoto(photoId: number, req: any): Promise<UserPhoto> {
         const currentUserId = this.getUserIdFromRequest(req);
-        
+
         const photo = await this.entityManager.findOne(UserPhoto, {
             where: { id: photoId },
         });
@@ -256,9 +280,14 @@ export class UserService implements OnModuleInit {
         }
 
         // Check if users are friends
-        const areFriends = await this.areUsersFriends(currentUserId, photo.userId);
+        const areFriends = await this.areUsersFriends(
+            currentUserId,
+            photo.userId,
+        );
         if (!areFriends) {
-            throw new ForbiddenException("You must be friends to view this photo");
+            throw new ForbiddenException(
+                "You must be friends to view this photo",
+            );
         }
 
         return photo;
@@ -435,7 +464,10 @@ export class UserService implements OnModuleInit {
         return this.userMapper.entityToDTO(updatedUser);
     }
 
-    async likePhoto(photoId: number, req: any): Promise<{ likesCount: number; isLiked: boolean }> {
+    async likePhoto(
+        photoId: number,
+        req: any,
+    ): Promise<{ likesCount: number; isLiked: boolean }> {
         const userId = this.getUserIdFromRequest(req);
 
         // Check if photo exists
@@ -463,7 +495,12 @@ export class UserService implements OnModuleInit {
         await this.entityManager.save(like);
 
         // Increment like count
-        await this.entityManager.increment(UserPhoto, { id: photoId }, "likesCount", 1);
+        await this.entityManager.increment(
+            UserPhoto,
+            { id: photoId },
+            "likesCount",
+            1,
+        );
 
         // Get updated count
         const updatedPhoto = await this.entityManager.findOne(UserPhoto, {
@@ -476,7 +513,10 @@ export class UserService implements OnModuleInit {
         };
     }
 
-    async unlikePhoto(photoId: number, req: any): Promise<{ likesCount: number; isLiked: boolean }> {
+    async unlikePhoto(
+        photoId: number,
+        req: any,
+    ): Promise<{ likesCount: number; isLiked: boolean }> {
         const userId = this.getUserIdFromRequest(req);
 
         // Check if photo exists
@@ -501,7 +541,12 @@ export class UserService implements OnModuleInit {
         await this.entityManager.delete(PhotoLike, { userId, photoId });
 
         // Decrement like count
-        await this.entityManager.decrement(UserPhoto, { id: photoId }, "likesCount", 1);
+        await this.entityManager.decrement(
+            UserPhoto,
+            { id: photoId },
+            "likesCount",
+            1,
+        );
 
         // Get updated count
         const updatedPhoto = await this.entityManager.findOne(UserPhoto, {

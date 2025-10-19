@@ -4,82 +4,156 @@
   margin: 0 auto;
 }
 
-.home-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+// Search and Filter Section
+.search-filter-section {
+  background: linear-gradient(135deg, var(--surface-0) 0%, var(--surface-b) 100%);
+  border-radius: 16px;
+  padding: 1.5rem;
   margin-bottom: 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--surface-border);
+}
+
+.search-bar-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
   
-  .header-content {
+  .search-field {
     flex: 1;
     
-    .page-title {
-      margin: 0 0 0.5rem 0;
-      font-size: 2rem;
-      font-weight: 600;
-      color: var(--text-color);
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      
-      i {
-        color: var(--primary-color);
-      }
-    }
-    
-    .page-subtitle {
-      margin: 0;
-      font-size: 1rem;
-      color: var(--text-color-secondary);
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      
-      .online-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        background: var(--green-100);
-        color: var(--green-700);
-        padding: 0.25rem 0.75rem;
-        border-radius: 20px;
-        font-size: 0.875rem;
-        font-weight: 500;
+    ::ng-deep {
+      .p-inputtext {
+        width: 100%;
+        background: var(--surface-c);
+        border: 1px solid var(--surface-border);
+        color: var(--text-color);
+        padding: 0.875rem 1rem 0.875rem 2.75rem;
+        border-radius: 12px;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
         
-        i {
-          font-size: 8px;
+        &::placeholder {
+          color: var(--text-color-secondary);
+        }
+        
+        &:focus {
+          background: var(--surface-hover);
+          border-color: var(--primary-color);
+          box-shadow: var(--focus-ring);
+        }
+        
+        &:hover {
+          background: var(--surface-hover);
+          border-color: var(--surface-300);
         }
       }
+      
+      .p-inputicon {
+        color: var(--text-color-secondary);
+        left: 1rem;
+        font-size: 1.1rem;
+      }
+    }
+  }
+  
+  .refresh-btn {
+    background: var(--surface-c);
+    border: 1px solid var(--surface-border);
+    color: var(--pink-500);
+    width: 2.75rem;
+    height: 2.75rem;
+    transition: all 0.3s ease;
+    
+    &:hover {
+      background: color-mix(in srgb, var(--pink-500) 10%, transparent);
+      border-color: var(--pink-500);
+      color: var(--pink-500);
+    }
+    
+    ::ng-deep .pi {
+      font-size: 1.1rem;
     }
   }
 }
 
-.home-controls {
+.filter-pills {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  
+  .filter-pill {
+    background: var(--surface-c);
+    border: 1px solid var(--surface-border);
+    color: var(--text-color);
+    padding: 0.65rem 1.5rem;
+    border-radius: 24px;
+    font-size: 0.925rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    
+    &:hover {
+      background: var(--surface-hover);
+      border-color: var(--surface-300);
+      color: var(--text-color);
+      transform: translateY(-1px);
+    }
+    
+    &.active {
+      background: linear-gradient(135deg, var(--pink-500) 0%, var(--pink-600) 100%);
+      border-color: transparent;
+      color: var(--surface-900);
+      box-shadow: 0 4px 12px color-mix(in srgb, var(--pink-500) 40%, transparent);
+      
+      &:hover {
+        background: linear-gradient(135deg, var(--pink-400) 0%, var(--pink-500) 100%);
+        transform: translateY(-1px);
+      }
+    }
+    
+    ::ng-deep .p-button-label {
+      font-weight: 500;
+    }
+  }
+}
+
+.advanced-filters-section {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 1rem;
-  margin-bottom: 2rem;
-  padding: 1rem;
-  background: var(--surface-card);
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  padding-top: 0.5rem;
   
-  .filter-buttons {
+  .filters-locked {
     display: flex;
+    align-items: center;
     gap: 0.5rem;
-    flex-wrap: wrap;
+    color: var(--text-color-secondary);
+    font-size: 0.875rem;
     
-    .filter-btn {
+    i {
       font-size: 0.875rem;
     }
   }
   
-  .sort-control {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+  .upgrade-link {
+    color: var(--pink-500);
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      color: var(--pink-400);
+      text-decoration: underline;
+    }
   }
+}
+
+.sort-section {
+  margin-bottom: 2rem;
 }
 
 .loading-container {
@@ -149,45 +223,60 @@
   }
 }
 
-// Dark theme adjustments
-:host-context(.dark-theme) {
-  .home-header .page-subtitle .online-badge {
-    background: var(--green-900);
-    color: var(--green-300);
-  }
-  
-  .home-controls {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  }
-}
-
 // Mobile responsiveness
 @media (max-width: 992px) {
   .home-container {
     padding: 1rem;
   }
   
-  .home-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
+  .search-filter-section {
+    padding: 1.25rem;
+  }
+  
+  .search-bar-wrapper {
+    .search-field ::ng-deep .p-inputtext {
+      padding: 0.75rem 1rem 0.75rem 2.5rem;
+      font-size: 0.875rem;
+    }
     
-    .page-title {
-      font-size: 1.5rem;
+    .refresh-btn {
+      width: 2.5rem;
+      height: 2.5rem;
     }
   }
   
-  .home-controls {
-    flex-direction: column;
-    align-items: stretch;
+  .filter-pills {
+    gap: 0.5rem;
     
-    .sort-control {
-      width: 100%;
-      
-      ::ng-deep .p-dropdown {
-        width: 100%;
-      }
+    .filter-pill {
+      padding: 0.5rem 1.25rem;
+      font-size: 0.875rem;
     }
+  }
+}
+
+@media (max-width: 576px) {
+  .home-container {
+    padding: 0.75rem;
+  }
+  
+  .search-filter-section {
+    padding: 1rem;
+    border-radius: 12px;
+  }
+  
+  .search-bar-wrapper {
+    margin-bottom: 1rem;
+  }
+  
+  .filter-pills {
+    margin-bottom: 1rem;
+  }
+  
+  .advanced-filters-section {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
   }
 }
 

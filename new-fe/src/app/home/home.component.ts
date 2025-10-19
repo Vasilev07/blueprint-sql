@@ -16,24 +16,30 @@ export class HomeComponent implements OnInit, OnDestroy {
     onlineCount: number = 0;
     currentFilter: FilterType = "all";
     currentSort: SortType = "recent";
+    searchTerm: string = "";
     isLoading: boolean = true;
 
     filterOptions = [
-        { label: "All Users", value: "all" as FilterType, icon: "pi pi-users" },
+        { label: "All", value: "all" as FilterType, icon: "pi pi-users" },
+        {
+            label: "Nearby",
+            value: "nearby" as FilterType,
+            icon: "pi pi-map-marker",
+        },
         {
             label: "Online",
             value: "online" as FilterType,
             icon: "pi pi-circle-fill",
         },
         {
-            label: "Friends",
-            value: "friends" as FilterType,
-            icon: "pi pi-user-plus",
+            label: "New",
+            value: "new" as FilterType,
+            icon: "pi pi-star",
         },
         {
-            label: "Nearby",
-            value: "nearby" as FilterType,
-            icon: "pi pi-map-marker",
+            label: "Earners",
+            value: "friends" as FilterType,
+            icon: "pi pi-dollar",
         },
     ];
 
@@ -102,6 +108,15 @@ export class HomeComponent implements OnInit, OnDestroy {
     onSortChange(event: any): void {
         this.currentSort = event.value;
         this.homeService.setSort(event.value);
+    }
+
+    onSearchChange(): void {
+        this.homeService.setSearch(this.searchTerm);
+    }
+
+    clearSearch(): void {
+        this.searchTerm = "";
+        this.homeService.setSearch("");
     }
 
     onChatClick(user: HomeUser): void {
