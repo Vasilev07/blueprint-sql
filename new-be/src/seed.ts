@@ -48,6 +48,9 @@ async function seed() {
         const adminProfile = new UserProfile();
         adminProfile.userId = adminUser.id;
         adminProfile.city = "Sofia";
+        adminProfile.bio = "Platform administrator - here to help! 🎉";
+        adminProfile.location = "Sofia, Bulgaria";
+        adminProfile.interests = ["Technology", "Management", "Support"];
         await dataSource.getRepository(UserProfile).save(adminProfile);
         console.log("Created admin user");
 
@@ -76,6 +79,32 @@ async function seed() {
         ];
 
         // Create test users
+        const bios = [
+            "Looking for fun connections 💕",
+            "New to the city, let's explore together!",
+            "Coffee enthusiast ☕ Love good conversations",
+            "Adventure seeker 🏔️ Always up for something new",
+            "Fitness and wellness 💪 Living my best life",
+            "Foodie and traveler 🍕✈️",
+            "Music lover 🎵 Concert buddy needed",
+            "Dog parent 🐕 Looking for pet-friendly friends",
+            "Book worm 📚 Let's discuss our favorites",
+            "Photographer 📸 Capturing life's moments",
+        ];
+
+        const interestsList = [
+            ["Dancing", "Music", "Nightlife"],
+            ["Travel", "Photography", "Hiking"],
+            ["Cooking", "Wine", "Restaurants"],
+            ["Fitness", "Yoga", "Wellness"],
+            ["Movies", "Netflix", "Gaming"],
+            ["Art", "Museums", "Culture"],
+            ["Sports", "Running", "Swimming"],
+            ["Reading", "Writing", "Poetry"],
+            ["Technology", "Startups", "Innovation"],
+            ["Fashion", "Shopping", "Style"],
+        ];
+
         const testUsers = [
             {
                 email: "john.doe@example.com",
@@ -85,6 +114,9 @@ async function seed() {
                 roles: [Role.User],
                 gender: Gender.Male,
                 city: "Sofia",
+                bio: bios[0],
+                location: "Sofia, Bulgaria",
+                interests: interestsList[0],
             },
             {
                 email: "jane.smith@example.com",
@@ -94,6 +126,9 @@ async function seed() {
                 roles: [Role.User],
                 gender: Gender.Female,
                 city: "Plovdiv",
+                bio: bios[1],
+                location: "Plovdiv, Bulgaria",
+                interests: interestsList[1],
             },
             {
                 email: "mike.wilson@example.com",
@@ -103,6 +138,9 @@ async function seed() {
                 roles: [Role.User],
                 gender: Gender.Male,
                 city: "Varna",
+                bio: bios[2],
+                location: "Varna, Bulgaria",
+                interests: interestsList[2],
             },
             {
                 email: "sarah.johnson@example.com",
@@ -112,6 +150,9 @@ async function seed() {
                 roles: [Role.User],
                 gender: Gender.Female,
                 city: "Burgas",
+                bio: bios[3],
+                location: "Burgas, Bulgaria",
+                interests: interestsList[3],
             },
             {
                 email: "david.brown@example.com",
@@ -121,6 +162,9 @@ async function seed() {
                 roles: [Role.User],
                 gender: Gender.Male,
                 city: "Ruse",
+                bio: bios[4],
+                location: "Ruse, Bulgaria",
+                interests: interestsList[4],
             },
         ];
 
@@ -139,8 +183,11 @@ async function seed() {
             const profile = new UserProfile();
             profile.userId = savedUser.id;
             profile.city = userData.city;
+            profile.bio = userData.bio;
+            profile.location = userData.location;
+            profile.interests = userData.interests;
             await dataSource.getRepository(UserProfile).save(profile);
-
+            
             createdUsers.push(savedUser);
             console.log(`Created user: ${userData.email}`);
         }
@@ -178,7 +225,11 @@ async function seed() {
             // Create user profile
             const profile = new UserProfile();
             profile.userId = savedUser.id;
-            profile.city = bulgarianCities[i % bulgarianCities.length];
+            const cityName = bulgarianCities[i % bulgarianCities.length];
+            profile.city = cityName;
+            profile.bio = bios[i % bios.length];
+            profile.location = `${cityName}, Bulgaria`;
+            profile.interests = interestsList[i % interestsList.length];
             await dataSource.getRepository(UserProfile).save(profile);
             if (i % 25 === 0) {
                 console.log(

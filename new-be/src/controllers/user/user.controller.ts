@@ -31,6 +31,10 @@ import { User } from "@entities/user.entity";
 import { UserDTO } from "../../models/user.dto";
 import { UserPhotoDTO } from "../../models/user-photo.dto";
 import { ProfileViewDTO } from "../../models/profile-view.dto";
+import {
+    UserProfileDTO,
+    UpdateUserProfileDTO,
+} from "../../models/user-profile.dto";
 import { Response } from "express";
 import { Public } from "../../decorators/public.decorator";
 
@@ -252,7 +256,22 @@ export class UserController {
     ): Promise<void> {
         try {
             const photo = await this.userService.getPhoto(photoId, req);
-            res.set("Content-Type", "image/jpeg");
+
+            // Detect content type based on file extension or data
+            let contentType = "image/jpeg"; // default
+            if (photo.name) {
+                if (photo.name.endsWith(".svg")) {
+                    contentType = "image/svg+xml";
+                } else if (photo.name.endsWith(".png")) {
+                    contentType = "image/png";
+                } else if (photo.name.endsWith(".gif")) {
+                    contentType = "image/gif";
+                } else if (photo.name.endsWith(".webp")) {
+                    contentType = "image/webp";
+                }
+            }
+
+            res.set("Content-Type", contentType);
             res.send(Buffer.from(photo.data));
         } catch (error) {
             // Return default image for missing photos
@@ -288,6 +307,34 @@ export class UserController {
             expiresIn: 3600,
             user: this.userService.mapUserToDTO(updatedUser),
         };
+    }
+
+    @Get("user-profile")
+    @ApiOperation({ summary: "Get current user's profile details" })
+    @ApiResponse({
+        status: 200,
+        description: "User profile retrieved successfully",
+        type: UserProfileDTO,
+    })
+    async getUserProfile(@Req() req: any): Promise<UserProfileDTO> {
+        return this.userService.getUserProfile(req);
+    }
+
+    @Put("user-profile")
+    @ApiOperation({
+        summary: "Update user profile details (bio, interests, privacy)",
+    })
+    @ApiBody({ type: UpdateUserProfileDTO })
+    @ApiResponse({
+        status: 200,
+        description: "User profile updated successfully",
+        type: UserProfileDTO,
+    })
+    async updateUserProfile(
+        @Body() updateData: UpdateUserProfileDTO,
+        @Req() req: any,
+    ): Promise<UserProfileDTO> {
+        return this.userService.updateUserProfile(updateData, req);
     }
 
     @Get("user")
@@ -492,7 +539,21 @@ export class UserController {
             return;
         }
 
-        res.set("Content-Type", "image/jpeg");
+        // Detect content type based on file extension or data
+        let contentType = "image/jpeg"; // default
+        if (photo.name) {
+            if (photo.name.endsWith(".svg")) {
+                contentType = "image/svg+xml";
+            } else if (photo.name.endsWith(".png")) {
+                contentType = "image/png";
+            } else if (photo.name.endsWith(".gif")) {
+                contentType = "image/gif";
+            } else if (photo.name.endsWith(".webp")) {
+                contentType = "image/webp";
+            }
+        }
+
+        res.set("Content-Type", contentType);
         res.send(Buffer.from(photo.data));
     }
 

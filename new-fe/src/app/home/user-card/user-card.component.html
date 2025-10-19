@@ -32,9 +32,9 @@
         <span *ngIf="user.age" class="user-age">, {{ user.age }}</span>
       </h3>
       
-      <div class="user-location" *ngIf="user.city || user.distance">
+      <div class="user-location" *ngIf="user.location || user.city || user.distance">
         <i class="pi pi-map-marker"></i>
-        <span>{{ user.distance }}</span>
+        <span>{{ user.location || user.city || user.distance }}</span>
       </div>
     </div>
 

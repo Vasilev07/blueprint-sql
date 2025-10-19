@@ -544,6 +544,51 @@
       margin-bottom: 0.5rem;
     }
   }
+
+  .interests-input {
+    .interests-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+
+      ::ng-deep .custom-chip {
+        background: var(--pink-500);
+        color: white;
+
+        .p-chip-remove-icon {
+          color: white;
+          
+          &:hover {
+            color: var(--pink-100);
+          }
+        }
+      }
+    }
+  }
+
+  .privacy-setting {
+    .privacy-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem;
+      background: var(--surface-card);
+      border-radius: 8px;
+      border: 1px solid var(--surface-border);
+
+      strong {
+        display: block;
+        margin-bottom: 0.25rem;
+      }
+
+      .privacy-description {
+        margin: 0;
+        font-size: 0.875rem;
+        color: var(--text-color-secondary);
+      }
+    }
+  }
 }
 
 // Loading spinner

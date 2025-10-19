@@ -282,31 +282,80 @@
   [(visible)]="showEditDialog"
   header="Edit Profile"
   [modal]="true"
-  [style]="{ width: '450px' }"
+  [style]="{ width: '650px', maxWidth: '90vw' }"
   [draggable]="false"
   [resizable]="false">
   
   <div class="edit-form">
     <div class="field">
-      <label for="gender">Gender</label>
-      <p-dropdown
-        id="gender"
-        [(ngModel)]="editForm.gender"
-        [options]="genderOptions"
-        placeholder="Select Gender"
+      <label for="bio">Bio</label>
+      <textarea
+        id="bio"
+        rows="3"
+        pInputTextarea
+        [(ngModel)]="editForm.bio"
+        placeholder="Looking for fun connections 💕"
         [style]="{ width: '100%' }">
-      </p-dropdown>
+      </textarea>
     </div>
 
     <div class="field">
-      <label for="city">City</label>
-      <input
-        id="city"
-        type="text"
-        pInputText
-        [(ngModel)]="editForm.city"
-        placeholder="Enter your city"
-        [style]="{ width: '100%' }" />
+      <label for="location">Location</label>
+      <div class="p-inputgroup">
+        <span class="p-inputgroup-addon"><i class="pi pi-map-marker"></i></span>
+        <input
+          id="location"
+          type="text"
+          pInputText
+          [(ngModel)]="editForm.location"
+          placeholder="Los Angeles, CA"
+          [style]="{ width: '100%' }" />
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="interests">Interests</label>
+      <div class="interests-input">
+        <div class="interests-chips" *ngIf="editForm.interests && editForm.interests.length > 0">
+          <p-chip
+            *ngFor="let interest of editForm.interests"
+            [label]="interest"
+            [removable]="true"
+            (onRemove)="removeInterest(interest)"
+            styleClass="custom-chip">
+          </p-chip>
+        </div>
+        <div class="p-inputgroup">
+          <input
+            type="text"
+            pInputText
+            [(ngModel)]="newInterest"
+            (keyup.enter)="addInterest()"
+            placeholder="Add interest"
+            [style]="{ width: '100%' }" />
+          <button
+            pButton
+            type="button"
+            icon="pi pi-plus"
+            label="Add Interest"
+            (click)="addInterest()"
+            styleClass="p-button-outlined">
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Privacy</label>
+      <div class="privacy-setting">
+        <div class="privacy-item">
+          <div>
+            <strong>Show in Search</strong>
+            <p class="privacy-description">Appear in browse results</p>
+          </div>
+          <p-inputSwitch [(ngModel)]="editForm.appearsInSearches"></p-inputSwitch>
+        </div>
+      </div>
     </div>
   </div>
 

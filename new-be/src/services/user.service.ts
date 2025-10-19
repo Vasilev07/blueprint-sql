@@ -11,6 +11,7 @@ import {
 import { ConfigService } from "@nestjs/config";
 import { UserDTO } from "../models/user.dto";
 import { UserPhotoDTO } from "../models/user-photo.dto";
+import { UserProfileDTO, UpdateUserProfileDTO } from "../models/user-profile.dto";
 import { sign } from "jsonwebtoken";
 import { CryptoService } from "./crypto.service";
 import { EntityManager } from "typeorm";
@@ -136,13 +137,20 @@ export class UserService implements OnModuleInit {
         });
     }
 
-    async getAll(): Promise<UserDTO[]> {
+    async getAll(): Promise<any[]> {
         const users = await this.entityManager.find(User, {
             relations: ["profile"],
         });
         return users.map((user) => {
-            // Don't include passwords in the list
-            return this.userMapper.entityToDTO(user);
+            const userDTO = this.userMapper.entityToDTO(user);
+            // Include profile data for home screen
+            return {
+                ...userDTO,
+                bio: user.profile?.bio || null,
+                location: user.profile?.location || null,
+                interests: user.profile?.interests || [],
+                appearsInSearches: user.profile?.appearsInSearches !== false,
+            };
         });
     }
 
@@ -359,7 +367,7 @@ export class UserService implements OnModuleInit {
         return this.userMapper.entityToDTO(user);
     }
 
-    async updateProfile(updateData: Partial<UserDTO>, req: any): Promise<User> {
+    async updateProfile(updateData: Partial<UserDTO> & { bio?: string; interests?: string[]; appearsInSearches?: boolean }, req: any): Promise<User> {
         const userId = this.getUserIdFromRequest(req);
 
         const user = await this.entityManager.findOne(User, {
@@ -383,19 +391,30 @@ export class UserService implements OnModuleInit {
         const updatedUser = await this.entityManager.save(user);
 
         // Update profile fields
-        if (updateData.city !== undefined) {
-            let profile = await this.entityManager.findOne(UserProfile, {
-                where: { userId },
-            });
+        let profile = await this.entityManager.findOne(UserProfile, {
+            where: { userId },
+        });
 
-            if (!profile) {
-                profile = new UserProfile();
-                profile.userId = userId;
-            }
-
-            profile.city = updateData.city;
-            await this.entityManager.save(profile);
+        if (!profile) {
+            profile = new UserProfile();
+            profile.userId = userId;
         }
+
+        // Update all profile fields
+        if (updateData.city !== undefined) {
+            profile.city = updateData.city;
+        }
+        if (updateData.bio !== undefined) {
+            profile.bio = updateData.bio;
+        }
+        if (updateData.interests !== undefined) {
+            profile.interests = updateData.interests;
+        }
+        if (updateData.appearsInSearches !== undefined) {
+            profile.appearsInSearches = updateData.appearsInSearches;
+        }
+
+        await this.entityManager.save(profile);
 
         return updatedUser;
     }
@@ -666,5 +685,82 @@ export class UserService implements OnModuleInit {
 
         // Delete the photo (likes will be cascade deleted)
         await this.entityManager.delete(UserPhoto, { id: photoId });
+    }
+
+    async getUserProfile(req: any): Promise<UserProfileDTO> {
+        const userId = this.getUserIdFromRequest(req);
+
+        let profile = await this.entityManager.findOne(UserProfile, {
+            where: { userId },
+        });
+
+        // If profile doesn't exist, create one
+        if (!profile) {
+            profile = new UserProfile();
+            profile.userId = userId;
+            profile = await this.entityManager.save(profile);
+        }
+
+        return {
+            id: profile.id,
+            userId: profile.userId,
+            bio: profile.bio,
+            city: profile.city,
+            location: profile.location,
+            interests: profile.interests || [],
+            appearsInSearches: profile.appearsInSearches,
+            profilePictureId: profile.profilePictureId,
+            createdAt: profile.createdAt,
+            updatedAt: profile.updatedAt,
+        };
+    }
+
+    async updateUserProfile(
+        updateData: UpdateUserProfileDTO,
+        req: any,
+    ): Promise<UserProfileDTO> {
+        const userId = this.getUserIdFromRequest(req);
+
+        let profile = await this.entityManager.findOne(UserProfile, {
+            where: { userId },
+        });
+
+        // If profile doesn't exist, create one
+        if (!profile) {
+            profile = new UserProfile();
+            profile.userId = userId;
+        }
+
+        // Update fields
+        if (updateData.bio !== undefined) {
+            profile.bio = updateData.bio;
+        }
+        if (updateData.city !== undefined) {
+            profile.city = updateData.city;
+        }
+        if (updateData.location !== undefined) {
+            profile.location = updateData.location;
+        }
+        if (updateData.interests !== undefined) {
+            profile.interests = updateData.interests;
+        }
+        if (updateData.appearsInSearches !== undefined) {
+            profile.appearsInSearches = updateData.appearsInSearches;
+        }
+
+        const savedProfile = await this.entityManager.save(profile);
+
+        return {
+            id: savedProfile.id,
+            userId: savedProfile.userId,
+            bio: savedProfile.bio,
+            city: savedProfile.city,
+            location: savedProfile.location,
+            interests: savedProfile.interests || [],
+            appearsInSearches: savedProfile.appearsInSearches,
+            profilePictureId: savedProfile.profilePictureId,
+            createdAt: savedProfile.createdAt,
+            updatedAt: savedProfile.updatedAt,
+        };
     }
 }

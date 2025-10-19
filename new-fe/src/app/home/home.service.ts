@@ -11,13 +11,15 @@ import { UserDTO } from "src/typescript-api-client/src/model/models";
 
 export interface HomeUser extends UserDTO {
     // Computed/UI fields
-    age?: number; // Mocked for now
-    bio?: string; // Mocked for now
-    distance?: string; // Mocked for now
+    age?: number; // Mocked for now (will need birthDate field)
+    bio?: string; // From user profile
+    location?: string; // From user profile
+    interests?: string[]; // From user profile
+    distance?: string; // Mocked for now (needs geolocation calculation)
     isOnline?: boolean;
     isFriend?: boolean;
-    profilePictureUrl?: string;
-    verified?: boolean; // Mocked for now
+    verified?: boolean; // Mocked for now (will need verified field)
+    appearsInSearches?: boolean; // From user profile
 }
 
 export type FilterType = "all" | "online" | "friends" | "nearby" | "new";
@@ -128,39 +130,24 @@ export class HomeService {
         this.loadUsers();
     }
 
-    private enrichUserData(user: UserDTO, friendIds: number[]): HomeUser {
+    private enrichUserData(user: any, friendIds: number[]): HomeUser {
         return {
             ...user,
-            age: this.mockAge(),
-            bio: this.mockBio(),
-            distance: this.mockDistance(),
+            age: this.mockAge(), // TODO: Calculate from birthDate when added
+            bio: user.bio || null, // Real data from user profile
+            location: user.location || null, // Real data from user profile
+            interests: user.interests || [], // Real data from user profile
+            distance: this.mockDistance(), // TODO: Calculate from location coordinates
             isOnline: this.isUserOnline(user.lastOnline),
             isFriend: friendIds.includes(user.id!),
-            verified: Math.random() > 0.7, // 30% verified
-            // Always set profile picture URL - backend returns default if none exists
-            profilePictureUrl: `/api/auth/profile-picture/user/${user.id}`,
+            verified: Math.random() > 0.7, // TODO: Use real verified field when added
+            appearsInSearches: user.appearsInSearches !== false,
         };
     }
 
-    // Mock data generators (until we add these fields to backend)
+    // Mock data generators (TODO: Remove when real data is available)
     private mockAge(): number {
         return Math.floor(Math.random() * (45 - 18 + 1)) + 18; // 18-45
-    }
-
-    private mockBio(): string {
-        const bios = [
-            "Looking for fun tonight 🌟",
-            "New to the city, show me around?",
-            "Chat with me for $1/message 💰",
-            "Here for a good time 😊",
-            "Love music and travel ✈️",
-            "Coffee lover ☕",
-            "Adventure seeker 🏔️",
-            "Fitness enthusiast 💪",
-            "Foodie and traveler 🍕",
-            "Dog lover 🐕",
-        ];
-        return bios[Math.floor(Math.random() * bios.length)];
     }
 
     private mockDistance(): string {
@@ -203,7 +190,11 @@ export class HomeService {
                     const searchLower = search.toLowerCase().trim();
                     filtered = filtered.filter((u) =>
                         u.fullName?.toLowerCase().includes(searchLower) ||
-                        u.email?.toLowerCase().includes(searchLower)
+                        u.email?.toLowerCase().includes(searchLower) ||
+                        u.bio?.toLowerCase().includes(searchLower) ||
+                        u.location?.toLowerCase().includes(searchLower) ||
+                        u.city?.toLowerCase().includes(searchLower) ||
+                        u.interests?.some(i => i.toLowerCase().includes(searchLower))
                     );
                 }
 

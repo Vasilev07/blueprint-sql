@@ -13,6 +13,9 @@ import { ProgressSpinnerModule } from "primeng/progressspinner";
 import { DialogModule } from "primeng/dialog";
 import { DropdownModule } from "primeng/dropdown";
 import { InputTextModule } from "primeng/inputtext";
+import { InputTextareaModule } from "primeng/inputtextarea";
+import { InputSwitchModule } from "primeng/inputswitch";
+import { ChipModule } from "primeng/chip";
 import { TooltipModule } from "primeng/tooltip";
 import { DividerModule } from "primeng/divider";
 import { ConfirmDialogModule } from "primeng/confirmdialog";
@@ -39,11 +42,19 @@ import {
         DialogModule,
         DropdownModule,
         InputTextModule,
+        InputTextareaModule,
+        InputSwitchModule,
+        ChipModule,
         TooltipModule,
         ToastModule,
         DividerModule,
         ConfirmDialogModule,
     ],
-    providers: [MessageService, ConfirmationService, UserService, FriendsService],
+    providers: [
+        MessageService,
+        ConfirmationService,
+        UserService,
+        FriendsService,
+    ],
 })
 export class ProfileModule {}

@@ -7,6 +7,8 @@ import {
     UserDTO,
     FriendDTO,
     UserPhotoDTO,
+    UserProfileDTO,
+    UpdateUserProfileDTO,
 } from "src/typescript-api-client/src/model/models";
 import {
     UserService,
@@ -23,6 +25,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
     currentUser: UserDTO | null = null;
     viewingUser: UserDTO | null = null;
+    userProfile: UserProfileDTO | null = null;
     userPhotos: UserPhotoDTO[] = [];
     photoBlobUrls: Map<number, string> = new Map();
     profilePictureBlobUrl: string | null = null;
@@ -35,6 +38,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     editForm: any = {};
     isOwnProfile = true;
     viewingUserId: number | null = null;
+    newInterest: string = "";
 
     genderOptions = [
         { label: "Male", value: "male" },
@@ -64,6 +68,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
                 this.isOwnProfile = true;
                 this.viewingUserId = null;
                 this.loadCurrentUser();
+                this.loadUserProfile();
                 this.loadUserPhotos();
                 this.loadFriends();
                 this.loadProfilePicture();
@@ -234,6 +239,20 @@ export class ProfileComponent implements OnInit, OnDestroy {
         return (first + last).toUpperCase() || "U";
     }
 
+    loadUserProfile(): void {
+        this.userService
+            .getUserProfile()
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+                next: (profile) => {
+                    this.userProfile = profile;
+                },
+                error: (error: any) => {
+                    console.error("Error loading user profile:", error);
+                },
+            });
+    }
+
     openEditDialog(): void {
         if (!this.isOwnProfile) {
             this.messageService.add({
@@ -246,7 +265,11 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
         this.editForm = {
             gender: this.currentUser?.gender || null,
-            city: this.currentUser?.city || "",
+            city: this.userProfile?.city || "",
+            bio: this.userProfile?.bio || "",
+            location: this.userProfile?.location || "",
+            interests: [...(this.userProfile?.interests || [])],
+            appearsInSearches: this.userProfile?.appearsInSearches !== false,
         };
         this.showEditDialog = true;
     }
@@ -261,22 +284,47 @@ export class ProfileComponent implements OnInit, OnDestroy {
             return;
         }
 
+        // Update basic user info (gender)
         this.userService
             .updateProfile({
                 gender: this.editForm.gender,
-                city: this.editForm.city,
             } as any)
             .pipe(takeUntil(this.destroy$))
             .subscribe({
                 next: () => {
-                    // Reload user data
-                    this.loadCurrentUser();
-                    this.showEditDialog = false;
-                    this.messageService.add({
-                        severity: "success",
-                        summary: "Success",
-                        detail: "Profile updated successfully",
-                    });
+                    // Update user profile (bio, interests, location, privacy)
+                    const profileUpdate: UpdateUserProfileDTO = {
+                        bio: this.editForm.bio,
+                        city: this.editForm.city,
+                        location: this.editForm.location,
+                        interests: this.editForm.interests,
+                        appearsInSearches: this.editForm.appearsInSearches,
+                    };
+
+                    this.userService
+                        .updateUserProfile(profileUpdate)
+                        .pipe(takeUntil(this.destroy$))
+                        .subscribe({
+                            next: () => {
+                                // Reload data
+                                this.loadCurrentUser();
+                                this.loadUserProfile();
+                                this.showEditDialog = false;
+                                this.messageService.add({
+                                    severity: "success",
+                                    summary: "Success",
+                                    detail: "Profile updated successfully",
+                                });
+                            },
+                            error: (error: any) => {
+                                console.error("Error updating user profile:", error);
+                                this.messageService.add({
+                                    severity: "error",
+                                    summary: "Error",
+                                    detail: "Failed to update profile",
+                                });
+                            },
+                        });
                 },
                 error: (error: any) => {
                     console.error("Error updating profile:", error);
@@ -287,6 +335,26 @@ export class ProfileComponent implements OnInit, OnDestroy {
                     });
                 },
             });
+    }
+
+    addInterest(): void {
+        if (this.newInterest && this.newInterest.trim()) {
+            if (!this.editForm.interests) {
+                this.editForm.interests = [];
+            }
+            if (!this.editForm.interests.includes(this.newInterest.trim())) {
+                this.editForm.interests.push(this.newInterest.trim());
+            }
+            this.newInterest = "";
+        }
+    }
+
+    removeInterest(interest: string): void {
+        if (this.editForm.interests) {
+            this.editForm.interests = this.editForm.interests.filter(
+                (i: string) => i !== interest
+            );
+        }
     }
 
     isOnline(userId: number | undefined): boolean {
