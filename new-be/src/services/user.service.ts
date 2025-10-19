@@ -15,6 +15,7 @@ import { sign } from "jsonwebtoken";
 import { CryptoService } from "./crypto.service";
 import { EntityManager } from "typeorm";
 import { User } from "@entities/user.entity";
+import { UserProfile } from "@entities/user-profile.entity";
 import { UserPhoto } from "@entities/user-photo.entity";
 import { PhotoLike } from "@entities/photo-like.entity";
 import { UserFriend, FriendshipStatus } from "@entities/friend.entity";
@@ -95,11 +96,16 @@ export class UserService implements OnModuleInit {
         if (dto.gender) {
             adminToSave.gender = dto.gender;
         }
-        if (dto.city) {
-            adminToSave.city = dto.city;
-        }
 
         const savedAdmin = await this.entityManager.save(adminToSave);
+
+        // Create user profile
+        const profile = new UserProfile();
+        profile.userId = savedAdmin.id;
+        if (dto.city) {
+            profile.city = dto.city;
+        }
+        await this.entityManager.save(profile);
 
         return this.signForUser(savedAdmin);
     }
@@ -131,7 +137,9 @@ export class UserService implements OnModuleInit {
     }
 
     async getAll(): Promise<UserDTO[]> {
-        const users = await this.entityManager.find(User);
+        const users = await this.entityManager.find(User, {
+            relations: ["profile"],
+        });
         return users.map((user) => {
             // Don't include passwords in the list
             return this.userMapper.entityToDTO(user);
@@ -162,8 +170,17 @@ export class UserService implements OnModuleInit {
 
         const userId = this.getUserIdFromRequest(req);
 
+        // Get user profile
+        const profile = await this.entityManager.findOne(UserProfile, {
+            where: { userId },
+        });
+
+        if (!profile) {
+            throw new NotFoundException("User profile not found");
+        }
+
         const photo = new UserPhoto();
-        photo.userId = userId;
+        photo.userProfileId = profile.id;
         photo.name = file.originalname;
         photo.data = file.buffer as any;
 
@@ -172,17 +189,24 @@ export class UserService implements OnModuleInit {
         return {
             id: saved.id,
             name: saved.name,
-            userId: saved.userId,
+            userId: userId, // Keep userId in DTO for backwards compatibility
             uploadedAt: saved.uploadedAt,
         };
     }
 
     async getUserPhotos(req: any): Promise<UserPhotoDTO[]> {
         const currentUserId = this.getUserIdFromRequest(req);
-        const userId = currentUserId; // Get own photos
+
+        const profile = await this.entityManager.findOne(UserProfile, {
+            where: { userId: currentUserId },
+        });
+
+        if (!profile) {
+            return [];
+        }
 
         const photos = await this.entityManager.find(UserPhoto, {
-            where: { userId },
+            where: { userProfileId: profile.id },
             order: { uploadedAt: "DESC" },
         });
 
@@ -206,8 +230,16 @@ export class UserService implements OnModuleInit {
         //     }
         // }
 
-        const photos = await this.entityManager.find(UserPhoto, {
+        const profile = await this.entityManager.findOne(UserProfile, {
             where: { userId },
+        });
+
+        if (!profile) {
+            return [];
+        }
+
+        const photos = await this.entityManager.find(UserPhoto, {
+            where: { userProfileId: profile.id },
             order: { uploadedAt: "DESC" },
         });
 
@@ -251,10 +283,15 @@ export class UserService implements OnModuleInit {
             likedPhotoIds = new Set(likes.map((like) => like.photoId));
         }
 
+        // Get all user profiles to map userProfileId to userId
+        const profileIds = photos.map((p) => p.userProfileId);
+        const profiles = await this.entityManager.findByIds(UserProfile, profileIds);
+        const profileMap = new Map(profiles.map((p) => [p.id, p.userId]));
+
         return photos.map((p) => ({
             id: p.id,
             name: p.name,
-            userId: p.userId,
+            userId: profileMap.get(p.userProfileId) || 0,
             uploadedAt: p.uploadedAt,
             likesCount: p.likesCount || 0,
             isLikedByCurrentUser: currentUserId
@@ -268,6 +305,7 @@ export class UserService implements OnModuleInit {
 
         const photo = await this.entityManager.findOne(UserPhoto, {
             where: { id: photoId },
+            relations: ["userProfile"],
         });
 
         if (!photo) {
@@ -275,14 +313,14 @@ export class UserService implements OnModuleInit {
         }
 
         // Allow if it's the user's own photo
-        if (photo.userId === currentUserId) {
+        if (photo.userProfile.userId === currentUserId) {
             return photo;
         }
 
         // Check if users are friends
         const areFriends = await this.areUsersFriends(
             currentUserId,
-            photo.userId,
+            photo.userProfile.userId,
         );
         if (!areFriends) {
             throw new ForbiddenException(
@@ -298,6 +336,7 @@ export class UserService implements OnModuleInit {
 
         const user = await this.entityManager.findOne(User, {
             where: { id: userId },
+            relations: ["profile"],
         });
 
         if (!user) {
@@ -310,6 +349,7 @@ export class UserService implements OnModuleInit {
     async getUserById(userId: number): Promise<UserDTO> {
         const user = await this.entityManager.findOne(User, {
             where: { id: userId },
+            relations: ["profile"],
         });
 
         if (!user) {
@@ -330,12 +370,9 @@ export class UserService implements OnModuleInit {
             throw new NotFoundException("User not found");
         }
 
-        // Update allowed fields
+        // Update user fields
         if (updateData.gender !== undefined) {
             user.gender = updateData.gender;
-        }
-        if (updateData.city !== undefined) {
-            user.city = updateData.city;
         }
         if (updateData.fullName !== undefined) {
             const names = updateData.fullName.split(" ");
@@ -344,6 +381,22 @@ export class UserService implements OnModuleInit {
         }
 
         const updatedUser = await this.entityManager.save(user);
+
+        // Update profile fields
+        if (updateData.city !== undefined) {
+            let profile = await this.entityManager.findOne(UserProfile, {
+                where: { userId },
+            });
+
+            if (!profile) {
+                profile = new UserProfile();
+                profile.userId = userId;
+            }
+
+            profile.city = updateData.city;
+            await this.entityManager.save(profile);
+        }
+
         return updatedUser;
     }
 
@@ -361,35 +414,53 @@ export class UserService implements OnModuleInit {
 
         const userId = this.getUserIdFromRequest(req);
 
+        // Get user profile
+        let profile = await this.entityManager.findOne(UserProfile, {
+            where: { userId },
+        });
+
+        if (!profile) {
+            profile = new UserProfile();
+            profile.userId = userId;
+            profile = await this.entityManager.save(profile);
+        }
+
         // First, upload the photo
         const photo = new UserPhoto();
-        photo.userId = userId;
+        photo.userProfileId = profile.id;
         photo.name = file.originalname;
         photo.data = file.buffer as any;
 
         const savedPhoto = await this.entityManager.save(photo);
 
         // Then, set it as the profile picture
+        profile.profilePictureId = savedPhoto.id;
+        await this.entityManager.save(profile);
+
         const user = await this.entityManager.findOne(User, {
             where: { id: userId },
         });
 
-        if (!user) {
-            throw new NotFoundException("User not found");
-        }
-
-        user.profilePictureId = savedPhoto.id;
-        const updatedUser = await this.entityManager.save(user);
-
-        return this.userMapper.entityToDTO(updatedUser);
+        return this.userMapper.entityToDTO(user);
     }
 
     async setProfilePicture(photoId: number, req: any): Promise<UserDTO> {
         const userId = this.getUserIdFromRequest(req);
 
+        // Get user profile
+        let profile = await this.entityManager.findOne(UserProfile, {
+            where: { userId },
+        });
+
+        if (!profile) {
+            profile = new UserProfile();
+            profile.userId = userId;
+            profile = await this.entityManager.save(profile);
+        }
+
         // Verify the photo exists and belongs to the user
         const photo = await this.entityManager.findOne(UserPhoto, {
-            where: { id: photoId, userId },
+            where: { id: photoId, userProfileId: profile.id },
         });
 
         if (!photo) {
@@ -399,6 +470,9 @@ export class UserService implements OnModuleInit {
         }
 
         // Set it as profile picture
+        profile.profilePictureId = photoId;
+        await this.entityManager.save(profile);
+
         const user = await this.entityManager.findOne(User, {
             where: { id: userId },
         });
@@ -407,41 +481,38 @@ export class UserService implements OnModuleInit {
             throw new NotFoundException("User not found");
         }
 
-        user.profilePictureId = photoId;
-        const updatedUser = await this.entityManager.save(user);
-
-        return this.userMapper.entityToDTO(updatedUser);
+        return this.userMapper.entityToDTO(user);
     }
 
     async getProfilePicture(req: any): Promise<UserPhoto | null> {
         const userId = this.getUserIdFromRequest(req);
 
-        const user = await this.entityManager.findOne(User, {
-            where: { id: userId },
+        const profile = await this.entityManager.findOne(UserProfile, {
+            where: { userId },
         });
 
-        if (!user || !user.profilePictureId) {
+        if (!profile || !profile.profilePictureId) {
             return null;
         }
 
         const photo = await this.entityManager.findOne(UserPhoto, {
-            where: { id: user.profilePictureId },
+            where: { id: profile.profilePictureId },
         });
 
         return photo;
     }
 
     async getProfilePictureByUserId(userId: number): Promise<UserPhoto | null> {
-        const user = await this.entityManager.findOne(User, {
-            where: { id: userId },
+        const profile = await this.entityManager.findOne(UserProfile, {
+            where: { userId },
         });
 
-        if (!user || !user.profilePictureId) {
+        if (!profile || !profile.profilePictureId) {
             return null;
         }
 
         const photo = await this.entityManager.findOne(UserPhoto, {
-            where: { id: user.profilePictureId },
+            where: { id: profile.profilePictureId },
         });
 
         return photo;
@@ -450,6 +521,15 @@ export class UserService implements OnModuleInit {
     async removeProfilePicture(req: any): Promise<UserDTO> {
         const userId = this.getUserIdFromRequest(req);
 
+        const profile = await this.entityManager.findOne(UserProfile, {
+            where: { userId },
+        });
+
+        if (profile) {
+            profile.profilePictureId = null;
+            await this.entityManager.save(profile);
+        }
+
         const user = await this.entityManager.findOne(User, {
             where: { id: userId },
         });
@@ -458,10 +538,7 @@ export class UserService implements OnModuleInit {
             throw new NotFoundException("User not found");
         }
 
-        user.profilePictureId = null;
-        const updatedUser = await this.entityManager.save(user);
-
-        return this.userMapper.entityToDTO(updatedUser);
+        return this.userMapper.entityToDTO(user);
     }
 
     async likePhoto(
@@ -565,6 +642,7 @@ export class UserService implements OnModuleInit {
         // Find the photo
         const photo = await this.entityManager.findOne(UserPhoto, {
             where: { id: photoId },
+            relations: ["userProfile"],
         });
 
         if (!photo) {
@@ -572,18 +650,18 @@ export class UserService implements OnModuleInit {
         }
 
         // Check ownership
-        if (photo.userId !== userId) {
+        if (photo.userProfile.userId !== userId) {
             throw new ForbiddenException("You can only delete your own photos");
         }
 
         // If it's the profile picture, remove it
-        const user = await this.entityManager.findOne(User, {
-            where: { id: userId },
+        const profile = await this.entityManager.findOne(UserProfile, {
+            where: { userId },
         });
 
-        if (user && user.profilePictureId === photoId) {
-            user.profilePictureId = null;
-            await this.entityManager.save(user);
+        if (profile && profile.profilePictureId === photoId) {
+            profile.profilePictureId = null;
+            await this.entityManager.save(profile);
         }
 
         // Delete the photo (likes will be cascade deleted)

@@ -36,7 +36,6 @@ export class AuthMiddleware implements NestMiddleware {
                 name: `${user.firstname} ${user.lastname}`,
                 email: user.email,
                 gender: user.gender,
-                city: user.city,
             },
             jwtSecret,
             {

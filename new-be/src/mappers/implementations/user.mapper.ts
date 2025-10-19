@@ -10,12 +10,12 @@ export class UserMapper implements BaseMapper<User, UserDTO> {
             id: entity.id,
             email: entity.email,
             fullName: `${entity.firstname} ${entity.lastname}`,
-            password: '',  // Don't send actual password
-            confirmPassword: '',  // Don't send actual password
+            password: "", // Don't send actual password
+            confirmPassword: "", // Don't send actual password
             gender: entity.gender,
-            city: entity.city,
+            city: entity.profile?.city || null,
             lastOnline: entity.lastOnline,
-            profilePictureId: entity.profilePictureId
+            profilePictureId: entity.profile?.profilePictureId || null,
         };
     }
     dtoToEntity(dto: UserDTO): User {

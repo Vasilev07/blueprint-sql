@@ -1,5 +1,6 @@
 import { DataSource } from "typeorm";
 import { User } from "./entities/user.entity";
+import { UserProfile } from "./entities/user-profile.entity";
 import { UserPhoto } from "./entities/user-photo.entity";
 import { Message } from "./entities/message.entity";
 import { UserFriend, FriendshipStatus } from "./entities/friend.entity";
@@ -14,7 +15,7 @@ const dataSource = new DataSource({
     username: "postgres",
     password: "postgres",
     database: "blueprint-sql",
-    entities: [User, UserPhoto, Message, UserFriend],
+    entities: [User, UserProfile, UserPhoto, Message, UserFriend],
     synchronize: true,
 });
 
@@ -41,16 +42,37 @@ async function seed() {
         adminUser.lastname = "User";
         adminUser.roles = [Role.Admin];
         adminUser.gender = Gender.Male;
-        adminUser.city = "Sofia";
         await dataSource.getRepository(User).save(adminUser);
+
+        // Create admin profile
+        const adminProfile = new UserProfile();
+        adminProfile.userId = adminUser.id;
+        adminProfile.city = "Sofia";
+        await dataSource.getRepository(UserProfile).save(adminProfile);
         console.log("Created admin user");
 
         // Bulgarian cities for seed data
         const bulgarianCities = [
-            "Sofia", "Plovdiv", "Varna", "Burgas", "Ruse", 
-            "Stara Zagora", "Pleven", "Sliven", "Dobrich", "Shumen",
-            "Pernik", "Haskovo", "Yambol", "Pazardzhik", "Blagoevgrad",
-            "Veliko Tarnovo", "Vratsa", "Gabrovo", "Asenovgrad", "Vidin"
+            "Sofia",
+            "Plovdiv",
+            "Varna",
+            "Burgas",
+            "Ruse",
+            "Stara Zagora",
+            "Pleven",
+            "Sliven",
+            "Dobrich",
+            "Shumen",
+            "Pernik",
+            "Haskovo",
+            "Yambol",
+            "Pazardzhik",
+            "Blagoevgrad",
+            "Veliko Tarnovo",
+            "Vratsa",
+            "Gabrovo",
+            "Asenovgrad",
+            "Vidin",
         ];
 
         // Create test users
@@ -111,8 +133,14 @@ async function seed() {
             user.lastname = userData.lastname;
             user.roles = userData.roles;
             user.gender = userData.gender;
-            user.city = userData.city;
             const savedUser = await dataSource.getRepository(User).save(user);
+
+            // Create user profile
+            const profile = new UserProfile();
+            profile.userId = savedUser.id;
+            profile.city = userData.city;
+            await dataSource.getRepository(UserProfile).save(profile);
+
             createdUsers.push(savedUser);
             console.log(`Created user: ${userData.email}`);
         }
@@ -141,12 +169,17 @@ async function seed() {
             u.firstname = `${base.firstname}${i}`; // append index
             u.lastname = base.lastname; // keep the same
             u.roles = base.roles;
-            // Randomly assign gender and city
+            // Randomly assign gender
             const genders = [Gender.Male, Gender.Female, Gender.Other];
             u.gender = genders[i % genders.length];
-            u.city = bulgarianCities[i % bulgarianCities.length];
 
-            await usersRepo.save(u);
+            const savedUser = await usersRepo.save(u);
+
+            // Create user profile
+            const profile = new UserProfile();
+            profile.userId = savedUser.id;
+            profile.city = bulgarianCities[i % bulgarianCities.length];
+            await dataSource.getRepository(UserProfile).save(profile);
             if (i % 25 === 0) {
                 console.log(
                     `Created ${i} of ${remainingToCreate} extra users...`,
@@ -267,7 +300,7 @@ async function seed() {
         // Create friend relationships
         console.log("Creating friend relationships...");
         const friendRepo = dataSource.getRepository(UserFriend);
-        
+
         // Admin becomes friends with first 10 test users (or all if less than 10)
         const friendCount = Math.min(10, createdUsers.length);
         for (let i = 0; i < friendCount; i++) {
@@ -283,8 +316,10 @@ async function seed() {
             friendReciprocal.friendId = adminUser.id;
             friendReciprocal.status = FriendshipStatus.ACCEPTED;
             await friendRepo.save(friendReciprocal);
-            
-            console.log(`Created friendship: Admin <-> ${createdUsers[i].email}`);
+
+            console.log(
+                `Created friendship: Admin <-> ${createdUsers[i].email}`,
+            );
         }
 
         // Create some friendships between test users
@@ -300,8 +335,10 @@ async function seed() {
             friendReciprocal.friendId = createdUsers[0].id;
             friendReciprocal.status = FriendshipStatus.ACCEPTED;
             await friendRepo.save(friendReciprocal);
-            
-            console.log(`Created friendship: ${createdUsers[0].email} <-> ${createdUsers[1].email}`);
+
+            console.log(
+                `Created friendship: ${createdUsers[0].email} <-> ${createdUsers[1].email}`,
+            );
         }
 
         const finalCount = await dataSource.getRepository(User).count();

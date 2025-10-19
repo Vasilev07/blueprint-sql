@@ -1,7 +1,7 @@
-import { Column, Entity, PrimaryGeneratedColumn, OneToMany, ManyToOne, JoinColumn } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn, OneToOne } from "typeorm";
 import { Role } from "../enums/role.enum";
 import { Gender } from "../enums/gender.enum";
-import { UserPhoto } from "./user-photo.entity";
+import { UserProfile } from "./user-profile.entity";
 
 @Entity()
 export class User {
@@ -27,9 +27,6 @@ export class User {
     })
     gender: Gender;
 
-    @Column({ type: "text", nullable: true })
-    city: string;
-
     @Column({ type: "timestamp", nullable: true })
     lastOnline: Date;
 
@@ -41,13 +38,6 @@ export class User {
     })
     public roles: Role[];
 
-    @OneToMany(() => UserPhoto, (photo) => photo.user, { cascade: true })
-    photos: UserPhoto[];
-
-    @Column({ type: "int", nullable: true })
-    profilePictureId: number;
-
-    @ManyToOne(() => UserPhoto, { nullable: true })
-    @JoinColumn({ name: "profilePictureId" })
-    profilePicture: UserPhoto;
+    @OneToOne(() => UserProfile, (profile) => profile.user, { cascade: true })
+    profile: UserProfile;
 }

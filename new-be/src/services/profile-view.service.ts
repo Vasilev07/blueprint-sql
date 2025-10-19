@@ -40,7 +40,7 @@ export class ProfileViewService {
         // Load viewer info for DTO
         const viewWithRelations = await this.profileViewRepo.findOne({
             where: { id: savedView.id },
-            relations: ["viewer"],
+            relations: ["viewer", "viewer.profile"],
         });
 
         return this.mapperService.entityToDTO<ProfileView, ProfileViewDTO>(
@@ -55,7 +55,7 @@ export class ProfileViewService {
     ): Promise<ProfileViewDTO[]> {
         const views = await this.profileViewRepo.find({
             where: { userId },
-            relations: ["viewer"],
+            relations: ["viewer", "viewer.profile"],
             order: { viewedAt: "DESC" },
             take: limit,
         });

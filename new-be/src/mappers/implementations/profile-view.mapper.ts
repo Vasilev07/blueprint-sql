@@ -16,7 +16,7 @@ export class ProfileViewMapper
                 ? `${entity.viewer.firstname} ${entity.viewer.lastname}`.trim()
                 : undefined,
             viewerEmail: entity.viewer?.email,
-            viewerProfilePictureId: entity.viewer?.profilePictureId,
+            viewerProfilePictureId: entity.viewer?.profile?.profilePictureId,
             isFriend: entity.isFriend,
             viewedAt: entity.viewedAt,
         };

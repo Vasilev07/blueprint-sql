@@ -1,5 +1,11 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn, CreateDateColumn } from "typeorm";
-import { User } from "./user.entity";
+import {
+    Column,
+    Entity,
+    ManyToOne,
+    PrimaryGeneratedColumn,
+    CreateDateColumn,
+} from "typeorm";
+import { UserProfile } from "./user-profile.entity";
 
 @Entity()
 export class UserPhoto {
@@ -14,11 +20,13 @@ export class UserPhoto {
     })
     data: Uint8Array;
 
-    @ManyToOne(() => User, (user) => user.photos, { onDelete: "CASCADE" })
-    user: User;
+    @ManyToOne(() => UserProfile, (profile) => profile.photos, {
+        onDelete: "CASCADE",
+    })
+    userProfile: UserProfile;
 
     @Column("int")
-    userId: number;
+    userProfileId: number;
 
     @Column({ name: "likes_count", type: "int", default: 0 })
     likesCount: number;
@@ -26,4 +34,3 @@ export class UserPhoto {
     @CreateDateColumn()
     uploadedAt: Date;
 }
-
