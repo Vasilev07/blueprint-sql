@@ -237,6 +237,66 @@
           </div>
         </div>
 
+        <!-- Bio Section -->
+        <div class="sidebar-section" *ngIf="userProfile?.bio || isOwnProfile">
+          <div class="section-header">
+            <h4>BIO</h4>
+            <p-button
+              *ngIf="isOwnProfile"
+              label="Edit"
+              icon="pi pi-pencil"
+              (onClick)="openEditDialog()"
+              styleClass="p-button-text p-button-sm">
+            </p-button>
+          </div>
+          <div class="info-content">
+            <i class="pi pi-comment"></i>
+            <span>{{ userProfile?.bio || 'Not specified' }}</span>
+          </div>
+        </div>
+
+        <!-- Location Section -->
+        <div class="sidebar-section" *ngIf="userProfile?.location || isOwnProfile">
+          <div class="section-header">
+            <h4>LOCATION</h4>
+            <p-button
+              *ngIf="isOwnProfile"
+              label="Edit"
+              icon="pi pi-pencil"
+              (onClick)="openEditDialog()"
+              styleClass="p-button-text p-button-sm">
+            </p-button>
+          </div>
+          <div class="info-content">
+            <i class="pi pi-map-marker"></i>
+            <span>{{ userProfile?.location || 'Not specified' }}</span>
+          </div>
+        </div>
+
+        <!-- Interests Section -->
+        <div class="sidebar-section" *ngIf="(userProfile && userProfile.interests && userProfile.interests.length > 0) || isOwnProfile">
+          <div class="section-header">
+            <h4>INTERESTS</h4>
+            <p-button
+              *ngIf="isOwnProfile"
+              label="Edit"
+              icon="pi pi-pencil"
+              (onClick)="openEditDialog()"
+              styleClass="p-button-text p-button-sm">
+            </p-button>
+          </div>
+          <div class="info-content interests-list">
+            <div *ngIf="userProfile && userProfile.interests && userProfile.interests.length > 0" class="interest-chips">
+              <p-chip
+                *ngFor="let interest of userProfile.interests"
+                [label]="interest"
+                styleClass="interest-chip">
+              </p-chip>
+            </div>
+            <span *ngIf="!userProfile || !userProfile.interests || userProfile.interests.length === 0">Not specified</span>
+          </div>
+        </div>
+
         <!-- Gender Section -->
         <div class="sidebar-section">
           <div class="section-header">

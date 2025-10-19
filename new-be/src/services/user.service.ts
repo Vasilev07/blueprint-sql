@@ -715,6 +715,35 @@ export class UserService implements OnModuleInit {
         };
     }
 
+    async getUserProfileByUserId(userId: number): Promise<UserProfileDTO | null> {
+        const profile = await this.entityManager.findOne(UserProfile, {
+            where: { userId },
+        });
+
+        if (!profile) {
+            return null;
+        }
+
+        // Only return profile if user appears in searches or if they don't have this setting
+        if (profile.appearsInSearches === false) {
+            // Could add friend check here if needed to allow friends to view
+            return null;
+        }
+
+        return {
+            id: profile.id,
+            userId: profile.userId,
+            bio: profile.bio,
+            city: profile.city,
+            location: profile.location,
+            interests: profile.interests || [],
+            appearsInSearches: profile.appearsInSearches,
+            profilePictureId: profile.profilePictureId,
+            createdAt: profile.createdAt,
+            updatedAt: profile.updatedAt,
+        };
+    }
+
     async updateUserProfile(
         updateData: UpdateUserProfileDTO,
         req: any,

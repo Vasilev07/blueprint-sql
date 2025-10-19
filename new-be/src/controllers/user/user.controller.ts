@@ -320,6 +320,7 @@ export class UserController {
         return this.userService.getUserProfile(req);
     }
 
+
     @Put("user-profile")
     @ApiOperation({
         summary: "Update user profile details (bio, interests, privacy)",
@@ -352,14 +353,20 @@ export class UserController {
     @ApiOperation({ summary: "Get user by ID and record profile view" })
     @ApiResponse({
         status: 200,
-        description: "Returns user by ID and records the profile view",
-        type: UserDTO,
+        description: "Returns user by ID with profile data and records the profile view",
+        schema: {
+            type: "object",
+            properties: {
+                user: { $ref: "#/components/schemas/UserDTO" },
+                profile: { $ref: "#/components/schemas/UserProfileDTO" },
+            },
+        },
     })
     @ApiResponse({ status: 404, description: "User not found" })
     async getUserById(
         @Param("userId") userId: number,
         @Req() req: any,
-    ): Promise<UserDTO> {
+    ): Promise<{ user: UserDTO; profile: UserProfileDTO | null }> {
         const viewerId = req.user?.id;
 
         // Record profile view if viewer is authenticated
@@ -403,7 +410,10 @@ export class UserController {
                 );
         }
 
-        return this.userService.getUserById(userId);
+        const user = await this.userService.getUserById(userId);
+        const profile = await this.userService.getUserProfileByUserId(userId);
+        
+        return { user, profile };
     }
 
     @Get("online-users")

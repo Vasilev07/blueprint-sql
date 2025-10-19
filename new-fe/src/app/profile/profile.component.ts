@@ -481,13 +481,14 @@ export class ProfileComponent implements OnInit, OnDestroy {
     loadOtherUserProfile(userId: number): void {
         this.isLoading = true;
 
-        // @ts-ignore - getUserById will be available after regeneration
+        // @ts-ignore - getUserById will return { user, profile }
         this.userService.getUserById(userId)
             .pipe(takeUntil(this.destroy$))
             .subscribe({
-                next: (user: UserDTO) => {
-                    this.viewingUser = user;
-                    this.currentUser = user; // Also set currentUser for template compatibility
+                next: (response: any) => {
+                    this.viewingUser = response.user;
+                    this.currentUser = response.user; // Also set currentUser for template compatibility
+                    this.userProfile = response.profile; // Set profile data
                     this.loadOtherUserPhotos(userId);
                     this.loadOtherUserProfilePicture(userId);
                     this.isLoading = false;

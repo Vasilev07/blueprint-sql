@@ -49,6 +49,31 @@
   }
 }
 
+.interests-list {
+  flex-direction: column;
+  align-items: flex-start !important;
+  
+  .interest-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    width: 100%;
+  }
+  
+  ::ng-deep {
+    .interest-chip {
+      background: linear-gradient(135deg, var(--pink-500) 0%, var(--pink-600) 100%);
+      color: var(--surface-900);
+      font-size: 0.85rem;
+      padding: 0.4rem 0.8rem;
+      
+      .p-chip-text {
+        font-weight: 500;
+      }
+    }
+  }
+}
+
 .profile-avatar {
   background: linear-gradient(45deg, var(--primary-color), var(--primary-600)) !important;
   font-size: 2rem !important;
