@@ -1,0 +1,474 @@
+.advanced-search-container {
+  min-height: 100vh;
+  background: var(--surface-ground);
+  padding: 2rem;
+
+  @media (max-width: 768px) {
+    padding: 1rem;
+  }
+}
+
+// Header Section
+.search-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+
+  .back-btn {
+    color: var(--text-color-secondary);
+    transition: all 0.3s ease;
+
+    &:hover {
+      color: var(--text-color);
+      background: var(--surface-hover);
+    }
+
+    ::ng-deep .pi {
+      font-size: 1.2rem;
+    }
+  }
+
+  .header-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0;
+    color: var(--text-color);
+    font-size: 1.75rem;
+    font-weight: 600;
+
+    i {
+      font-size: 1.5rem;
+      color: var(--primary-color);
+    }
+  }
+
+  .reset-all-btn {
+    background: transparent;
+    border: 1px solid var(--surface-border);
+    color: var(--text-color);
+    padding: 0.625rem 1.5rem;
+    border-radius: var(--border-radius);
+    font-size: 0.925rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background: var(--surface-hover);
+      border-color: var(--surface-border);
+      color: var(--text-color);
+    }
+
+    ::ng-deep .p-button-label {
+      font-weight: 500;
+    }
+  }
+
+  @media (max-width: 768px) {
+    flex-wrap: wrap;
+    gap: 1rem;
+
+    .header-title {
+      font-size: 1.25rem;
+      width: 100%;
+      order: -1;
+    }
+  }
+}
+
+// Filters Panel
+.filters-panel {
+  background: var(--surface-card);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--border-radius);
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  @media (max-width: 768px) {
+    padding: 1.5rem;
+  }
+}
+
+.filters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+
+  &.slider-group {
+    margin-top: 0.5rem;
+  }
+
+  &.checkbox-group {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+  }
+
+  .filter-label {
+    color: var(--text-color);
+    font-size: 0.925rem;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+  }
+
+  .checkbox-label {
+    color: var(--text-color);
+    font-size: 0.95rem;
+    cursor: pointer;
+    user-select: none;
+  }
+}
+
+// Custom Dropdown Styles
+::ng-deep {
+  .custom-dropdown,
+  .custom-multiselect {
+    .p-dropdown,
+    .p-multiselect {
+      background: var(--surface-a);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--border-radius);
+      color: var(--text-color);
+      transition: all 0.3s ease;
+
+      &:hover {
+        background: var(--surface-hover);
+        border-color: var(--surface-border);
+      }
+
+      &:focus,
+      &.p-focus {
+        background: var(--surface-a);
+        border-color: var(--primary-color);
+        box-shadow: var(--focus-ring);
+      }
+
+      .p-dropdown-label,
+      .p-multiselect-label {
+        color: var(--text-color);
+      }
+
+      .p-dropdown-trigger,
+      .p-multiselect-trigger {
+        color: var(--text-color-secondary);
+      }
+
+      .p-multiselect-token {
+        background: var(--primary-color);
+        color: var(--primary-color-text);
+        border-radius: var(--border-radius);
+        padding: 0.25rem 0.5rem;
+      }
+    }
+  }
+
+  .p-dropdown-panel,
+  .p-multiselect-panel {
+    background: var(--surface-overlay);
+    border: 1px solid var(--surface-border);
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+
+    .p-dropdown-items,
+    .p-multiselect-items {
+      .p-dropdown-item,
+      .p-multiselect-item {
+        color: var(--text-color);
+        padding: 0.75rem 1rem;
+        transition: all 0.2s ease;
+
+        &:hover {
+          background: var(--surface-hover);
+          color: var(--text-color);
+        }
+
+        &.p-highlight {
+          background: var(--highlight-bg);
+          color: var(--highlight-text-color);
+        }
+      }
+    }
+
+    .p-multiselect-header {
+      background: var(--surface-a);
+      border-bottom: 1px solid var(--surface-border);
+      padding: 0.75rem 1rem;
+
+      .p-checkbox .p-checkbox-box {
+        background: var(--surface-a);
+        border-color: var(--surface-border);
+      }
+
+      .p-multiselect-filter-container {
+        .p-inputtext {
+          background: var(--surface-a);
+          border-color: var(--surface-border);
+          color: var(--text-color);
+
+          &::placeholder {
+            color: var(--text-color-secondary);
+          }
+        }
+      }
+    }
+  }
+
+  // Custom Slider Styles
+  .custom-slider {
+    .p-slider {
+      background: var(--surface-border);
+      border: none;
+      height: 6px;
+      border-radius: 3px;
+
+      .p-slider-range {
+        background: var(--primary-color);
+      }
+
+      .p-slider-handle {
+        width: 20px;
+        height: 20px;
+        background: var(--surface-0);
+        border: 3px solid var(--primary-color);
+        border-radius: 50%;
+        transition: all 0.3s ease;
+        margin-top: -7px;
+
+        &:hover,
+        &:focus {
+          transform: scale(1.2);
+          box-shadow: var(--focus-ring);
+        }
+      }
+    }
+  }
+
+  // Location Input
+  .location-input {
+    width: 100%;
+    background: var(--surface-a);
+    border: 1px solid var(--surface-border);
+    color: var(--text-color);
+    padding: 0.75rem 1rem 0.75rem 2.75rem;
+    border-radius: var(--border-radius);
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+
+    &::placeholder {
+      color: var(--text-color-secondary);
+    }
+
+    &:focus {
+      background: var(--surface-a);
+      border-color: var(--primary-color);
+      box-shadow: var(--focus-ring);
+      outline: none;
+    }
+
+    &:hover {
+      background: var(--surface-hover);
+      border-color: var(--surface-border);
+    }
+  }
+
+  .p-inputicon {
+    color: var(--text-color-secondary);
+    left: 1rem;
+    font-size: 1rem;
+  }
+
+  // Checkbox Styles
+  .p-checkbox {
+    .p-checkbox-box {
+      width: 20px;
+      height: 20px;
+      background: var(--surface-a);
+      border: 2px solid var(--surface-border);
+      border-radius: var(--border-radius);
+      transition: all 0.3s ease;
+
+      &:hover {
+        background: var(--surface-hover);
+        border-color: var(--surface-border);
+      }
+
+      &.p-highlight {
+        background: var(--primary-color);
+        border-color: var(--primary-color);
+
+        .p-checkbox-icon {
+          color: var(--primary-color-text);
+        }
+      }
+
+      &:focus {
+        box-shadow: var(--focus-ring);
+      }
+    }
+  }
+}
+
+// Results Section
+.results-section {
+  .results-header {
+    margin-bottom: 1.5rem;
+
+    h3 {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin: 0;
+      color: var(--text-color);
+      font-size: 1.25rem;
+      font-weight: 600;
+
+      i {
+        font-size: 1.25rem;
+        color: var(--primary-color);
+      }
+    }
+  }
+
+  .loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    color: var(--text-color-secondary);
+
+    p {
+      margin-top: 1rem;
+      font-size: 1rem;
+    }
+
+    ::ng-deep .p-progress-spinner-circle {
+      stroke: var(--primary-color);
+    }
+  }
+
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    text-align: center;
+    color: var(--text-color-secondary);
+    padding: 2rem;
+
+    .empty-icon {
+      font-size: 4rem;
+      color: var(--surface-400);
+      margin-bottom: 1rem;
+    }
+
+    h3 {
+      margin: 0 0 0.5rem 0;
+      color: var(--text-color);
+      font-size: 1.5rem;
+    }
+
+    p {
+      margin: 0 0 1.5rem 0;
+      font-size: 1rem;
+      line-height: 1.5;
+    }
+
+    .p-button-outlined {
+      border-color: var(--surface-border);
+      color: var(--text-color);
+
+      &:hover {
+        background: var(--surface-hover);
+        border-color: var(--surface-border);
+      }
+    }
+  }
+
+  .users-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+
+    @media (max-width: 1400px) {
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    }
+
+    @media (max-width: 1200px) {
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 1rem;
+    }
+
+    @media (max-width: 768px) {
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 0.75rem;
+    }
+
+    @media (max-width: 576px) {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+  }
+}
+
+// Loading More Indicator
+.loading-more {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  color: var(--text-color-secondary);
+  
+  p {
+    margin-top: 1rem;
+    font-size: 0.95rem;
+  }
+  
+  ::ng-deep .p-progress-spinner-circle {
+    stroke: var(--primary-color);
+  }
+}
+
+// End of Results Indicator
+.end-of-results {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  margin-top: 2rem;
+  color: var(--text-color-secondary);
+  text-align: center;
+  
+  i {
+    font-size: 2.5rem;
+    color: var(--primary-color);
+    margin-bottom: 0.75rem;
+  }
+  
+  p {
+    margin: 0;
+    font-size: 0.95rem;
+  }
+}
+
+// Toast uses default PrimeNG theme styling
+

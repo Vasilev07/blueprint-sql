@@ -12,12 +12,20 @@ import { MessageService } from "primeng/api";
 })
 export class HomeComponent implements OnInit, OnDestroy {
     users: HomeUser[] = [];
+    allUsers: HomeUser[] = [];
+    displayedUsers: HomeUser[] = [];
     totalUsers: number = 0;
     onlineCount: number = 0;
     currentFilter: FilterType = "all";
     currentSort: SortType = "recent";
     searchTerm: string = "";
     isLoading: boolean = true;
+    isLoadingMore: boolean = false;
+
+    // Infinite scroll
+    private currentPage: number = 0;
+    private pageSize: number = 12;
+    private hasMoreData: boolean = true;
 
     filterOptions = [
         { label: "All", value: "all" as FilterType, icon: "pi pi-users" },
@@ -60,11 +68,17 @@ export class HomeComponent implements OnInit, OnDestroy {
     ngOnInit(): void {
         this.loadUsers();
         this.subscribeToOnlineCount();
+
+        // Add scroll event listener
+        window.addEventListener("scroll", this.onWindowScroll.bind(this));
     }
 
     ngOnDestroy(): void {
         this.destroy$.next();
         this.destroy$.complete();
+
+        // Remove scroll event listener
+        window.removeEventListener("scroll", this.onWindowScroll.bind(this));
     }
 
     private loadUsers(): void {
@@ -75,8 +89,11 @@ export class HomeComponent implements OnInit, OnDestroy {
             .pipe(takeUntil(this.destroy$))
             .subscribe({
                 next: (users) => {
-                    this.users = users;
+                    this.allUsers = users;
                     this.totalUsers = users.length;
+                    this.currentPage = 0;
+                    this.hasMoreData = users.length > this.pageSize;
+                    this.loadInitialPage();
                     this.isLoading = false;
                 },
                 error: (error) => {
@@ -91,6 +108,43 @@ export class HomeComponent implements OnInit, OnDestroy {
             });
     }
 
+    private loadInitialPage(): void {
+        this.displayedUsers = this.homeService.getPaginatedUsers(
+            this.allUsers,
+            0,
+            this.pageSize,
+        );
+        this.currentPage = 0;
+    }
+
+    private loadMoreUsers(): void {
+        if (this.isLoadingMore || !this.hasMoreData) {
+            return;
+        }
+
+        this.isLoadingMore = true;
+        this.currentPage++;
+
+        // Simulate async loading with slight delay for better UX
+        setTimeout(() => {
+            const newUsers = this.homeService.getPaginatedUsers(
+                this.allUsers,
+                this.currentPage,
+                this.pageSize,
+            );
+
+            if (newUsers.length > 0) {
+                this.displayedUsers = [...this.displayedUsers, ...newUsers];
+                this.hasMoreData =
+                    this.displayedUsers.length < this.allUsers.length;
+            } else {
+                this.hasMoreData = false;
+            }
+
+            this.isLoadingMore = false;
+        }, 300);
+    }
+
     private subscribeToOnlineCount(): void {
         this.homeService
             .getOnlineCount()
@@ -103,6 +157,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     onFilterChange(filter: FilterType): void {
         this.currentFilter = filter;
         this.homeService.setFilter(filter);
+        this.currentPage = 0;
     }
 
     onSortChange(event: any): void {
@@ -151,5 +206,38 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     trackByUserId(index: number, user: HomeUser): number {
         return user.id!;
+    }
+
+    goToAdvancedSearch(): void {
+        this.router.navigate(["/advanced-search"]);
+    }
+
+    onScroll(event: Event): void {
+        const element = event.target as HTMLElement;
+        const scrollPosition = element.scrollTop + element.clientHeight;
+        const scrollHeight = element.scrollHeight;
+
+        // Load more when user scrolls to 80% of the content
+        if (
+            scrollPosition >= scrollHeight * 0.8 &&
+            this.hasMoreData &&
+            !this.isLoadingMore
+        ) {
+            this.loadMoreUsers();
+        }
+    }
+
+    onWindowScroll(): void {
+        const scrollPosition = window.scrollY + window.innerHeight;
+        const scrollHeight = document.documentElement.scrollHeight;
+
+        // Load more when user scrolls to 80% of the content
+        if (
+            scrollPosition >= scrollHeight * 0.8 &&
+            this.hasMoreData &&
+            !this.isLoadingMore
+        ) {
+            this.loadMoreUsers();
+        }
     }
 }

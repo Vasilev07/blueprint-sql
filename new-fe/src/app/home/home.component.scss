@@ -126,7 +126,7 @@
   align-items: center;
   padding-top: 0.5rem;
   
-  .filters-locked {
+  .filters-info {
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -135,15 +135,17 @@
     
     i {
       font-size: 0.875rem;
+      color: var(--pink-500);
     }
   }
   
-  .upgrade-link {
+  .advanced-link {
     color: var(--pink-500);
     font-size: 0.875rem;
     font-weight: 500;
     text-decoration: none;
     transition: all 0.2s ease;
+    cursor: pointer;
     
     &:hover {
       color: var(--pink-400);
@@ -223,6 +225,48 @@
   }
 }
 
+// Loading More Indicator
+.loading-more {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  color: var(--text-color-secondary);
+  
+  p {
+    margin-top: 1rem;
+    font-size: 0.95rem;
+  }
+  
+  ::ng-deep .p-progress-spinner-circle {
+    stroke: var(--primary-color);
+  }
+}
+
+// End of Results Indicator
+.end-of-results {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  margin-top: 2rem;
+  color: var(--text-color-secondary);
+  text-align: center;
+  
+  i {
+    font-size: 2.5rem;
+    color: var(--primary-color);
+    margin-bottom: 0.75rem;
+  }
+  
+  p {
+    margin: 0;
+    font-size: 0.95rem;
+  }
+}
+
 // Mobile responsiveness
 @media (max-width: 992px) {
   .home-container {
@@ -253,6 +297,7 @@
       font-size: 0.875rem;
     }
   }
+  
 }
 
 @media (max-width: 576px) {

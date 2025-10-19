@@ -47,6 +47,13 @@ const routes: Routes = [
                     import("./home/home.module").then((m) => m.HomeModule),
             },
             {
+                path: "advanced-search",
+                loadChildren: () =>
+                    import("./advanced-search/advanced-search.module").then(
+                        (m) => m.AdvancedSearchModule,
+                    ),
+            },
+            {
                 path: "chat",
                 loadChildren: () =>
                     import("./chat/chat.module").then((m) => m.ChatModule),

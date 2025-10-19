@@ -26,6 +26,11 @@ export class AppMenuComponent implements OnInit {
                         routerLink: ["/home"],
                     },
                     {
+                        label: "Advanced Search",
+                        icon: "pi pi-fw pi-filter",
+                        routerLink: ["/advanced-search"],
+                    },
+                    {
                         label: "Chat",
                         icon: "pi pi-fw pi-comments",
                         routerLink: ["/chat"],

@@ -217,7 +217,6 @@ export class HomeService {
                     case "new":
                         // Show newest users (highest IDs)
                         filtered.sort((a, b) => b.id! - a.id!);
-                        filtered = filtered.slice(0, 20);
                         break;
                 }
 
@@ -244,6 +243,17 @@ export class HomeService {
                 return filtered;
             }),
         );
+    }
+
+    /**
+     * Get paginated users
+     * @param page Current page (0-indexed)
+     * @param pageSize Number of items per page
+     */
+    getPaginatedUsers(allUsers: HomeUser[], page: number, pageSize: number): HomeUser[] {
+        const start = page * pageSize;
+        const end = start + pageSize;
+        return allUsers.slice(start, end);
     }
 
     getOnlineCount(): Observable<number> {

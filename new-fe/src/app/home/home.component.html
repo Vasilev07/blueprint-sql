@@ -38,12 +38,12 @@
 
     <!-- Advanced Filters Section -->
     <div class="advanced-filters-section">
-      <span class="filters-locked">
-        <i class="pi pi-lock"></i>
-        Advanced filters locked
+      <span class="filters-info">
+        <i class="pi pi-filter"></i>
+        Want more filtering options?
       </span>
-      <a href="#" class="upgrade-link" (click)="$event.preventDefault()">
-        Upgrade for filters
+      <a class="advanced-link" (click)="goToAdvancedSearch()">
+        Open Advanced Filters
       </a>
     </div>
   </div>
@@ -82,13 +82,29 @@
   </div>
 
   <!-- User Grid -->
-  <div *ngIf="!isLoading && users.length > 0" class="users-grid">
+  <div *ngIf="!isLoading && displayedUsers.length > 0" class="users-grid">
     <app-user-card 
-      *ngFor="let user of users; trackBy: trackByUserId"
+      *ngFor="let user of displayedUsers; trackBy: trackByUserId"
       [user]="user"
       (chatClick)="onChatClick($event)"
       (cardClick)="onCardClick($event)">
     </app-user-card>
+  </div>
+
+  <!-- Loading More Indicator -->
+  <div *ngIf="isLoadingMore" class="loading-more">
+    <p-progressSpinner 
+      styleClass="w-3rem h-3rem" 
+      strokeWidth="4"
+      animationDuration="1s">
+    </p-progressSpinner>
+    <p>Loading more users...</p>
+  </div>
+
+  <!-- End of Results -->
+  <div *ngIf="!isLoading && !hasMoreData && displayedUsers.length > 0" class="end-of-results">
+    <i class="pi pi-check-circle"></i>
+    <p>You've reached the end! Showing all {{ displayedUsers.length }} users.</p>
   </div>
 </div>
 
