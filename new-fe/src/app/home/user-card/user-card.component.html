@@ -46,9 +46,9 @@
         <i class="pi pi-heart"></i>
         {{ (user.id! * 7) % 100 + 20 }}
       </span>
-      <span class="stat" pTooltip="Views">
+      <span class="stat" pTooltip="Profile Views">
         <i class="pi pi-eye"></i>
-        {{ (user.id! * 11) % 300 + 50 }}
+        {{ user.profileViewsCount || 0 }}
       </span>
     </div>
   </div>

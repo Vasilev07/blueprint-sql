@@ -20,6 +20,7 @@ export interface HomeUser extends UserDTO {
     isFriend?: boolean;
     verified?: boolean; // Mocked for now (will need verified field)
     appearsInSearches?: boolean; // From user profile
+    profileViewsCount?: number; // Real profile views count
 }
 
 export type FilterType = "all" | "online" | "friends" | "nearby" | "new";

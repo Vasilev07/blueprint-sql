@@ -141,6 +141,20 @@ export class UserService implements OnModuleInit {
         const users = await this.entityManager.find(User, {
             relations: ["profile"],
         });
+        
+        // Get profile view counts for all users
+        const profileViewRepo = this.entityManager.getRepository('ProfileView');
+        const viewCounts = await profileViewRepo
+            .createQueryBuilder('view')
+            .select('view.userId', 'userId')
+            .addSelect('COUNT(DISTINCT view.viewerId)', 'viewCount')
+            .groupBy('view.userId')
+            .getRawMany();
+        
+        const viewCountMap = new Map(
+            viewCounts.map(v => [v.userId, parseInt(v.viewCount)])
+        );
+        
         return users.map((user) => {
             const userDTO = this.userMapper.entityToDTO(user);
             // Include profile data for home screen
@@ -150,6 +164,7 @@ export class UserService implements OnModuleInit {
                 location: user.profile?.location || null,
                 interests: user.profile?.interests || [],
                 appearsInSearches: user.profile?.appearsInSearches !== false,
+                profileViewsCount: viewCountMap.get(user.id) || 0,
             };
         });
     }

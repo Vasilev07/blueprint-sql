@@ -320,7 +320,6 @@ export class UserController {
         return this.userService.getUserProfile(req);
     }
 
-
     @Put("user-profile")
     @ApiOperation({
         summary: "Update user profile details (bio, interests, privacy)",
@@ -353,7 +352,8 @@ export class UserController {
     @ApiOperation({ summary: "Get user by ID and record profile view" })
     @ApiResponse({
         status: 200,
-        description: "Returns user by ID with profile data and records the profile view",
+        description:
+            "Returns user by ID with profile data and records the profile view",
         schema: {
             type: "object",
             properties: {
