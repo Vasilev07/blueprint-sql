@@ -1,6 +1,6 @@
 import { NgModule } from "@angular/core";
 import { BrowserModule } from "@angular/platform-browser";
-import { HTTP_INTERCEPTORS } from "@angular/common/http";
+import { HTTP_INTERCEPTORS, HttpClientModule } from "@angular/common/http";
 
 import { AppRoutingModule } from "./app-routing.module";
 import { AppComponent } from "./app.component";
@@ -12,6 +12,7 @@ import { AuthGuard } from "./services/auth.guard";
 import { AuthInterceptor } from "./interceptors/auth.interceptor";
 import { BASE_PATH } from "src/typescript-api-client/src/variables";
 import { Configuration } from "src/typescript-api-client/src";
+import { ApiModule } from "src/typescript-api-client/src/api.module";
 import { environment } from "src/environments/environment";
 
 export function tokenGetter() {
@@ -22,9 +23,15 @@ export function tokenGetter() {
     declarations: [AppComponent],
     imports: [
         BrowserModule,
+        HttpClientModule,
         AppRoutingModule,
         BrowserAnimationsModule,
         AppLayoutModule,
+        ApiModule.forRoot(() => new Configuration({
+            basePath: environment.apiUrl,
+            withCredentials: true,
+            accessToken: () => localStorage.getItem("id_token") || ''
+        })),
         JwtModule.forRoot({
             config: {
                 tokenGetter: tokenGetter,
@@ -34,19 +41,6 @@ export function tokenGetter() {
         }),
     ],
     providers: [
-        {
-            provide: Configuration,
-            useFactory: () => new Configuration({
-              basePath: environment.apiUrl, // Dynamically sets basePath to environment.apiUrl
-              // Optional: Add other config options like credentials, headers, etc.
-              withCredentials: true, // Example for CORS with credentials
-              accessToken: () => {
-                const token = localStorage.getItem("id_token");
-                return token || '';
-              }
-            }),
-            multi: false, // Not multi-provider
-        },
         {
             provide: HTTP_INTERCEPTORS,
             useClass: AuthInterceptor,

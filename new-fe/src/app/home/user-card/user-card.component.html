@@ -1,0 +1,78 @@
+<div class="user-card" (click)="onCardClick()">
+  <!-- Profile Image with Badges -->
+  <div class="card-image">
+    <img 
+      [src]="getProfilePicture()" 
+      [alt]="user.fullName"
+      (error)="onImageError($event)"
+      class="profile-image">
+    
+    <!-- Online Status -->
+    <span *ngIf="user.isOnline" class="online-indicator">
+      <i class="pi pi-circle-fill"></i>
+      Online now
+    </span>
+    
+    <!-- Badges -->
+    <div class="card-badges">
+      <span *ngIf="user.isFriend" class="badge friend-badge" pTooltip="Friend">
+        <i class="pi pi-check-circle"></i>
+      </span>
+      <span *ngIf="user.verified" class="badge verified-badge" pTooltip="Verified">
+        <i class="pi pi-verified"></i>
+      </span>
+    </div>
+  </div>
+
+  <!-- User Info -->
+  <div class="card-content">
+    <div class="user-info">
+      <h3 class="user-name">
+        {{ user.fullName }}
+        <span *ngIf="user.age" class="user-age">, {{ user.age }}</span>
+      </h3>
+      
+      <div class="user-location" *ngIf="user.city || user.distance">
+        <i class="pi pi-map-marker"></i>
+        <span>{{ user.distance }}</span>
+      </div>
+    </div>
+
+    <p class="user-bio" *ngIf="user.bio">{{ user.bio }}</p>
+
+    <!-- Stats -->
+    <div class="user-stats">
+      <span class="stat" pTooltip="Likes">
+        <i class="pi pi-heart"></i>
+        {{ (user.id! * 7) % 100 + 20 }}
+      </span>
+      <span class="stat" pTooltip="Views">
+        <i class="pi pi-eye"></i>
+        {{ (user.id! * 11) % 300 + 50 }}
+      </span>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="card-actions">
+    <button 
+      pButton 
+      type="button" 
+      icon="pi pi-heart" 
+      class="p-button-rounded p-button-text p-button-secondary like-btn"
+      pTooltip="Like"
+      (click)="$event.stopPropagation()">
+    </button>
+    
+    <button 
+      pButton 
+      type="button" 
+      label="Chat" 
+      icon="pi pi-comment" 
+      class="p-button-rounded chat-btn"
+      (click)="onChatClick($event)">
+    </button>
+  </div>
+</div>
+
+

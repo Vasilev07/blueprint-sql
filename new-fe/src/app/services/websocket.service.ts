@@ -1,19 +1,26 @@
 import { Injectable } from "@angular/core";
 import { Socket, io } from "socket.io-client";
 import { Observable } from "rxjs";
-import { MessageDTO, ChatMessageDTO, ProfileViewDTO } from "../../typescript-api-client/src/model/models";
+import {
+    MessageDTO,
+    ChatMessageDTO,
+} from "../../typescript-api-client/src/model/models";
 import { AuthService } from "./auth.service";
 import { environment } from "../../environments/environment";
 
 // Define proper types for Socket.IO events
-interface ChatMessagePayload {
-  conversationId: number;
-  message: ChatMessageDTO;
+interface ProfileViewNotification {
+    viewerId: number;
+    viewerName: string;
+    viewerEmail: string;
+    viewerProfilePictureId?: number;
+    viewedAt: string;
+    message: string;
 }
 
-// Profile view notification extends the DTO with additional message field
-interface ProfileViewNotification extends Omit<ProfileViewDTO, 'id' | 'userId' | 'isFriend'> {
-  message: string;
+interface ChatMessagePayload {
+    conversationId: number;
+    message: ChatMessageDTO;
 }
 
 @Injectable({
@@ -147,13 +154,12 @@ export class WebsocketService {
     }
 
     onAnyChatMessage(): Observable<ChatMessagePayload> {
-        return new Observable<ChatMessagePayload>(
-            (observer) => {
-                const handler = (payload: ChatMessagePayload) => observer.next(payload);
-                this.socket.on("chat:message", handler);
-                return () => this.socket.off("chat:message", handler);
-            },
-        );
+        return new Observable<ChatMessagePayload>((observer) => {
+            const handler = (payload: ChatMessagePayload) =>
+                observer.next(payload);
+            this.socket.on("chat:message", handler);
+            return () => this.socket.off("chat:message", handler);
+        });
     }
 
     onUserOnline(): Observable<{ email: string; userId: number }> {
