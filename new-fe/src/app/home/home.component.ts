@@ -12,8 +12,6 @@ import { MessageService } from "primeng/api";
 })
 export class HomeComponent implements OnInit, OnDestroy {
     users: HomeUser[] = [];
-    allUsers: HomeUser[] = [];
-    displayedUsers: HomeUser[] = [];
     totalUsers: number = 0;
     onlineCount: number = 0;
     currentFilter: FilterType = "all";
@@ -21,11 +19,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     searchTerm: string = "";
     isLoading: boolean = true;
     isLoadingMore: boolean = false;
-
-    // Infinite scroll
-    private currentPage: number = 0;
-    private pageSize: number = 12;
-    private hasMoreData: boolean = true;
+    hasMoreData: boolean = true;
 
     filterOptions = [
         { label: "All", value: "all" as FilterType, icon: "pi pi-users" },
@@ -66,8 +60,10 @@ export class HomeComponent implements OnInit, OnDestroy {
     ) {}
 
     ngOnInit(): void {
-        this.loadUsers();
+        this.subscribeToUsers();
+        this.subscribeToPaginationState();
         this.subscribeToOnlineCount();
+        this.loadUsers();
 
         // Add scroll event listener
         window.addEventListener("scroll", this.onWindowScroll.bind(this));
@@ -81,20 +77,12 @@ export class HomeComponent implements OnInit, OnDestroy {
         window.removeEventListener("scroll", this.onWindowScroll.bind(this));
     }
 
-    private loadUsers(): void {
-        this.isLoading = true;
-
-        this.homeService
-            .getFilteredAndSortedUsers()
+    private subscribeToUsers(): void {
+        this.homeService.users$
             .pipe(takeUntil(this.destroy$))
             .subscribe({
                 next: (users) => {
-                    this.allUsers = users;
-                    this.totalUsers = users.length;
-                    this.currentPage = 0;
-                    this.hasMoreData = users.length > this.pageSize;
-                    this.loadInitialPage();
-                    this.isLoading = false;
+                    this.users = users;
                 },
                 error: (error) => {
                     console.error("Error loading users:", error);
@@ -103,46 +91,59 @@ export class HomeComponent implements OnInit, OnDestroy {
                         summary: "Error",
                         detail: "Failed to load users",
                     });
-                    this.isLoading = false;
                 },
             });
     }
 
-    private loadInitialPage(): void {
-        this.displayedUsers = this.homeService.getPaginatedUsers(
-            this.allUsers,
-            0,
-            this.pageSize,
-        );
-        this.currentPage = 0;
+    private subscribeToPaginationState(): void {
+        this.homeService.paginationState$
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+                next: (state) => {
+                    console.log('Pagination state updated:', state);
+                    this.totalUsers = state.totalUsers;
+                    this.hasMoreData = state.hasMore;
+                    this.isLoading = false;
+                    this.isLoadingMore = false;
+                },
+            });
+    }
+
+    private loadUsers(): void {
+        this.isLoading = true;
+        this.homeService.getFilteredAndSortedUsers()
+            .pipe(takeUntil(this.destroy$))
+            .subscribe();
     }
 
     private loadMoreUsers(): void {
+        console.log(`loadMoreUsers called - isLoadingMore: ${this.isLoadingMore}, hasMoreData: ${this.hasMoreData}`);
+        
         if (this.isLoadingMore || !this.hasMoreData) {
+            console.log("loadMoreUsers - Skipping because isLoadingMore or no more data");
             return;
         }
 
+        console.log("loadMoreUsers - Starting to load next page");
         this.isLoadingMore = true;
-        this.currentPage++;
 
-        // Simulate async loading with slight delay for better UX
-        setTimeout(() => {
-            const newUsers = this.homeService.getPaginatedUsers(
-                this.allUsers,
-                this.currentPage,
-                this.pageSize,
-            );
-
-            if (newUsers.length > 0) {
-                this.displayedUsers = [...this.displayedUsers, ...newUsers];
-                this.hasMoreData =
-                    this.displayedUsers.length < this.allUsers.length;
-            } else {
-                this.hasMoreData = false;
-            }
-
-            this.isLoadingMore = false;
-        }, 300);
+        this.homeService.loadNextPage()
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+                next: () => {
+                    console.log("loadMoreUsers - Next page loaded successfully");
+                    this.isLoadingMore = false;
+                },
+                error: (error) => {
+                    console.error("Error loading more users:", error);
+                    this.isLoadingMore = false;
+                    this.messageService.add({
+                        severity: "error",
+                        summary: "Error",
+                        detail: "Failed to load more users",
+                    });
+                },
+            });
     }
 
     private subscribeToOnlineCount(): void {
@@ -157,7 +158,6 @@ export class HomeComponent implements OnInit, OnDestroy {
     onFilterChange(filter: FilterType): void {
         this.currentFilter = filter;
         this.homeService.setFilter(filter);
-        this.currentPage = 0;
     }
 
     onSortChange(event: any): void {
@@ -216,13 +216,17 @@ export class HomeComponent implements OnInit, OnDestroy {
         const element = event.target as HTMLElement;
         const scrollPosition = element.scrollTop + element.clientHeight;
         const scrollHeight = element.scrollHeight;
+        const threshold = scrollHeight * 0.8;
+
+        console.log(`Scroll Debug - Position: ${scrollPosition}, Height: ${scrollHeight}, Threshold: ${threshold}, HasMore: ${this.hasMoreData}, Loading: ${this.isLoadingMore}`);
 
         // Load more when user scrolls to 80% of the content
         if (
-            scrollPosition >= scrollHeight * 0.8 &&
+            scrollPosition >= threshold &&
             this.hasMoreData &&
             !this.isLoadingMore
         ) {
+            console.log("Scroll - Loading more users");
             this.loadMoreUsers();
         }
     }
@@ -230,10 +234,11 @@ export class HomeComponent implements OnInit, OnDestroy {
     onWindowScroll(): void {
         const scrollPosition = window.scrollY + window.innerHeight;
         const scrollHeight = document.documentElement.scrollHeight;
+        const threshold = scrollHeight * 0.8;
 
         // Load more when user scrolls to 80% of the content
         if (
-            scrollPosition >= scrollHeight * 0.8 &&
+            scrollPosition >= threshold &&
             this.hasMoreData &&
             !this.isLoadingMore
         ) {

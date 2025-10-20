@@ -14,7 +14,7 @@ export class FriendService {
     ) {}
 
     private getUserIdFromRequest(req: any): number {
-        return req.user.id;
+        return req.userData.id;
     }
 
     async createFriendRequest(friendId: number, req: any): Promise<FriendDTO> {

@@ -235,8 +235,10 @@ export class ChatService {
 
     private loadUsers() {
         this.applyAuthHeadersToApiServices();
-        this.userService.getAll().subscribe({
-            next: (users: any[]) => {
+        // Fetch all users with a large limit (no pagination for chat)
+        this.userService.getAll(1, 1000, 'all', 'recent', '').subscribe({
+            next: (response: any) => {
+                const users: any[] = response.users || [];
                 const mapped: User[] = (users || []).map((u) => {
                     const fullName = `${u.firstname ?? ""} ${u.lastname ?? ""}`.trim() || u.fullName || u.email;
                     return {

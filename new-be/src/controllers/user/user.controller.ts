@@ -50,8 +50,53 @@ export class UserController {
     ) {}
 
     @Get("/all")
-    async getAll(): Promise<UserDTO[]> {
-        return await this.userService.getAll();
+    @ApiOperation({ summary: "Get all users with pagination and filters" })
+    @ApiResponse({
+        status: 200,
+        description: "Returns paginated users",
+        schema: {
+            type: "object",
+            properties: {
+                users: { type: "array", items: { $ref: "#/components/schemas/UserDTO" } },
+                page: { type: "number" },
+                limit: { type: "number" },
+                totalUsers: { type: "number" },
+                totalPages: { type: "number" },
+                hasMore: { type: "boolean" },
+            },
+        },
+    })
+    async getAll(
+        @Query("page") page?: number,
+        @Query("limit") limit?: number,
+        @Query("filter") filter?: string,
+        @Query("sort") sort?: string,
+        @Query("search") search?: string,
+        @Req() req?: any,
+    ): Promise<{
+        users: UserDTO[];
+        page: number;
+        limit: number;
+        totalUsers: number;
+        totalPages: number;
+        hasMore: boolean;
+    }> {
+        // Get current user ID if authenticated
+        let currentUserId: number | undefined;
+        try {
+            currentUserId = req?.userData?.id;
+        } catch (error) {
+            currentUserId = undefined;
+        }
+
+        return await this.userService.getAll({
+            page: page || 1,
+            limit: limit || 12,
+            filter: filter || "all",
+            sort: sort || "recent",
+            search: search || "",
+            currentUserId: currentUserId,
+        });
     }
 
     @Get("/check-email")
@@ -217,7 +262,7 @@ export class UserController {
         // Try to get current user ID if authenticated
         let currentUserId: number | undefined;
         try {
-            currentUserId = req.user?.id;
+            currentUserId = req.userData?.id;
         } catch {
             currentUserId = undefined;
         }
@@ -367,7 +412,7 @@ export class UserController {
         @Param("userId") userId: number,
         @Req() req: any,
     ): Promise<{ user: UserDTO; profile: UserProfileDTO | null }> {
-        const viewerId = req.user?.id;
+        const viewerId = req.userData?.id;
 
         // Record profile view if viewer is authenticated
         if (viewerId && viewerId !== Number(userId)) {
@@ -649,7 +694,7 @@ export class UserController {
         @Req() req: any,
         @Query("limit") limit?: number,
     ): Promise<ProfileViewDTO[]> {
-        const userId = req.user.id;
+        const userId = req.userData.id;
         return this.profileViewService.getProfileViews(userId, limit);
     }
 
@@ -670,7 +715,7 @@ export class UserController {
         totalViews: number;
         uniqueViewers: number;
     }> {
-        const userId = req.user.id;
+        const userId = req.userData.id;
         const totalViews =
             await this.profileViewService.getProfileViewCount(userId);
         const uniqueViewers =

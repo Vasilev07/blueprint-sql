@@ -53,9 +53,10 @@ export class MessageComposeComponent implements OnInit {
     }
 
     loadUsers(): void {
-        this.userService.getAll().subscribe({
-            next: (users) => {
-                this.users = users;
+        // Fetch all users with a large limit (no pagination for message compose)
+        this.userService.getAll(1, 1000, 'all', 'recent', '').subscribe({
+            next: (response: any) => {
+                this.users = response.users || [];
                 console.log("Loaded users:", this.users);
             },
             error: (error) => {

@@ -92,9 +92,10 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 
     loadUsers() {
         this.loading = true;
-        this.userService.getAll().subscribe({
-            next: async (users) => {
-                this.users = users;
+        // Fetch all users with a large limit (no pagination for friends list)
+        this.userService.getAll(1, 1000, 'all', 'recent', '').subscribe({
+            next: async (response: any) => {
+                this.users = response.users || [];
                 await this.loadFriendshipStatuses();
                 this.loading = false;
             },

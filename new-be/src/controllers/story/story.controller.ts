@@ -235,7 +235,7 @@ export class StoryController {
     }
 
     private getUserIdFromRequest(req: any): number {
-        return req.user.id;
+        return req.userData.id;
     }
 
     private getMimeTypeFromExtension(filename: string): string {

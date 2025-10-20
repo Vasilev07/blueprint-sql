@@ -137,23 +137,175 @@ export class UserService implements OnModuleInit {
         });
     }
 
-    async getAll(): Promise<any[]> {
-        const users = await this.entityManager.find(User, {
-            relations: ["profile"],
+    async getAll(options?: {
+        page?: number;
+        limit?: number;
+        filter?: string;
+        sort?: string;
+        search?: string;
+        currentUserId?: number;
+    }): Promise<any> {
+        // If no options provided, return old behavior for backwards compatibility
+        if (!options) {
+            const users = await this.entityManager.find(User, {
+                relations: ["profile"],
+            });
+            return this.mapUsersWithProfiles(users);
+        }
+
+        const { page = 1, limit = 12, filter = "all", sort = "recent", search = "", currentUserId } = options;
+        
+        // Calculate skip value for pagination
+        const skip = (page - 1) * limit;
+        
+        // Build query with QueryBuilder for more control
+        let query = this.entityManager
+            .createQueryBuilder(User, "user")
+            .leftJoinAndSelect("user.profile", "profile");
+        
+        // Build the base where conditions
+        const whereConditions: string[] = [];
+        const whereParams: any = {};
+        
+        // Exclude current user if provided
+        if (currentUserId) {
+            whereConditions.push("user.id != :currentUserId");
+            whereParams.currentUserId = currentUserId;
+        }
+        
+        // Apply search filter
+        if (search && search.trim().length > 0) {
+            whereConditions.push("(user.firstname LIKE :search OR user.lastname LIKE :search OR user.email LIKE :search OR profile.bio LIKE :search OR profile.location LIKE :search OR profile.city LIKE :search)");
+            whereParams.search = `%${search}%`;
+        }
+        
+        // Apply filters
+        switch (filter) {
+            case "online":
+                // Online: last seen within 5 minutes
+                const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+                whereConditions.push("user.lastOnline >= :fiveMinutesAgo");
+                whereParams.fiveMinutesAgo = fiveMinutesAgo;
+                break;
+            case "new":
+                // New users: registered in last 7 days
+                const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+                whereConditions.push("user.createdAt >= :sevenDaysAgo");
+                whereParams.sevenDaysAgo = sevenDaysAgo;
+                break;
+            case "nearby":
+                // TODO: Implement geolocation-based filtering
+                // For now, just return normal results
+                break;
+            case "friends":
+                // TODO: Implement friends filtering (requires join with UserFriend table)
+                // For now, just return normal results
+                break;
+            case "all":
+            default:
+                // No additional filter
+                break;
+        }
+        
+        // Apply all where conditions at once
+        if (whereConditions.length > 0) {
+            query = query.where(whereConditions.join(" AND "), whereParams);
+        }
+        
+        // Apply sorting
+        switch (sort) {
+            case "recent":
+                query = query.orderBy("user.lastOnline", "DESC", "NULLS LAST");
+                break;
+            case "new":
+                query = query.orderBy("user.id", "DESC");
+                break;
+            case "distance":
+                // TODO: Implement distance-based sorting (requires geolocation)
+                query = query.orderBy("user.id", "DESC");
+                break;
+            default:
+                query = query.orderBy("user.id", "DESC");
+                break;
+        }
+        
+        // Get total count before pagination
+        const totalUsers = await query.getCount();
+        
+        // Apply pagination using skip() and take()
+        query = query.skip(skip).take(limit);
+        
+        // Execute query
+        const users = await query.getMany();
+        
+        
+        // Get profile view counts for returned users
+        const userIds = users.map(u => u.id);
+        let viewCountMap = new Map<number, number>();
+        
+        if (userIds.length > 0) {
+            const profileViewRepo = this.entityManager.getRepository('ProfileView');
+            const viewCounts = await profileViewRepo
+                .createQueryBuilder('view')
+                .select('view.userId', 'userId')
+                .addSelect('COUNT(DISTINCT view.viewerId)', 'viewCount')
+                .where('view.userId IN (:...userIds)', { userIds })
+                .groupBy('view.userId')
+                .getRawMany();
+            
+            viewCountMap = new Map(
+                viewCounts.map(v => [v.userId, parseInt(v.viewCount)])
+            );
+        }
+        
+        // Map users to DTOs with profile data
+        const mappedUsers = users.map((user) => {
+            const userDTO = this.userMapper.entityToDTO(user);
+            return {
+                ...userDTO,
+                bio: user.profile?.bio || null,
+                location: user.profile?.location || null,
+                interests: user.profile?.interests || [],
+                appearsInSearches: user.profile?.appearsInSearches !== false,
+                profileViewsCount: viewCountMap.get(user.id) || 0,
+            };
         });
         
-        // Get profile view counts for all users
-        const profileViewRepo = this.entityManager.getRepository('ProfileView');
-        const viewCounts = await profileViewRepo
-            .createQueryBuilder('view')
-            .select('view.userId', 'userId')
-            .addSelect('COUNT(DISTINCT view.viewerId)', 'viewCount')
-            .groupBy('view.userId')
-            .getRawMany();
+        // Calculate pagination metadata
+        const totalPages = Math.ceil(totalUsers / limit);
+        const hasMore = page < totalPages;
         
-        const viewCountMap = new Map(
-            viewCounts.map(v => [v.userId, parseInt(v.viewCount)])
-        );
+        // Temporary debug logging
+        console.log(`Pagination Debug - Page: ${page}, TotalUsers: ${totalUsers}, TotalPages: ${totalPages}, HasMore: ${hasMore}, UsersReturned: ${mappedUsers.length}`);
+        
+        return {
+            users: mappedUsers,
+            page,
+            limit,
+            totalUsers,
+            totalPages,
+            hasMore,
+        };
+    }
+
+    private async mapUsersWithProfiles(users: User[]): Promise<any[]> {
+        // Get profile view counts for all users
+        let viewCountMap = new Map<number, number>();
+        try {
+            const profileViewRepo = this.entityManager.getRepository('ProfileView');
+            const viewCounts = await profileViewRepo
+                .createQueryBuilder('view')
+                .select('view.userId', 'userId')
+                .addSelect('COUNT(DISTINCT view.viewerId)', 'viewCount')
+                .groupBy('view.userId')
+                .getRawMany();
+            
+            viewCountMap = new Map(
+                viewCounts.map(v => [v.userId, parseInt(v.viewCount)])
+            );
+        } catch (error) {
+            // Continue without profile view counts
+        }
         
         return users.map((user) => {
             const userDTO = this.userMapper.entityToDTO(user);

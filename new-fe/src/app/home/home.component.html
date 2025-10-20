@@ -82,9 +82,9 @@
   </div>
 
   <!-- User Grid -->
-  <div *ngIf="!isLoading && displayedUsers.length > 0" class="users-grid">
+  <div *ngIf="!isLoading && users.length > 0" class="users-grid" (scroll)="onScroll($event)">
     <app-user-card 
-      *ngFor="let user of displayedUsers; trackBy: trackByUserId"
+      *ngFor="let user of users; trackBy: trackByUserId"
       [user]="user"
       (chatClick)="onChatClick($event)"
       (cardClick)="onCardClick($event)">
@@ -102,9 +102,9 @@
   </div>
 
   <!-- End of Results -->
-  <div *ngIf="!isLoading && !hasMoreData && displayedUsers.length > 0" class="end-of-results">
+  <div *ngIf="!isLoading && !hasMoreData && users.length > 0" class="end-of-results">
     <i class="pi pi-check-circle"></i>
-    <p>You've reached the end! Showing all {{ displayedUsers.length }} users.</p>
+    <p>You've reached the end! Showing all {{ totalUsers }} users.</p>
   </div>
 </div>
 
