@@ -48,14 +48,16 @@ export class StoryController {
                 video: {
                     type: "string",
                     format: "binary",
-                    description: "Image or Video file (max 30MB). Videos: .mp4/.mov/.avi/.webm. Images: .jpg/.jpeg/.png/.webp. Images display for 30 seconds.",
+                    description:
+                        "Image or Video file (max 30MB). Videos: .mp4/.mov/.avi/.webm. Images: .jpg/.jpeg/.png/.webp. Images display for 30 seconds.",
                 },
             },
         },
     })
     @ApiResponse({
         status: 201,
-        description: "Story uploaded successfully. Videos process in background, images are instant.",
+        description:
+            "Story uploaded successfully. Videos process in background, images are instant.",
         type: StoryUploadResponseDTO,
     })
     @ApiResponse({
@@ -70,8 +72,8 @@ export class StoryController {
         const userId = this.getUserIdFromRequest(req);
         const story = await this.storyService.uploadStory(file, userId);
 
-        const isImage = story.mimeType.startsWith('image/');
-        const message = isImage 
+        const isImage = story.mimeType.startsWith("image/");
+        const message = isImage
             ? "Image story uploaded successfully!"
             : "Video story uploaded successfully. Processing in background...";
 
@@ -148,17 +150,17 @@ export class StoryController {
 
     @Get("/video/:filename")
     @ApiOperation({ summary: "Stream story media file (image or video)" })
-    @ApiResponse({ 
-        status: 200, 
+    @ApiResponse({
+        status: 200,
         description: "Returns media stream (image or video)",
         content: {
-            'video/mp4': { schema: { type: 'string', format: 'binary' } },
-            'video/webm': { schema: { type: 'string', format: 'binary' } },
-            'video/quicktime': { schema: { type: 'string', format: 'binary' } },
-            'image/jpeg': { schema: { type: 'string', format: 'binary' } },
-            'image/png': { schema: { type: 'string', format: 'binary' } },
-            'image/webp': { schema: { type: 'string', format: 'binary' } }
-        }
+            "video/mp4": { schema: { type: "string", format: "binary" } },
+            "video/webm": { schema: { type: "string", format: "binary" } },
+            "video/quicktime": { schema: { type: "string", format: "binary" } },
+            "image/jpeg": { schema: { type: "string", format: "binary" } },
+            "image/png": { schema: { type: "string", format: "binary" } },
+            "image/webp": { schema: { type: "string", format: "binary" } },
+        },
     })
     @ApiResponse({ status: 404, description: "Media file not found" })
     async streamVideo(
@@ -195,17 +197,17 @@ export class StoryController {
 
     @Get("/thumbnail/:filename")
     @ApiOperation({ summary: "Get story thumbnail" })
-    @ApiResponse({ 
-        status: 200, 
+    @ApiResponse({
+        status: 200,
         description: "Returns thumbnail image",
         content: {
-            'image/jpeg': {
+            "image/jpeg": {
                 schema: {
-                    type: 'string',
-                    format: 'binary'
-                }
-            }
-        }
+                    type: "string",
+                    format: "binary",
+                },
+            },
+        },
     })
     @ApiResponse({ status: 404, description: "Thumbnail not found" })
     async getThumbnail(
@@ -242,16 +244,16 @@ export class StoryController {
         const ext = path.extname(filename).toLowerCase();
         const mimeTypes: Record<string, string> = {
             // Video types
-            '.mp4': 'video/mp4',
-            '.mov': 'video/quicktime',
-            '.avi': 'video/x-msvideo',
-            '.webm': 'video/webm',
+            ".mp4": "video/mp4",
+            ".mov": "video/quicktime",
+            ".avi": "video/x-msvideo",
+            ".webm": "video/webm",
             // Image types
-            '.jpg': 'image/jpeg',
-            '.jpeg': 'image/jpeg',
-            '.png': 'image/png',
-            '.webp': 'image/webp',
+            ".jpg": "image/jpeg",
+            ".jpeg": "image/jpeg",
+            ".png": "image/png",
+            ".webp": "image/webp",
         };
-        return mimeTypes[ext] || 'application/octet-stream';
+        return mimeTypes[ext] || "application/octet-stream";
     }
 }

@@ -14,6 +14,12 @@ export class FriendService {
     ) {}
 
     private getUserIdFromRequest(req: any): number {
+        if (!req.userData) {
+            throw new Error('User not authenticated - userData is undefined');
+        }
+        if (!req.userData.id) {
+            throw new Error('User ID not found in userData');
+        }
         return req.userData.id;
     }
 

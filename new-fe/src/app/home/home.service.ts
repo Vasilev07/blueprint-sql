@@ -84,7 +84,6 @@ export class HomeService {
         return diffInMinutes <= 5; // Online if seen in last 5 minutes
     }
 
-
     private loadFriends(): void {
         const token = localStorage.getItem("id_token");
         if (token) {
@@ -196,7 +195,10 @@ export class HomeService {
      * @param page Page number (1-indexed)
      * @param append Whether to append to existing users or replace
      */
-    public loadUsersPage(page: number, append: boolean = false): Observable<HomeUser[]> {
+    public loadUsersPage(
+        page: number,
+        append: boolean = false,
+    ): Observable<HomeUser[]> {
         const token = localStorage.getItem("id_token");
         if (token) {
             this.userService.defaultHeaders =
@@ -211,52 +213,61 @@ export class HomeService {
         const currentSearch = this.searchSubject.value;
         const limit = this.paginationStateSubject.value.limit;
 
-        console.log(`loadUsersPage called - Page: ${page}, Limit: ${limit}, Filter: ${currentFilter}, Sort: ${currentSort}, Search: ${currentSearch}`);
+        console.log(
+            `loadUsersPage called - Page: ${page}, Limit: ${limit}, Filter: ${currentFilter}, Sort: ${currentSort}, Search: ${currentSearch}`,
+        );
         return new Observable((observer) => {
-            this.userService.getAll(page, limit, currentFilter, currentSort, currentSearch).subscribe({
-                next: (response: any) => {
-                    console.log(`loadUsersPage - API response for page ${page}:`, response);
-                    
-                    const currentUserId = this.getCurrentUserId();
-                    const friendIds = this.friendIdsSubject.value;
+            this.userService
+                .getAll(page, limit, currentFilter, currentSort, currentSearch)
+                .subscribe({
+                    next: (response: any) => {
+                        console.log(
+                            `loadUsersPage - API response for page ${page}:`,
+                            response,
+                        );
 
-                    const homeUsers: HomeUser[] = response.users
-                        .map((user: any) => this.enrichUserData(user, friendIds));
-                    
+                        const friendIds = this.friendIdsSubject.value;
 
-                    // Update pagination state
-                    console.log(`Frontend - Updating pagination state:`, {
-                        currentPage: response.page,
-                        totalPages: response.totalPages,
-                        totalUsers: response.totalUsers,
-                        hasMore: response.hasMore,
-                        limit: response.limit,
-                    });
-                    
-                    this.paginationStateSubject.next({
-                        currentPage: response.page,
-                        totalPages: response.totalPages,
-                        totalUsers: response.totalUsers,
-                        hasMore: response.hasMore,
-                        limit: response.limit,
-                    });
+                        const homeUsers: HomeUser[] = response.users.map(
+                            (user: any) => this.enrichUserData(user, friendIds),
+                        );
 
-                    // Either append or replace users
-                    if (append) {
-                        const existingUsers = this.usersSubject.value;
-                        this.usersSubject.next([...existingUsers, ...homeUsers]);
-                    } else {
-                        this.usersSubject.next(homeUsers);
-                    }
+                        // Update pagination state
+                        console.log(`Frontend - Updating pagination state:`, {
+                            currentPage: response.page,
+                            totalPages: response.totalPages,
+                            totalUsers: response.totalUsers,
+                            hasMore: response.hasMore,
+                            limit: response.limit,
+                        });
 
-                    observer.next(homeUsers);
-                    observer.complete();
-                },
-                error: (error) => {
-                    console.error("Error loading users:", error);
-                    observer.error(error);
-                },
-            });
+                        this.paginationStateSubject.next({
+                            currentPage: response.page,
+                            totalPages: response.totalPages,
+                            totalUsers: response.totalUsers,
+                            hasMore: response.hasMore,
+                            limit: response.limit,
+                        });
+
+                        // Either append or replace users
+                        if (append) {
+                            const existingUsers = this.usersSubject.value;
+                            this.usersSubject.next([
+                                ...existingUsers,
+                                ...homeUsers,
+                            ]);
+                        } else {
+                            this.usersSubject.next(homeUsers);
+                        }
+
+                        observer.next(homeUsers);
+                        observer.complete();
+                    },
+                    error: (error) => {
+                        console.error("Error loading users:", error);
+                        observer.error(error);
+                    },
+                });
         });
     }
 
@@ -265,11 +276,11 @@ export class HomeService {
      */
     public loadNextPage(): Observable<HomeUser[]> {
         const currentState = this.paginationStateSubject.value;
-        console.log('loadNextPage called - current state:', currentState);
-        
+        console.log("loadNextPage called - current state:", currentState);
+
         if (!currentState.hasMore) {
-            console.log('loadNextPage - No more data available');
-            return new Observable(observer => {
+            console.log("loadNextPage - No more data available");
+            return new Observable((observer) => {
                 observer.next([]);
                 observer.complete();
             });
@@ -291,7 +302,11 @@ export class HomeService {
      * Get paginated users - Now handled by backend
      * This method is deprecated but kept for backwards compatibility
      */
-    getPaginatedUsers(allUsers: HomeUser[], page: number, pageSize: number): HomeUser[] {
+    getPaginatedUsers(
+        allUsers: HomeUser[],
+        page: number,
+        pageSize: number,
+    ): HomeUser[] {
         const start = page * pageSize;
         const end = start + pageSize;
         return allUsers.slice(start, end);

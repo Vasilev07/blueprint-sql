@@ -80,7 +80,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     ngOnDestroy(): void {
         this.destroy$.next();
         this.destroy$.complete();
-        
+
         // Cleanup profile picture blob URL
         if (this.profilePictureBlobUrl) {
             URL.revokeObjectURL(this.profilePictureBlobUrl);
@@ -108,7 +108,7 @@ export class ChatComponent implements OnInit, OnDestroy {
                         .subscribe({
                             next: (messages) => {
                                 // Map ChatMessageDTO[] to Message[] for UI
-                                this.messages = (messages || []).map(m => ({
+                                this.messages = (messages || []).map((m) => ({
                                     id: String(m.id),
                                     conversationId: m.conversationId,
                                     senderId: String(m.senderId),
@@ -117,7 +117,9 @@ export class ChatComponent implements OnInit, OnDestroy {
                                     isRead: m.isRead,
                                     createdAt: m.createdAt,
                                     updatedAt: m.updatedAt,
-                                    timestamp: new Date(m.createdAt || Date.now()),
+                                    timestamp: new Date(
+                                        m.createdAt || Date.now(),
+                                    ),
                                 }));
                                 this.isLoading = false;
                                 this.scrollToBottom();
@@ -247,14 +249,14 @@ export class ChatComponent implements OnInit, OnDestroy {
                 this.currentUser =
                     users.find((user) => user.id === userId) || null;
             });
-        
+
         // Load profile picture
         this.loadProfilePicture(userId);
     }
 
     private loadProfilePicture(userId: string): void {
         const numericUserId = parseInt(userId, 10);
-        
+
         if (!numericUserId) {
             return;
         }
@@ -265,7 +267,8 @@ export class ChatComponent implements OnInit, OnDestroy {
             this.profilePictureBlobUrl = null;
         }
 
-        this.userService.getProfilePictureByUserId(numericUserId, 'response')
+        this.userService
+            .getProfilePictureByUserId(numericUserId, "response")
             .pipe(takeUntil(this.destroy$))
             .subscribe({
                 next: (response: any) => {
@@ -275,9 +278,12 @@ export class ChatComponent implements OnInit, OnDestroy {
                 error: (error) => {
                     // Profile picture not found is okay
                     if (error.status !== 404) {
-                        console.error(`Error loading profile picture for user ${userId}:`, error);
+                        console.error(
+                            `Error loading profile picture for user ${userId}:`,
+                            error,
+                        );
                     }
-                }
+                },
             });
     }
 
