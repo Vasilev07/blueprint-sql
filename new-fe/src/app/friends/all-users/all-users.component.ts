@@ -93,21 +93,23 @@ export class AllUsersComponent implements OnInit, OnDestroy {
     loadUsers() {
         this.loading = true;
         // Fetch all users with a large limit (no pagination for friends list)
-        this.userService.getAll(1, 1000, 'all', 'recent', '').subscribe({
-            next: async (response: any) => {
-                this.users = response.users || [];
-                await this.loadFriendshipStatuses();
-                this.loading = false;
-            },
-            error: (error) => {
-                this.messageService.add({
-                    severity: "error",
-                    summary: "Error",
-                    detail: "Failed to load users",
-                });
-                this.loading = false;
-            },
-        });
+        this.userService
+            .getAll(1, 1000, "all", "recent", "", "", 0, 100, "", "", false)
+            .subscribe({
+                next: async (response: any) => {
+                    this.users = response.users || [];
+                    await this.loadFriendshipStatuses();
+                    this.loading = false;
+                },
+                error: () => {
+                    this.messageService.add({
+                        severity: "error",
+                        summary: "Error",
+                        detail: "Failed to load users",
+                    });
+                    this.loading = false;
+                },
+            });
     }
 
     async loadFriendshipStatuses() {

@@ -92,35 +92,34 @@ export class AdvancedSearchComponent implements OnInit, OnDestroy {
         this.subscribeToUsers();
         this.subscribeToPaginationState();
         this.loadUsers();
-        
+
         // Add scroll event listener
-        window.addEventListener('scroll', this.onWindowScroll.bind(this));
+        window.addEventListener("scroll", this.onWindowScroll.bind(this));
     }
 
     ngOnDestroy(): void {
         this.destroy$.next();
         this.destroy$.complete();
-        
+
         // Remove scroll event listener
-        window.removeEventListener('scroll', this.onWindowScroll.bind(this));
+        window.removeEventListener("scroll", this.onWindowScroll.bind(this));
     }
 
     private subscribeToUsers(): void {
-        this.homeService.users$
-            .pipe(takeUntil(this.destroy$))
-            .subscribe({
-                next: (users) => {
-                    this.users = users;
-                },
-                error: (error) => {
-                    console.error("Error loading users:", error);
-                    this.messageService.add({
-                        severity: "error",
-                        summary: "Error",
-                        detail: "Failed to load users",
-                    });
-                },
-            });
+        this.homeService.users$.pipe(takeUntil(this.destroy$)).subscribe({
+            next: (users) => {
+                // Backend handles all filtering, just display the results
+                this.users = users;
+            },
+            error: (error) => {
+                console.error("Error loading users:", error);
+                this.messageService.add({
+                    severity: "error",
+                    summary: "Error",
+                    detail: "Failed to load users",
+                });
+            },
+        });
     }
 
     private subscribeToPaginationState(): void {
@@ -138,21 +137,82 @@ export class AdvancedSearchComponent implements OnInit, OnDestroy {
 
     private loadUsers(): void {
         this.isLoading = true;
-        this.homeService.getFilteredAndSortedUsers()
+        this.homeService
+            .getFilteredAndSortedUsers()
             .pipe(takeUntil(this.destroy$))
-            .subscribe();
+            .subscribe({
+                next: (users) => {
+                    // Backend handles all filtering, just display the results
+                    this.users = users;
+                    this.isLoading = false;
+                },
+                error: (error) => {
+                    console.error("Error loading users:", error);
+                    this.isLoading = false;
+                },
+            });
     }
 
     applyFilters(): void {
-        // Note: For now, advanced filters are commented out
-        // TODO: Implement these filters on the backend for better performance
-        // Currently using backend pagination with basic filters (online, new, search)
-        
-        // Trigger reload from backend when filters change
+        // Map advanced filters to backend filters
+        let backendFilter = "all";
+        if (this.filters.onlineStatus === "online") {
+            backendFilter = "online";
+        } else if (this.filters.onlineStatus === "offline") {
+            // For offline, we'll get all users and filter client-side
+            backendFilter = "all";
+        }
+
+        // Set the backend filter
+        this.homeService.setFilter(backendFilter as any);
+
+        // Set advanced filters in the service - backend will handle all filtering
+        this.homeService.setAdvancedFilters({
+            gender:
+                this.filters.gender !== "all" ? this.filters.gender : undefined,
+            ageMin:
+                this.filters.ageRange[0] !== 18
+                    ? this.filters.ageRange[0]
+                    : undefined,
+            ageMax:
+                this.filters.ageRange[1] !== 65
+                    ? this.filters.ageRange[1]
+                    : undefined,
+            interests:
+                this.filters.interests && this.filters.interests.length > 0
+                    ? this.filters.interests.join(",")
+                    : undefined,
+            relationshipStatus:
+                this.filters.relationshipStatus !== "all"
+                    ? this.filters.relationshipStatus
+                    : undefined,
+            verifiedOnly: this.filters.verifiedOnly || undefined,
+        });
+
+        // Reset pagination and reload - backend handles all filtering
         this.isLoading = true;
-        this.homeService.getFilteredAndSortedUsers()
+        this.homeService
+            .getFilteredAndSortedUsers()
             .pipe(takeUntil(this.destroy$))
-            .subscribe();
+            .subscribe({
+                next: (users) => {
+                    // Backend has already filtered the users, just display them
+                    this.users = users;
+                    this.isLoading = false;
+
+                    // Show message about filters applied
+                    this.messageService.add({
+                        severity: "info",
+                        summary: "Filters Applied",
+                        detail: `Showing ${users.length} users`,
+                        life: 3000,
+                    });
+                },
+                error: (error) => {
+                    console.error("Error applying filters:", error);
+                    this.isLoading = false;
+                },
+            });
     }
 
     private loadMoreUsers(): void {
@@ -162,7 +222,8 @@ export class AdvancedSearchComponent implements OnInit, OnDestroy {
 
         this.isLoadingMore = true;
 
-        this.homeService.loadNextPage()
+        this.homeService
+            .loadNextPage()
             .pipe(takeUntil(this.destroy$))
             .subscribe({
                 next: () => {
@@ -239,11 +300,18 @@ export class AdvancedSearchComponent implements OnInit, OnDestroy {
     onWindowScroll(): void {
         const scrollPosition = window.scrollY + window.innerHeight;
         const scrollHeight = document.documentElement.scrollHeight;
-        
+
         // Load more when user scrolls to 80% of the content
-        if (scrollPosition >= scrollHeight * 0.8 && this.hasMoreData && !this.isLoadingMore) {
+        // Note: For advanced search, we load all users first then filter client-side
+        // So we don't need infinite scroll for now
+        if (
+            scrollPosition >= scrollHeight * 0.8 &&
+            this.hasMoreData &&
+            !this.isLoadingMore
+        ) {
+            // For advanced search, we might want to load more from backend if needed
+            // But for now, we'll load all users and filter them
             this.loadMoreUsers();
         }
     }
 }
-

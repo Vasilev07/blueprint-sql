@@ -54,15 +54,17 @@ export class MessageComposeComponent implements OnInit {
 
     loadUsers(): void {
         // Fetch all users with a large limit (no pagination for message compose)
-        this.userService.getAll(1, 1000, 'all', 'recent', '').subscribe({
-            next: (response: any) => {
-                this.users = response.users || [];
-                console.log("Loaded users:", this.users);
-            },
-            error: (error) => {
-                console.error("Error loading users:", error);
-            },
-        });
+        this.userService
+            .getAll(1, 1000, "all", "recent", "", "", 0, 100, "", "", false)
+            .subscribe({
+                next: (response: any) => {
+                    this.users = response.users || [];
+                    console.log("Loaded users:", this.users);
+                },
+                error: (error) => {
+                    console.error("Error loading users:", error);
+                },
+            });
     }
 
     onFileSelect(event: any): void {

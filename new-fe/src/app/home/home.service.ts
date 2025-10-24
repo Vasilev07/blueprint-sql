@@ -18,13 +18,22 @@ export interface HomeUser extends UserDTO {
     distance?: string; // Mocked for now (needs geolocation calculation)
     isOnline?: boolean;
     isFriend?: boolean;
-    verified?: boolean; // Mocked for now (will need verified field)
+    isVerified?: boolean; // Real verification status from backend
     appearsInSearches?: boolean; // From user profile
     profileViewsCount?: number; // Real profile views count
 }
 
 export type FilterType = "all" | "online" | "friends" | "nearby" | "new";
 export type SortType = "recent" | "new" | "distance";
+
+export interface AdvancedFilters {
+    gender?: string;
+    ageMin?: number;
+    ageMax?: number;
+    interests?: string;
+    relationshipStatus?: string;
+    verifiedOnly?: boolean;
+}
 
 @Injectable({
     providedIn: "root",
@@ -35,6 +44,7 @@ export class HomeService {
     private filterSubject = new BehaviorSubject<FilterType>("all");
     private sortSubject = new BehaviorSubject<SortType>("recent");
     private searchSubject = new BehaviorSubject<string>("");
+    private advancedFiltersSubject = new BehaviorSubject<AdvancedFilters>({});
 
     public users$ = this.usersSubject.asObservable();
     public filter$ = this.filterSubject.asObservable();
@@ -130,7 +140,7 @@ export class HomeService {
             distance: this.mockDistance(), // TODO: Calculate from location coordinates
             isOnline: this.isUserOnline(user.lastOnline),
             isFriend: friendIds.includes(user.id!),
-            verified: Math.random() > 0.7, // TODO: Use real verified field when added
+            isVerified: user.isVerified || false, // Real verification status from backend
             appearsInSearches: user.appearsInSearches !== false,
         };
     }
@@ -179,6 +189,13 @@ export class HomeService {
         this.loadUsersPage(1);
     }
 
+    setAdvancedFilters(filters: AdvancedFilters): void {
+        this.advancedFiltersSubject.next(filters);
+        // Reset to first page when advanced filters change
+        this.resetPagination();
+        this.loadUsersPage(1);
+    }
+
     private resetPagination(): void {
         this.usersSubject.next([]);
         this.paginationStateSubject.next({
@@ -211,14 +228,28 @@ export class HomeService {
         const currentFilter = this.filterSubject.value;
         const currentSort = this.sortSubject.value;
         const currentSearch = this.searchSubject.value;
+        const currentAdvancedFilters = this.advancedFiltersSubject.value;
         const limit = this.paginationStateSubject.value.limit;
 
         console.log(
-            `loadUsersPage called - Page: ${page}, Limit: ${limit}, Filter: ${currentFilter}, Sort: ${currentSort}, Search: ${currentSearch}`,
+            `loadUsersPage called - Page: ${page}, Limit: ${limit}, Filter: ${currentFilter}, Sort: ${currentSort}, Search: ${currentSearch}, Advanced: ${JSON.stringify(currentAdvancedFilters)}`,
         );
         return new Observable((observer) => {
+            // Use the generated API client with advanced filters
             this.userService
-                .getAll(page, limit, currentFilter, currentSort, currentSearch)
+                .getAll(
+                    page,
+                    limit,
+                    currentFilter,
+                    currentSort,
+                    currentSearch,
+                    currentAdvancedFilters.gender || "",
+                    currentAdvancedFilters.ageMin || 0,
+                    currentAdvancedFilters.ageMax || 0,
+                    currentAdvancedFilters.interests || "",
+                    currentAdvancedFilters.relationshipStatus || "",
+                    currentAdvancedFilters.verifiedOnly || false,
+                )
                 .subscribe({
                     next: (response: any) => {
                         console.log(

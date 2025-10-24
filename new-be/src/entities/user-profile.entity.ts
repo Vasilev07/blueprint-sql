@@ -49,6 +49,12 @@ export class UserProfile {
     @JoinColumn({ name: "profilePictureId" })
     profilePicture: UserPhoto;
 
+    @Column({ type: "date", nullable: true })
+    dateOfBirth: Date;
+
+    @Column({ type: "boolean", default: false })
+    isVerified: boolean;
+
     @CreateDateColumn()
     createdAt: Date;
 

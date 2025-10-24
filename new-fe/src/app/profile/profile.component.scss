@@ -1,3 +1,15 @@
+:host {
+  ::ng-deep {
+    .p-tabview-panels {
+      overflow: visible !important;
+    }
+    
+    .p-tabview-panel {
+      display: block !important;
+    }
+  }
+}
+
 .profile-container {
   min-height: 100vh;
   background: var(--surface-ground);
@@ -49,38 +61,24 @@
   }
 }
 
-.interests-list {
-  flex-direction: column;
-  align-items: flex-start !important;
-  
-  .interest-chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    width: 100%;
-  }
-  
-  ::ng-deep {
-    .interest-chip {
-      background: linear-gradient(135deg, var(--pink-500) 0%, var(--pink-600) 100%);
-      color: var(--surface-900);
-      font-size: 0.85rem;
-      padding: 0.4rem 0.8rem;
-      
-      .p-chip-text {
-        font-weight: 500;
-      }
-    }
-  }
+.user-avatar {
+  position: relative;
+  margin-left: 2rem;
 }
 
 .profile-avatar {
-  background: linear-gradient(45deg, var(--primary-color), var(--primary-600)) !important;
-  font-size: 2rem !important;
-  width: 120px !important;
-  height: 120px !important;
+  width: 120px;
+  height: 120px;
+  font-size: 3rem;
+  background: var(--primary-color);
+  color: white;
 }
 
+.avatar-upload {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+}
 
 .main-content {
   display: grid;
@@ -93,440 +91,41 @@
   border-radius: 12px;
   border: 1px solid var(--surface-border);
   overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-// Tab styling
-::ng-deep .p-tabview {
-  .p-tabview-nav {
-    background: transparent;
-    border: none;
-    
-    .p-tabview-nav-link {
-      background: transparent;
-      border: none;
-      color: var(--text-color-secondary);
-      padding: 1rem 1.5rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      
-      &:hover {
-        color: var(--text-color);
-        background: rgba(var(--primary-color-rgb), 0.1);
-      }
-      
-      &.p-highlight {
-        color: var(--primary-color);
-        border-bottom: 3px solid var(--primary-color);
-        background: transparent;
-      }
-    }
-  }
-  
-  .p-tabview-panels {
-    background: transparent;
-    padding: 2rem;
-  }
-}
-
-.photos-content {
-  .gallery-actions {
-    margin-bottom: 2rem;
-  }
-  
-  .create-gallery-btn {
-    background: var(--primary-color) !important;
-    border: none !important;
-    color: white !important;
-    padding: 0.75rem 1.5rem !important;
-    font-weight: 600 !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.5px !important;
-    border-radius: 8px !important;
-    
-    &:hover {
-      background: var(--primary-600) !important;
-      transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(var(--primary-color-rgb), 0.3);
-    }
-  }
-}
-
-.section-title {
-  color: var(--primary-color);
-  font-size: 0.9rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin: 2rem 0 1rem 0;
-}
-
-.empty-galleries {
-  color: var(--text-color-secondary);
-  font-style: italic;
-  margin-bottom: 2rem;
-}
-
-.viewing-message {
-  color: white;
-  font-size: 1.1rem;
-  font-weight: 500;
-  margin: 0;
-  text-align: center;
-}
-
-.profile-images-section {
-  .visibility-info {
-    margin-bottom: 1rem;
-    
-    .visibility-label {
-      background: rgba(var(--primary-color-rgb), 0.2);
-      color: var(--primary-color);
-      padding: 0.25rem 0.75rem;
-      border-radius: 20px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-  }
-}
-
-.profile-images-gallery {
-  .empty-gallery {
-    background: linear-gradient(135deg, var(--primary-color), var(--primary-600));
-    border-radius: 12px;
-    padding: 3rem;
-    text-align: center;
-    min-height: 300px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    
-    .empty-gallery-content {
-      .empty-icon {
-        font-size: 4rem;
-        color: white;
-        margin-bottom: 1rem;
-      }
-      
-      .empty-text {
-        color: white;
-        margin-bottom: 2rem;
-        font-size: 1.1rem;
-        line-height: 1.6;
-      }
-    }
-  }
-  
-  .photos-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 3px;
-    
-    // Instagram-like: 1 column on mobile
-    @media (max-width: 768px) {
-      grid-template-columns: 1fr;
-      gap: 2px;
-    }
-    
-    .photo-item {
-      position: relative;
-      aspect-ratio: 1;
-      overflow: hidden;
-      background: var(--surface-100);
-      cursor: pointer;
-      
-      .photo-image {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: all 0.3s ease;
-      }
-      
-      .photo-overlay {
-        position: absolute;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.4);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        opacity: 0;
-        transition: opacity 0.3s ease;
-        
-        .photo-stats {
-          display: flex;
-          align-items: center;
-          gap: 2rem;
-          color: white;
-          font-weight: 600;
-          font-size: 1.1rem;
-          
-          .stat-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            
-            i {
-              font-size: 1.5rem;
-            }
-          }
-        }
-        
-        .photo-actions {
-          position: absolute;
-          bottom: 1rem;
-          left: 1rem;
-          right: 1rem;
-          display: flex;
-          gap: 0.5rem;
-          opacity: 0;
-          transform: translateY(20px);
-          transition: all 0.3s ease;
-          
-          button {
-            flex: 1;
-            color: white !important;
-            border-color: white !important;
-            
-            &:hover {
-              background: rgba(255, 255, 255, 0.2) !important;
-            }
-          }
-        }
-        
-        .profile-pic-badge {
-          position: absolute;
-          top: 1rem;
-          right: 1rem;
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          background: rgba(255, 255, 255, 0.95);
-          padding: 0.5rem 1rem;
-          border-radius: 20px;
-          color: var(--primary-color);
-          font-weight: 600;
-          font-size: 0.85rem;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-          
-          i {
-            font-size: 1rem;
-          }
-        }
-      }
-      
-      &:hover {
-        .photo-image {
-          filter: brightness(0.9);
-        }
-        
-        .photo-overlay {
-          opacity: 1;
-          
-          .photo-actions {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-      }
-    }
-    
-    .add-photo-item {
-      aspect-ratio: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: 2px dashed var(--surface-border);
-      background: var(--surface-50);
-      transition: all 0.3s ease;
-      cursor: pointer;
-      
-      .add-photo-content {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 1rem;
-        color: var(--text-color-secondary);
-        
-        i {
-          font-size: 3rem;
-          color: var(--primary-color);
-        }
-        
-        span {
-          font-weight: 600;
-        }
-      }
-      
-      &:hover {
-        border-color: var(--primary-color);
-        background: rgba(var(--primary-color-rgb), 0.05);
-        
-        .add-photo-content i {
-          transform: scale(1.1);
-        }
-      }
-    }
-  }
-}
-
-// File upload styling
-::ng-deep .upload-button {
-  .p-button {
-    background: var(--surface-card) !important;
-    color: var(--primary-color) !important;
-    border: 1px solid var(--primary-color) !important;
-    padding: 0.75rem 1.5rem !important;
-    font-weight: 600 !important;
-    border-radius: 8px !important;
-    
-    &:hover {
-      background: rgba(var(--primary-color-rgb), 0.1) !important;
-      transform: translateY(-2px);
-    }
-  }
-}
-
-::ng-deep .add-photo-button {
-  .p-button {
-    background: transparent !important;
-    color: var(--primary-color) !important;
-    border: 2px solid var(--primary-color) !important;
-    width: 60px !important;
-    height: 60px !important;
-    border-radius: 50% !important;
-    font-size: 1.5rem !important;
-    
-    &:hover {
-      background: var(--primary-color) !important;
-      color: white !important;
-    }
-  }
-}
-
-// Right Sidebar
 .right-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.sidebar-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.sidebar-section {
   background: var(--surface-card);
   border-radius: 12px;
   border: 1px solid var(--surface-border);
   padding: 1.5rem;
-  height: fit-content;
 }
 
-.sidebar-content {
-  .sidebar-section {
-    margin-bottom: 2rem;
-    
-    &:last-child {
-      margin-bottom: 0;
-    }
-    
-    .section-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1rem;
-      
-      h4 {
-        color: var(--primary-color);
-        font-size: 0.9rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        margin: 0;
-      }
-      
-      i {
-        color: var(--primary-color);
-        margin-right: 0.5rem;
-      }
-      
-      span {
-        color: var(--text-color);
-        font-weight: 600;
-      }
-    }
-  }
-}
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
 
-.friends-list {
-  .friend-item {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem;
-    border-bottom: 1px solid var(--surface-border);
-    border-radius: 8px;
-    transition: background 0.2s ease;
-    
-    &:hover {
-      background: var(--surface-100);
-      
-      .chat-button {
-        opacity: 1;
-      }
-    }
-    
-    &:last-child {
-      border-bottom: none;
-    }
-    
-    .friend-avatar-container {
-      position: relative;
-      
-      .online-status {
-        position: absolute;
-        bottom: 0;
-        right: 0;
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        background: var(--surface-400);
-        border: 2px solid var(--surface-ground);
-        
-        &.online {
-          background: var(--green-500);
-          box-shadow: 0 0 8px rgba(var(--green-500-rgb), 0.5);
-        }
-      }
-    }
-    
-    .friend-info {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 0.25rem;
-      
-      .friend-name {
-        color: var(--text-color);
-        font-weight: 500;
-        font-size: 0.95rem;
-      }
-      
-      .friend-status {
-        color: var(--green-500);
-        font-size: 0.75rem;
-        font-weight: 500;
-      }
-    }
-    
-    .chat-button {
-      color: var(--primary-color) !important;
-      opacity: 0;
-      transition: opacity 0.2s ease;
-      
-      &:hover {
-        background: rgba(var(--primary-color-rgb), 0.1) !important;
-      }
-    }
-  }
-  
-  .no-friends {
+  h4 {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 600;
     color: var(--text-color-secondary);
-    font-style: italic;
-    text-align: center;
-    padding: 1rem 0;
+    letter-spacing: 0.5px;
   }
 }
 
@@ -534,26 +133,304 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.75rem;
-  background: var(--surface-100);
-  border-radius: 8px;
-  
+  color: var(--text-color);
+  font-size: 0.9rem;
+
   i {
     color: var(--primary-color);
-    font-size: 1.1rem;
-  }
-  
-  span {
-    color: var(--text-color);
-    font-weight: 500;
+    font-size: 1rem;
   }
 }
 
-.add-friend-btn {
-  color: var(--primary-color) !important;
+.interests-list {
+  .interest-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .interest-chip {
+    background: var(--primary-50);
+    color: var(--primary-700);
+    border: 1px solid var(--primary-200);
+  }
+}
+
+.friends-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.friend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: var(--surface-50);
+  border-radius: 8px;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background: var(--surface-100);
+  }
+}
+
+.friend-avatar-container {
+  position: relative;
+}
+
+.friend-avatar {
+  width: 40px;
+  height: 40px;
+  font-size: 1rem;
+  background: var(--primary-color);
+  color: white;
+}
+
+.online-status {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--surface-300);
+  border: 2px solid var(--surface-card);
+
+  &.online {
+    background: var(--green-500);
+  }
+}
+
+.friend-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.friend-name {
+  font-weight: 500;
+  color: var(--text-color);
+  font-size: 0.9rem;
+}
+
+.friend-status {
+  font-size: 0.8rem;
+  color: var(--green-600);
+}
+
+.chat-button {
+  color: var(--primary-color);
+}
+
+.no-friends {
+  text-align: center;
+  color: var(--text-color-secondary);
+  font-size: 0.9rem;
+  padding: 1rem;
+}
+
+// Photos section
+.photos-content {
+  padding: 2rem;
+  width: 100%;
+  box-sizing: border-box;
+  
+  // Override any PrimeNG TabView styles that might interfere
+  ::ng-deep {
+    .p-tabview-panel {
+      display: block !important;
+    }
+  }
+}
+
+.profile-images-section {
+  width: 100%;
+  box-sizing: border-box;
+  
+  .section-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-color-secondary);
+    letter-spacing: 0.5px;
+    margin: 0 0 0.5rem 0;
+  }
+
+  .visibility-info {
+    margin-bottom: 1.5rem;
+
+    .visibility-label {
+      font-size: 0.8rem;
+      color: var(--green-600);
+      background: var(--green-50);
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      border: 1px solid var(--green-200);
+    }
+  }
+}
+
+.empty-gallery {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+  background: var(--surface-50);
+  border-radius: 12px;
+  border: 2px dashed var(--surface-border);
+}
+
+.empty-gallery-content {
+  text-align: center;
+  max-width: 300px;
+
+  .empty-icon {
+    font-size: 3rem;
+    color: var(--text-color-secondary);
+    margin-bottom: 1rem;
+  }
+
+  .empty-text {
+    color: var(--text-color-secondary);
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+  }
+
+  .viewing-message {
+    color: var(--text-color-secondary);
+    font-style: italic;
+  }
+}
+
+.photos-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important;
+  gap: 1rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.photo-item {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.2s;
+  width: 100%;
+  height: auto;
+  display: block !important;
+
+  &:hover {
+    transform: scale(1.02);
+
+    .photo-overlay {
+      opacity: 1;
+    }
+  }
+}
+
+.photo-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photo-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.1) 0%,
+    rgba(0, 0, 0, 0.3) 50%,
+    rgba(0, 0, 0, 0.7) 100%
+  );
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1rem;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.photo-stats {
+  display: flex;
+  gap: 1rem;
+  align-self: flex-start;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 500;
+
+  i {
+    font-size: 1rem;
+  }
+}
+
+.profile-pic-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--green-300);
+  font-size: 0.8rem;
+  font-weight: 500;
+  align-self: flex-start;
+
+  i {
+    font-size: 0.9rem;
+  }
+}
+
+.photo-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-self: flex-end;
+}
+
+.add-photo-item {
+  aspect-ratio: 1;
+  border: 2px dashed var(--surface-border);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--surface-50);
+  width: 100%;
+  height: auto;
+  box-sizing: border-box;
   
   &:hover {
-    background: rgba(var(--primary-color-rgb), 0.1) !important;
+    border-color: var(--primary-color);
+    background: var(--primary-50);
+  }
+}
+
+.add-photo-content {
+  text-align: center;
+  color: var(--text-color-secondary);
+
+  i {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    display: block;
+  }
+
+  span {
+    font-size: 0.9rem;
+    font-weight: 500;
   }
 }
 
@@ -564,9 +441,14 @@
 
     label {
       display: block;
-      color: var(--text-color);
-      font-weight: 600;
       margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: var(--text-color);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
     }
   }
 
@@ -576,19 +458,12 @@
       flex-wrap: wrap;
       gap: 0.5rem;
       margin-bottom: 0.75rem;
+    }
 
-      ::ng-deep .custom-chip {
-        background: var(--pink-500);
-        color: white;
-
-        .p-chip-remove-icon {
-          color: white;
-          
-          &:hover {
-            color: var(--pink-100);
-          }
-        }
-      }
+    .custom-chip {
+      background: var(--primary-50);
+      color: var(--primary-700);
+      border: 1px solid var(--primary-200);
     }
   }
 
@@ -598,35 +473,75 @@
       justify-content: space-between;
       align-items: center;
       padding: 1rem;
-      background: var(--surface-card);
+      background: var(--surface-50);
       border-radius: 8px;
       border: 1px solid var(--surface-border);
 
-      strong {
-        display: block;
-        margin-bottom: 0.25rem;
-      }
-
       .privacy-description {
-        margin: 0;
-        font-size: 0.875rem;
+        margin: 0.25rem 0 0 0;
+        font-size: 0.8rem;
         color: var(--text-color-secondary);
       }
     }
   }
 }
 
-// Loading spinner
+// Photo dialog styles
+.photo-dialog {
+  .dialog-header {
+    font-weight: 600;
+    color: var(--text-color);
+  }
+}
+
+.photo-dialog-content {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 2rem;
+  max-height: 70vh;
+}
+
+.photo-display {
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 8px;
+  }
+}
+
+.photo-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.photo-actions-bar {
+  display: flex;
+  gap: 1rem;
+}
+
+.like-button {
+  &.liked {
+    color: var(--red-500);
+  }
+}
+
+.photo-metadata {
+  p {
+    margin: 0.5rem 0;
+    color: var(--text-color-secondary);
+    font-size: 0.9rem;
+  }
+}
+
+// Loading and utility styles
 .loading-spinner {
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  z-index: 1000;
-}
-
-::ng-deep .p-progress-spinner-circle {
-  stroke: var(--primary-color) !important;
+  z-index: 9999;
 }
 
 // Responsive design
@@ -637,234 +552,137 @@
 
   .main-content {
     grid-template-columns: 1fr;
-    gap: 1rem;
   }
-  
-  .right-sidebar {
-    order: -1;
-    margin-bottom: 1rem;
-  }
-  
+
   .profile-header {
     flex-direction: column;
     text-align: center;
     gap: 1rem;
-    padding: 1rem;
+
+    .user-avatar {
+      margin-left: 0;
+    }
   }
 
-  .user-info {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
+  .user-name {
+    font-size: 2rem;
   }
 
   .user-details {
-    display: flex;
-    flex-direction: row;
     justify-content: center;
-    gap: 1rem;
-    flex-wrap: wrap;
   }
-  
+
+  .photo-dialog-content {
+    grid-template-columns: 1fr;
+  }
+
+  .photos-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .photos-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)) !important;
+  }
+
   .user-name {
     font-size: 1.5rem;
   }
 
-  .user-location,
-  .user-gender {
-    font-size: 0.85rem;
+  .user-details {
+    flex-direction: column;
+    gap: 0.5rem;
   }
+}
 
-  .user-avatar {
-    .avatar-wrapper {
-      padding: 4px;
-      
-      &::before {
-        top: -3px;
-        left: -3px;
-        right: -3px;
-        bottom: -3px;
-        filter: blur(10px);
-      }
-    }
-    
-    .profile-avatar {
-      width: 100px !important;
-      height: 100px !important;
-      font-size: 1.5rem !important;
-      border-width: 3px !important;
-    }
-    
-    .avatar-upload {
-      ::ng-deep .p-button {
-        font-size: 0.8rem !important;
-        padding: 0.4rem 0.8rem !important;
-      }
-    }
-  }
+// Verification styles
+.verification-content {
+  padding: 1rem 0;
+}
+
+.verification-section {
+  padding: 1rem 0;
   
-  .photos-grid {
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)) !important;
-    gap: 0.5rem !important;
-  }
-
-  ::ng-deep .p-tabview {
-    .p-tabview-nav-link {
-      padding: 0.75rem 1rem;
-      font-size: 0.85rem;
-    }
-
-    .p-tabview-panels {
-      padding: 1rem;
-    }
-  }
-
-  .section-title {
-    font-size: 0.8rem;
-  }
-
-  .friend-item {
-    padding: 0.5rem;
-    
-    .friend-name {
-      font-size: 0.9rem;
-    }
-
-    .chat-button {
-      opacity: 1; // Always show on mobile
-    }
-  }
-
-  .sidebar-section {
-    margin-bottom: 1.5rem;
-  }
-
-  .info-content {
-    padding: 0.5rem;
+  .verification-description {
+    color: var(--text-color-secondary);
+    margin-bottom: 1rem;
     font-size: 0.9rem;
   }
+}
 
-  ::ng-deep .p-dialog {
-    width: 95vw !important;
-    max-width: 400px !important;
-
-    .p-dialog-content {
-      padding: 1rem !important;
-    }
-
-    .edit-form {
-      .field {
-        margin-bottom: 1rem;
-
-        label {
-          font-size: 0.9rem;
-        }
-
-        input, .p-dropdown {
-          font-size: 0.9rem;
-        }
-      }
-    }
+.verification-status {
+  margin-bottom: 2rem;
+  
+  h4 {
+    margin-bottom: 1rem;
+    color: var(--text-color);
   }
 }
 
-// Extra small devices
-@media (max-width: 480px) {
-  .profile-container {
-    padding: 0.5rem;
+.rejection-reason {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: var(--red-50);
+  border: 1px solid var(--red-200);
+  border-radius: 8px;
+  
+  strong {
+    color: var(--red-700);
   }
-
-  .profile-header {
-    padding: 0.75rem;
-  }
-
-  .user-name {
-    font-size: 1.25rem;
-  }
-
-  ::ng-deep .p-tabview {
-    .p-tabview-nav-link {
-      padding: 0.5rem 0.75rem;
-      font-size: 0.75rem;
-    }
-  }
-
-  .photos-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
+  
+  p {
+    margin: 0.5rem 0 0 0;
+    color: var(--red-600);
   }
 }
 
-// Photo Detail Dialog
-::ng-deep .photo-dialog {
-  .p-dialog-content {
-    padding: 0 !important;
+.verification-upload {
+  h4 {
+    margin-bottom: 1rem;
+    color: var(--text-color);
+  }
+  
+  .verification-description {
+    color: var(--text-color-secondary);
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
   }
 }
 
-.photo-dialog-content {
-  display: flex;
-  gap: 2rem;
-  padding: 1.5rem;
-  
-  @media (max-width: 768px) {
-    flex-direction: column;
-  }
-  
-  .photo-display {
-    flex: 1;
-    max-width: 600px;
-    
-    img {
-      width: 100%;
-      height: auto;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-  }
-  
-  .photo-info {
-    flex: 0 0 250px;
+.upload-section {
+  .selected-file {
     display: flex;
-    flex-direction: column;
-    gap: 1rem;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    background: var(--surface-100);
+    border: 1px solid var(--surface-border);
+    border-radius: 8px;
+    margin: 1rem 0;
     
-    @media (max-width: 768px) {
+    i {
+      color: var(--primary-color);
+    }
+    
+    span {
       flex: 1;
+      font-size: 0.9rem;
     }
-    
-    .photo-actions-bar {
-      display: flex;
-      gap: 1rem;
-      
-      .like-button {
-        font-size: 1.2rem;
-        color: var(--text-color) !important;
-        
-        &.liked {
-          color: #e91e63 !important;
-          
-          i {
-            color: #e91e63 !important;
-          }
-        }
-        
-        i {
-          font-size: 1.5rem;
-        }
-      }
-    }
-    
-    .photo-metadata {
-      p {
-        margin: 0.5rem 0;
-        color: var(--text-color-secondary);
-        
-        strong {
-          color: var(--text-color);
-          margin-right: 0.5rem;
-        }
-      }
-    }
+  }
+}
+
+.verified-status {
+  text-align: center;
+  padding: 2rem;
+  
+  h4 {
+    margin: 1rem 0 0.5rem 0;
+    color: var(--green-700);
+  }
+  
+  p {
+    color: var(--text-color-secondary);
+    margin: 0;
   }
 }

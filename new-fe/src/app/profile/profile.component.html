@@ -64,31 +64,32 @@
                 <span class="visibility-label">Public</span>
               </div>
 
-              <div class="profile-images-gallery">
-                <div *ngIf="userPhotos.length === 0" class="empty-gallery">
-                  <div class="empty-gallery-content">
-                    <i class="pi pi-camera empty-icon"></i>
-                    <p class="empty-text">
-                      This gallery is still empty. This gallery is only visible to you since it is empty.
-                    </p>
-                    <p-fileUpload
-                      *ngIf="isOwnProfile"
-                      mode="basic"
-                      name="photo"
-                      accept="image/*"
-                      maxFileSize="10000000"
-                      (onUpload)="onPhotoUpload($event)"
-                      (onSelect)="onPhotoUpload($event)"
-                      chooseLabel="Choose Photo"
-                      styleClass="upload-button">
-                    </p-fileUpload>
-                    <p *ngIf="!isOwnProfile" class="viewing-message">
-                      You are viewing {{ currentUser?.fullName }}'s profile
-                    </p>
-                  </div>
+              <!-- Empty State -->
+              <div *ngIf="userPhotos.length === 0" class="empty-gallery">
+                <div class="empty-gallery-content">
+                  <i class="pi pi-camera empty-icon"></i>
+                  <p class="empty-text">
+                    This gallery is still empty. This gallery is only visible to you since it is empty.
+                  </p>
+                  <p-fileUpload
+                    *ngIf="isOwnProfile"
+                    mode="basic"
+                    name="photo"
+                    accept="image/*"
+                    maxFileSize="10000000"
+                    (onUpload)="onPhotoUpload($event)"
+                    (onSelect)="onPhotoUpload($event)"
+                    chooseLabel="Choose Photo"
+                    styleClass="upload-button">
+                  </p-fileUpload>
+                  <p *ngIf="!isOwnProfile" class="viewing-message">
+                    You are viewing {{ currentUser?.fullName }}'s profile
+                  </p>
                 </div>
+              </div>
 
-                <div *ngIf="userPhotos.length > 0" class="photos-grid">
+              <!-- Photos Grid -->
+              <div *ngIf="userPhotos.length > 0" class="photos-grid">
                   <div *ngFor="let photo of userPhotos" class="photo-item" (click)="openPhotoDialog(photo)">
                     <img
                       [src]="getPhotoUrl(photo.id!)"
@@ -146,7 +147,6 @@
                     </div>
                   </div>
                 </div>
-              </div>
             </div>
           </div>
         </p-tabPanel>
@@ -342,11 +342,14 @@
   [(visible)]="showEditDialog"
   header="Edit Profile"
   [modal]="true"
-  [style]="{ width: '650px', maxWidth: '90vw' }"
+  [style]="{ width: '750px', maxWidth: '90vw' }"
   [draggable]="false"
   [resizable]="false">
   
   <div class="edit-form">
+    <p-tabView>
+      <!-- Bio Tab -->
+      <p-tabPanel header="Bio">
     <div class="field">
       <label for="bio">Bio</label>
       <textarea
@@ -406,6 +409,19 @@
     </div>
 
     <div class="field">
+      <label for="dateOfBirth">Date of Birth</label>
+      <p-calendar
+        id="dateOfBirth"
+        [(ngModel)]="editForm.dateOfBirth"
+        [showIcon]="true"
+        [maxDate]="maxDate"
+        dateFormat="mm/dd/yy"
+        placeholder="Select your date of birth"
+        [style]="{ width: '100%' }">
+      </p-calendar>
+    </div>
+
+    <div class="field">
       <label>Privacy</label>
       <div class="privacy-setting">
         <div class="privacy-item">
@@ -417,6 +433,69 @@
         </div>
       </div>
     </div>
+
+    <!-- Verification Section -->
+    <div class="field">
+      <label>Verification</label>
+      <div class="verification-section">
+        <div class="verification-status" *ngIf="verificationStatus">
+          <p-message 
+            [severity]="getVerificationStatusSeverity()"
+            [text]="getVerificationStatusText()">
+          </p-message>
+          
+          <div *ngIf="verificationStatus.verificationRequest?.rejectionReason" class="rejection-reason">
+            <strong>Rejection Reason:</strong>
+            <p>{{ verificationStatus.verificationRequest.rejectionReason }}</p>
+          </div>
+        </div>
+
+        <div class="verification-upload" *ngIf="!verificationStatus?.isVerified && !isVerificationPending()">
+          <p class="verification-description">
+            Upload a clear photo of your ID document or a selfie for verification.
+          </p>
+          
+          <div class="upload-section">
+            <p-fileUpload
+              mode="basic"
+              name="verificationPhoto"
+              accept="image/*"
+              maxFileSize="10000000"
+              (onSelect)="onVerificationPhotoSelect($event)"
+              chooseLabel="Choose Verification Photo"
+              styleClass="p-button-outlined">
+            </p-fileUpload>
+            
+            <div *ngIf="verificationPhoto" class="selected-file">
+              <i class="pi pi-file-image"></i>
+              <span>{{ verificationPhoto.name }}</span>
+              <p-button
+                icon="pi pi-times"
+                styleClass="p-button-text p-button-sm"
+                (onClick)="verificationPhoto = null">
+              </p-button>
+            </div>
+            
+            <p-button
+              *ngIf="verificationPhoto"
+              label="Upload Verification Photo"
+              icon="pi pi-upload"
+              (onClick)="uploadVerificationPhoto()"
+              [loading]="isVerificationUploading"
+              styleClass="p-button-success">
+            </p-button>
+          </div>
+        </div>
+
+        <div *ngIf="verificationStatus?.isVerified" class="verified-status">
+          <i class="pi pi-check-circle" style="color: green; font-size: 1.5rem;"></i>
+          <span style="color: green; font-weight: 500;">Account Verified</span>
+        </div>
+      </div>
+    </div>
+      </p-tabPanel>
+
+    </p-tabView>
   </div>
 
   <ng-template pTemplate="footer">

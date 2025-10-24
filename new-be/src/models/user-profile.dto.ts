@@ -26,6 +26,12 @@ export class UserProfileDTO {
     profilePictureId?: number;
 
     @ApiPropertyOptional()
+    dateOfBirth?: Date;
+
+    @ApiPropertyOptional()
+    isVerified?: boolean;
+
+    @ApiPropertyOptional()
     createdAt?: Date;
 
     @ApiPropertyOptional()
@@ -47,5 +53,8 @@ export class UpdateUserProfileDTO {
 
     @ApiPropertyOptional()
     appearsInSearches?: boolean;
+
+    @ApiPropertyOptional()
+    dateOfBirth?: Date;
 }
 

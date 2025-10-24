@@ -19,6 +19,8 @@ import { ChipModule } from "primeng/chip";
 import { TooltipModule } from "primeng/tooltip";
 import { DividerModule } from "primeng/divider";
 import { ConfirmDialogModule } from "primeng/confirmdialog";
+import { CalendarModule } from "primeng/calendar";
+import { MessageModule } from "primeng/message";
 import { MessageService, ConfirmationService } from "primeng/api";
 import { ToastModule } from "primeng/toast";
 import {
@@ -49,6 +51,8 @@ import {
         ToastModule,
         DividerModule,
         ConfirmDialogModule,
+        CalendarModule,
+        MessageModule,
     ],
     providers: [
         MessageService,

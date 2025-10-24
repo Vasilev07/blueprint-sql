@@ -3,6 +3,7 @@ import { Subject, takeUntil } from "rxjs";
 import { MessageService, ConfirmationService } from "primeng/api";
 import { Router, ActivatedRoute } from "@angular/router";
 import { OnlineStatusService } from "../services/online-status.service";
+import { WebsocketService } from "../services/websocket.service";
 import {
     UserDTO,
     FriendDTO,
@@ -40,6 +41,14 @@ export class ProfileComponent implements OnInit, OnDestroy {
     viewingUserId: number | null = null;
     newInterest: string = "";
 
+    // Verification properties
+    verificationStatus: any = null;
+    isVerificationUploading = false;
+    verificationPhoto: File | null = null;
+    
+    // Date properties
+    maxDate = new Date();
+
     genderOptions = [
         { label: "Male", value: "male" },
         { label: "Female", value: "female" },
@@ -54,36 +63,40 @@ export class ProfileComponent implements OnInit, OnDestroy {
         private router: Router,
         private route: ActivatedRoute,
         public onlineStatusService: OnlineStatusService,
+        private websocketService: WebsocketService,
     ) {}
 
     ngOnInit(): void {
         // Check if viewing another user's profile or own profile
-        this.route.paramMap.pipe(takeUntil(this.destroy$)).subscribe((params) => {
-            const userId = params.get('userId');
-            if (userId) {
-                this.viewingUserId = parseInt(userId, 10);
-                this.isOwnProfile = false;
-                this.loadOtherUserProfile(this.viewingUserId);
-            } else {
-                this.isOwnProfile = true;
-                this.viewingUserId = null;
-                this.loadCurrentUser();
-                this.loadUserProfile();
-                this.loadUserPhotos();
-                this.loadFriends();
-                this.loadProfilePicture();
-            }
-        });
+        this.route.paramMap
+            .pipe(takeUntil(this.destroy$))
+            .subscribe((params) => {
+                const userId = params.get("userId");
+                if (userId) {
+                    this.viewingUserId = parseInt(userId, 10);
+                    this.isOwnProfile = false;
+                    this.loadOtherUserProfile(this.viewingUserId);
+                } else {
+                    this.isOwnProfile = true;
+                    this.viewingUserId = null;
+                    this.loadCurrentUser();
+                    this.loadUserProfile();
+                    this.loadUserPhotos();
+                    this.loadFriends();
+                    this.loadProfilePicture();
+                    this.setupVerificationNotifications();
+                }
+            });
     }
 
     ngOnDestroy(): void {
         this.destroy$.next();
         this.destroy$.complete();
-        
+
         // Revoke all blob URLs to free memory
-        this.photoBlobUrls.forEach(url => URL.revokeObjectURL(url));
+        this.photoBlobUrls.forEach((url) => URL.revokeObjectURL(url));
         this.photoBlobUrls.clear();
-        
+
         if (this.profilePictureBlobUrl) {
             URL.revokeObjectURL(this.profilePictureBlobUrl);
         }
@@ -132,14 +145,14 @@ export class ProfileComponent implements OnInit, OnDestroy {
             .subscribe({
                 next: (photos) => {
                     this.userPhotos = photos;
-                    
+
                     // Load blob URLs for all photos
-                    photos.forEach(photo => {
+                    photos.forEach((photo) => {
                         if (photo.id) {
                             this.loadPhotoBlobUrl(photo.id);
                         }
                     });
-                    
+
                     this.isLoading = false;
                 },
                 error: (error) => {
@@ -155,7 +168,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
 
     private loadPhotoBlobUrl(photoId: number): void {
-        this.userService.getPhoto(photoId, 'response').subscribe({
+        this.userService.getPhoto(photoId, "response").subscribe({
             next: (response: any) => {
                 const blob = response.body as Blob;
                 const blobUrl = URL.createObjectURL(blob);
@@ -163,7 +176,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
             },
             error: (error) => {
                 console.error(`Error loading photo ${photoId}:`, error);
-            }
+            },
         });
     }
 
@@ -202,12 +215,12 @@ export class ProfileComponent implements OnInit, OnDestroy {
             .subscribe({
                 next: (photo) => {
                     this.userPhotos.unshift(photo);
-                    
+
                     // Load blob URL for the newly uploaded photo
                     if (photo.id) {
                         this.loadPhotoBlobUrl(photo.id);
                     }
-                    
+
                     this.isUploading = false;
                     this.messageService.add({
                         severity: "success",
@@ -228,7 +241,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
 
     getPhotoUrl(photoId: number): string {
-        return this.photoBlobUrls.get(photoId) || '';
+        return this.photoBlobUrls.get(photoId) || "";
     }
 
     getUserInitials(): string {
@@ -270,8 +283,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
             location: this.userProfile?.location || "",
             interests: [...(this.userProfile?.interests || [])],
             appearsInSearches: this.userProfile?.appearsInSearches !== false,
+            dateOfBirth: this.userProfile?.dateOfBirth ? new Date(this.userProfile.dateOfBirth) : null,
         };
         this.showEditDialog = true;
+        this.loadVerificationStatus();
     }
 
     saveProfile(): void {
@@ -299,6 +314,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
                         location: this.editForm.location,
                         interests: this.editForm.interests,
                         appearsInSearches: this.editForm.appearsInSearches,
+                        dateOfBirth: this.editForm.dateOfBirth,
                     };
 
                     this.userService
@@ -317,7 +333,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
                                 });
                             },
                             error: (error: any) => {
-                                console.error("Error updating user profile:", error);
+                                console.error(
+                                    "Error updating user profile:",
+                                    error,
+                                );
                                 this.messageService.add({
                                     severity: "error",
                                     summary: "Error",
@@ -352,7 +371,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     removeInterest(interest: string): void {
         if (this.editForm.interests) {
             this.editForm.interests = this.editForm.interests.filter(
-                (i: string) => i !== interest
+                (i: string) => i !== interest,
             );
         }
     }
@@ -376,7 +395,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
     loadProfilePicture(): void {
         // @ts-ignore - getProfilePicture will be available after regeneration
-        this.userService.getProfilePicture('response')
+        this.userService
+            .getProfilePicture("response")
             .pipe(takeUntil(this.destroy$))
             .subscribe({
                 next: (response: any) => {
@@ -391,7 +411,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
                     if (error.status !== 404) {
                         console.error("Error loading profile picture:", error);
                     }
-                }
+                },
             });
     }
 
@@ -411,7 +431,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
         this.isUploading = true;
 
         // @ts-ignore - uploadProfilePicture will be available after regeneration
-        this.userService.uploadProfilePicture(file)
+        this.userService
+            .uploadProfilePicture(file)
             .pipe(takeUntil(this.destroy$))
             .subscribe({
                 next: (user: UserDTO) => {
@@ -447,7 +468,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
         }
 
         // @ts-ignore - setProfilePicture will be available after regeneration
-        this.userService.setProfilePicture(photoId)
+        this.userService
+            .setProfilePicture(photoId)
             .pipe(takeUntil(this.destroy$))
             .subscribe({
                 next: (user: UserDTO) => {
@@ -471,7 +493,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
 
     getProfilePictureUrl(): string {
-        return this.profilePictureBlobUrl || '';
+        return this.profilePictureBlobUrl || "";
     }
 
     hasProfilePicture(): boolean {
@@ -482,7 +504,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
         this.isLoading = true;
 
         // @ts-ignore - getUserById will return { user, profile }
-        this.userService.getUserById(userId)
+        this.userService
+            .getUserById(userId)
             .pipe(takeUntil(this.destroy$))
             .subscribe({
                 next: (response: any) => {
@@ -502,20 +525,21 @@ export class ProfileComponent implements OnInit, OnDestroy {
                     });
                     this.isLoading = false;
                     this.router.navigate(["/profile"]);
-                }
+                },
             });
     }
 
     loadOtherUserPhotos(userId: number): void {
         // @ts-ignore - getUserPhotosByUserId will be available after regeneration
-        this.userService.getUserPhotosByUserId(userId)
+        this.userService
+            .getUserPhotosByUserId(userId)
             .pipe(takeUntil(this.destroy$))
             .subscribe({
                 next: (photos: UserPhotoDTO[]) => {
                     this.userPhotos = photos;
-                    
+
                     // Load blob URLs for all photos
-                    photos.forEach(photo => {
+                    photos.forEach((photo) => {
                         if (photo.id) {
                             this.loadPhotoBlobUrl(photo.id);
                         }
@@ -528,16 +552,17 @@ export class ProfileComponent implements OnInit, OnDestroy {
                             severity: "warn",
                             summary: "Access Denied",
                             detail: "You must be friends to view this user's photos",
-                            life: 5000
+                            life: 5000,
                         });
                     }
-                }
+                },
             });
     }
 
     loadOtherUserProfilePicture(userId: number): void {
         // @ts-ignore - getProfilePictureByUserId will be available after regeneration
-        this.userService.getProfilePictureByUserId(userId, 'response')
+        this.userService
+            .getProfilePictureByUserId(userId, "response")
             .pipe(takeUntil(this.destroy$))
             .subscribe({
                 next: (response: any) => {
@@ -552,7 +577,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
                     if (error.status !== 404) {
                         console.error("Error loading profile picture:", error);
                     }
-                }
+                },
             });
     }
 
@@ -571,13 +596,13 @@ export class ProfileComponent implements OnInit, OnDestroy {
                     photo.isLikedByCurrentUser = false;
                 },
                 error: (error) => {
-                    console.error('Error unliking photo:', error);
+                    console.error("Error unliking photo:", error);
                     this.messageService.add({
-                        severity: 'error',
-                        summary: 'Error',
-                        detail: 'Failed to unlike photo'
+                        severity: "error",
+                        summary: "Error",
+                        detail: "Failed to unlike photo",
                     });
-                }
+                },
             });
         } else {
             this.userService.likePhoto(photo.id).subscribe({
@@ -586,43 +611,165 @@ export class ProfileComponent implements OnInit, OnDestroy {
                     photo.isLikedByCurrentUser = true;
                 },
                 error: (error) => {
-                    console.error('Error liking photo:', error);
+                    console.error("Error liking photo:", error);
                     this.messageService.add({
-                        severity: 'error',
-                        summary: 'Error',
-                        detail: 'Failed to like photo'
+                        severity: "error",
+                        summary: "Error",
+                        detail: "Failed to like photo",
                     });
-                }
+                },
             });
         }
     }
 
     deletePhoto(photoId: number): void {
         this.confirmationService.confirm({
-            message: 'Are you sure you want to delete this photo?',
-            header: 'Confirm Delete',
-            icon: 'pi pi-exclamation-triangle',
+            message: "Are you sure you want to delete this photo?",
+            header: "Confirm Delete",
+            icon: "pi pi-exclamation-triangle",
             accept: () => {
                 this.userService.deletePhoto(photoId).subscribe({
                     next: () => {
-                        this.userPhotos = this.userPhotos.filter(p => p.id !== photoId);
+                        this.userPhotos = this.userPhotos.filter(
+                            (p) => p.id !== photoId,
+                        );
                         this.messageService.add({
-                            severity: 'success',
-                            summary: 'Deleted',
-                            detail: 'Photo deleted successfully'
+                            severity: "success",
+                            summary: "Deleted",
+                            detail: "Photo deleted successfully",
                         });
                         this.loadCurrentUser();
                     },
                     error: (error) => {
-                        console.error('Error deleting photo:', error);
+                        console.error("Error deleting photo:", error);
                         this.messageService.add({
-                            severity: 'error',
-                            summary: 'Error',
-                            detail: 'Failed to delete photo'
+                            severity: "error",
+                            summary: "Error",
+                            detail: "Failed to delete photo",
                         });
-                    }
+                    },
                 });
-            }
+            },
         });
+    }
+
+    // Verification methods
+    loadVerificationStatus(): void {
+        this.userService.getVerificationStatus().subscribe({
+            next: (status) => {
+                this.verificationStatus = status;
+            },
+            error: (error) => {
+                console.error("Error loading verification status:", error);
+            },
+        });
+    }
+
+    onVerificationPhotoSelect(event: any): void {
+        const file = event.files[0];
+        if (file) {
+            this.verificationPhoto = file;
+        }
+    }
+
+    uploadVerificationPhoto(): void {
+        if (!this.verificationPhoto) {
+            this.messageService.add({
+                severity: "warn",
+                summary: "No File",
+                detail: "Please select a verification photo first",
+            });
+            return;
+        }
+
+        this.isVerificationUploading = true;
+
+        this.userService
+            .uploadVerificationPhoto(this.verificationPhoto)
+            .subscribe({
+                next: (response) => {
+                    this.messageService.add({
+                        severity: "success",
+                        summary: "Success",
+                        detail: "Verification photo uploaded successfully!",
+                    });
+                    this.verificationPhoto = null;
+                    this.loadVerificationStatus();
+                },
+                error: (error) => {
+                    console.error("Error uploading verification photo:", error);
+                    this.messageService.add({
+                        severity: "error",
+                        summary: "Error",
+                        detail: "Failed to upload verification photo",
+                    });
+                },
+                complete: () => {
+                    this.isVerificationUploading = false;
+                },
+            });
+    }
+
+    getVerificationStatusText(): string {
+        if (!this.verificationStatus) return "Not submitted";
+
+        switch (this.verificationStatus.verificationRequest?.status) {
+            case "pending":
+                return "Pending Review";
+            case "in_review":
+                return "Under Review";
+            case "verified":
+                return "Verified ✓";
+            case "rejected":
+                return "Rejected";
+            default:
+                return "Not submitted";
+        }
+    }
+
+    getVerificationStatusSeverity(): string {
+        if (!this.verificationStatus) return "info";
+
+        switch (this.verificationStatus.verificationRequest?.status) {
+            case "pending":
+                return "warn";
+            case "in_review":
+                return "info";
+            case "verified":
+                return "success";
+            case "rejected":
+                return "error";
+            default:
+                return "info";
+        }
+    }
+
+    isVerificationPending(): boolean {
+        return this.verificationStatus?.verificationRequest?.status === "pending" || 
+               this.verificationStatus?.verificationRequest?.status === "in_review";
+    }
+
+    private setupVerificationNotifications(): void {
+        this.websocketService.onVerificationStatusChange()
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+                next: (notification) => {
+                    console.log('Verification status changed:', notification);
+                    
+                    // Show notification to user
+                    this.messageService.add({
+                        severity: notification.status === 'verified' ? 'success' : 'warn',
+                        summary: 'Verification Update',
+                        detail: notification.message,
+                        life: 8000
+                    });
+
+                    // Reload verification status to update UI
+                    this.loadVerificationStatus();
+                },
+                error: (error) => {
+                    console.error('Error receiving verification notification:', error);
+                }
+            });
     }
 }

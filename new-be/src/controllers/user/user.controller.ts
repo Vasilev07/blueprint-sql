@@ -35,8 +35,11 @@ import {
     UserProfileDTO,
     UpdateUserProfileDTO,
 } from "../../models/user-profile.dto";
+import { VerificationRequestDTO } from "../../models/verification-request.dto";
 import { Response } from "express";
 import { Public } from "../../decorators/public.decorator";
+import { AdminGuard } from "../../guards/admin.guard";
+import { UseGuards } from "@nestjs/common";
 
 @Controller("/auth")
 @ApiTags("User")
@@ -72,6 +75,12 @@ export class UserController {
         @Query("filter") filter?: string,
         @Query("sort") sort?: string,
         @Query("search") search?: string,
+        @Query("gender") gender?: string,
+        @Query("ageMin") ageMin?: number,
+        @Query("ageMax") ageMax?: number,
+        @Query("interests") interests?: string,
+        @Query("relationshipStatus") relationshipStatus?: string,
+        @Query("verifiedOnly") verifiedOnly?: boolean,
         @Req() req?: any,
     ): Promise<{
         users: UserDTO[];
@@ -96,6 +105,12 @@ export class UserController {
             sort: sort || "recent",
             search: search || "",
             currentUserId: currentUserId,
+            gender: gender,
+            ageMin: ageMin,
+            ageMax: ageMax,
+            interests: interests,
+            relationshipStatus: relationshipStatus,
+            verifiedOnly: verifiedOnly,
         });
     }
 
@@ -151,6 +166,9 @@ export class UserController {
         );
 
         console.log("Found user:", admin);
+        console.log("User roles from DB:", admin?.roles);
+        console.log("User roles type:", typeof admin?.roles);
+        console.log("User roles is array:", Array.isArray(admin?.roles));
 
         if (!admin) {
             throw new Error("Invalid email or password");
@@ -172,7 +190,9 @@ export class UserController {
             throw new Error("Invalid email or password");
         }
 
+        console.log("User roles before token generation:", admin.roles);
         const token = this.authMiddleware.signForUser(admin);
+        console.log("Generated token payload:", JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString()));
 
         return { token, expiresIn: 3600 };
     }
@@ -457,7 +477,7 @@ export class UserController {
 
         const user = await this.userService.getUserById(userId);
         const profile = await this.userService.getUserProfileByUserId(userId);
-        
+
         return { user, profile };
     }
 
@@ -721,5 +741,172 @@ export class UserController {
         const uniqueViewers =
             await this.profileViewService.getUniqueViewerCount(userId);
         return { totalViews, uniqueViewers };
+    }
+
+    @Post("verification/upload")
+    @ApiOperation({ summary: "Upload verification photo" })
+    @ApiConsumes("multipart/form-data")
+    @ApiBody({
+        schema: {
+            type: "object",
+            properties: {
+                verificationPhoto: {
+                    type: "string",
+                    format: "binary",
+                    description: "Verification photo (ID document, selfie, etc.)",
+                },
+            },
+        },
+    })
+    @ApiResponse({
+        status: 201,
+        description: "Verification photo uploaded successfully",
+    })
+    @ApiResponse({
+        status: 400,
+        description: "Invalid file or validation error",
+    })
+    @UseInterceptors(FileInterceptor("verificationPhoto"))
+    async uploadVerificationPhoto(
+        @UploadedFile() file: Express.Multer.File,
+        @Req() req: any,
+    ): Promise<{ message: string; verificationId: number }> {
+        const userId = req.userData.id;
+        const verificationId = await this.userService.uploadVerificationPhoto(
+            file,
+            userId,
+        );
+        return {
+            message: "Verification photo uploaded successfully",
+            verificationId,
+        };
+    }
+
+    @Get("verification/status")
+    @ApiOperation({ summary: "Get verification status for current user" })
+    @ApiResponse({
+        status: 200,
+        description: "Returns verification status",
+    })
+    async getVerificationStatus(@Req() req: any): Promise<{
+        isVerified: boolean;
+        verificationRequest?: any;
+    }> {
+        const userId = req.userData.id;
+        return await this.userService.getVerificationStatus(userId);
+    }
+
+    @Get("admin/verifications")
+    @UseGuards(AdminGuard)
+    @ApiOperation({ summary: "Get all verification requests (Admin only)" })
+    @ApiResponse({
+        status: 200,
+        description: "Returns all verification requests with user data",
+    })
+    async getAllVerificationRequests(@Query("status") status?: string): Promise<any[]> {
+        return await this.userService.getAllVerificationRequests(status);
+    }
+
+    @Put("admin/verifications/:id/review")
+    @UseGuards(AdminGuard)
+    @ApiOperation({ summary: "Review verification request (Admin only)" })
+    @ApiBody({
+        schema: {
+            type: "object",
+            properties: {
+                status: {
+                    type: "string",
+                    enum: ["verified", "rejected"],
+                },
+                rejectionReason: {
+                    type: "string",
+                    description: "Required if status is rejected",
+                },
+            },
+        },
+    })
+    @ApiResponse({
+        status: 200,
+        description: "Verification request reviewed successfully",
+    })
+    async reviewVerificationRequest(
+        @Param("id") id: number,
+        @Body() reviewData: { status: string; rejectionReason?: string },
+        @Req() req: any,
+    ): Promise<{ message: string }> {
+        const adminId = req.userData.id;
+        const result = await this.userService.reviewVerificationRequest(
+            id,
+            reviewData.status,
+            reviewData.rejectionReason,
+            adminId,
+        );
+        
+        // Notify user via websocket if they're online
+        if (result.userId) {
+            this.chatGateway.server
+                .to(`user:${result.userId}`)
+                .emit("verification:status_changed", {
+                    status: reviewData.status,
+                    rejectionReason: reviewData.rejectionReason,
+                    reviewedAt: new Date().toISOString(),
+                    message: reviewData.status === 'verified' 
+                        ? 'Your account has been verified! 🎉' 
+                        : 'Your verification request was rejected. Please check the reason and try again.'
+                });
+        }
+        
+        return { message: "Verification request reviewed successfully" };
+    }
+
+    @Get("admin/verifications/:id/photo")
+    @UseGuards(AdminGuard)
+    @ApiOperation({ summary: "Get verification photo (Admin only)" })
+    @ApiResponse({
+        status: 200,
+        description: "Returns verification photo data",
+        content: {
+            "image/jpeg": {
+                schema: {
+                    type: "string",
+                    format: "binary",
+                },
+            },
+            "image/png": {
+                schema: {
+                    type: "string",
+                    format: "binary",
+                },
+            },
+        },
+    })
+    @ApiResponse({ status: 404, description: "Verification photo not found" })
+    async getVerificationPhoto(
+        @Param("id") id: number,
+        @Res() res: Response,
+    ): Promise<void> {
+        const photo = await this.userService.getVerificationPhoto(id);
+
+        if (!photo) {
+            res.status(404).json({ message: "Verification photo not found" });
+            return;
+        }
+
+        // Detect content type based on file extension or data
+        let contentType = "image/jpeg"; // default
+        if (photo.name) {
+            if (photo.name.endsWith(".svg")) {
+                contentType = "image/svg+xml";
+            } else if (photo.name.endsWith(".png")) {
+                contentType = "image/png";
+            } else if (photo.name.endsWith(".gif")) {
+                contentType = "image/gif";
+            } else if (photo.name.endsWith(".webp")) {
+                contentType = "image/webp";
+            }
+        }
+
+        res.set("Content-Type", contentType);
+        res.send(Buffer.from(photo.data));
     }
 }

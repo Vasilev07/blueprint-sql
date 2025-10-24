@@ -1,0 +1,325 @@
+<div class="admin-verification-container">
+  <div class="page-header">
+    <h1>Verification Management</h1>
+    <p>Review and manage user verification requests</p>
+  </div>
+
+  <!-- Filters and Search -->
+  <div class="filters-section">
+    <div class="filter-row">
+      <div class="filter-group">
+        <label for="statusFilter">Status Filter:</label>
+        <p-dropdown
+          id="statusFilter"
+          [(ngModel)]="statusFilter"
+          [options]="statusOptions"
+          (onChange)="onStatusFilterChange()"
+          placeholder="All Statuses"
+          styleClass="w-full">
+        </p-dropdown>
+      </div>
+      
+      <div class="filter-group">
+        <label for="searchTerm">Search:</label>
+        <div class="p-inputgroup">
+          <span class="p-inputgroup-addon">
+            <i class="pi pi-search"></i>
+          </span>
+          <input
+            id="searchTerm"
+            type="text"
+            pInputText
+            [(ngModel)]="searchTerm"
+            (input)="onSearchChange()"
+            placeholder="Search by name or email"
+            class="w-full">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Verification Requests Table -->
+  <div class="table-container">
+    <p-table
+      [value]="filteredRequests"
+      [loading]="isLoading"
+      [paginator]="true"
+      [rows]="10"
+      [showCurrentPageReport]="true"
+      currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+      [rowsPerPageOptions]="[10, 25, 50]"
+      styleClass="p-datatable-sm">
+      
+      <ng-template pTemplate="header">
+        <tr>
+          <th>User</th>
+          <th>Email</th>
+          <th>Status</th>
+          <th>Submitted</th>
+          <th>Reviewed</th>
+          <th>Actions</th>
+        </tr>
+      </ng-template>
+      
+      <ng-template pTemplate="body" let-request>
+        <tr>
+          <td>
+            <div class="user-info">
+              <strong>{{ request.user.firstname }} {{ request.user.lastname }}</strong>
+            </div>
+          </td>
+          <td>{{ request.user.email }}</td>
+          <td>
+            <p-tag
+              [value]="getStatusLabel(request.status)"
+              [severity]="getStatusSeverity(request.status)">
+            </p-tag>
+          </td>
+          <td>{{ request.createdAt | date: 'short' }}</td>
+          <td>
+            <span *ngIf="request.reviewedAt">{{ request.reviewedAt | date: 'short' }}</span>
+            <span *ngIf="!request.reviewedAt" class="text-muted">Not reviewed</span>
+          </td>
+          <td>
+            <div class="action-buttons">
+              <p-button
+                icon="pi pi-image"
+                (onClick)="openPhotoDialog(request)"
+                pTooltip="View Verification Photo"
+                tooltipPosition="top"
+                styleClass="p-button-sm p-button-outlined">
+              </p-button>
+              
+              <p-button
+                icon="pi pi-user"
+                (onClick)="viewUserProfile(request.user.id)"
+                pTooltip="View User Profile"
+                tooltipPosition="top"
+                styleClass="p-button-sm p-button-outlined">
+              </p-button>
+              
+              <p-button
+                *ngIf="canReview(request)"
+                icon="pi pi-check"
+                (onClick)="approveRequest(request)"
+                pTooltip="Approve"
+                tooltipPosition="top"
+                styleClass="p-button-sm p-button-success">
+              </p-button>
+              
+              <p-button
+                *ngIf="canReview(request)"
+                icon="pi pi-times"
+                (onClick)="openRejectionDialog(request)"
+                pTooltip="Reject"
+                tooltipPosition="top"
+                styleClass="p-button-sm p-button-danger">
+              </p-button>
+              
+              <p-button
+                *ngIf="canRevoke(request)"
+                icon="pi pi-ban"
+                (onClick)="openRevokeDialog(request)"
+                pTooltip="Revoke Verification"
+                tooltipPosition="top"
+                styleClass="p-button-sm p-button-warning">
+              </p-button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+      
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="6" class="text-center">
+            <div class="empty-state">
+              <i class="pi pi-inbox" style="font-size: 3rem; color: #ccc;"></i>
+              <p>No verification requests found</p>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>
+
+<!-- Photo Viewer Dialog -->
+<p-dialog
+  [(visible)]="showPhotoDialog"
+  [modal]="true"
+  [style]="{ width: '80vw', maxWidth: '900px' }"
+  [dismissableMask]="true"
+  styleClass="photo-dialog">
+  
+  <ng-template pTemplate="header">
+    <div class="dialog-header">
+      <span>Verification Photo</span>
+    </div>
+  </ng-template>
+
+  <div class="photo-dialog-content" *ngIf="selectedRequest">
+    <div class="user-context">
+      <h3>{{ selectedRequest.user.firstname }} {{ selectedRequest.user.lastname }}</h3>
+      <p>{{ selectedRequest.user.email }}</p>
+      <p class="text-muted">Submitted: {{ selectedRequest.createdAt | date: 'medium' }}</p>
+    </div>
+    
+    <div class="photo-display">
+      <img 
+        [src]="getVerificationPhotoUrl(selectedRequest.id)" 
+        [alt]="'Verification photo for ' + selectedRequest.user.firstname"
+        class="verification-photo">
+    </div>
+  </div>
+</p-dialog>
+
+<!-- Review Dialog -->
+<p-dialog
+  [(visible)]="showReviewDialog"
+  [modal]="true"
+  [style]="{ width: '500px' }"
+  [dismissableMask]="true">
+  
+  <ng-template pTemplate="header">
+    <div class="dialog-header">
+      <span>Review Verification Request</span>
+    </div>
+  </ng-template>
+
+  <div class="review-dialog-content" *ngIf="selectedRequest">
+    <div class="user-info">
+      <h4>{{ selectedRequest.user.firstname }} {{ selectedRequest.user.lastname }}</h4>
+      <p>{{ selectedRequest.user.email }}</p>
+    </div>
+    
+    <div class="review-actions">
+      <p-button
+        label="Approve"
+        icon="pi pi-check"
+        (onClick)="approveRequest()"
+        styleClass="p-button-success">
+      </p-button>
+      
+      <p-button
+        label="Reject"
+        icon="pi pi-times"
+        (onClick)="openRejectionDialog(selectedRequest)"
+        styleClass="p-button-danger">
+      </p-button>
+    </div>
+  </div>
+</p-dialog>
+
+<!-- Rejection Dialog -->
+<p-dialog
+  [(visible)]="showRejectionDialog"
+  [modal]="true"
+  [style]="{ width: '500px' }"
+  [dismissableMask]="true">
+  
+  <ng-template pTemplate="header">
+    <div class="dialog-header">
+      <span>Reject Verification Request</span>
+    </div>
+  </ng-template>
+
+  <div class="rejection-dialog-content" *ngIf="selectedRequest">
+    <div class="user-info">
+      <h4>{{ selectedRequest.user.firstname }} {{ selectedRequest.user.lastname }}</h4>
+      <p>{{ selectedRequest.user.email }}</p>
+    </div>
+    
+    <div class="form-group">
+      <label for="rejectionReason">Rejection Reason:</label>
+      <textarea
+        id="rejectionReason"
+        pInputTextarea
+        [(ngModel)]="reviewForm.rejectionReason"
+        placeholder="Please provide a reason for rejection..."
+        rows="4"
+        [style]="{ width: '100%' }">
+      </textarea>
+    </div>
+    
+    <div class="dialog-actions">
+      <p-button
+        label="Cancel"
+        icon="pi pi-times"
+        (onClick)="closeDialogs()"
+        styleClass="p-button-text">
+      </p-button>
+      
+      <p-button
+        label="Reject"
+        icon="pi pi-times"
+        (onClick)="submitReview()"
+        [disabled]="!reviewForm.rejectionReason.trim()"
+        styleClass="p-button-danger">
+      </p-button>
+    </div>
+  </div>
+</p-dialog>
+
+<!-- Revoke Dialog -->
+<p-dialog
+  [(visible)]="showRevokeDialog"
+  [modal]="true"
+  [style]="{ width: '500px' }"
+  [dismissableMask]="true">
+  
+  <ng-template pTemplate="header">
+    <div class="dialog-header">
+      <span>Revoke Verification</span>
+    </div>
+  </ng-template>
+
+  <div class="revoke-dialog-content" *ngIf="selectedRequest">
+    <div class="user-info">
+      <h4>{{ selectedRequest.user.firstname }} {{ selectedRequest.user.lastname }}</h4>
+      <p>{{ selectedRequest.user.email }}</p>
+    </div>
+    
+    <div class="warning-message">
+      <i class="pi pi-exclamation-triangle" style="color: #f59e0b; margin-right: 0.5rem;"></i>
+      <span>Are you sure you want to revoke this user's verification? This action will remove their verified status.</span>
+    </div>
+    
+    <div class="form-group">
+      <label for="revokeReason">Reason for Revocation:</label>
+      <textarea
+        id="revokeReason"
+        pInputTextarea
+        [(ngModel)]="reviewForm.rejectionReason"
+        placeholder="Please provide a reason for revoking verification..."
+        rows="4"
+        [style]="{ width: '100%' }">
+      </textarea>
+    </div>
+    
+    <div class="dialog-actions">
+      <p-button
+        label="Cancel"
+        icon="pi pi-times"
+        (onClick)="closeDialogs()"
+        styleClass="p-button-text">
+      </p-button>
+      
+      <p-button
+        label="Revoke Verification"
+        icon="pi pi-ban"
+        (onClick)="revokeVerification()"
+        [disabled]="!reviewForm.rejectionReason.trim()"
+        styleClass="p-button-warning">
+      </p-button>
+    </div>
+  </div>
+</p-dialog>
+
+<!-- Loading Spinner -->
+<p-progressSpinner
+  *ngIf="isLoading"
+  styleClass="loading-spinner">
+</p-progressSpinner>
+
+<!-- Toast Messages -->
+<p-toast></p-toast>

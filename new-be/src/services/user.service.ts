@@ -9,9 +9,13 @@ import {
     ForbiddenException,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { Role } from "../enums/role.enum";
 import { UserDTO } from "../models/user.dto";
 import { UserPhotoDTO } from "../models/user-photo.dto";
-import { UserProfileDTO, UpdateUserProfileDTO } from "../models/user-profile.dto";
+import {
+    UserProfileDTO,
+    UpdateUserProfileDTO,
+} from "../models/user-profile.dto";
 import { sign } from "jsonwebtoken";
 import { CryptoService } from "./crypto.service";
 import { EntityManager } from "typeorm";
@@ -20,8 +24,10 @@ import { UserProfile } from "@entities/user-profile.entity";
 import { UserPhoto } from "@entities/user-photo.entity";
 import { PhotoLike } from "@entities/photo-like.entity";
 import { UserFriend, FriendshipStatus } from "@entities/friend.entity";
+import { VerificationRequest } from "@entities/verification-request.entity";
 import { UserMapper } from "@mappers/implementations/user.mapper";
 import { MapperService } from "@mappers/mapper.service";
+import { VerificationStatus } from "src/enums/verification-status.enum";
 
 @Injectable()
 export class UserService implements OnModuleInit {
@@ -134,6 +140,7 @@ export class UserService implements OnModuleInit {
     async findOneByEmail(email: string) {
         return await this.entityManager.findOne(User, {
             where: { email },
+            relations: ['profile']
         });
     }
 
@@ -144,6 +151,12 @@ export class UserService implements OnModuleInit {
         sort?: string;
         search?: string;
         currentUserId?: number;
+        gender?: string;
+        ageMin?: number;
+        ageMax?: number;
+        interests?: string;
+        relationshipStatus?: string;
+        verifiedOnly?: boolean;
     }): Promise<any> {
         // If no options provided, return old behavior for backwards compatibility
         if (!options) {
@@ -153,32 +166,47 @@ export class UserService implements OnModuleInit {
             return this.mapUsersWithProfiles(users);
         }
 
-        const { page = 1, limit = 12, filter = "all", sort = "recent", search = "", currentUserId } = options;
-        
+        const {
+            page = 1,
+            limit = 12,
+            filter = "all",
+            sort = "recent",
+            search = "",
+            currentUserId,
+            gender,
+            ageMin,
+            ageMax,
+            interests,
+            relationshipStatus,
+            verifiedOnly,
+        } = options;
+
         // Calculate skip value for pagination
         const skip = (page - 1) * limit;
-        
+
         // Build query with QueryBuilder for more control
         let query = this.entityManager
             .createQueryBuilder(User, "user")
             .leftJoinAndSelect("user.profile", "profile");
-        
+
         // Build the base where conditions
         const whereConditions: string[] = [];
         const whereParams: any = {};
-        
+
         // Exclude current user if provided
         if (currentUserId) {
             whereConditions.push("user.id != :currentUserId");
             whereParams.currentUserId = currentUserId;
         }
-        
+
         // Apply search filter
         if (search && search.trim().length > 0) {
-            whereConditions.push("(user.firstname LIKE :search OR user.lastname LIKE :search OR user.email LIKE :search OR profile.bio LIKE :search OR profile.location LIKE :search OR profile.city LIKE :search)");
+            whereConditions.push(
+                "(user.firstname LIKE :search OR user.lastname LIKE :search OR user.email LIKE :search OR profile.bio LIKE :search OR profile.location LIKE :search OR profile.city LIKE :search)",
+            );
             whereParams.search = `%${search}%`;
         }
-        
+
         // Apply filters
         switch (filter) {
             case "online":
@@ -189,7 +217,9 @@ export class UserService implements OnModuleInit {
                 break;
             case "new":
                 // New users: registered in last 7 days
-                const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+                const sevenDaysAgo = new Date(
+                    Date.now() - 7 * 24 * 60 * 60 * 1000,
+                );
                 whereConditions.push("user.createdAt >= :sevenDaysAgo");
                 whereParams.sevenDaysAgo = sevenDaysAgo;
                 break;
@@ -206,12 +236,67 @@ export class UserService implements OnModuleInit {
                 // No additional filter
                 break;
         }
-        
+
+        // Apply advanced filters
+        if (gender && gender !== "all") {
+            whereConditions.push("user.gender = :gender");
+            whereParams.gender = gender;
+        }
+
+        // Age range filter (requires birthDate field - for now we'll skip this)
+        // TODO: Add birthDate field to user profile to support age filtering
+        // if (ageMin || ageMax) {
+        //     const currentDate = new Date();
+        //     if (ageMax) {
+        //         const minBirthDate = new Date(currentDate.getFullYear() - ageMax, currentDate.getMonth(), currentDate.getDate());
+        //         whereConditions.push("profile.birthDate <= :minBirthDate");
+        //         whereParams.minBirthDate = minBirthDate;
+        //     }
+        //     if (ageMin) {
+        //         const maxBirthDate = new Date(currentDate.getFullYear() - ageMin, currentDate.getMonth(), currentDate.getDate());
+        //         whereConditions.push("profile.birthDate >= :maxBirthDate");
+        //         whereParams.maxBirthDate = maxBirthDate;
+        //     }
+        // }
+
+        // Interests filter
+        if (interests && interests.trim().length > 0) {
+            const interestArray = interests
+                .split(",")
+                .map((i) => i.trim())
+                .filter((i) => i.length > 0);
+            if (interestArray.length > 0) {
+                const interestConditions = interestArray
+                    .map(
+                        (_, index) =>
+                            `:interest${index} = ANY(profile.interests)`,
+                    )
+                    .join(" OR ");
+                whereConditions.push(`(${interestConditions})`);
+                interestArray.forEach((interest, index) => {
+                    whereParams[`interest${index}`] = interest;
+                });
+            }
+        }
+
+        // Relationship status filter (requires relationshipStatus field - for now we'll skip this)
+        // TODO: Add relationshipStatus field to user profile
+        // if (relationshipStatus && relationshipStatus !== "all") {
+        //     whereConditions.push("profile.relationshipStatus = :relationshipStatus");
+        //     whereParams.relationshipStatus = relationshipStatus;
+        // }
+
+        // Verified only filter
+        if (verifiedOnly) {
+            whereConditions.push("profile.isVerified = :verified");
+            whereParams.verified = true;
+        }
+
         // Apply all where conditions at once
         if (whereConditions.length > 0) {
             query = query.where(whereConditions.join(" AND "), whereParams);
         }
-        
+
         // Apply sorting
         switch (sort) {
             case "recent":
@@ -228,36 +313,36 @@ export class UserService implements OnModuleInit {
                 query = query.orderBy("user.id", "DESC");
                 break;
         }
-        
+
         // Get total count before pagination
         const totalUsers = await query.getCount();
-        
+
         // Apply pagination using skip() and take()
         query = query.skip(skip).take(limit);
-        
+
         // Execute query
         const users = await query.getMany();
-        
-        
+
         // Get profile view counts for returned users
-        const userIds = users.map(u => u.id);
+        const userIds = users.map((u) => u.id);
         let viewCountMap = new Map<number, number>();
-        
+
         if (userIds.length > 0) {
-            const profileViewRepo = this.entityManager.getRepository('ProfileView');
+            const profileViewRepo =
+                this.entityManager.getRepository("ProfileView");
             const viewCounts = await profileViewRepo
-                .createQueryBuilder('view')
-                .select('view.userId', 'userId')
-                .addSelect('COUNT(DISTINCT view.viewerId)', 'viewCount')
-                .where('view.userId IN (:...userIds)', { userIds })
-                .groupBy('view.userId')
+                .createQueryBuilder("view")
+                .select("view.userId", "userId")
+                .addSelect("COUNT(DISTINCT view.viewerId)", "viewCount")
+                .where("view.userId IN (:...userIds)", { userIds })
+                .groupBy("view.userId")
                 .getRawMany();
-            
+
             viewCountMap = new Map(
-                viewCounts.map(v => [v.userId, parseInt(v.viewCount)])
+                viewCounts.map((v) => [v.userId, parseInt(v.viewCount)]),
             );
         }
-        
+
         // Map users to DTOs with profile data
         const mappedUsers = users.map((user) => {
             const userDTO = this.userMapper.entityToDTO(user);
@@ -268,16 +353,19 @@ export class UserService implements OnModuleInit {
                 interests: user.profile?.interests || [],
                 appearsInSearches: user.profile?.appearsInSearches !== false,
                 profileViewsCount: viewCountMap.get(user.id) || 0,
+                isVerified: user.profile?.isVerified || false,
             };
         });
-        
+
         // Calculate pagination metadata
         const totalPages = Math.ceil(totalUsers / limit);
         const hasMore = page < totalPages;
-        
+
         // Temporary debug logging
-        console.log(`Pagination Debug - Page: ${page}, TotalUsers: ${totalUsers}, TotalPages: ${totalPages}, HasMore: ${hasMore}, UsersReturned: ${mappedUsers.length}`);
-        
+        console.log(
+            `Pagination Debug - Page: ${page}, TotalUsers: ${totalUsers}, TotalPages: ${totalPages}, HasMore: ${hasMore}, UsersReturned: ${mappedUsers.length}`,
+        );
+
         return {
             users: mappedUsers,
             page,
@@ -292,21 +380,22 @@ export class UserService implements OnModuleInit {
         // Get profile view counts for all users
         let viewCountMap = new Map<number, number>();
         try {
-            const profileViewRepo = this.entityManager.getRepository('ProfileView');
+            const profileViewRepo =
+                this.entityManager.getRepository("ProfileView");
             const viewCounts = await profileViewRepo
-                .createQueryBuilder('view')
-                .select('view.userId', 'userId')
-                .addSelect('COUNT(DISTINCT view.viewerId)', 'viewCount')
-                .groupBy('view.userId')
+                .createQueryBuilder("view")
+                .select("view.userId", "userId")
+                .addSelect("COUNT(DISTINCT view.viewerId)", "viewCount")
+                .groupBy("view.userId")
                 .getRawMany();
-            
+
             viewCountMap = new Map(
-                viewCounts.map(v => [v.userId, parseInt(v.viewCount)])
+                viewCounts.map((v) => [v.userId, parseInt(v.viewCount)]),
             );
         } catch (error) {
             // Continue without profile view counts
         }
-        
+
         return users.map((user) => {
             const userDTO = this.userMapper.entityToDTO(user);
             // Include profile data for home screen
@@ -317,6 +406,7 @@ export class UserService implements OnModuleInit {
                 interests: user.profile?.interests || [],
                 appearsInSearches: user.profile?.appearsInSearches !== false,
                 profileViewsCount: viewCountMap.get(user.id) || 0,
+                isVerified: user.profile?.isVerified || false,
             };
         });
     }
@@ -460,7 +550,10 @@ export class UserService implements OnModuleInit {
 
         // Get all user profiles to map userProfileId to userId
         const profileIds = photos.map((p) => p.userProfileId);
-        const profiles = await this.entityManager.findByIds(UserProfile, profileIds);
+        const profiles = await this.entityManager.findByIds(
+            UserProfile,
+            profileIds,
+        );
         const profileMap = new Map(profiles.map((p) => [p.id, p.userId]));
 
         return photos.map((p) => ({
@@ -534,7 +627,14 @@ export class UserService implements OnModuleInit {
         return this.userMapper.entityToDTO(user);
     }
 
-    async updateProfile(updateData: Partial<UserDTO> & { bio?: string; interests?: string[]; appearsInSearches?: boolean }, req: any): Promise<User> {
+    async updateProfile(
+        updateData: Partial<UserDTO> & {
+            bio?: string;
+            interests?: string[];
+            appearsInSearches?: boolean;
+        },
+        req: any,
+    ): Promise<User> {
         const userId = this.getUserIdFromRequest(req);
 
         const user = await this.entityManager.findOne(User, {
@@ -877,12 +977,15 @@ export class UserService implements OnModuleInit {
             interests: profile.interests || [],
             appearsInSearches: profile.appearsInSearches,
             profilePictureId: profile.profilePictureId,
+            dateOfBirth: profile.dateOfBirth,
             createdAt: profile.createdAt,
             updatedAt: profile.updatedAt,
         };
     }
 
-    async getUserProfileByUserId(userId: number): Promise<UserProfileDTO | null> {
+    async getUserProfileByUserId(
+        userId: number,
+    ): Promise<UserProfileDTO | null> {
         const profile = await this.entityManager.findOne(UserProfile, {
             where: { userId },
         });
@@ -906,6 +1009,7 @@ export class UserService implements OnModuleInit {
             interests: profile.interests || [],
             appearsInSearches: profile.appearsInSearches,
             profilePictureId: profile.profilePictureId,
+            dateOfBirth: profile.dateOfBirth,
             createdAt: profile.createdAt,
             updatedAt: profile.updatedAt,
         };
@@ -943,6 +1047,9 @@ export class UserService implements OnModuleInit {
         if (updateData.appearsInSearches !== undefined) {
             profile.appearsInSearches = updateData.appearsInSearches;
         }
+        if (updateData.dateOfBirth !== undefined) {
+            profile.dateOfBirth = updateData.dateOfBirth;
+        }
 
         const savedProfile = await this.entityManager.save(profile);
 
@@ -955,8 +1062,202 @@ export class UserService implements OnModuleInit {
             interests: savedProfile.interests || [],
             appearsInSearches: savedProfile.appearsInSearches,
             profilePictureId: savedProfile.profilePictureId,
+            dateOfBirth: savedProfile.dateOfBirth,
             createdAt: savedProfile.createdAt,
             updatedAt: savedProfile.updatedAt,
         };
+    }
+
+    async uploadVerificationPhoto(
+        file: Express.Multer.File,
+        userId: number,
+    ): Promise<number> {
+        // Validate file
+        if (!file) {
+            throw new BadRequestException("No file provided");
+        }
+
+        const allowedMimeTypes = [
+            "image/jpeg",
+            "image/jpg",
+            "image/png",
+            "image/webp",
+        ];
+
+        if (!allowedMimeTypes.includes(file.mimetype)) {
+            throw new BadRequestException(
+                `Invalid file type. Allowed types: ${allowedMimeTypes.join(", ")}`,
+            );
+        }
+
+        const maxFileSize = 10 * 1024 * 1024; // 10MB
+        if (file.size > maxFileSize) {
+            throw new BadRequestException(
+                `File too large. Maximum size: ${maxFileSize / 1024 / 1024}MB`,
+            );
+        }
+
+        // Generate filename
+        const timestamp = Date.now();
+        const ext = file.originalname.split(".").pop();
+        const filename = `verification-${timestamp}-user${userId}-${Math.random().toString(36).substring(7)}.${ext}`;
+
+        // Save file to verification directory
+        const uploadDir = this.configService.get<string>(
+            "UPLOAD_DIR",
+            "./uploads",
+        );
+        const verificationDir = `${uploadDir}/verifications`;
+        const filePath = `${verificationDir}/${filename}`;
+
+        // Ensure directory exists
+        const fs = require("fs");
+        if (!fs.existsSync(verificationDir)) {
+            fs.mkdirSync(verificationDir, { recursive: true });
+        }
+
+        // Write file
+        fs.writeFileSync(filePath, file.buffer);
+
+        // Create verification request
+
+        const verificationRequest = new VerificationRequest();
+        verificationRequest.userId = userId;
+        verificationRequest.verificationPhoto = `verifications/${filename}`;
+        verificationRequest.status = VerificationStatus.PENDING;
+
+        const savedRequest = await this.entityManager.save(verificationRequest);
+        return savedRequest.id;
+    }
+
+    async getVerificationStatus(userId: number): Promise<{
+        isVerified: boolean;
+        verificationRequest?: any;
+    }> {
+        // Check if user profile is verified
+        const profile = await this.entityManager.findOne(UserProfile, {
+            where: { userId },
+        });
+
+        if (!profile) {
+            return { isVerified: false };
+        }
+
+        // Get latest verification request
+        const verificationRequest = await this.entityManager.findOne(
+            VerificationRequest,
+            {
+                where: { userId },
+                order: { createdAt: "DESC" },
+            },
+        );
+
+        return {
+            isVerified: profile.isVerified,
+            verificationRequest: verificationRequest || null,
+        };
+    }
+
+    async getAllVerificationRequests(status?: string): Promise<any[]> {
+
+        const whereCondition = status ? { status: status as any } : {};
+
+        const requests = await this.entityManager.find(VerificationRequest, {
+            where: whereCondition,
+            relations: ["user"],
+            order: { createdAt: "DESC" },
+        });
+
+        return requests.map((request) => ({
+            id: request.id,
+            userId: request.userId,
+            user: request.user
+                ? {
+                      id: request.user.id,
+                      firstname: request.user.firstname,
+                      lastname: request.user.lastname,
+                      email: request.user.email,
+                  }
+                : null,
+            verificationPhoto: request.verificationPhoto,
+            status: request.status,
+            rejectionReason: request.rejectionReason,
+            reviewedBy: request.reviewedBy,
+            reviewedAt: request.reviewedAt,
+            createdAt: request.createdAt,
+        }));
+    }
+
+    async reviewVerificationRequest(
+        verificationId: number,
+        status: string,
+        rejectionReason: string | undefined,
+        adminId: number,
+    ): Promise<{ userId: number }> {
+
+        const verificationRequest = await this.entityManager.findOne(
+            VerificationRequest,
+            {
+                where: { id: verificationId },
+            },
+        );
+
+        if (!verificationRequest) {
+            throw new NotFoundException("Verification request not found");
+        }
+
+        // Update verification request
+        verificationRequest.status = status as any;
+        verificationRequest.reviewedBy = adminId;
+        verificationRequest.reviewedAt = new Date();
+
+        if (status === "rejected" && rejectionReason) {
+            verificationRequest.rejectionReason = rejectionReason;
+        }
+
+        await this.entityManager.save(verificationRequest);
+
+        // If approved, update user profile
+        if (status === "verified") {
+            const profile = await this.entityManager.findOne(UserProfile, {
+                where: { userId: verificationRequest.userId },
+            });
+
+            if (profile) {
+                profile.isVerified = true;
+                await this.entityManager.save(profile);
+            }
+        }
+
+        return { userId: verificationRequest.userId };
+    }
+
+    async getVerificationPhoto(verificationId: number): Promise<any> {
+        const verificationRequest = await this.entityManager.findOne(
+            VerificationRequest,
+            {
+                where: { id: verificationId },
+            },
+        );
+
+        if (!verificationRequest) {
+            throw new NotFoundException("Verification request not found");
+        }
+
+        // Read the photo file from the file system
+        const fs = require('fs');
+        const path = require('path');
+        
+        try {
+            const photoPath = path.join(process.cwd(), 'uploads', verificationRequest.verificationPhoto);
+            const photoData = fs.readFileSync(photoPath);
+            
+            return {
+                data: photoData,
+                name: verificationRequest.verificationPhoto,
+            };
+        } catch (error) {
+            throw new NotFoundException("Verification photo file not found");
+        }
     }
 }

@@ -75,9 +75,7 @@ const routes: Routes = [
             {
                 path: "stories",
                 loadChildren: () =>
-                    import("./stories/story.module").then(
-                        (m) => m.StoryModule,
-                    ),
+                    import("./stories/story.module").then((m) => m.StoryModule),
             },
             {
                 path: "subscriptions",
@@ -91,6 +89,13 @@ const routes: Routes = [
                 loadChildren: () =>
                     import("./profile/profile.module").then(
                         (m) => m.ProfileModule,
+                    ),
+            },
+            {
+                path: "admin",
+                loadChildren: () =>
+                    import("./admin/admin.module").then(
+                        (m) => m.AdminModule,
                     ),
             },
         ],

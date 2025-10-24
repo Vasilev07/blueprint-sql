@@ -23,6 +23,13 @@ interface ChatMessagePayload {
     message: ChatMessageDTO;
 }
 
+interface VerificationStatusChangeNotification {
+    status: string;
+    rejectionReason?: string;
+    reviewedAt: string;
+    message: string;
+}
+
 @Injectable({
     providedIn: "root",
 })
@@ -192,6 +199,17 @@ export class WebsocketService {
             };
             this.socket.on("profile:view", handler);
             return () => this.socket.off("profile:view", handler);
+        });
+    }
+
+    onVerificationStatusChange(): Observable<VerificationStatusChangeNotification> {
+        return new Observable<VerificationStatusChangeNotification>((observer) => {
+            const handler = (payload: VerificationStatusChangeNotification) => {
+                console.log("Verification status change notification received:", payload);
+                observer.next(payload);
+            };
+            this.socket.on("verification:status_changed", handler);
+            return () => this.socket.off("verification:status_changed", handler);
         });
     }
 
