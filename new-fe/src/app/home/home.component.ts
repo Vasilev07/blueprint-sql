@@ -78,21 +78,19 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
 
     private subscribeToUsers(): void {
-        this.homeService.users$
-            .pipe(takeUntil(this.destroy$))
-            .subscribe({
-                next: (users) => {
-                    this.users = users;
-                },
-                error: (error) => {
-                    console.error("Error loading users:", error);
-                    this.messageService.add({
-                        severity: "error",
-                        summary: "Error",
-                        detail: "Failed to load users",
-                    });
-                },
-            });
+        this.homeService.users$.pipe(takeUntil(this.destroy$)).subscribe({
+            next: (users) => {
+                this.users = users;
+            },
+            error: (error) => {
+                console.error("Error loading users:", error);
+                this.messageService.add({
+                    severity: "error",
+                    summary: "Error",
+                    detail: "Failed to load users",
+                });
+            },
+        });
     }
 
     private subscribeToPaginationState(): void {
@@ -100,7 +98,7 @@ export class HomeComponent implements OnInit, OnDestroy {
             .pipe(takeUntil(this.destroy$))
             .subscribe({
                 next: (state) => {
-                    console.log('Pagination state updated:', state);
+                    console.log("Pagination state updated:", state);
                     this.totalUsers = state.totalUsers;
                     this.hasMoreData = state.hasMore;
                     this.isLoading = false;
@@ -111,27 +109,35 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     private loadUsers(): void {
         this.isLoading = true;
-        this.homeService.getFilteredAndSortedUsers()
+        this.homeService
+            .getFilteredAndSortedUsers()
             .pipe(takeUntil(this.destroy$))
             .subscribe();
     }
 
     private loadMoreUsers(): void {
-        console.log(`loadMoreUsers called - isLoadingMore: ${this.isLoadingMore}, hasMoreData: ${this.hasMoreData}`);
-        
+        console.log(
+            `loadMoreUsers called - isLoadingMore: ${this.isLoadingMore}, hasMoreData: ${this.hasMoreData}`,
+        );
+
         if (this.isLoadingMore || !this.hasMoreData) {
-            console.log("loadMoreUsers - Skipping because isLoadingMore or no more data");
+            console.log(
+                "loadMoreUsers - Skipping because isLoadingMore or no more data",
+            );
             return;
         }
 
         console.log("loadMoreUsers - Starting to load next page");
         this.isLoadingMore = true;
 
-        this.homeService.loadNextPage()
+        this.homeService
+            .loadNextPage()
             .pipe(takeUntil(this.destroy$))
             .subscribe({
                 next: () => {
-                    console.log("loadMoreUsers - Next page loaded successfully");
+                    console.log(
+                        "loadMoreUsers - Next page loaded successfully",
+                    );
                     this.isLoadingMore = false;
                 },
                 error: (error) => {
@@ -218,7 +224,9 @@ export class HomeComponent implements OnInit, OnDestroy {
         const scrollHeight = element.scrollHeight;
         const threshold = scrollHeight * 0.8;
 
-        console.log(`Scroll Debug - Position: ${scrollPosition}, Height: ${scrollHeight}, Threshold: ${threshold}, HasMore: ${this.hasMoreData}, Loading: ${this.isLoadingMore}`);
+        console.log(
+            `Scroll Debug - Position: ${scrollPosition}, Height: ${scrollHeight}, Threshold: ${threshold}, HasMore: ${this.hasMoreData}, Loading: ${this.isLoadingMore}`,
+        );
 
         // Load more when user scrolls to 80% of the content
         if (

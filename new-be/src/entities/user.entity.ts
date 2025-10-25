@@ -1,4 +1,4 @@
-import { Column, Entity, PrimaryGeneratedColumn, OneToOne } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn, OneToOne, CreateDateColumn } from "typeorm";
 import { Role } from "../enums/role.enum";
 import { Gender } from "../enums/gender.enum";
 import { UserProfile } from "./user-profile.entity";
@@ -37,6 +37,9 @@ export class User {
         default: [Role.User],
     })
     public roles: Role[];
+
+    @CreateDateColumn()
+    createdAt: Date;
 
     @OneToOne(() => UserProfile, (profile) => profile.user, { cascade: true })
     profile: UserProfile;

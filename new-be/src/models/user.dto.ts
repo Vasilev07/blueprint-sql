@@ -28,4 +28,23 @@ export class UserDTO {
 
     @ApiProperty({ required: false })
     profilePictureId?: number;
+
+    // Profile fields
+    @ApiProperty({ required: false })
+    bio?: string;
+
+    @ApiProperty({ required: false })
+    location?: string;
+
+    @ApiProperty({ required: false, type: [String] })
+    interests?: string[];
+
+    @ApiProperty({ required: false })
+    isVerified?: boolean;
+
+    @ApiProperty({ required: false })
+    appearsInSearches?: boolean;
+
+    @ApiProperty({ required: false })
+    profileViewsCount?: number;
 }

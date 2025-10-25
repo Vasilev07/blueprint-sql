@@ -60,7 +60,10 @@ export class UserController {
         schema: {
             type: "object",
             properties: {
-                users: { type: "array", items: { $ref: "#/components/schemas/UserDTO" } },
+                users: { 
+                    type: "array", 
+                    items: { $ref: "#/components/schemas/UserDTO" } 
+                },
                 page: { type: "number" },
                 limit: { type: "number" },
                 totalUsers: { type: "number" },
@@ -110,7 +113,7 @@ export class UserController {
             ageMax: ageMax,
             interests: interests,
             relationshipStatus: relationshipStatus,
-            verifiedOnly: verifiedOnly,
+            verifiedOnly: verifiedOnly === true,
         });
     }
 

@@ -157,13 +157,30 @@ export class UserService implements OnModuleInit {
         interests?: string;
         relationshipStatus?: string;
         verifiedOnly?: boolean;
-    }): Promise<any> {
+    }): Promise<{
+        users: UserDTO[];
+        page: number;
+        limit: number;
+        totalUsers: number;
+        totalPages: number;
+        hasMore: boolean;
+    }> {
         // If no options provided, return old behavior for backwards compatibility
         if (!options) {
             const users = await this.entityManager.find(User, {
                 relations: ["profile"],
             });
-            return this.mapUsersWithProfiles(users);
+            
+            const mappedUsers = await this.mapUsersWithProfiles(users);
+            
+            return {
+                users: mappedUsers,
+                page: 1,
+                limit: mappedUsers.length,
+                totalUsers: mappedUsers.length,
+                totalPages: 1,
+                hasMore: false,
+            };
         }
 
         const {
@@ -195,9 +212,14 @@ export class UserService implements OnModuleInit {
 
         // Exclude current user if provided
         if (currentUserId) {
+            console.log(`Excluding current user ID: ${currentUserId} from results`);
             whereConditions.push("user.id != :currentUserId");
             whereParams.currentUserId = currentUserId;
         }
+        
+        // Count total users before filtering
+        const totalUsersBeforeFilter = await this.entityManager.count(User);
+        console.log(`Total users in database: ${totalUsersBeforeFilter}`);
 
         // Apply search filter
         if (search && search.trim().length > 0) {
@@ -214,6 +236,7 @@ export class UserService implements OnModuleInit {
                 const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
                 whereConditions.push("user.lastOnline >= :fiveMinutesAgo");
                 whereParams.fiveMinutesAgo = fiveMinutesAgo;
+                console.log(`Online filter: last seen after ${fiveMinutesAgo}`);
                 break;
             case "new":
                 // New users: registered in last 7 days
@@ -222,6 +245,7 @@ export class UserService implements OnModuleInit {
                 );
                 whereConditions.push("user.createdAt >= :sevenDaysAgo");
                 whereParams.sevenDaysAgo = sevenDaysAgo;
+                console.log(`New filter: created after ${sevenDaysAgo}`);
                 break;
             case "nearby":
                 // TODO: Implement geolocation-based filtering
@@ -234,6 +258,7 @@ export class UserService implements OnModuleInit {
             case "all":
             default:
                 // No additional filter
+                console.log(`No filter applied (filter: ${filter})`);
                 break;
         }
 
@@ -291,10 +316,15 @@ export class UserService implements OnModuleInit {
             whereConditions.push("profile.isVerified = :verified");
             whereParams.verified = true;
         }
+        
+        console.log(`verifiedOnly parameter: ${verifiedOnly}, type: ${typeof verifiedOnly}`);
 
         // Apply all where conditions at once
         if (whereConditions.length > 0) {
+            console.log(`Applying ${whereConditions.length} where conditions:`, whereConditions);
             query = query.where(whereConditions.join(" AND "), whereParams);
+        } else {
+            console.log(`No where conditions applied`);
         }
 
         // Apply sorting
@@ -315,13 +345,18 @@ export class UserService implements OnModuleInit {
         }
 
         // Get total count before pagination
+        console.log(`Raw SQL query:`, query.getQuery());
         const totalUsers = await query.getCount();
+        console.log(`Total users found by query: ${totalUsers}`);
 
         // Apply pagination using skip() and take()
         query = query.skip(skip).take(limit);
 
         // Execute query
         const users = await query.getMany();
+        
+        console.log(`Query result: Found ${users.length} users after filtering`);
+        console.log(`User IDs returned:`, users.map(u => u.id));
 
         // Get profile view counts for returned users
         const userIds = users.map((u) => u.id);
@@ -376,7 +411,7 @@ export class UserService implements OnModuleInit {
         };
     }
 
-    private async mapUsersWithProfiles(users: User[]): Promise<any[]> {
+    private async mapUsersWithProfiles(users: User[]): Promise<UserDTO[]> {
         // Get profile view counts for all users
         let viewCountMap = new Map<number, number>();
         try {

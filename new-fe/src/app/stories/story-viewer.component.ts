@@ -62,21 +62,15 @@ export class StoryViewerComponent implements OnInit, OnDestroy {
         private storyService: StoryService,
         // private messageService: MessageService
     ) {
-        console.log("StoryViewerComponent constructor called");
     }
 
     ngOnInit(): void {
-        console.log("StoryViewerComponent ngOnInit called");
         this.loadStories();
 
         this.route.params.pipe(takeUntil(this.destroy$)).subscribe((params) => {
-            console.log("Route params received:", params);
             const storyId = params["storyId"];
-            console.log("Story ID from params:", storyId);
             if (storyId) {
                 this.loadStory(storyId);
-            } else {
-                console.log("No story ID found in params");
             }
         });
     }
@@ -122,7 +116,6 @@ export class StoryViewerComponent implements OnInit, OnDestroy {
     }
 
     private loadStory(storyId: string): void {
-        console.log("Loading story with ID:", storyId);
         this.isLoading = true;
 
         if (this.videoBlobUrl) {
@@ -138,7 +131,6 @@ export class StoryViewerComponent implements OnInit, OnDestroy {
             .getStoryById(storyId)
             .pipe(takeUntil(this.destroy$))
             .subscribe((story) => {
-                console.log("Story loaded:", story);
                 if (story) {
                     this.story = story;
                     this.isLiked = story.isLiked || false;
@@ -188,7 +180,6 @@ export class StoryViewerComponent implements OnInit, OnDestroy {
                         });
                     }
                 } else {
-                    console.log("Story not found");
                     this.router.navigate(["/stories"]);
                 }
                 this.isLoading = false;

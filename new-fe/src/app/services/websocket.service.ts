@@ -37,7 +37,6 @@ export class WebsocketService {
     private socket: Socket;
 
     constructor(private authService: AuthService) {
-        console.log("WebsocketService constructor called");
         const email = this.authService.getUserEmail();
         const token = localStorage.getItem("id_token");
         let userId = "";
@@ -61,10 +60,10 @@ export class WebsocketService {
         });
 
         this.socket.on("connect", () => {
-            console.log("Socket connected:", this.socket.id);
+            // Socket connected
         });
         this.socket.on("disconnect", (reason) => {
-            console.log("Socket disconnected:", reason);
+            // Socket disconnected
         });
         this.socket.on("connect_error", (err: Error) => {
             console.error("Socket connect_error:", err?.message || err);
@@ -72,7 +71,6 @@ export class WebsocketService {
         this.socket.on("error", (err: Error) => {
             console.error("Socket error:", err);
         });
-        console.log("Socket created for:", email);
     }
 
     subscribeToMessages(): Observable<void> {
@@ -111,7 +109,6 @@ export class WebsocketService {
     onFriendRequestCreated(): Observable<void> {
         return new Observable<void>((observer) => {
             const handler = () => {
-                console.log("WebSocket: Received friend:request:created");
                 observer.next();
             };
             this.socket.on("friend:request:created", handler);
@@ -122,7 +119,6 @@ export class WebsocketService {
     onFriendRequestUpdated(): Observable<void> {
         return new Observable<void>((observer) => {
             const handler = () => {
-                console.log("WebSocket: Received friend:request:updated");
                 observer.next();
             };
             this.socket.on("friend:request:updated", handler);
@@ -133,7 +129,6 @@ export class WebsocketService {
     onFriendListUpdated(): Observable<void> {
         return new Observable<void>((observer) => {
             const handler = () => {
-                console.log("WebSocket: Received friend:list:updated");
                 observer.next();
             };
             this.socket.on("friend:list:updated", handler);
@@ -172,7 +167,6 @@ export class WebsocketService {
     onUserOnline(): Observable<{ email: string; userId: number }> {
         return new Observable<{ email: string; userId: number }>((observer) => {
             const handler = (payload: { email: string; userId: number }) => {
-                console.log("User came online:", payload);
                 observer.next(payload);
             };
             this.socket.on("user:online", handler);
@@ -183,7 +177,6 @@ export class WebsocketService {
     onUserOffline(): Observable<{ email: string; userId: number }> {
         return new Observable<{ email: string; userId: number }>((observer) => {
             const handler = (payload: { email: string; userId: number }) => {
-                console.log("User went offline:", payload);
                 observer.next(payload);
             };
             this.socket.on("user:offline", handler);
@@ -194,7 +187,6 @@ export class WebsocketService {
     onProfileView(): Observable<ProfileViewNotification> {
         return new Observable<ProfileViewNotification>((observer) => {
             const handler = (payload: ProfileViewNotification) => {
-                console.log("Profile view notification received:", payload);
                 observer.next(payload);
             };
             this.socket.on("profile:view", handler);
@@ -205,7 +197,6 @@ export class WebsocketService {
     onVerificationStatusChange(): Observable<VerificationStatusChangeNotification> {
         return new Observable<VerificationStatusChangeNotification>((observer) => {
             const handler = (payload: VerificationStatusChangeNotification) => {
-                console.log("Verification status change notification received:", payload);
                 observer.next(payload);
             };
             this.socket.on("verification:status_changed", handler);
@@ -214,7 +205,6 @@ export class WebsocketService {
     }
 
     disconnect() {
-        console.log("WebsocketService disconnect called");
         if (this.socket) {
             this.socket.disconnect();
         }

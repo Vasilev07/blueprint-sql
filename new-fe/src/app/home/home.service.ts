@@ -10,17 +10,13 @@ import {
 import { UserDTO } from "src/typescript-api-client/src/model/models";
 
 export interface HomeUser extends UserDTO {
-    // Computed/UI fields
+    // Computed/UI fields only
     age?: number; // Mocked for now (will need birthDate field)
-    bio?: string; // From user profile
-    location?: string; // From user profile
-    interests?: string[]; // From user profile
     distance?: string; // Mocked for now (needs geolocation calculation)
     isOnline?: boolean;
     isFriend?: boolean;
-    isVerified?: boolean; // Real verification status from backend
-    appearsInSearches?: boolean; // From user profile
-    profileViewsCount?: number; // Real profile views count
+    // Note: bio, location, interests, isVerified, appearsInSearches, profileViewsCount 
+    // are now part of UserDTO from the backend
 }
 
 export type FilterType = "all" | "online" | "friends" | "nearby" | "new";
@@ -133,15 +129,11 @@ export class HomeService {
     private enrichUserData(user: any, friendIds: number[]): HomeUser {
         return {
             ...user,
+            // Profile fields are now part of UserDTO from backend (bio, location, interests, isVerified, appearsInSearches, profileViewsCount)
             age: this.mockAge(), // TODO: Calculate from birthDate when added
-            bio: user.bio || null, // Real data from user profile
-            location: user.location || null, // Real data from user profile
-            interests: user.interests || [], // Real data from user profile
             distance: this.mockDistance(), // TODO: Calculate from location coordinates
             isOnline: this.isUserOnline(user.lastOnline),
             isFriend: friendIds.includes(user.id!),
-            isVerified: user.isVerified || false, // Real verification status from backend
-            appearsInSearches: user.appearsInSearches !== false,
         };
     }
 

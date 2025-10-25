@@ -79,16 +79,10 @@ export class AuthService {
 
     isAdmin(): boolean {
         const token = localStorage.getItem("id_token");
-        console.log('🔍 AuthService: Checking admin status');
-        console.log('🔍 AuthService: Token exists:', !!token);
         
         if (token && !this.jwtHelper.isTokenExpired(token)) {
             try {
                 const decodedToken = this.jwtHelper.decodeToken(token);
-                console.log('🔍 AuthService: Full decoded token:', JSON.stringify(decodedToken, null, 2));
-                console.log('🔍 AuthService: User roles:', decodedToken.roles);
-                console.log('🔍 AuthService: User roles type:', typeof decodedToken.roles);
-                console.log('🔍 AuthService: User roles is array:', Array.isArray(decodedToken.roles));
                 
                 // Handle both array format ["user", "admin"] and object format {admin}
                 let isAdmin = false;
@@ -98,14 +92,12 @@ export class AuthService {
                     isAdmin = decodedToken.roles.hasOwnProperty('admin') || decodedToken.roles.admin === true;
                 }
                 
-                console.log('🔍 AuthService: Is admin result:', isAdmin);
                 return isAdmin;
             } catch (error) {
-                console.error('🔍 AuthService: Error decoding token for admin check:', error);
+                console.error('Error decoding token for admin check:', error);
                 return false;
             }
         }
-        console.log('🔍 AuthService: No valid token, returning false');
         return false;
     }
 
