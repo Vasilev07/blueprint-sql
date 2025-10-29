@@ -15,6 +15,7 @@ import { DropdownModule } from "primeng/dropdown";
 import { InputTextModule } from "primeng/inputtext";
 import { InputTextareaModule } from "primeng/inputtextarea";
 import { InputSwitchModule } from "primeng/inputswitch";
+import { InputNumberModule } from "primeng/inputnumber";
 import { ChipModule } from "primeng/chip";
 import { TooltipModule } from "primeng/tooltip";
 import { DividerModule } from "primeng/divider";
@@ -46,6 +47,7 @@ import {
         InputTextModule,
         InputTextareaModule,
         InputSwitchModule,
+        InputNumberModule,
         ChipModule,
         TooltipModule,
         ToastModule,

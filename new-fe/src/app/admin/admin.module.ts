@@ -11,6 +11,7 @@ import { DialogModule } from 'primeng/dialog';
 import { DropdownModule } from 'primeng/dropdown';
 import { InputTextModule } from 'primeng/inputtext';
 import { InputTextareaModule } from 'primeng/inputtextarea';
+import { InputNumberModule } from 'primeng/inputnumber';
 import { TagModule } from 'primeng/tag';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ToastModule } from 'primeng/toast';
@@ -19,13 +20,15 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 
 // Components
 import { AdminVerificationComponent } from './admin-verification/admin-verification.component';
+import { AdminTransactionManagementComponent } from './admin-transaction-management/admin-transaction-management.component';
 
 // Services
 import { MessageService, ConfirmationService } from 'primeng/api';
 
 @NgModule({
   declarations: [
-    AdminVerificationComponent
+    AdminVerificationComponent,
+    AdminTransactionManagementComponent
   ],
   imports: [
     CommonModule,
@@ -38,6 +41,7 @@ import { MessageService, ConfirmationService } from 'primeng/api';
     DropdownModule,
     InputTextModule,
     InputTextareaModule,
+    InputNumberModule,
     TagModule,
     ProgressSpinnerModule,
     ToastModule,

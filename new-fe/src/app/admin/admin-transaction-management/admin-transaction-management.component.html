@@ -1,0 +1,247 @@
+<div class="admin-transaction-management-container">
+  <div class="page-header">
+    <h1>Transaction Management</h1>
+    <p>Manage user wallet balances and transactions</p>
+  </div>
+
+  <!-- Filters and Search -->
+  <div class="filters-section">
+    <div class="filter-row">
+      <div class="filter-group">
+        <label for="searchTerm">Search:</label>
+        <div class="p-inputgroup">
+          <span class="p-inputgroup-addon">
+            <i class="pi pi-search"></i>
+          </span>
+          <input
+            id="searchTerm"
+            type="text"
+            pInputText
+            [(ngModel)]="searchTerm"
+            (input)="onSearchChange()"
+            placeholder="Search by name or email"
+            class="w-full">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Users Table -->
+  <div class="table-container">
+    <p-table
+      [value]="filteredUsers"
+      [loading]="isLoading"
+      [paginator]="true"
+      [rows]="10"
+      [showCurrentPageReport]="true"
+      currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+      [rowsPerPageOptions]="[10, 25, 50]"
+      styleClass="p-datatable-sm">
+      
+      <ng-template pTemplate="header">
+        <tr>
+          <th>User</th>
+          <th>Email</th>
+          <th>Balance</th>
+          <th>User ID</th>
+          <th>Actions</th>
+        </tr>
+      </ng-template>
+      
+      <ng-template pTemplate="body" let-user>
+        <tr>
+          <td>
+            <div class="user-info">
+              <strong>{{ user.fullName }}</strong>
+            </div>
+          </td>
+          <td>{{ user.email }}</td>
+          <td>
+            <span class="balance-amount">{{ user.balance || '0' }}</span>
+          </td>
+          <td>{{ user.id }}</td>
+          <td>
+            <div class="action-buttons">
+              <p-button
+                icon="pi pi-plus"
+                label="Deposit"
+                (onClick)="openDepositDialog(user)"
+                pTooltip="Deposit funds to this user"
+                tooltipPosition="top"
+                styleClass="p-button-sm p-button-success">
+              </p-button>
+              
+              <p-button
+                icon="pi pi-arrow-right-arrow-left"
+                label="Transfer"
+                (onClick)="openTransferDialog(user)"
+                pTooltip="Transfer from this user to another"
+                tooltipPosition="top"
+                styleClass="p-button-sm p-button-info">
+              </p-button>
+              
+              <p-button
+                icon="pi pi-user"
+                (onClick)="viewUserProfile(user.id)"
+                pTooltip="View User Profile"
+                tooltipPosition="top"
+                styleClass="p-button-sm p-button-outlined">
+              </p-button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+      
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="5" class="text-center">
+            <div class="empty-state">
+              <i class="pi pi-inbox" style="font-size: 3rem; color: #ccc;"></i>
+              <p>No users found</p>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>
+
+<!-- Deposit Dialog -->
+<p-dialog
+  [(visible)]="showDepositDialog"
+  [modal]="true"
+  [style]="{ width: '500px' }"
+  [dismissableMask]="true">
+  
+  <ng-template pTemplate="header">
+    <div class="dialog-header">
+      <span>Deposit Funds</span>
+    </div>
+  </ng-template>
+
+  <div class="deposit-dialog-content" *ngIf="selectedUser">
+    <div class="user-info">
+      <h4>{{ selectedUser.fullName }}</h4>
+      <p>{{ selectedUser.email }}</p>
+      <p class="text-muted">User ID: {{ selectedUser.id }}</p>
+      <p class="balance-info">
+        <strong>Current Balance:</strong> 
+        <span class="balance-amount">{{ selectedUser.balance || '0' }}</span>
+      </p>
+    </div>
+    
+    <div class="form-group">
+      <label for="depositAmount">Amount:</label>
+      <p-inputNumber
+        id="depositAmount"
+        [(ngModel)]="depositForm.amount"
+        [useGrouping]="false"
+        [minFractionDigits]="0"
+        [maxFractionDigits]="8"
+        placeholder="Enter amount"
+        [style]="{ width: '100%' }">
+      </p-inputNumber>
+      <small class="text-muted">Enter the amount to deposit (as decimal string)</small>
+    </div>
+    
+    <div class="dialog-actions">
+      <p-button
+        label="Cancel"
+        icon="pi pi-times"
+        (onClick)="closeDialogs()"
+        styleClass="p-button-text">
+      </p-button>
+      
+      <p-button
+        label="Deposit"
+        icon="pi pi-check"
+        (onClick)="submitDeposit()"
+        [disabled]="!depositForm.amount || depositForm.amount <= 0"
+        styleClass="p-button-success">
+      </p-button>
+    </div>
+  </div>
+</p-dialog>
+
+<!-- Transfer Dialog -->
+<p-dialog
+  [(visible)]="showTransferDialog"
+  [modal]="true"
+  [style]="{ width: '600px' }"
+  [dismissableMask]="true">
+  
+  <ng-template pTemplate="header">
+    <div class="dialog-header">
+      <span>Transfer Funds</span>
+    </div>
+  </ng-template>
+
+  <div class="transfer-dialog-content" *ngIf="selectedUser">
+    <div class="user-info">
+      <h4>From: {{ selectedUser.fullName }}</h4>
+      <p>{{ selectedUser.email }}</p>
+      <p class="text-muted">User ID: {{ selectedUser.id }}</p>
+      <p class="balance-info">
+        <strong>Current Balance:</strong> 
+        <span class="balance-amount">{{ selectedUser.balance || '0' }}</span>
+      </p>
+    </div>
+    
+    <div class="form-group">
+      <label for="toUser">To User:</label>
+      <p-dropdown
+        id="toUser"
+        [(ngModel)]="transferForm.toUserId"
+        [options]="users"
+        optionLabel="fullName"
+        optionValue="id"
+        placeholder="Select recipient user"
+        [style]="{ width: '100%' }">
+        <ng-template let-user pTemplate="item">
+          <div>{{ user.fullName }} ({{ user.email }})</div>
+        </ng-template>
+      </p-dropdown>
+    </div>
+    
+    <div class="form-group">
+      <label for="transferAmount">Amount:</label>
+      <p-inputNumber
+        id="transferAmount"
+        [(ngModel)]="transferForm.amount"
+        [useGrouping]="false"
+        [minFractionDigits]="0"
+        [maxFractionDigits]="8"
+        placeholder="Enter amount"
+        [style]="{ width: '100%' }">
+      </p-inputNumber>
+      <small class="text-muted">Enter the amount to transfer (as decimal string)</small>
+    </div>
+    
+    <div class="dialog-actions">
+      <p-button
+        label="Cancel"
+        icon="pi pi-times"
+        (onClick)="closeDialogs()"
+        styleClass="p-button-text">
+      </p-button>
+      
+      <p-button
+        label="Transfer"
+        icon="pi pi-arrow-right-arrow-left"
+        (onClick)="submitTransfer()"
+        [disabled]="!transferForm.toUserId || !transferForm.amount || transferForm.amount <= 0 || transferForm.fromUserId === transferForm.toUserId"
+        styleClass="p-button-info">
+      </p-button>
+    </div>
+  </div>
+</p-dialog>
+
+<!-- Loading Spinner -->
+<p-progressSpinner
+  *ngIf="isLoading"
+  styleClass="loading-spinner">
+</p-progressSpinner>
+
+<!-- Toast Messages -->
+<p-toast></p-toast>
+

@@ -98,6 +98,13 @@ const routes: Routes = [
                         (m) => m.AdminModule,
                     ),
             },
+            {
+                path: "gift-shop",
+                loadChildren: () =>
+                    import("./gift-shop/gift-shop.module").then(
+                        (m) => m.GiftShopModule,
+                    ),
+            },
         ],
         canActivate: [AuthGuard],
     },

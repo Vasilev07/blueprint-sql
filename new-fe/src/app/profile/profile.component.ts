@@ -14,6 +14,7 @@ import {
 import {
     UserService,
     FriendsService,
+    WalletService,
 } from "src/typescript-api-client/src/api/api";
 
 @Component({
@@ -49,6 +50,21 @@ export class ProfileComponent implements OnInit, OnDestroy {
     // Date properties
     maxDate = new Date();
 
+    // Wallet balance
+    balance: string = "0";
+
+    // Deposit dialog state
+    showDepositDialog = false;
+    isDepositing = false;
+    depositForm: any = {
+        amount: null as number | null,
+        cardNumber: "",
+        cardHolder: "",
+        expiryMonth: "",
+        expiryYear: "",
+        cvv: "",
+    };
+
     genderOptions = [
         { label: "Male", value: "male" },
         { label: "Female", value: "female" },
@@ -60,6 +76,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
         private confirmationService: ConfirmationService,
         private userService: UserService,
         private friendsService: FriendsService,
+        private walletService: WalletService,
         private router: Router,
         private route: ActivatedRoute,
         public onlineStatusService: OnlineStatusService,
@@ -109,6 +126,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
             .subscribe({
                 next: (user: any) => {
                     this.currentUser = user;
+                    this.balance = user.balance || "0";
                 },
                 error: (error: any) => {
                     console.error("Error loading user profile:", error);
@@ -512,6 +530,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
                     this.viewingUser = response.user;
                     this.currentUser = response.user; // Also set currentUser for template compatibility
                     this.userProfile = response.profile; // Set profile data
+                    this.balance = response.user.balance || "0";
                     this.loadOtherUserPhotos(userId);
                     this.loadOtherUserProfilePicture(userId);
                     this.isLoading = false;
@@ -770,6 +789,77 @@ export class ProfileComponent implements OnInit, OnDestroy {
                 error: (error) => {
                     console.error('Error receiving verification notification:', error);
                 }
+            });
+    }
+
+    getBalanceAsInteger(): string {
+        const balanceValue = parseFloat(this.balance || '0');
+        return Math.floor(balanceValue).toString();
+    }
+
+    openDepositDialog(): void {
+        this.showDepositDialog = true;
+    }
+
+    closeDepositDialog(): void {
+        this.showDepositDialog = false;
+        this.isDepositing = false;
+        this.depositForm = { amount: null, cardNumber: '', cardHolder: '', expiryMonth: '', expiryYear: '', cvv: '' };
+    }
+
+    formatCardNumber(event: any): void {
+        let value = event.target.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+        const formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+        this.depositForm.cardNumber = formattedValue;
+    }
+
+    submitDeposit(): void {
+        if (this.depositForm.amount === null || this.depositForm.amount === undefined || this.depositForm.amount <= 0) {
+            this.messageService.add({ severity: 'warn', summary: 'Validation', detail: 'Enter a positive amount' });
+            return;
+        }
+
+        // Card details are mocked - they're only for UI display
+        // The backend uses a mock payment provider that doesn't require actual card details
+        
+        const amount = Math.floor(Number(this.depositForm.amount));
+        this.isDepositing = true;
+
+        // Send deposit request to backend
+        // Currency and paymentMethod are mocked/static values
+        this.walletService.deposit({ 
+            amount: amount.toString(), 
+            currency: 'USD', 
+            paymentMethod: 'card' 
+        })
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+                next: (response: any) => {
+                    // Update balance from response
+                    this.balance = response.balance || this.balance;
+                    
+                    // Reload current user to ensure all data is in sync
+                    if (this.isOwnProfile) {
+                        this.loadCurrentUser();
+                    }
+                    
+                    this.messageService.add({ 
+                        severity: 'success', 
+                        summary: 'Success', 
+                        detail: `Successfully added ${amount} tokens. New balance: ${this.getBalanceAsInteger()} tokens` 
+                    });
+                    this.isDepositing = false;
+                    this.closeDepositDialog();
+                },
+                error: (error: any) => {
+                    console.error('Error depositing funds:', error);
+                    this.messageService.add({ 
+                        severity: 'error', 
+                        summary: 'Error', 
+                        detail: error.error?.message || 'Failed to add tokens. Please try again.' 
+                    });
+                    this.isDepositing = false;
+                },
             });
     }
 }

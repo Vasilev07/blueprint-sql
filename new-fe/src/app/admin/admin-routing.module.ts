@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { AdminVerificationComponent } from './admin-verification/admin-verification.component';
+import { AdminTransactionManagementComponent } from './admin-transaction-management/admin-transaction-management.component';
 import { AdminGuard } from '../guards/admin.guard';
 
 const routes: Routes = [
@@ -12,6 +13,11 @@ const routes: Routes = [
   {
     path: 'verification',
     component: AdminVerificationComponent,
+    canActivate: [AdminGuard]
+  },
+  {
+    path: 'transactions',
+    component: AdminTransactionManagementComponent,
     canActivate: [AdminGuard]
   }
 ];

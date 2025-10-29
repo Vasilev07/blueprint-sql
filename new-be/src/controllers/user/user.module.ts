@@ -9,13 +9,15 @@ import { ProfileViewService } from "@services/profile-view.service";
 import { CryptoService } from "@services/crypto.service";
 import { AuthMiddleware } from "@middlewares/auth.middleware";
 import { ChatModule } from "../chat/chat.module";
+import { WalletModule } from "../wallet/wallet.module";
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([User, ProfileView, UserFriend]),
         ChatModule,
+        WalletModule,
     ],
-    exports: [TypeOrmModule, ProfileViewService],
+    exports: [TypeOrmModule, ProfileViewService, UserService],
     controllers: [UserController],
     providers: [UserService, ProfileViewService, CryptoService, AuthMiddleware],
 })

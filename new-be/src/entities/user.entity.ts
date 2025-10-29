@@ -1,7 +1,9 @@
-import { Column, Entity, PrimaryGeneratedColumn, OneToOne, CreateDateColumn } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn, OneToOne, OneToMany, CreateDateColumn } from "typeorm";
 import { Role } from "../enums/role.enum";
 import { Gender } from "../enums/gender.enum";
 import { UserProfile } from "./user-profile.entity";
+import { Wallet } from "./wallet.entity";
+import { Gift } from "./gift.entity";
 
 @Entity()
 export class User {
@@ -43,4 +45,13 @@ export class User {
 
     @OneToOne(() => UserProfile, (profile) => profile.user, { cascade: true })
     profile: UserProfile;
+
+    @OneToOne(() => Wallet, (wallet) => wallet.user)
+    wallet: Wallet;
+
+    @OneToMany(() => Gift, (gift) => gift.sender)
+    sentGifts: Gift[];
+
+    @OneToMany(() => Gift, (gift) => gift.receiver)
+    receivedGifts: Gift[];
 }

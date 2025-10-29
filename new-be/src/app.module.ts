@@ -15,6 +15,8 @@ import { FriendModule } from "./controllers/friend/friend.module";
 import { MessageGateway } from "./gateways/message.gateway";
 import { ChatModule } from "./controllers/chat/chat.module";
 import { StoryModule } from "./controllers/story/story.module";
+import { WalletModule } from "./controllers/wallet/wallet.module";
+import { GiftModule } from "./controllers/gift/gift.module";
 import { ConfigModule } from "@nestjs/config";
 import { AuthGuard } from "./guards/auth.guard";
 
@@ -37,6 +39,8 @@ import { AuthGuard } from "./guards/auth.guard";
         FriendModule,
         ChatModule,
         StoryModule,
+        WalletModule,
+        GiftModule,
     ],
     controllers: [AppController],
     providers: [

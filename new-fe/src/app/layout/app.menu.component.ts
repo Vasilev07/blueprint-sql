@@ -96,6 +96,11 @@ export class AppMenuComponent implements OnInit, OnDestroy {
                 routerLink: ["/subscriptions"],
             },
             {
+                label: "Gift Shop",
+                icon: "pi pi-fw pi-gift",
+                routerLink: ["/gift-shop"],
+            },
+            {
                 label: "Profile",
                 icon: "pi pi-fw pi-user",
                 routerLink: ["/profile"],
@@ -108,6 +113,11 @@ export class AppMenuComponent implements OnInit, OnDestroy {
                 label: "Admin Verification Management",
                 icon: "pi pi-fw pi-shield",
                 routerLink: ["/admin"],
+            });
+            menuItems.push({
+                label: "Admin Transaction Management",
+                icon: "pi pi-fw pi-wallet",
+                routerLink: ["/admin/transactions"],
             });
         }
 

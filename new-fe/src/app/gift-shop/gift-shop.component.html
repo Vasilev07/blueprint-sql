@@ -1,0 +1,176 @@
+<div class="gift-shop-container">
+    <div class="gift-shop-header">
+        <h1>
+            <i class="pi pi-gift"></i>
+            Gift Shop
+        </h1>
+        <p class="subtitle">Select a gift and send it to someone special</p>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="loading-container">
+        <p-progressSpinner styleClass="w-4rem h-4rem"></p-progressSpinner>
+        <p>Loading gifts...</p>
+    </div>
+
+    <!-- Gift Shop Content -->
+    <div *ngIf="!isLoading" class="gift-shop-content">
+        <!-- Available Gifts Grid -->
+        <div class="gifts-section">
+            <h2>Available Gifts</h2>
+            <div class="gifts-grid">
+                <div
+                    *ngFor="let gift of availableGifts"
+                    class="gift-card"
+                    [class.selected]="selectedGift?.name === gift.name"
+                    (click)="selectGift(gift)">
+                    <div class="gift-image-wrapper">
+                        <img
+                            [src]="gift.url"
+                            [alt]="gift.name"
+                            (error)="handleImageError($event)"
+                            class="gift-image" />
+                        <div class="gift-overlay" *ngIf="selectedGift?.name === gift.name">
+                            <i class="pi pi-check-circle"></i>
+                        </div>
+                    </div>
+                    <p class="gift-name">{{ gift.name }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Send Gift Form -->
+        <div class="send-gift-section">
+            <h2>Send Gift</h2>
+            <form [formGroup]="giftForm" (ngSubmit)="onSubmit()" class="gift-form">
+                <!-- Recipient Selection -->
+                <div class="form-group">
+                    <label for="receiver">
+                        Recipient <span class="required">*</span>
+                    </label>
+                    <p-autoComplete
+                        id="receiver"
+                        formControlName="receiverId"
+                        [suggestions]="filteredUsers"
+                        (completeMethod)="searchUsers($event)"
+                        [dropdown]="true"
+                        [minLength]="0"
+                        placeholder="Search for a user..."
+                        [forceSelection]="true"
+                        [optionLabel]="getUserDisplay"
+                        class="w-full">
+                        <ng-template let-user pTemplate="item">
+                            <div class="user-option">
+                                <p-avatar
+                                    [label]="(user.firstname?.[0] || '') + (user.lastname?.[0] || '') || '?'"
+                                    size="normal"
+                                    shape="circle"
+                                    styleClass="mr-2">
+                                </p-avatar>
+                                <div>
+                                    <div class="user-name">
+                                        {{ getUserDisplay(user) }}
+                                    </div>
+                                    <div class="user-email">{{ user.email }}</div>
+                                </div>
+                            </div>
+                        </ng-template>
+                        <ng-template let-user pTemplate="selectedItem">
+                            <div class="user-option">
+                                <p-avatar
+                                    [label]="(user.firstname?.[0] || '') + (user.lastname?.[0] || '') || '?'"
+                                    size="normal"
+                                    shape="circle"
+                                    styleClass="mr-2">
+                                </p-avatar>
+                                <div>
+                                    <div class="user-name">
+                                        {{ getUserDisplay(user) }}
+                                    </div>
+                                </div>
+                            </div>
+                        </ng-template>
+                    </p-autoComplete>
+                    <small
+                        class="p-error"
+                        *ngIf="
+                            giftForm.get('receiverId')?.invalid &&
+                            giftForm.get('receiverId')?.touched
+                        ">
+                        Please select a recipient
+                    </small>
+                </div>
+
+                <!-- Selected Gift Display -->
+                <div class="form-group" *ngIf="selectedGift">
+                    <label>Selected Gift</label>
+                    <div class="selected-gift-display">
+                        <img [src]="selectedGift.url" [alt]="selectedGift.name" class="selected-gift-image" />
+                        <span>{{ selectedGift.name }}</span>
+                    </div>
+                </div>
+
+                <div class="form-group" *ngIf="!selectedGift">
+                    <p class="p-warning">
+                        <i class="pi pi-exclamation-triangle"></i>
+                        Please select a gift from above
+                    </p>
+                </div>
+
+                <!-- Amount Input -->
+                <div class="form-group">
+                    <label for="amount">
+                        Amount <span class="required">*</span>
+                    </label>
+                    <p-inputNumber
+                        id="amount"
+                        formControlName="amount"
+                        mode="decimal"
+                        [min]="0.01"
+                        [maxFractionDigits]="8"
+                        placeholder="0.00"
+                        class="w-full"
+                        [showButtons]="false">
+                    </p-inputNumber>
+                    <small
+                        class="p-error"
+                        *ngIf="
+                            giftForm.get('amount')?.invalid &&
+                            giftForm.get('amount')?.touched
+                        ">
+                        Amount must be greater than 0
+                    </small>
+                </div>
+
+                <!-- Message Input -->
+                <div class="form-group">
+                    <label for="message">Message (Optional)</label>
+                    <textarea
+                        id="message"
+                        formControlName="message"
+                        pInputTextarea
+                        rows="4"
+                        placeholder="Add a personal message..."
+                        class="w-full">
+                    </textarea>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="form-actions">
+                    <button
+                        pButton
+                        type="submit"
+                        label="Send Gift"
+                        icon="pi pi-send"
+                        [disabled]="giftForm.invalid || isSending || !selectedGift"
+                        [loading]="isSending"
+                        class="p-button-success w-full">
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<p-toast></p-toast>
+

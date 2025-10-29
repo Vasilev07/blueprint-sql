@@ -9,6 +9,7 @@ import { ChatMessageMapper } from "@mappers/implementations/chat-message.mapper"
 import { ChatConversationMapper } from "@mappers/implementations/chat-conversation.mapper";
 import { ProfileViewMapper } from "@mappers/implementations/profile-view.mapper";
 import { UserProfileMapper } from "@mappers/implementations/user-profile.mapper";
+import { GiftMapper } from "@mappers/implementations/gift.mapper";
 
 @Global()
 @Module({
@@ -23,6 +24,7 @@ import { UserProfileMapper } from "@mappers/implementations/user-profile.mapper"
         ChatConversationMapper,
         ProfileViewMapper,
         UserProfileMapper,
+        GiftMapper,
     ],
     exports: [MapperService],
 })
@@ -38,6 +40,7 @@ export class MapperModule {
         private readonly chatConversationMapper: ChatConversationMapper,
         private readonly profileViewMapper: ProfileViewMapper,
         private readonly userProfileMapper: UserProfileMapper,
+        private readonly giftMapper: GiftMapper,
     ) {
         this.mapperService.registerMapper("User", this.userMapper);
         this.mapperService.registerMapper("Product", this.productMapper);
@@ -60,5 +63,6 @@ export class MapperModule {
             "UserProfile",
             this.userProfileMapper,
         );
+        this.mapperService.registerMapper("Gift", this.giftMapper);
     }
 }

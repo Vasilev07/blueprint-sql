@@ -28,6 +28,7 @@ import { VerificationRequest } from "@entities/verification-request.entity";
 import { UserMapper } from "@mappers/implementations/user.mapper";
 import { MapperService } from "@mappers/mapper.service";
 import { VerificationStatus } from "src/enums/verification-status.enum";
+import { WalletService } from "./wallet.service";
 
 @Injectable()
 export class UserService implements OnModuleInit {
@@ -38,6 +39,7 @@ export class UserService implements OnModuleInit {
         private entityManager: EntityManager,
         private configService: ConfigService,
         @Inject(MapperService) private readonly mapperService: MapperService,
+        private walletService: WalletService,
     ) {
         // this.userMapper = this.mapperService.getMapper("User");
     }
@@ -634,7 +636,7 @@ export class UserService implements OnModuleInit {
         return photo;
     }
 
-    async getUser(req: any): Promise<UserDTO> {
+    async getUser(req: any): Promise<UserDTO & { balance?: string }> {
         const userId = this.getUserIdFromRequest(req);
 
         const user = await this.entityManager.findOne(User, {
@@ -646,10 +648,12 @@ export class UserService implements OnModuleInit {
             throw new NotFoundException("User not found");
         }
 
-        return this.userMapper.entityToDTO(user);
+        const userDto = this.userMapper.entityToDTO(user);
+        const balance = await this.walletService.getBalance(userId);
+        return { ...userDto, balance };
     }
 
-    async getUserById(userId: number): Promise<UserDTO> {
+    async getUserById(userId: number): Promise<UserDTO & { balance?: string }> {
         const user = await this.entityManager.findOne(User, {
             where: { id: userId },
             relations: ["profile"],
@@ -659,7 +663,9 @@ export class UserService implements OnModuleInit {
             throw new NotFoundException("User not found");
         }
 
-        return this.userMapper.entityToDTO(user);
+        const userDto = this.userMapper.entityToDTO(user);
+        const balance = await this.walletService.getBalance(userId);
+        return { ...userDto, balance };
     }
 
     async updateProfile(

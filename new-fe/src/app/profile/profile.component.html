@@ -12,14 +12,25 @@
           <i class="pi pi-user"></i>
           <span>{{ currentUser?.gender | titlecase }}</span>
         </div>
+        <div class="user-balance" *ngIf="isOwnProfile || balance">
+          <i class="pi pi-heart"></i>
+          <span class="balance-amount">{{ getBalanceAsInteger() }} tokens</span>
+        </div>
       </div>
-      <p-button
-        *ngIf="isOwnProfile"
-        icon="pi pi-pencil"
-        label="Edit Profile"
-        styleClass="p-button-sm p-button-outlined"
-        (onClick)="openEditDialog()">
-      </p-button>
+      <div class="header-actions" *ngIf="isOwnProfile">
+        <p-button
+          icon="pi pi-plus-circle"
+          label="Add Tokens"
+          styleClass="p-button-sm p-button-success"
+          (onClick)="openDepositDialog()">
+        </p-button>
+        <p-button
+          icon="pi pi-pencil"
+          label="Edit Profile"
+          styleClass="p-button-sm p-button-outlined"
+          (onClick)="openEditDialog()">
+        </p-button>
+      </div>
     </div>
     <div class="user-avatar">
       <p-avatar
@@ -336,6 +347,115 @@
     </div>
   </div>
 </div>
+
+<!-- Deposit Dialog -->
+<p-dialog
+  [(visible)]="showDepositDialog"
+  [modal]="true"
+  [style]="{ width: '600px', maxWidth: '90vw' }"
+  [dismissableMask]="true">
+  <ng-template pTemplate="header">
+    <div class="dialog-header">
+      <span>Add Tokens</span>
+    </div>
+  </ng-template>
+
+  <div class="deposit-dialog-content">
+    <!-- Amount Input Section -->
+    <div class="amount-input-section">
+      <label for="amount" class="amount-label">How many tokens would you like to purchase?</label>
+      <div class="amount-input-wrapper">
+        <input
+          id="amount"
+          type="number"
+          [(ngModel)]="depositForm.amount"
+          min="1"
+          step="1"
+          placeholder="Enter amount"
+          class="amount-input">
+        <span class="tokens-unit">tokens</span>
+      </div>
+    </div>
+
+    <!-- Credit Card Preview -->
+    <div class="card-preview">
+      <div class="card-front">
+        <div class="card-chip"></div>
+        <div class="card-number-container">
+          <input 
+            id="cardNumber" 
+            type="text" 
+            [(ngModel)]="depositForm.cardNumber" 
+            placeholder="4111 1111 1111 1111" 
+            class="card-number-input"
+            maxlength="19"
+            (input)="formatCardNumber($event)" />
+        </div>
+        <div class="card-holder-container">
+          <label class="card-label">CARDHOLDER NAME</label>
+          <input 
+            type="text" 
+            [(ngModel)]="depositForm.cardHolder" 
+            placeholder="JOHN DOE" 
+            class="card-holder-input"
+            style="text-transform: uppercase;" />
+        </div>
+        <div class="card-expiry-cvv">
+          <div class="card-expiry">
+            <label class="card-label">EXPIRY DATE</label>
+            <div class="expiry-inputs">
+              <input 
+                id="expMonth" 
+                type="text" 
+                [(ngModel)]="depositForm.expiryMonth" 
+                placeholder="MM" 
+                class="expiry-input"
+                maxlength="2" />
+              <span class="expiry-separator">/</span>
+              <input 
+                id="expYear" 
+                type="text" 
+                [(ngModel)]="depositForm.expiryYear" 
+                placeholder="YY" 
+                class="expiry-input"
+                maxlength="2" />
+            </div>
+          </div>
+          <div class="card-cvv">
+            <label class="card-label">CVV</label>
+            <input 
+              id="cvv" 
+              type="text" 
+              [(ngModel)]="depositForm.cvv" 
+              placeholder="123" 
+              class="cvv-input"
+              maxlength="3" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <small class="text-muted">Card details are mocked for demo purposes</small>
+
+    <div class="dialog-actions">
+      <p-button 
+        label="Cancel" 
+        icon="pi pi-times" 
+        (onClick)="closeDepositDialog()" 
+        [disabled]="isDepositing"
+        styleClass="p-button-text">
+      </p-button>
+      <p-button 
+        label="Add Tokens" 
+        icon="pi pi-check" 
+        (onClick)="submitDeposit()" 
+        [disabled]="!depositForm.amount || depositForm.amount <= 0 || isDepositing" 
+        [loading]="isDepositing"
+        styleClass="p-button-success">
+      </p-button>
+    </div>
+  </div>
+</p-dialog>
 
 <!-- Edit Profile Dialog -->
 <p-dialog
