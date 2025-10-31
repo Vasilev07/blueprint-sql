@@ -7,8 +7,8 @@ export class Wallet {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({ type: "bigint", default: 0 })
-    balance: number;
+    @Column({ type: "decimal", precision: 20, scale: 8, default: "0" })
+    balance: string;
 
     @Column({ type: "decimal", precision: 5, scale: 2, default: "0" })
     withdrawFeePercentage: string;

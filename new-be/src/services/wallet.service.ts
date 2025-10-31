@@ -40,7 +40,7 @@ export class WalletService {
 
             wallet = new Wallet();
             wallet.user = user;
-            wallet.balance = 0;
+            wallet.balance = "0";
             wallet.withdrawFeePercentage = "0";
             wallet = await this.entityManager.save(wallet);
         }
@@ -111,7 +111,7 @@ export class WalletService {
 
                     wallet = new Wallet();
                     wallet.user = user;
-                    wallet.balance = 0;
+                    wallet.balance = "0";
                     wallet.withdrawFeePercentage = "0";
                     wallet = await queryRunner.manager.save(wallet);
                     
@@ -150,16 +150,16 @@ export class WalletService {
                 throw new NotFoundException("Wallet not found");
             }
 
-            // Validate sender has sufficient balance
-            const currentBalance = this.parseDecimal(String(fromWallet.balance));
-            if (currentBalance < amountDecimal) {
+            // Validate sender has sufficient balance using decimal strings
+            const fromBalanceNum = this.parseDecimal(fromWallet.balance);
+            if (fromBalanceNum < amountDecimal) {
                 await queryRunner.rollbackTransaction();
                 throw new BadRequestException("Insufficient balance");
             }
 
-            // Update balances atomically - convert to integer (multiply by 10^8 for 8 decimals)
-            fromWallet.balance = Math.round((currentBalance - amountDecimal) * 100000000);
-            toWallet.balance = Math.round((this.parseDecimal(String(toWallet.balance)) + amountDecimal) * 100000000);
+            // Update balances using decimal arithmetic
+            fromWallet.balance = this.subtractDecimals(fromWallet.balance, amount);
+            toWallet.balance = this.addDecimals(toWallet.balance, amount);
 
             // Save wallets
             await queryRunner.manager.save([fromWallet, toWallet]);
@@ -179,8 +179,8 @@ export class WalletService {
 
             return {
                 transactionId: savedTransaction.id,
-                fromBalance: (fromWallet.balance / 100000000).toFixed(8),
-                toBalance: (toWallet.balance / 100000000).toFixed(8),
+                fromBalance: fromWallet.balance,
+                toBalance: toWallet.balance,
             };
         } catch (error) {
             await queryRunner.rollbackTransaction();
@@ -248,7 +248,7 @@ export class WalletService {
 
                 wallet = new Wallet();
                 wallet.user = user;
-                wallet.balance = 0;
+                wallet.balance = "0";
                 wallet.withdrawFeePercentage = "0";
                 wallet = await queryRunner.manager.save(wallet);
 
@@ -264,14 +264,8 @@ export class WalletService {
                 throw new NotFoundException("Wallet not found");
             }
 
-            // Update balance - wallet.balance is stored as bigint in base units (already multiplied by 100000000)
-            // Work directly in base units to avoid precision loss from decimal conversion
-            const amountInBaseUnits = Math.round(amountDecimal * 100000000);
-            // Ensure wallet.balance is treated as a number (bigint from DB might be string)
-            const currentBalanceBaseUnits = typeof wallet.balance === 'string' 
-                ? parseInt(wallet.balance, 10) 
-                : Number(wallet.balance);
-            wallet.balance = currentBalanceBaseUnits + amountInBaseUnits;
+            // Update balance using decimal arithmetic
+            wallet.balance = this.addDecimals(wallet.balance, amount);
 
             // Save wallet
             await queryRunner.manager.save(wallet);
@@ -292,7 +286,7 @@ export class WalletService {
             return {
                 paymentTransactionId: paymentResult.transactionId,
                 transactionId: savedTransaction.id,
-                balance: (wallet.balance / 100000000).toFixed(8),
+                balance: wallet.balance,
             };
         } catch (error) {
             await queryRunner.rollbackTransaction();
@@ -311,6 +305,28 @@ export class WalletService {
             throw new BadRequestException(`Invalid decimal value: ${value}`);
         }
         return parsed;
+    }
+
+    /**
+     * Add two decimal strings and return as decimal string
+     * Preserves precision for decimal arithmetic
+     */
+    private addDecimals(a: string, b: string): string {
+        const numA = this.parseDecimal(a);
+        const numB = this.parseDecimal(b);
+        const result = numA + numB;
+        return result.toFixed(8);
+    }
+
+    /**
+     * Subtract two decimal strings and return as decimal string
+     * Preserves precision for decimal arithmetic
+     */
+    private subtractDecimals(a: string, b: string): string {
+        const numA = this.parseDecimal(a);
+        const numB = this.parseDecimal(b);
+        const result = numA - numB;
+        return result.toFixed(8);
     }
 
 
@@ -347,7 +363,7 @@ export class WalletService {
                 // Create wallet if it doesn't exist (within transaction)
                 wallet = new Wallet();
                 wallet.user = user;
-                wallet.balance = 0;
+                wallet.balance = "0";
                 wallet.withdrawFeePercentage = "0";
                 wallet = await queryRunner.manager.save(wallet);
 
@@ -363,14 +379,8 @@ export class WalletService {
                 throw new NotFoundException("Failed to get or create wallet");
             }
 
-            // Update balance - wallet.balance is stored as bigint in base units (already multiplied by 100000000)
-            // Work directly in base units to avoid precision loss from decimal conversion
-            const amountInBaseUnits = Math.round(amountDecimal * 100000000);
-            // Ensure wallet.balance is treated as a number (bigint from DB might be string)
-            const currentBalanceBaseUnits = typeof wallet.balance === 'string' 
-                ? parseInt(wallet.balance, 10) 
-                : Number(wallet.balance);
-            wallet.balance = currentBalanceBaseUnits + amountInBaseUnits;
+            // Update balance using decimal arithmetic
+            wallet.balance = this.addDecimals(wallet.balance, amount);
             await queryRunner.manager.save(wallet);
 
             // Record transaction
@@ -383,7 +393,7 @@ export class WalletService {
             const savedTx = await queryRunner.manager.save(transaction);
 
             await queryRunner.commitTransaction();
-            return { transactionId: savedTx.id, balance: (wallet.balance / 100000000).toFixed(8) };
+            return { transactionId: savedTx.id, balance: wallet.balance };
         } catch (error) {
             await queryRunner.rollbackTransaction();
             throw error;
@@ -445,7 +455,7 @@ export class WalletService {
 
                     wallet = new Wallet();
                     wallet.user = user;
-                    wallet.balance = 0;
+                    wallet.balance = "0";
                     wallet.withdrawFeePercentage = "0";
                     wallet = await queryRunner.manager.save(wallet);
 
@@ -473,15 +483,15 @@ export class WalletService {
             }
 
             // Validate sender has sufficient balance
-            const fromBalance = this.parseDecimal(String(fromWallet.balance / 100000000));
-            if (fromBalance < amountDecimal) {
+            const fromBalanceNum = this.parseDecimal(fromWallet.balance);
+            if (fromBalanceNum < amountDecimal) {
                 await queryRunner.rollbackTransaction();
                 throw new BadRequestException("Insufficient balance");
             }
 
-            // Update balances atomically - convert to integer (multiply by 10^8 for 8 decimals)
-            fromWallet.balance = Math.round((fromBalance - amountDecimal) * 100000000);
-            toWallet.balance = Math.round((this.parseDecimal(String(toWallet.balance / 100000000)) + amountDecimal) * 100000000);
+            // Update balances using decimal arithmetic
+            fromWallet.balance = this.subtractDecimals(fromWallet.balance, amount);
+            toWallet.balance = this.addDecimals(toWallet.balance, amount);
             await queryRunner.manager.save([fromWallet, toWallet]);
 
             // Create transaction record
@@ -498,8 +508,8 @@ export class WalletService {
 
             return {
                 transactionId: savedTransaction.id,
-                fromBalance: (fromWallet.balance / 100000000).toFixed(8),
-                toBalance: (toWallet.balance / 100000000).toFixed(8),
+                fromBalance: fromWallet.balance,
+                toBalance: toWallet.balance,
             };
         } catch (error) {
             await queryRunner.rollbackTransaction();
@@ -514,7 +524,7 @@ export class WalletService {
      */
     async getBalance(userId: number): Promise<string> {
         const wallet = await this.getOrCreateWallet(userId);
-        return (wallet.balance / 100000000).toFixed(8);
+        return wallet.balance;
     }
 }
 

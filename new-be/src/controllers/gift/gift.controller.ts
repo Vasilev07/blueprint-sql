@@ -5,11 +5,8 @@ import {
     Get,
     Req,
     Query,
-    Param,
     HttpCode,
     HttpStatus,
-    ParseIntPipe,
-    Res,
 } from "@nestjs/common";
 import {
     ApiTags,
@@ -25,18 +22,11 @@ import {
 } from "../../models/gift.dto";
 import { UseGuards } from "@nestjs/common";
 import { AdminGuard } from "../../guards/admin.guard";
-import { Response } from "express";
-import { ConfigService } from "@nestjs/config";
-import * as path from "path";
-import * as fs from "fs";
 
 @Controller("/gifts")
 @ApiTags("Gift")
 export class GiftController {
-    constructor(
-        private readonly giftService: GiftService,
-        private readonly configService: ConfigService,
-    ) {}
+    constructor(private readonly giftService: GiftService) {}
 
     @Post("/send")
     @HttpCode(HttpStatus.CREATED)
@@ -126,91 +116,5 @@ export class GiftController {
         return await this.giftService.getAllGifts(userId, page, limit);
     }
 
-    @Get("/available")
-    @ApiOperation({ summary: "Get list of available gift images" })
-    @ApiResponse({
-        status: 200,
-        description: "Returns list of available gift image names",
-        schema: {
-            type: "object",
-            properties: {
-                giftImages: {
-                    type: "array",
-                    items: { type: "string" },
-                },
-            },
-        },
-    })
-    async getAvailableGiftImages(): Promise<{ giftImages: string[] }> {
-        return {
-            giftImages: [
-                "img.png",
-                "img_1.png",
-                "img_2.png",
-                "img_3.png",
-                "img_4.png",
-                "img_5.png",
-                "img_6.png",
-                "img_7.png",
-                "image.png",
-            ],
-        };
-    }
-
-    @Get("/image/:filename")
-    @ApiOperation({ summary: "Get gift image file" })
-    @ApiResponse({
-        status: 200,
-        description: "Returns gift image",
-        content: {
-            "image/png": {
-                schema: {
-                    type: "string",
-                    format: "binary",
-                },
-            },
-            "image/jpeg": {
-                schema: {
-                    type: "string",
-                    format: "binary",
-                },
-            },
-        },
-    })
-    @ApiResponse({ status: 404, description: "Image not found" })
-    async getGiftImage(
-        @Param("filename") filename: string,
-        @Res() res: Response,
-    ): Promise<void> {
-        // Security: Only allow alphanumeric, underscore, dash, and dot
-        if (!/^[a-zA-Z0-9._-]+\.(png|jpg|jpeg)$/.test(filename)) {
-            res.status(400).send("Invalid filename");
-            return;
-        }
-
-        // Prefer serving from uploads/gifts folder (configurable)
-        const uploadRoot = this.configService.get<string>("UPLOAD_DIR", "./uploads");
-        const giftsDir = path.resolve(uploadRoot, "gifts");
-        const candidatePaths = [
-            path.resolve(giftsDir, filename),
-            path.resolve(process.cwd(), filename),
-            path.resolve(process.cwd(), "..", filename),
-        ];
-        const foundPath = candidatePaths.find((p) => fs.existsSync(p));
-        if (!foundPath) {
-            res.status(404).send("Image not found");
-            return;
-        }
-
-        // Detect content type
-        let contentType = "image/png";
-        if (filename.endsWith(".jpg") || filename.endsWith(".jpeg")) {
-            contentType = "image/jpeg";
-        }
-
-        res.set("Content-Type", contentType);
-        const readStream = fs.createReadStream(foundPath);
-        readStream.pipe(res);
-    }
 }
 

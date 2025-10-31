@@ -13,7 +13,7 @@ export class GiftMapper implements BaseMapper<Gift, GiftDTO> {
             id: entity.id,
             senderId: entity.senderId,
             receiverId: entity.receiverId,
-            giftImageName: entity.giftImageName,
+            giftEmoji: entity.giftEmoji,
             amount: entity.amount,
             message: entity.message,
             transactionId: entity.transactionId,
@@ -45,7 +45,7 @@ export class GiftMapper implements BaseMapper<Gift, GiftDTO> {
         gift.id = dto.id;
         gift.senderId = dto.senderId;
         gift.receiverId = dto.receiverId;
-        gift.giftImageName = dto.giftImageName;
+        gift.giftEmoji = dto.giftEmoji;
         gift.amount = dto.amount;
         gift.message = dto.message;
         gift.transactionId = dto.transactionId;

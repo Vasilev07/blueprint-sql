@@ -14,34 +14,10 @@ import { WalletService } from "./wallet.service";
 
 @Injectable()
 export class GiftService {
-    // Valid gift image names
-    private readonly validGiftImages = [
-        "img.png",
-        "img_1.png",
-        "img_2.png",
-        "img_3.png",
-        "img_4.png",
-        "img_5.png",
-        "img_6.png",
-        "img_7.png",
-        "image.png",
-    ];
-
     constructor(
         private readonly entityManager: EntityManager,
         private readonly walletService: WalletService,
     ) {}
-
-    /**
-     * Validate gift image name
-     */
-    private validateGiftImageName(imageName: string): void {
-        if (!this.validGiftImages.includes(imageName)) {
-            throw new BadRequestException(
-                `Invalid gift image name. Valid options: ${this.validGiftImages.join(", ")}`,
-            );
-        }
-    }
 
     /**
      * Send a gift from authenticated user to another user
@@ -55,15 +31,12 @@ export class GiftService {
             throw new UnauthorizedException("User not authenticated");
         }
 
-        const { receiverId, giftImageName, amount, message } = sendGiftDto;
+        const { receiverId, giftEmoji, amount, message } = sendGiftDto;
 
         // Validate not sending to self
         if (senderId === receiverId) {
             throw new BadRequestException("Cannot send gift to yourself");
         }
-
-        // Validate gift image name
-        this.validateGiftImageName(giftImageName);
 
         // Validate amount
         const amountDecimal = this.parseDecimal(amount);
@@ -100,10 +73,9 @@ export class GiftService {
                 throw new NotFoundException("Sender wallet not found");
             }
 
-            // Validate sender has sufficient balance
-            const currentBalance = this.parseDecimal(String(lockedSenderWallet.balance));
-            if (currentBalance < amountDecimal) {
-                await queryRunner.rollbackTransaction();
+            // Validate sender has sufficient balance using decimal strings
+            const currentBalanceNum = this.parseDecimal(lockedSenderWallet.balance);
+            if (currentBalanceNum < amountDecimal) {
                 throw new BadRequestException("Insufficient balance");
             }
 
@@ -121,11 +93,9 @@ export class GiftService {
                 throw new NotFoundException("Receiver wallet not found");
             }
 
-            // Update balances atomically - convert to integer (multiply by 10^8 for 8 decimals)
-            lockedSenderWallet.balance = Math.round((currentBalance - amountDecimal) * 100000000);
-            lockedReceiverWallet.balance = Math.round(
-                (this.parseDecimal(String(lockedReceiverWallet.balance / 100000000)) + amountDecimal) * 100000000
-            );
+            // Update balances using decimal arithmetic
+            lockedSenderWallet.balance = this.subtractDecimals(lockedSenderWallet.balance, amount);
+            lockedReceiverWallet.balance = this.addDecimals(lockedReceiverWallet.balance, amount);
 
             // Save wallets
             await queryRunner.manager.save([lockedSenderWallet, lockedReceiverWallet]);
@@ -158,7 +128,7 @@ export class GiftService {
             gift.senderId = senderId;
             gift.receiver = receiverEntity;
             gift.receiverId = receiverId;
-            gift.giftImageName = giftImageName;
+            gift.giftEmoji = giftEmoji;
             gift.amount = amount;
             gift.message = message || null;
             gift.transaction = savedTransaction;
@@ -172,10 +142,13 @@ export class GiftService {
             return {
                 giftId: savedGift.id,
                 transactionId: savedTransaction.id,
-                senderBalance: (lockedSenderWallet.balance / 100000000).toFixed(8),
+                senderBalance: lockedSenderWallet.balance,
             };
         } catch (error) {
-            await queryRunner.rollbackTransaction();
+            // Only rollback if transaction is still active
+            if (queryRunner.isTransactionActive) {
+                await queryRunner.rollbackTransaction();
+            }
             throw error;
         } finally {
             await queryRunner.release();
@@ -280,7 +253,7 @@ export class GiftService {
             id: gift.id,
             senderId: gift.senderId,
             receiverId: gift.receiverId,
-            giftImageName: gift.giftImageName,
+            giftEmoji: gift.giftEmoji,
             amount: gift.amount,
             message: gift.message,
             transactionId: gift.transactionId,
@@ -313,6 +286,24 @@ export class GiftService {
             throw new BadRequestException(`Invalid decimal value: ${value}`);
         }
         return parsed;
+    }
+
+    /**
+     * Add two decimal strings and return as decimal string
+     */
+    private addDecimals(a: string, b: string): string {
+        const numA = this.parseDecimal(a);
+        const numB = this.parseDecimal(b);
+        return (numA + numB).toFixed(8);
+    }
+
+    /**
+     * Subtract two decimal strings and return as decimal string
+     */
+    private subtractDecimals(a: string, b: string): string {
+        const numA = this.parseDecimal(a);
+        const numB = this.parseDecimal(b);
+        return (numA - numB).toFixed(8);
     }
 }
 

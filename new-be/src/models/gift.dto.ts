@@ -11,7 +11,7 @@ export class GiftDTO {
     receiverId: number;
 
     @ApiProperty()
-    giftImageName: string;
+    giftEmoji: string;
 
     @ApiProperty()
     amount: string;
@@ -46,8 +46,8 @@ export class SendGiftRequestDTO {
     @ApiProperty({ description: "User ID to send gift to" })
     receiverId: number;
 
-    @ApiProperty({ description: "Gift image name (e.g., 'img.png', 'img_1.png')" })
-    giftImageName: string;
+    @ApiProperty({ description: "Gift emoji (e.g., '🍹', '🌹', '💎')" })
+    giftEmoji: string;
 
     @ApiProperty({ description: "Amount to pay for the gift (as decimal string)" })
     amount: string;

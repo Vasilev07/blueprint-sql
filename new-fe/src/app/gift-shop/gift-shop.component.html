@@ -1,10 +1,24 @@
 <div class="gift-shop-container">
     <div class="gift-shop-header">
-        <h1>
-            <i class="pi pi-gift"></i>
-            Gift Shop
-        </h1>
-        <p class="subtitle">Select a gift and send it to someone special</p>
+        <div>
+            <h1>
+                <i class="pi pi-gift"></i>
+                Gift Shop
+            </h1>
+            <p class="subtitle">Select a gift and send it to someone special</p>
+        </div>
+        <div class="header-balance-section">
+            <div class="balance-display">
+                <i class="pi pi-wallet"></i>
+                <span class="balance-amount">{{ getBalanceAsInteger() }} tokens</span>
+            </div>
+            <p-button
+                icon="pi pi-plus-circle"
+                label="Add Tokens"
+                styleClass="p-button-sm p-button-success"
+                (onClick)="openDepositDialog()">
+            </p-button>
+        </div>
     </div>
 
     <!-- Loading State -->
@@ -25,11 +39,7 @@
                     [class.selected]="selectedGift?.name === gift.name"
                     (click)="selectGift(gift)">
                     <div class="gift-image-wrapper">
-                        <img
-                            [src]="gift.url"
-                            [alt]="gift.name"
-                            (error)="handleImageError($event)"
-                            class="gift-image" />
+                        <span class="gift-emoji" aria-hidden="true">{{ gift.emoji }}</span>
                         <div class="gift-overlay" *ngIf="selectedGift?.name === gift.name">
                             <i class="pi pi-check-circle"></i>
                         </div>
@@ -105,8 +115,13 @@
                 <div class="form-group" *ngIf="selectedGift">
                     <label>Selected Gift</label>
                     <div class="selected-gift-display">
-                        <img [src]="selectedGift.url" [alt]="selectedGift.name" class="selected-gift-image" />
+                        <span class="selected-gift-emoji">{{ selectedGift.emoji }}</span>
                         <span>{{ selectedGift.name }}</span>
+                    </div>
+                    <div class="gift-amount-display">
+                        <i class="pi pi-wallet"></i>
+                        <span class="amount-label">Amount:</span>
+                        <span class="amount-value">{{ selectedGift.amount }} tokens</span>
                     </div>
                 </div>
 
@@ -115,31 +130,6 @@
                         <i class="pi pi-exclamation-triangle"></i>
                         Please select a gift from above
                     </p>
-                </div>
-
-                <!-- Amount Input -->
-                <div class="form-group">
-                    <label for="amount">
-                        Amount <span class="required">*</span>
-                    </label>
-                    <p-inputNumber
-                        id="amount"
-                        formControlName="amount"
-                        mode="decimal"
-                        [min]="0.01"
-                        [maxFractionDigits]="8"
-                        placeholder="0.00"
-                        class="w-full"
-                        [showButtons]="false">
-                    </p-inputNumber>
-                    <small
-                        class="p-error"
-                        *ngIf="
-                            giftForm.get('amount')?.invalid &&
-                            giftForm.get('amount')?.touched
-                        ">
-                        Amount must be greater than 0
-                    </small>
                 </div>
 
                 <!-- Message Input -->
@@ -171,6 +161,115 @@
         </div>
     </div>
 </div>
+
+<!-- Deposit Dialog -->
+<p-dialog
+  [(visible)]="showDepositDialog"
+  [modal]="true"
+  [style]="{ width: '600px', maxWidth: '90vw' }"
+  [dismissableMask]="true">
+  <ng-template pTemplate="header">
+    <div class="dialog-header">
+      <span>Add Tokens</span>
+    </div>
+  </ng-template>
+
+  <div class="deposit-dialog-content">
+    <!-- Amount Input Section -->
+    <div class="amount-input-section">
+      <label for="amount" class="amount-label">How many tokens would you like to purchase?</label>
+      <div class="amount-input-wrapper">
+        <input
+          id="amount"
+          type="number"
+          [(ngModel)]="depositForm.amount"
+          min="1"
+          step="1"
+          placeholder="Enter amount"
+          class="amount-input">
+        <span class="tokens-unit">tokens</span>
+      </div>
+    </div>
+
+    <!-- Credit Card Preview -->
+    <div class="card-preview">
+      <div class="card-front">
+        <div class="card-chip"></div>
+        <div class="card-number-container">
+          <input 
+            id="cardNumber" 
+            type="text" 
+            [(ngModel)]="depositForm.cardNumber" 
+            placeholder="4111 1111 1111 1111" 
+            class="card-number-input"
+            maxlength="19"
+            (input)="formatCardNumber($event)" />
+        </div>
+        <div class="card-holder-container">
+          <label class="card-label">CARDHOLDER NAME</label>
+          <input 
+            type="text" 
+            [(ngModel)]="depositForm.cardHolder" 
+            placeholder="JOHN DOE" 
+            class="card-holder-input"
+            style="text-transform: uppercase;" />
+        </div>
+        <div class="card-expiry-cvv">
+          <div class="card-expiry">
+            <label class="card-label">EXPIRY DATE</label>
+            <div class="expiry-inputs">
+              <input 
+                id="expMonth" 
+                type="text" 
+                [(ngModel)]="depositForm.expiryMonth" 
+                placeholder="MM" 
+                class="expiry-input"
+                maxlength="2" />
+              <span class="expiry-separator">/</span>
+              <input 
+                id="expYear" 
+                type="text" 
+                [(ngModel)]="depositForm.expiryYear" 
+                placeholder="YY" 
+                class="expiry-input"
+                maxlength="2" />
+            </div>
+          </div>
+          <div class="card-cvv">
+            <label class="card-label">CVV</label>
+            <input 
+              id="cvv" 
+              type="text" 
+              [(ngModel)]="depositForm.cvv" 
+              placeholder="123" 
+              class="cvv-input"
+              maxlength="3" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <small class="text-muted">Card details are mocked for demo purposes</small>
+
+    <div class="dialog-actions">
+      <p-button 
+        label="Cancel" 
+        icon="pi pi-times" 
+        (onClick)="closeDepositDialog()" 
+        [disabled]="isDepositing"
+        styleClass="p-button-text">
+      </p-button>
+      <p-button 
+        label="Add Tokens" 
+        icon="pi pi-check" 
+        (onClick)="submitDeposit()" 
+        [disabled]="!depositForm.amount || depositForm.amount <= 0 || isDepositing" 
+        [loading]="isDepositing"
+        styleClass="p-button-success">
+      </p-button>
+    </div>
+  </div>
+</p-dialog>
 
 <p-toast></p-toast>
 

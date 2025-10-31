@@ -1,13 +1,14 @@
 import { Component, OnInit } from "@angular/core";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
-import { GiftService, UserService } from "src/typescript-api-client/src/api/api";
+import { GiftService, UserService, WalletService } from "src/typescript-api-client/src/api/api";
 import { MessageService } from "primeng/api";
 import { AuthService } from "../services/auth.service";
-import { environment } from "src/environments/environment";
 
-interface GiftImage {
-    name: string;
-    url: string;
+interface GiftOption {
+    name: string; // human-readable label
+    emoji: string; // emoji character for UI display
+    value: string; // emoji value sent to backend
+    amount: number; // preset amount in tokens
 }
 
 @Component({
@@ -18,26 +19,39 @@ interface GiftImage {
 })
 export class GiftShopComponent implements OnInit {
     giftForm: FormGroup;
-    availableGifts: GiftImage[] = [];
-    selectedGift: GiftImage | null = null;
+    availableGifts: GiftOption[] = [];
+    selectedGift: GiftOption | null = null;
     users: any[] = [];
     filteredUsers: any[] = [];
     searchTerm: string = "";
     isLoading: boolean = false;
     isSending: boolean = false;
-    apiUrl: string = environment.apiUrl;
+    
+    // Balance and deposit
+    balance: string = "0";
+    showDepositDialog = false;
+    isDepositing = false;
+    depositForm: any = {
+        amount: null as number | null,
+        cardNumber: "",
+        cardHolder: "",
+        expiryMonth: "",
+        expiryYear: "",
+        cvv: "",
+    };
 
     constructor(
         private fb: FormBuilder,
         private giftService: GiftService,
         private userService: UserService,
+        private walletService: WalletService,
         private messageService: MessageService,
         private authService: AuthService
     ) {
         this.giftForm = this.fb.group({
             receiverId: [null, Validators.required],
-            giftImageName: [null, Validators.required],
-            amount: ["", [Validators.required, Validators.min(0.01)]],
+            giftEmoji: [null, Validators.required],
+            amount: [null, [Validators.required]],
             message: [""],
         });
     }
@@ -45,28 +59,23 @@ export class GiftShopComponent implements OnInit {
     ngOnInit(): void {
         this.loadAvailableGifts();
         this.loadUsers();
+        this.loadBalance();
     }
 
     loadAvailableGifts(): void {
-        this.isLoading = true;
-        this.giftService.getAvailableGiftImages().subscribe({
-            next: (response) => {
-                this.availableGifts = (response.giftImages || []).map((imageName: string) => ({
-                    name: imageName,
-                    url: `${this.apiUrl}/gifts/image/${imageName}`,
-                }));
-                this.isLoading = false;
-            },
-            error: (error) => {
-                console.error("Error loading gift images:", error);
-                this.messageService.add({
-                    severity: "error",
-                    summary: "Error",
-                    detail: "Failed to load gift images",
-                });
-                this.isLoading = false;
-            },
-        });
+        // Backend now accepts emojis directly
+        // Each gift has a preset amount: 100, 200, 300, 400, etc.
+        this.availableGifts = [
+            { name: "Flirty Drink", emoji: "🍹", value: "🍹", amount: 100 },
+            { name: "Red Rose", emoji: "🌹", value: "🌹", amount: 200 },
+            { name: "Sexy Cocktail", emoji: "🍸", value: "🍸", amount: 300 },
+            { name: "Love Potion", emoji: "💋", value: "💋", amount: 400 },
+            { name: "Naughty Toy", emoji: "🧸", value: "🧸", amount: 500 },
+            { name: "Diamond Ring", emoji: "💎", value: "💎", amount: 600 },
+            { name: "Luxury Lingerie", emoji: "👙", value: "👙", amount: 700 },
+            { name: "Champagne", emoji: "🍾", value: "🍾", amount: 800 },
+        ];
+        this.isLoading = false;
     }
 
     loadUsers(): void {
@@ -87,9 +96,13 @@ export class GiftShopComponent implements OnInit {
             });
     }
 
-    selectGift(gift: GiftImage): void {
+    selectGift(gift: GiftOption): void {
         this.selectedGift = gift;
-        this.giftForm.patchValue({ giftImageName: gift.name });
+        // Set both emoji and preset amount
+        this.giftForm.patchValue({ 
+            giftEmoji: gift.value,
+            amount: gift.amount
+        });
     }
 
     searchUsers(event: any): void {
@@ -105,10 +118,6 @@ export class GiftShopComponent implements OnInit {
     getUserDisplay(user: any): string {
         if (!user) return "";
         return `${user.firstname || ""} ${user.lastname || ""}`.trim() || user.email || "Unknown";
-    }
-
-    handleImageError(event: any): void {
-        event.target.src = "assets/images/placeholder.png"; // Fallback image
     }
 
     onSubmit(): void {
@@ -128,13 +137,19 @@ export class GiftShopComponent implements OnInit {
         if (typeof formValue.receiverId === 'object' && formValue.receiverId !== null) {
             formValue.receiverId = formValue.receiverId.id;
         }
+        
+        // Convert amount to string as backend expects
+        if (typeof formValue.amount === 'number') {
+            formValue.amount = formValue.amount.toString();
+        }
 
         this.giftService.sendGift(formValue).subscribe({
             next: (response) => {
+                this.balance = response.senderBalance?.toString() || this.balance;
                 this.messageService.add({
                     severity: "success",
                     summary: "Success",
-                    detail: `Gift sent successfully! Your new balance is ${response.senderBalance}`,
+                    detail: `Gift sent successfully! Your new balance is ${this.getBalanceAsInteger()} tokens`,
                 });
                 this.giftForm.reset();
                 this.selectedGift = null;
@@ -150,6 +165,74 @@ export class GiftShopComponent implements OnInit {
                     detail: errorMsg,
                 });
                 this.isSending = false;
+            },
+        });
+    }
+
+    loadBalance(): void {
+        this.userService.getUser().subscribe({
+            next: (user: any) => {
+                this.balance = user.balance || "0";
+            },
+            error: (error) => {
+                console.error("Error loading balance:", error);
+            },
+        });
+    }
+
+    getBalanceAsInteger(): string {
+        const balanceValue = parseFloat(this.balance || "0");
+        return Math.floor(balanceValue).toString();
+    }
+
+    openDepositDialog(): void {
+        this.showDepositDialog = true;
+    }
+
+    closeDepositDialog(): void {
+        this.showDepositDialog = false;
+        this.isDepositing = false;
+        this.depositForm = { amount: null, cardNumber: '', cardHolder: '', expiryMonth: '', expiryYear: '', cvv: '' };
+    }
+
+    formatCardNumber(event: any): void {
+        let value = event.target.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+        const formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+        this.depositForm.cardNumber = formattedValue;
+    }
+
+    submitDeposit(): void {
+        if (this.depositForm.amount === null || this.depositForm.amount === undefined || this.depositForm.amount <= 0) {
+            this.messageService.add({ severity: 'warn', summary: 'Validation', detail: 'Enter a positive amount' });
+            return;
+        }
+
+        const amount = Math.floor(Number(this.depositForm.amount));
+        this.isDepositing = true;
+
+        this.walletService.deposit({ 
+            amount: amount.toString(), 
+            currency: 'USD', 
+            paymentMethod: 'card' 
+        }).subscribe({
+            next: (response: any) => {
+                this.balance = response.balance || this.balance;
+                this.messageService.add({ 
+                    severity: 'success', 
+                    summary: 'Success', 
+                    detail: `Successfully added ${amount} tokens. New balance: ${this.getBalanceAsInteger()} tokens` 
+                });
+                this.isDepositing = false;
+                this.closeDepositDialog();
+            },
+            error: (error: any) => {
+                console.error('Error depositing funds:', error);
+                this.messageService.add({ 
+                    severity: 'error', 
+                    summary: 'Error', 
+                    detail: error.error?.message || 'Failed to add tokens. Please try again.' 
+                });
+                this.isDepositing = false;
             },
         });
     }

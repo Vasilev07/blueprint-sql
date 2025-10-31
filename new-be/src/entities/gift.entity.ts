@@ -31,8 +31,8 @@ export class Gift {
     @Column("int")
     receiverId: number;
 
-    @Column({ type: "varchar", length: 255 })
-    giftImageName: string;
+    @Column({ type: "varchar", length: 10 })
+    giftEmoji: string;
 
     @Column({ type: "decimal", precision: 20, scale: 8 })
     amount: string;

@@ -11,6 +11,7 @@ import { AutoCompleteModule } from "primeng/autocomplete";
 import { AvatarModule } from "primeng/avatar";
 import { ProgressSpinnerModule } from "primeng/progressspinner";
 import { ToastModule } from "primeng/toast";
+import { DialogModule } from "primeng/dialog";
 import { MessageService } from "primeng/api";
 
 import { GiftShopComponent } from "./gift-shop.component";
@@ -38,6 +39,7 @@ const routes: Routes = [
         AvatarModule,
         ProgressSpinnerModule,
         ToastModule,
+        DialogModule,
     ],
     providers: [MessageService],
 })
