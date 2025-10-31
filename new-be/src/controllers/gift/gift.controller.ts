@@ -26,13 +26,17 @@ import {
 import { UseGuards } from "@nestjs/common";
 import { AdminGuard } from "../../guards/admin.guard";
 import { Response } from "express";
+import { ConfigService } from "@nestjs/config";
 import * as path from "path";
 import * as fs from "fs";
 
 @Controller("/gifts")
 @ApiTags("Gift")
 export class GiftController {
-    constructor(private readonly giftService: GiftService) {}
+    constructor(
+        private readonly giftService: GiftService,
+        private readonly configService: ConfigService,
+    ) {}
 
     @Post("/send")
     @HttpCode(HttpStatus.CREATED)
@@ -184,10 +188,16 @@ export class GiftController {
             return;
         }
 
-        // Path to gift images in project root
-        const imagePath = path.join(process.cwd(), filename);
-
-        if (!fs.existsSync(imagePath)) {
+        // Prefer serving from uploads/gifts folder (configurable)
+        const uploadRoot = this.configService.get<string>("UPLOAD_DIR", "./uploads");
+        const giftsDir = path.resolve(uploadRoot, "gifts");
+        const candidatePaths = [
+            path.resolve(giftsDir, filename),
+            path.resolve(process.cwd(), filename),
+            path.resolve(process.cwd(), "..", filename),
+        ];
+        const foundPath = candidatePaths.find((p) => fs.existsSync(p));
+        if (!foundPath) {
             res.status(404).send("Image not found");
             return;
         }
@@ -199,7 +209,7 @@ export class GiftController {
         }
 
         res.set("Content-Type", contentType);
-        const readStream = fs.createReadStream(imagePath);
+        const readStream = fs.createReadStream(foundPath);
         readStream.pipe(res);
     }
 }
