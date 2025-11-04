@@ -458,4 +458,10 @@ export class ChatComponent implements OnInit, OnDestroy, OnChanges {
             img.src = this.defaultAvatar;
         }
     }
+
+    openUserProfile(): void {
+        if (this.currentUserId) {
+            this.router.navigate(['/profile', this.currentUserId]);
+        }
+    }
 }

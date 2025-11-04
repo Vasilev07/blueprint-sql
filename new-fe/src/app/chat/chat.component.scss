@@ -41,6 +41,16 @@
       align-items: center;
       gap: 1rem;
       flex: 1;
+      cursor: pointer;
+      transition: opacity 0.2s ease;
+      padding: 0.5rem;
+      border-radius: 8px;
+      margin: -0.5rem;
+
+      &:hover {
+        opacity: 0.8;
+        background: var(--surface-50, #f9fafb);
+      }
 
       .chat-header-avatar {
         width: 48px;

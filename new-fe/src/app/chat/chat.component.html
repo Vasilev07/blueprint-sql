@@ -9,7 +9,7 @@
             pTooltip="Back"
             (click)="goBack()"></button>
 
-    <div class="chat-user-info">
+    <div class="chat-user-info" (click)="openUserProfile()">
       <img [src]="headerProfilePictureUrl"
            [alt]="otherUserName"
            (error)="onImageError($event)"
