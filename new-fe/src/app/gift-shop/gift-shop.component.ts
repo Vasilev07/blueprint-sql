@@ -26,6 +26,7 @@ export class GiftShopComponent implements OnInit {
     searchTerm: string = "";
     isLoading: boolean = false;
     isSending: boolean = false;
+    showSendGiftDialog: boolean = false;
     
     // Balance and deposit
     balance: string = "0";
@@ -39,6 +40,7 @@ export class GiftShopComponent implements OnInit {
         expiryYear: "",
         cvv: "",
     };
+
 
     constructor(
         private fb: FormBuilder,
@@ -101,8 +103,12 @@ export class GiftShopComponent implements OnInit {
         // Set both emoji and preset amount
         this.giftForm.patchValue({ 
             giftEmoji: gift.value,
-            amount: gift.amount
+            amount: gift.amount,
+            receiverId: null,
+            message: ""
         });
+        // Open the send gift dialog
+        this.showSendGiftDialog = true;
     }
 
     searchUsers(event: any): void {
@@ -151,8 +157,7 @@ export class GiftShopComponent implements OnInit {
                     summary: "Success",
                     detail: `Gift sent successfully! Your new balance is ${this.getBalanceAsInteger()} tokens`,
                 });
-                this.giftForm.reset();
-                this.selectedGift = null;
+                this.closeSendGiftDialog();
                 this.isSending = false;
             },
             error: (error) => {
@@ -169,6 +174,12 @@ export class GiftShopComponent implements OnInit {
         });
     }
 
+    closeSendGiftDialog(): void {
+        this.showSendGiftDialog = false;
+        this.selectedGift = null;
+        this.giftForm.reset();
+    }
+
     loadBalance(): void {
         this.userService.getUser().subscribe({
             next: (user: any) => {
@@ -183,6 +194,18 @@ export class GiftShopComponent implements OnInit {
     getBalanceAsInteger(): string {
         const balanceValue = parseFloat(this.balance || "0");
         return Math.floor(balanceValue).toString();
+    }
+
+    getBalanceAsNumber(): number {
+        return parseFloat(this.balance || "0");
+    }
+
+    hasSufficientBalance(amount: number): boolean {
+        return amount <= this.getBalanceAsNumber();
+    }
+
+    getBalanceAfterSending(amount: number): number {
+        return Math.floor(this.getBalanceAsNumber()) - amount;
     }
 
     openDepositDialog(): void {

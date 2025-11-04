@@ -74,20 +74,16 @@
 }
 
 .gift-shop-content {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2rem;
-
-    @media (max-width: 992px) {
-        grid-template-columns: 1fr;
-    }
+    width: 100%;
 }
 
 .gifts-section {
+    width: 100%;
+
     h2 {
-        font-size: 1.5rem;
+        font-size: 1.75rem;
         color: var(--text-color);
-        margin-bottom: 1.5rem;
+        margin-bottom: 2rem;
         padding-bottom: 0.75rem;
         border-bottom: 2px solid var(--surface-border);
     }
@@ -95,10 +91,8 @@
 
 .gifts-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     gap: 1.5rem;
-    max-height: 60vh;
-    overflow-y: auto;
     padding-right: 8px;
 
     &::-webkit-scrollbar {
@@ -124,10 +118,13 @@
     background: var(--surface-card);
     border: 2px solid var(--surface-border);
     border-radius: 12px;
-    padding: 1rem;
+    padding: 1.25rem;
     cursor: pointer;
     transition: all 0.3s ease;
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 
     &:hover {
         transform: translateY(-4px);
@@ -317,18 +314,31 @@
     }
 }
 
+@media (max-width: 1200px) {
+    .gifts-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    }
+}
+
 @media (max-width: 992px) {
     .gift-shop-container {
         padding: 1rem;
     }
 
     .gifts-grid {
-        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-        gap: 1rem;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 1.25rem;
     }
 
-    .send-gift-section {
-        padding: 1.5rem;
+    .gifts-section h2 {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .gifts-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 1rem;
     }
 }
 
@@ -350,6 +360,12 @@
 
     .gifts-grid {
         grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 0.75rem;
+    }
+
+    .gifts-section h2 {
+        font-size: 1.25rem;
+        margin-bottom: 1.5rem;
     }
 }
 
@@ -585,13 +601,6 @@
     }
   }
 
-  .dialog-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 0.75rem;
-    margin-top: 1.5rem;
-  }
-
   .text-muted {
     display: block;
     text-align: center;
@@ -613,6 +622,13 @@
   }
 }
 
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
 .dialog-header {
   display: flex;
   align-items: center;
@@ -620,5 +636,103 @@
   font-size: 1.25rem;
   font-weight: 600;
   color: var(--text-color);
+
+  .selected-gift-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    .selected-gift-emoji-large {
+      font-size: 2.5rem;
+      line-height: 1;
+    }
+
+    h3 {
+      margin: 0;
+      font-size: 1.5rem;
+      color: var(--text-color);
+    }
+
+    .gift-price-text {
+      margin: 0.25rem 0 0 0;
+      font-size: 1rem;
+      color: var(--text-color-secondary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+
+      i {
+        color: var(--primary-color);
+      }
+    }
+  }
+}
+
+.gift-form {
+  .balance-check {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: var(--surface-ground);
+    border-radius: 8px;
+    border: 1px solid var(--surface-border);
+
+    .balance-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+
+      .balance-label {
+        font-weight: 500;
+        color: var(--text-color-secondary);
+      }
+
+      .balance-value {
+        font-weight: 600;
+        color: var(--text-color);
+        font-size: 1.1rem;
+      }
+    }
+
+    .balance-after {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--surface-border);
+
+      .balance-label {
+        font-weight: 500;
+        color: var(--text-color-secondary);
+      }
+
+      .balance-value {
+        font-weight: 600;
+        color: var(--primary-color);
+        font-size: 1.1rem;
+      }
+    }
+
+    .balance-warning {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem;
+      background: color-mix(in srgb, var(--yellow-500) 10%, transparent);
+      border-left: 4px solid var(--yellow-500);
+      border-radius: 4px;
+      color: var(--text-color);
+      margin-top: 0.75rem;
+
+      i {
+        color: var(--yellow-500);
+        font-size: 1.25rem;
+      }
+
+      span {
+        font-weight: 500;
+      }
+    }
+  }
 }
 

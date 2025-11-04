@@ -64,7 +64,7 @@
   <!-- Main Content with Tabs -->
   <div class="main-content">
     <div class="content-area">
-      <p-tabView>
+      <p-tabView [(activeIndex)]="activeTabIndex">
         <!-- Photos Tab -->
         <p-tabPanel header="Photos">
           <div class="photos-content">
@@ -196,6 +196,46 @@
             <p>Validations content coming soon...</p>
           </div>
         </p-tabPanel>
+
+        <!-- Received Gifts Tab -->
+        <p-tabPanel header="Received Gifts">
+          <div class="gifts-content">
+            <p-progressSpinner *ngIf="isLoadingGifts" styleClass="w-4rem h-4rem"></p-progressSpinner>
+            
+            <div *ngIf="!isLoadingGifts && receivedGifts.length === 0" class="empty-gallery">
+              <div class="empty-gallery-content">
+                <i class="pi pi-gift empty-icon"></i>
+                <p class="empty-text">No gifts received yet</p>
+              </div>
+            </div>
+
+            <div *ngIf="!isLoadingGifts && receivedGifts.length > 0" class="gifts-grid">
+              <div *ngFor="let gift of receivedGifts" class="gift-card-received">
+                <div class="gift-emoji-large">
+                  <span>{{ gift.giftEmoji }}</span>
+                </div>
+                <div class="gift-details">
+                  <div class="gift-sender">
+                    <i class="pi pi-user"></i>
+                    <span>{{ getSenderName(gift) }}</span>
+                  </div>
+                  <div class="gift-amount">
+                    <i class="pi pi-wallet"></i>
+                    <span>{{ gift.amount }} tokens</span>
+                  </div>
+                  <div class="gift-date">
+                    <i class="pi pi-calendar"></i>
+                    <span>{{ gift.createdAt | date:'short' }}</span>
+                  </div>
+                  <div *ngIf="gift.message" class="gift-message">
+                    <i class="pi pi-comment"></i>
+                    <span>"{{ gift.message }}"</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </p-tabPanel>
       </p-tabView>
     </div>
 
@@ -223,13 +263,13 @@
             <div *ngFor="let friend of friends" class="friend-item">
               <div class="friend-avatar-container">
                 <p-avatar
-                  [label]="friend.user?.firstname?.charAt(0) || 'F'"
+                  [label]="friend.user.firstname?.charAt(0) || 'F'"
                   styleClass="friend-avatar">
                 </p-avatar>
                 <span class="online-status" [class.online]="isOnline(friend.friendId)"></span>
               </div>
               <div class="friend-info">
-                <span class="friend-name">{{ friend.user?.firstname }}</span>
+                <span class="friend-name">{{ friend.user.firstname }}</span>
                 <span class="friend-status" *ngIf="isOnline(friend.friendId)">Online</span>
               </div>
               <p-button

@@ -10,10 +10,10 @@
             (click)="goBack()"></button>
 
     <div class="chat-user-info">
-      <p-avatar [label]="(currentUser?.name || '?').charAt(0).toUpperCase()"
-                [image]="profilePictureBlobUrl || currentUser?.avatar"
-                shape="circle"
-                styleClass="mr-2"></p-avatar>
+      <img [src]="headerProfilePictureUrl"
+           [alt]="otherUserName"
+           (error)="onImageError($event)"
+           class="chat-header-avatar">
       <div class="user-details">
         <h3>{{ otherUserName }}</h3>
         <div class="user-status" [ngClass]="{ 'online': isOtherUserOnline, 'offline': !isOtherUserOnline }">
@@ -44,6 +44,13 @@
     <div *ngFor="let message of messages" 
          class="message-wrapper" 
          [class.own-message]="isOwnMessage(message)">
+      <div *ngIf="!isOwnMessage(message)" class="message-avatar">
+        <img 
+          [src]="getSenderProfilePicture(message.senderId)" 
+          [alt]="getSenderInitials(message.senderId)"
+          (error)="onImageError($event)"
+          class="avatar-image">
+      </div>
       <div class="message-bubble">
         <div class="message-content">{{ message.content }}</div>
         <div class="message-footer">

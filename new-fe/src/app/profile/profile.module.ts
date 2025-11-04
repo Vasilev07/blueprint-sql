@@ -27,6 +27,7 @@ import { ToastModule } from "primeng/toast";
 import {
     UserService,
     FriendsService,
+    GiftService,
 } from "src/typescript-api-client/src/api/api";
 
 @NgModule({
@@ -61,6 +62,7 @@ import {
         ConfirmationService,
         UserService,
         FriendsService,
+        GiftService,
     ],
 })
 export class ProfileModule {}

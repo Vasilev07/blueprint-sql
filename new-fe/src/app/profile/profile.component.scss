@@ -1,11 +1,7 @@
 :host {
   ::ng-deep {
     .p-tabview-panels {
-      overflow: visible !important;
-    }
-    
-    .p-tabview-panel {
-      display: block !important;
+      overflow: hidden;
     }
   }
 }
@@ -968,6 +964,114 @@
     
     .card-number-container .card-number-input {
       font-size: 1.2rem;
+    }
+  }
+}
+
+// Received Gifts Styles
+.gifts-content {
+  position: relative;
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+
+  .p-progressSpinner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+}
+
+.gifts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  width: 100%;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.gift-card-received {
+  background: var(--surface-card);
+  border: 1px solid var(--surface-border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  gap: 1.5rem;
+  transition: all 0.3s ease;
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+    border-color: var(--primary-color);
+  }
+
+  .gift-emoji-large {
+    font-size: 3.5rem;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 80px;
+    height: 80px;
+    background: var(--surface-ground);
+    border-radius: 12px;
+    border: 2px solid var(--primary-color);
+  }
+
+  .gift-details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+
+    > div {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.95rem;
+      
+      i {
+        color: var(--primary-color);
+        font-size: 1rem;
+      }
+    }
+
+    .gift-sender {
+      font-weight: 600;
+      font-size: 1.1rem;
+      color: var(--text-color);
+      
+      i {
+        font-size: 1.1rem;
+      }
+    }
+
+    .gift-amount {
+      color: var(--primary-color);
+      font-weight: 600;
+    }
+
+    .gift-date {
+      color: var(--text-color-secondary);
+      font-size: 0.875rem;
+    }
+
+    .gift-message {
+      padding: 0.75rem;
+      background: var(--surface-50);
+      border-left: 3px solid var(--primary-color);
+      border-radius: 4px;
+      font-style: italic;
+      color: var(--text-color);
+      margin-top: 0.5rem;
+
+      i {
+        color: var(--primary-color);
+      }
     }
   }
 }

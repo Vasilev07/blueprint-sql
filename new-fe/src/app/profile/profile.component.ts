@@ -2,19 +2,23 @@ import { Component, OnInit, OnDestroy } from "@angular/core";
 import { Subject, takeUntil } from "rxjs";
 import { MessageService, ConfirmationService } from "primeng/api";
 import { Router, ActivatedRoute } from "@angular/router";
+import { HttpClient } from "@angular/common/http";
 import { OnlineStatusService } from "../services/online-status.service";
 import { WebsocketService } from "../services/websocket.service";
+import { environment } from "src/environments/environment";
 import {
     UserDTO,
     FriendDTO,
     UserPhotoDTO,
     UserProfileDTO,
     UpdateUserProfileDTO,
+    GiftDTO,
 } from "src/typescript-api-client/src/model/models";
 import {
     UserService,
     FriendsService,
     WalletService,
+    GiftService,
 } from "src/typescript-api-client/src/api/api";
 
 @Component({
@@ -65,6 +69,13 @@ export class ProfileComponent implements OnInit, OnDestroy {
         cvv: "",
     };
 
+    // Gift properties
+    receivedGifts: GiftDTO[] = [];
+    isLoadingGifts = false;
+
+    // Tab navigation
+    activeTabIndex = 0;
+
     genderOptions = [
         { label: "Male", value: "male" },
         { label: "Female", value: "female" },
@@ -77,10 +88,12 @@ export class ProfileComponent implements OnInit, OnDestroy {
         private userService: UserService,
         private friendsService: FriendsService,
         private walletService: WalletService,
+        private giftService: GiftService,
         private router: Router,
         private route: ActivatedRoute,
         public onlineStatusService: OnlineStatusService,
         private websocketService: WebsocketService,
+        private http: HttpClient,
     ) {}
 
     ngOnInit(): void {
@@ -102,6 +115,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
                     this.loadFriends();
                     this.loadProfilePicture();
                     this.setupVerificationNotifications();
+                    this.loadReceivedGifts();
                 }
             });
     }
@@ -533,6 +547,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
                     this.balance = response.user.balance || "0";
                     this.loadOtherUserPhotos(userId);
                     this.loadOtherUserProfilePicture(userId);
+                    this.loadReceivedGifts(); // Load gifts for the viewed user
                     this.isLoading = false;
                 },
                 error: (error: any) => {
@@ -861,5 +876,58 @@ export class ProfileComponent implements OnInit, OnDestroy {
                     this.isDepositing = false;
                 },
             });
+    }
+
+    loadReceivedGifts(): void {
+        this.isLoadingGifts = true;
+        
+        if (this.isOwnProfile) {
+            // Load own received gifts
+            this.giftService.getReceivedGifts(100)
+                .pipe(takeUntil(this.destroy$))
+                .subscribe({
+                    next: (gifts) => {
+                        this.receivedGifts = gifts;
+                        this.isLoadingGifts = false;
+                        
+                        // If no gifts, switch to the Received Gifts tab
+                        if (gifts.length === 0) {
+                            this.activeTabIndex = 6; // Received Gifts tab index
+                        }
+                    },
+                    error: (error) => {
+                        console.error("Error loading received gifts:", error);
+                        this.isLoadingGifts = false;
+                    },
+                });
+        } else if (this.viewingUserId) {
+            // Load received gifts for the viewed user using the new endpoint
+            const url = `${environment.apiUrl}/gifts/user/${this.viewingUserId}/received`;
+            const params = { limit: 100 };
+            
+            this.http.get<GiftDTO[]>(url, { params })
+                .pipe(takeUntil(this.destroy$))
+                .subscribe({
+                    next: (gifts) => {
+                        this.receivedGifts = gifts || [];
+                        this.isLoadingGifts = false;
+                    },
+                    error: (error) => {
+                        console.error("Error loading received gifts for user:", error);
+                        // If error, show empty list
+                        this.receivedGifts = [];
+                        this.isLoadingGifts = false;
+                    },
+                });
+        } else {
+            this.isLoadingGifts = false;
+        }
+    }
+
+    getSenderName(gift: GiftDTO): string {
+        if (!gift.sender) return "Unknown";
+        const firstName = gift.sender.firstname || "";
+        const lastName = gift.sender.lastname || "";
+        return `${firstName} ${lastName}`.trim() || gift.sender.email || "Unknown";
     }
 }

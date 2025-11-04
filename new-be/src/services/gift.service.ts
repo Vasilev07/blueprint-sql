@@ -11,12 +11,14 @@ import { Wallet } from "@entities/wallet.entity";
 import { Transaction, TransactionType } from "@entities/transaction.entity";
 import { SendGiftRequestDTO, SendGiftResponseDTO, GiftDTO } from "../models/gift.dto";
 import { WalletService } from "./wallet.service";
+import { GiftGateway } from "../gateways/gift.gateway";
 
 @Injectable()
 export class GiftService {
     constructor(
         private readonly entityManager: EntityManager,
         private readonly walletService: WalletService,
+        private readonly giftGateway: GiftGateway,
     ) {}
 
     /**
@@ -139,6 +141,25 @@ export class GiftService {
             // Commit transaction
             await queryRunner.commitTransaction();
 
+            // Emit websocket notification to receiver
+            try {
+                this.giftGateway.notifyGiftReceived(receiverId, {
+                    giftId: savedGift.id,
+                    senderId: senderId,
+                    senderName: sender.firstname
+                        ? `${sender.firstname} ${sender.lastname || ""}`.trim()
+                        : sender.email,
+                    senderEmail: sender.email,
+                    giftEmoji: giftEmoji,
+                    amount: amount,
+                    message: message || null,
+                    createdAt: savedGift.createdAt,
+                });
+            } catch (error) {
+                // Log error but don't fail the gift send
+                console.error("Failed to emit gift notification:", error);
+            }
+
             return {
                 giftId: savedGift.id,
                 transactionId: savedTransaction.id,
@@ -198,6 +219,37 @@ export class GiftService {
             .createQueryBuilder(Gift, "gift")
             .leftJoinAndSelect("gift.receiver", "receiver")
             .where("gift.senderId = :userId", { userId })
+            .orderBy("gift.createdAt", "DESC");
+
+        if (limit) {
+            queryBuilder.limit(limit);
+        }
+
+        const gifts = await queryBuilder.getMany();
+
+        return gifts.map((gift) => this.mapGiftToDTO(gift));
+    }
+
+    /**
+     * Get gifts received by a specific user
+     */
+    async getReceivedGiftsByUserId(
+        userId: number,
+        limit?: number,
+    ): Promise<GiftDTO[]> {
+        // Validate user exists
+        const user = await this.entityManager.findOne(User, {
+            where: { id: userId },
+        });
+
+        if (!user) {
+            throw new NotFoundException("User not found");
+        }
+
+        const queryBuilder = this.entityManager
+            .createQueryBuilder(Gift, "gift")
+            .leftJoinAndSelect("gift.sender", "sender")
+            .where("gift.receiverId = :userId", { userId })
             .orderBy("gift.createdAt", "DESC");
 
         if (limit) {

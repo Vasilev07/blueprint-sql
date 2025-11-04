@@ -5,6 +5,7 @@ import {
     Get,
     Req,
     Query,
+    Param,
     HttpCode,
     HttpStatus,
 } from "@nestjs/common";
@@ -90,6 +91,24 @@ export class GiftController {
         @Query("limit") limit?: number,
     ): Promise<GiftDTO[]> {
         return await this.giftService.getSentGifts(req, limit);
+    }
+
+    @Get("/user/:userId/received")
+    @ApiOperation({ summary: "Get gifts received by a specific user" })
+    @ApiResponse({
+        status: 200,
+        description: "Returns list of received gifts for the user",
+        type: [GiftDTO],
+    })
+    @ApiResponse({
+        status: 404,
+        description: "User not found",
+    })
+    async getReceivedGiftsByUserId(
+        @Param("userId") userId: number,
+        @Query("limit") limit?: number,
+    ): Promise<GiftDTO[]> {
+        return await this.giftService.getReceivedGiftsByUserId(userId, limit);
     }
 
     @UseGuards(AdminGuard)

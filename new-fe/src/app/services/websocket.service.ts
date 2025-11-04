@@ -30,6 +30,17 @@ interface VerificationStatusChangeNotification {
     message: string;
 }
 
+interface GiftReceivedNotification {
+    giftId: number;
+    senderId: number;
+    senderName: string;
+    senderEmail: string;
+    giftEmoji: string;
+    amount: string;
+    message: string | null;
+    createdAt: string;
+}
+
 @Injectable({
     providedIn: "root",
 })
@@ -201,6 +212,16 @@ export class WebsocketService {
             };
             this.socket.on("verification:status_changed", handler);
             return () => this.socket.off("verification:status_changed", handler);
+        });
+    }
+
+    onGiftReceived(): Observable<GiftReceivedNotification> {
+        return new Observable<GiftReceivedNotification>((observer) => {
+            const handler = (payload: GiftReceivedNotification) => {
+                observer.next(payload);
+            };
+            this.socket.on("gift:received", handler);
+            return () => this.socket.off("gift:received", handler);
         });
     }
 

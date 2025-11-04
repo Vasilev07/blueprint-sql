@@ -14,13 +14,14 @@ import { BASE_PATH } from "src/typescript-api-client/src/variables";
 import { Configuration } from "src/typescript-api-client/src";
 import { ApiModule } from "src/typescript-api-client/src/api.module";
 import { environment } from "src/environments/environment";
+import { GiftNotificationComponent } from "./components/gift-notification/gift-notification.component";
 
 export function tokenGetter() {
     return localStorage.getItem("id_token");
 }
 
 @NgModule({
-    declarations: [AppComponent],
+    declarations: [AppComponent, GiftNotificationComponent],
     imports: [
         BrowserModule,
         HttpClientModule,

@@ -53,118 +53,141 @@
             </div>
         </div>
 
-        <!-- Send Gift Form -->
-        <div class="send-gift-section">
-            <h2>Send Gift</h2>
-            <form [formGroup]="giftForm" (ngSubmit)="onSubmit()" class="gift-form">
-                <!-- Recipient Selection -->
-                <div class="form-group">
-                    <label for="receiver">
-                        Recipient <span class="required">*</span>
-                    </label>
-                    <p-autoComplete
-                        id="receiver"
-                        formControlName="receiverId"
-                        [suggestions]="filteredUsers"
-                        (completeMethod)="searchUsers($event)"
-                        [dropdown]="true"
-                        [minLength]="0"
-                        placeholder="Search for a user..."
-                        [forceSelection]="true"
-                        [optionLabel]="getUserDisplay"
-                        class="w-full">
-                        <ng-template let-user pTemplate="item">
-                            <div class="user-option">
-                                <p-avatar
-                                    [label]="(user.firstname?.[0] || '') + (user.lastname?.[0] || '') || '?'"
-                                    size="normal"
-                                    shape="circle"
-                                    styleClass="mr-2">
-                                </p-avatar>
-                                <div>
-                                    <div class="user-name">
-                                        {{ getUserDisplay(user) }}
-                                    </div>
-                                    <div class="user-email">{{ user.email }}</div>
-                                </div>
-                            </div>
-                        </ng-template>
-                        <ng-template let-user pTemplate="selectedItem">
-                            <div class="user-option">
-                                <p-avatar
-                                    [label]="(user.firstname?.[0] || '') + (user.lastname?.[0] || '') || '?'"
-                                    size="normal"
-                                    shape="circle"
-                                    styleClass="mr-2">
-                                </p-avatar>
-                                <div>
-                                    <div class="user-name">
-                                        {{ getUserDisplay(user) }}
-                                    </div>
-                                </div>
-                            </div>
-                        </ng-template>
-                    </p-autoComplete>
-                    <small
-                        class="p-error"
-                        *ngIf="
-                            giftForm.get('receiverId')?.invalid &&
-                            giftForm.get('receiverId')?.touched
-                        ">
-                        Please select a recipient
-                    </small>
-                </div>
-
-                <!-- Selected Gift Display -->
-                <div class="form-group" *ngIf="selectedGift">
-                    <label>Selected Gift</label>
-                    <div class="selected-gift-display">
-                        <span class="selected-gift-emoji">{{ selectedGift.emoji }}</span>
-                        <span>{{ selectedGift.name }}</span>
-                    </div>
-                    <div class="gift-amount-display">
-                        <i class="pi pi-wallet"></i>
-                        <span class="amount-label">Amount:</span>
-                        <span class="amount-value">{{ selectedGift.amount }} tokens</span>
-                    </div>
-                </div>
-
-                <div class="form-group" *ngIf="!selectedGift">
-                    <p class="p-warning">
-                        <i class="pi pi-exclamation-triangle"></i>
-                        Please select a gift from above
-                    </p>
-                </div>
-
-                <!-- Message Input -->
-                <div class="form-group">
-                    <label for="message">Message (Optional)</label>
-                    <textarea
-                        id="message"
-                        formControlName="message"
-                        pInputTextarea
-                        rows="4"
-                        placeholder="Add a personal message..."
-                        class="w-full">
-                    </textarea>
-                </div>
-
-                <!-- Submit Button -->
-                <div class="form-actions">
-                    <button
-                        pButton
-                        type="submit"
-                        label="Send Gift"
-                        icon="pi pi-send"
-                        [disabled]="giftForm.invalid || isSending || !selectedGift"
-                        [loading]="isSending"
-                        class="p-button-success w-full">
-                    </button>
-                </div>
-            </form>
-        </div>
     </div>
 </div>
+
+<!-- Send Gift Dialog -->
+<p-dialog
+    [(visible)]="showSendGiftDialog"
+    [modal]="true"
+    [style]="{ width: '600px', maxWidth: '90vw' }"
+    [dismissableMask]="true"
+    (onHide)="closeSendGiftDialog()">
+    <ng-template pTemplate="header">
+        <div class="dialog-header">
+            <div class="selected-gift-header" *ngIf="selectedGift">
+                <span class="selected-gift-emoji-large">{{ selectedGift.emoji }}</span>
+                <div>
+                    <h3>Send {{ selectedGift.name }}</h3>
+                    <p class="gift-price-text">
+                        <i class="pi pi-wallet"></i>
+                        {{ selectedGift.amount }} tokens
+                    </p>
+                </div>
+            </div>
+            <span *ngIf="!selectedGift">Send Gift</span>
+        </div>
+    </ng-template>
+
+    <form [formGroup]="giftForm" (ngSubmit)="onSubmit()" class="gift-form">
+        <!-- Recipient Selection -->
+        <div class="form-group">
+            <label for="receiver">
+                Recipient <span class="required">*</span>
+            </label>
+            <p-autoComplete
+                id="receiver"
+                formControlName="receiverId"
+                [suggestions]="filteredUsers"
+                (completeMethod)="searchUsers($event)"
+                [dropdown]="true"
+                [minLength]="0"
+                placeholder="Search for a user..."
+                [forceSelection]="true"
+                [optionLabel]="getUserDisplay"
+                class="w-full">
+                <ng-template let-user pTemplate="item">
+                    <div class="user-option">
+                        <p-avatar
+                            [label]="(user.firstname?.[0] || '') + (user.lastname?.[0] || '') || '?'"
+                            size="normal"
+                            shape="circle"
+                            styleClass="mr-2">
+                        </p-avatar>
+                        <div>
+                            <div class="user-name">
+                                {{ getUserDisplay(user) }}
+                            </div>
+                            <div class="user-email">{{ user.email }}</div>
+                        </div>
+                    </div>
+                </ng-template>
+                <ng-template let-user pTemplate="selectedItem">
+                    <div class="user-option">
+                        <p-avatar
+                            [label]="(user.firstname?.[0] || '') + (user.lastname?.[0] || '') || '?'"
+                            size="normal"
+                            shape="circle"
+                            styleClass="mr-2">
+                        </p-avatar>
+                        <div>
+                            <div class="user-name">
+                                {{ getUserDisplay(user) }}
+                            </div>
+                        </div>
+                    </div>
+                </ng-template>
+            </p-autoComplete>
+            <small
+                class="p-error"
+                *ngIf="
+                    giftForm.get('receiverId')?.invalid &&
+                    giftForm.get('receiverId')?.touched
+                ">
+                Please select a recipient
+            </small>
+        </div>
+
+        <!-- Message Input -->
+        <div class="form-group">
+            <label for="message">Message (Optional)</label>
+            <textarea
+                id="message"
+                formControlName="message"
+                pInputTextarea
+                rows="4"
+                placeholder="Add a personal message..."
+                class="w-full">
+            </textarea>
+        </div>
+
+        <!-- Balance Check -->
+        <div class="balance-check" *ngIf="selectedGift">
+            <div class="balance-info">
+                <span class="balance-label">Your Balance:</span>
+                <span class="balance-value">{{ getBalanceAsInteger() }} tokens</span>
+            </div>
+            <div class="balance-after" *ngIf="hasSufficientBalance(selectedGift.amount)">
+                <span class="balance-label">After Sending:</span>
+                <span class="balance-value">{{ getBalanceAfterSending(selectedGift.amount) }} tokens</span>
+            </div>
+            <div class="balance-warning" *ngIf="!hasSufficientBalance(selectedGift.amount)">
+                <i class="pi pi-exclamation-triangle"></i>
+                <span>Insufficient balance. You need {{ selectedGift.amount }} tokens.</span>
+            </div>
+        </div>
+    </form>
+
+    <ng-template pTemplate="footer">
+        <div class="dialog-actions">
+            <p-button
+                label="Cancel"
+                icon="pi pi-times"
+                (onClick)="closeSendGiftDialog()"
+                [disabled]="isSending"
+                styleClass="p-button-text">
+            </p-button>
+            <p-button
+                label="Send Gift"
+                icon="pi pi-send"
+                (onClick)="onSubmit()"
+                [disabled]="giftForm.invalid || isSending || !selectedGift || (selectedGift && !hasSufficientBalance(selectedGift.amount))"
+                [loading]="isSending"
+                styleClass="p-button-success">
+            </p-button>
+        </div>
+    </ng-template>
+</p-dialog>
 
 <!-- Deposit Dialog -->
 <p-dialog

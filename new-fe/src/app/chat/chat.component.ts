@@ -1,17 +1,20 @@
-import { Component, OnInit, OnDestroy } from "@angular/core";
+import { Component, OnInit, OnDestroy, Input, OnChanges, SimpleChanges, ChangeDetectorRef } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { Subject, takeUntil } from "rxjs";
 import { ChatService, User, Message } from "./chat.service";
 import { UserService } from "src/typescript-api-client/src/api/api";
+import { DomSanitizer } from "@angular/platform-browser";
 
 @Component({
     selector: "app-chat",
     templateUrl: "./chat.component.html",
     styleUrls: ["./chat.component.scss"],
 })
-export class ChatComponent implements OnInit, OnDestroy {
+export class ChatComponent implements OnInit, OnDestroy, OnChanges {
     private destroy$ = new Subject<void>();
+
+    @Input() userId?: string | null; // Allow userId to be passed as input
 
     currentUser: User | null = null;
     messages: Message[] = [];
@@ -22,7 +25,11 @@ export class ChatComponent implements OnInit, OnDestroy {
     allUsers: User[] = [];
     friends: User[] = [];
     showFriendsPicker = false;
-    profilePictureBlobUrl: string | null = null;
+    // SVG data URL for default avatar
+    defaultAvatar =
+        "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCBmaWxsPSIjZGRkIiB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIvPjxjaXJjbGUgY3g9IjUwIiBjeT0iMzUiIHI9IjE1IiBmaWxsPSIjOTk5Ii8+PHBhdGggZD0iTTI1IDcwIGMyMC0xMCAzMC0xMCA1MCAwIiBzdHJva2U9IiM5OTkiIHN0cm9rZS13aWR0aD0iMTAiIGZpbGw9Im5vbmUiLz48L3N2Zz4=";
+    headerProfilePictureUrl: string = this.defaultAvatar;
+    senderProfilePictures: Map<string, string> = new Map();
 
     // Header computed properties
     get otherUserName(): string {
@@ -49,6 +56,8 @@ export class ChatComponent implements OnInit, OnDestroy {
         public chatService: ChatService,
         private fb: FormBuilder,
         private userService: UserService,
+        private cdr: ChangeDetectorRef,
+        private sanitizer: DomSanitizer,
     ) {
         this.messageForm = this.fb.group({
             content: ["", [Validators.required, Validators.maxLength(1000)]],
@@ -67,24 +76,58 @@ export class ChatComponent implements OnInit, OnDestroy {
             .subscribe((friends) => {
                 this.friends = friends || [];
             });
-        this.route.params.pipe(takeUntil(this.destroy$)).subscribe((params) => {
-            const userId = params["userId"];
-            if (userId) {
-                this.currentUserId = userId;
-                this.loadConversation(userId);
-                this.loadUserData(userId);
+        
+        // Use Input userId if provided (when embedded), otherwise get from route params
+        const userIdToUse = this.userId || this.route.snapshot.params["userId"];
+        if (userIdToUse && userIdToUse !== "" && userIdToUse !== this.currentUserId) {
+            this.currentUserId = userIdToUse;
+            this.loadConversation(userIdToUse);
+            this.loadUserData(userIdToUse);
+        } else if (!this.userId) {
+            // Get from route params when accessed directly via route
+            this.route.params.pipe(takeUntil(this.destroy$)).subscribe((params) => {
+                const userId = params["userId"];
+                if (userId && userId !== this.currentUserId) {
+                    this.currentUserId = userId;
+                    this.loadConversation(userId);
+                    this.loadUserData(userId);
+                }
+            });
+        }
+    }
+
+    ngOnChanges(changes: SimpleChanges): void {
+        // If userId input changes, reload the conversation (for backward compatibility)
+        if (changes['userId']) {
+            const newUserId = this.userId || '';
+            if (newUserId && newUserId !== '' && newUserId !== this.currentUserId) {
+                this.currentUserId = newUserId;
+                this.messages = []; // Clear previous messages
+                this.loadConversation(newUserId);
+                this.loadUserData(newUserId);
+            } else if (!newUserId || newUserId === '') {
+                // Clear if userId becomes empty
+                this.currentUserId = '';
+                this.messages = [];
+                this.currentUser = null;
             }
-        });
+        }
     }
 
     ngOnDestroy(): void {
         this.destroy$.next();
         this.destroy$.complete();
 
-        // Cleanup profile picture blob URL
-        if (this.profilePictureBlobUrl) {
-            URL.revokeObjectURL(this.profilePictureBlobUrl);
+        // Revoke blob URLs to free memory
+        if (this.headerProfilePictureUrl !== this.defaultAvatar && this.headerProfilePictureUrl.startsWith('blob:')) {
+            URL.revokeObjectURL(this.headerProfilePictureUrl);
         }
+        this.senderProfilePictures.forEach((url) => {
+            if (url && url !== this.defaultAvatar && url.startsWith('blob:')) {
+                URL.revokeObjectURL(url);
+            }
+        });
+        this.senderProfilePictures.clear();
     }
 
     private loadConversation(userId: string): void {
@@ -122,6 +165,7 @@ export class ChatComponent implements OnInit, OnDestroy {
                                     ),
                                 }));
                                 this.isLoading = false;
+                                this.loadSenderProfilePictures();
                                 this.scrollToBottom();
                             },
                             error: () => {
@@ -149,6 +193,7 @@ export class ChatComponent implements OnInit, OnDestroy {
                                 "Messages array after push:",
                                 this.messages,
                             );
+                            this.loadProfilePictureForSender(mapped.senderId);
                             this.scrollToBottom();
                         });
                 },
@@ -258,31 +303,38 @@ export class ChatComponent implements OnInit, OnDestroy {
         const numericUserId = parseInt(userId, 10);
 
         if (!numericUserId) {
+            // Set default avatar if userId is invalid
+            this.headerProfilePictureUrl = this.defaultAvatar;
             return;
         }
+        
+        // Set default avatar initially while loading
+        this.headerProfilePictureUrl = this.defaultAvatar;
 
-        // Cleanup old blob URL if exists
-        if (this.profilePictureBlobUrl) {
-            URL.revokeObjectURL(this.profilePictureBlobUrl);
-            this.profilePictureBlobUrl = null;
+        // Revoke old blob URL if exists
+        if (this.headerProfilePictureUrl !== this.defaultAvatar && this.headerProfilePictureUrl.startsWith('blob:')) {
+            URL.revokeObjectURL(this.headerProfilePictureUrl);
         }
 
         this.userService
-            .getProfilePictureByUserId(numericUserId, "response")
+            .getProfilePictureByUserId(numericUserId)
             .pipe(takeUntil(this.destroy$))
             .subscribe({
-                next: (response: any) => {
-                    const blob = response.body as Blob;
-                    this.profilePictureBlobUrl = URL.createObjectURL(blob);
+                next: (blob: Blob) => {
+                    const objectURL = URL.createObjectURL(blob);
+                    this.headerProfilePictureUrl = objectURL;
+                    this.cdr.detectChanges();
                 },
                 error: (error) => {
-                    // Profile picture not found is okay
-                    if (error.status !== 404) {
-                        console.error(
-                            `Error loading profile picture for user ${userId}:`,
-                            error,
-                        );
-                    }
+                    // Profile picture not found is okay - use default avatar
+                    console.error(
+                        `Error loading profile picture for user ${userId}:`,
+                        error,
+                        'status:', error.status
+                    );
+                    // Keep default avatar on error
+                    this.headerProfilePictureUrl = this.defaultAvatar;
+                    this.cdr.detectChanges();
                 },
             });
     }
@@ -312,7 +364,8 @@ export class ChatComponent implements OnInit, OnDestroy {
     }
 
     goBack(): void {
-        this.router.navigate(["/chat"]);
+        // Navigate back to chat home (parent route)
+        this.router.navigate(["/chat"], { replaceUrl: true });
     }
 
     formatTime(date: Date | string | undefined): string {
@@ -331,5 +384,78 @@ export class ChatComponent implements OnInit, OnDestroy {
             )?.id || 0,
         );
         return Number(message.senderId) === currentUserId;
+    }
+
+    private loadSenderProfilePictures(): void {
+        const uniqueSenderIds = new Set<string>();
+        this.messages.forEach((message) => {
+            if (!this.isOwnMessage(message)) {
+                uniqueSenderIds.add(String(message.senderId));
+            }
+        });
+
+        uniqueSenderIds.forEach((senderId) => {
+            if (!this.senderProfilePictures.has(senderId)) {
+                this.loadProfilePictureForSender(senderId);
+            }
+        });
+    }
+
+    private loadProfilePictureForSender(senderId: string): void {
+        // Skip if already loaded
+        if (this.senderProfilePictures.has(senderId)) {
+            return;
+        }
+
+        const numericUserId = parseInt(senderId, 10);
+        if (!numericUserId) {
+            return;
+        }
+
+        this.userService
+            .getProfilePictureByUserId(numericUserId)
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+                next: (blob: Blob) => {
+                    const objectURL = URL.createObjectURL(blob);
+                    this.senderProfilePictures.set(senderId, objectURL);
+                    this.cdr.detectChanges();
+                },
+                error: (error) => {
+                    // Profile picture not found is okay
+                    if (error.status !== 404) {
+                        console.error(
+                            `Error loading profile picture for sender ${senderId}:`,
+                            error,
+                        );
+                    }
+                    // Set default avatar on error
+                    this.senderProfilePictures.set(senderId, this.defaultAvatar);
+                    this.cdr.detectChanges();
+                },
+            });
+    }
+
+    getSenderProfilePicture(senderId: string): string {
+        return this.senderProfilePictures.get(senderId) || this.defaultAvatar;
+    }
+
+    getSenderInitials(senderId: string): string {
+        const user = this.allUsers.find((u) => String(u.id) === senderId);
+        if (user?.name) {
+            return (user.name.charAt(0) || "?").toUpperCase();
+        }
+        return "?";
+    }
+
+    getDefaultAvatar(): string {
+        return this.defaultAvatar;
+    }
+
+    onImageError(event: Event): void {
+        const img = event.target as HTMLImageElement;
+        if (img) {
+            img.src = this.defaultAvatar;
+        }
     }
 }

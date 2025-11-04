@@ -69,5 +69,4 @@ const routes: Routes = [
     ],
     providers: [ChatService],
 })
-export class ChatModule {
-}
+export class ChatModule {}

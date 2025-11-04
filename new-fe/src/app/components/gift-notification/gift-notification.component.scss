@@ -1,0 +1,375 @@
+// Gift Notification Animation Styles
+.gift-animation-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease-in-out;
+    cursor: pointer;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.gift-animation-content {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: default;
+}
+
+.main-gift-display {
+    text-align: center;
+    z-index: 10;
+    animation: bounceIn 0.8s ease-out;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 3rem 4rem;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+    max-width: 500px;
+    margin: 0 auto;
+
+    .gift-emoji-large {
+        font-size: 8rem;
+        line-height: 1;
+        animation: float 3s ease-in-out infinite;
+        display: block;
+        margin-bottom: 1rem;
+    }
+
+    .gift-title {
+        font-size: 2.5rem;
+        color: var(--primary-color);
+        margin: 1rem 0;
+        font-weight: 700;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .gift-sender {
+        font-size: 1.5rem;
+        color: var(--text-color);
+        margin: 0.5rem 0;
+        font-weight: 600;
+    }
+
+    .gift-amount {
+        font-size: 2rem;
+        color: var(--primary-color);
+        margin: 1rem 0;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+
+        &::before {
+            content: "💰";
+            font-size: 1.5rem;
+        }
+    }
+
+    .gift-message {
+        font-size: 1.2rem;
+        color: var(--text-color-secondary);
+        margin-top: 1.5rem;
+        padding: 1rem;
+        background: var(--surface-ground);
+        border-radius: 8px;
+        font-style: italic;
+    }
+}
+
+@keyframes bounceIn {
+    0% {
+        transform: scale(0.3);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    70% {
+        transform: scale(0.9);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-20px);
+    }
+}
+
+.floating-gifts {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.floating-gift {
+    position: absolute;
+    font-size: 3rem;
+    animation: floatUp 4s ease-out forwards;
+    opacity: 0;
+    pointer-events: none;
+
+    &:nth-child(1) {
+        left: 10%;
+        animation-delay: 0.2s;
+        font-size: 2.5rem;
+    }
+    &:nth-child(2) {
+        left: 25%;
+        animation-delay: 0.4s;
+        font-size: 3.5rem;
+    }
+    &:nth-child(3) {
+        left: 40%;
+        animation-delay: 0.6s;
+        font-size: 2rem;
+    }
+    &:nth-child(4) {
+        left: 55%;
+        animation-delay: 0.8s;
+        font-size: 3rem;
+    }
+    &:nth-child(5) {
+        left: 70%;
+        animation-delay: 1s;
+        font-size: 2.8rem;
+    }
+    &:nth-child(6) {
+        left: 85%;
+        animation-delay: 1.2s;
+        font-size: 3.2rem;
+    }
+    &:nth-child(7) {
+        left: 15%;
+        animation-delay: 1.4s;
+        font-size: 2.3rem;
+    }
+    &:nth-child(8) {
+        left: 60%;
+        animation-delay: 1.6s;
+        font-size: 3.8rem;
+    }
+}
+
+@keyframes floatUp {
+    0% {
+        transform: translateY(100vh) rotate(0deg);
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+    }
+    90% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-100px) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+.fireworks {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.firework {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    animation: firework 1.5s ease-out forwards;
+    opacity: 0;
+}
+
+.firework-particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: radial-gradient(circle, #ff6b6b, #ffd93d, #6bcf7f, #4d96ff, #9b59b6);
+    border-radius: 50%;
+    animation: particleExplode 1.5s ease-out forwards;
+}
+
+@keyframes firework {
+    0% {
+        opacity: 0;
+        transform: translateY(100vh) scale(0);
+    }
+    10% {
+        opacity: 1;
+    }
+    40% {
+        opacity: 1;
+        transform: translateY(30vh) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(30vh) scale(1);
+    }
+}
+
+@keyframes particleExplode {
+    0% {
+        transform: translate(0, 0) rotate(0deg) scale(0);
+        opacity: 1;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        transform: translate(80px, 80px) rotate(360deg) scale(1);
+        opacity: 0;
+    }
+}
+
+.firework-particle {
+    &:nth-child(1) {
+        animation: particleExplode1 1.5s ease-out forwards;
+    }
+    &:nth-child(2) {
+        animation: particleExplode2 1.5s ease-out forwards;
+    }
+    &:nth-child(3) {
+        animation: particleExplode3 1.5s ease-out forwards;
+    }
+    &:nth-child(4) {
+        animation: particleExplode4 1.5s ease-out forwards;
+    }
+    &:nth-child(5) {
+        animation: particleExplode5 1.5s ease-out forwards;
+    }
+    &:nth-child(6) {
+        animation: particleExplode6 1.5s ease-out forwards;
+    }
+    &:nth-child(7) {
+        animation: particleExplode7 1.5s ease-out forwards;
+    }
+    &:nth-child(8) {
+        animation: particleExplode8 1.5s ease-out forwards;
+    }
+}
+
+@keyframes particleExplode1 {
+    0% { transform: translate(0, 0) rotate(0deg) scale(0); opacity: 1; }
+    100% { transform: translate(100px, 0) rotate(360deg) scale(1); opacity: 0; }
+}
+@keyframes particleExplode2 {
+    0% { transform: translate(0, 0) rotate(45deg) scale(0); opacity: 1; }
+    100% { transform: translate(70px, 70px) rotate(405deg) scale(1); opacity: 0; }
+}
+@keyframes particleExplode3 {
+    0% { transform: translate(0, 0) rotate(90deg) scale(0); opacity: 1; }
+    100% { transform: translate(0, 100px) rotate(450deg) scale(1); opacity: 0; }
+}
+@keyframes particleExplode4 {
+    0% { transform: translate(0, 0) rotate(135deg) scale(0); opacity: 1; }
+    100% { transform: translate(-70px, 70px) rotate(495deg) scale(1); opacity: 0; }
+}
+@keyframes particleExplode5 {
+    0% { transform: translate(0, 0) rotate(180deg) scale(0); opacity: 1; }
+    100% { transform: translate(-100px, 0) rotate(540deg) scale(1); opacity: 0; }
+}
+@keyframes particleExplode6 {
+    0% { transform: translate(0, 0) rotate(225deg) scale(0); opacity: 1; }
+    100% { transform: translate(-70px, -70px) rotate(585deg) scale(1); opacity: 0; }
+}
+@keyframes particleExplode7 {
+    0% { transform: translate(0, 0) rotate(270deg) scale(0); opacity: 1; }
+    100% { transform: translate(0, -100px) rotate(630deg) scale(1); opacity: 0; }
+}
+@keyframes particleExplode8 {
+    0% { transform: translate(0, 0) rotate(315deg) scale(0); opacity: 1; }
+    100% { transform: translate(70px, -70px) rotate(675deg) scale(1); opacity: 0; }
+}
+
+// Generate random firework positions
+.firework:nth-child(1) {
+    left: 10%;
+    top: 20%;
+}
+
+.firework:nth-child(2) {
+    left: 30%;
+    top: 30%;
+}
+
+.firework:nth-child(3) {
+    left: 50%;
+    top: 25%;
+}
+
+.firework:nth-child(4) {
+    left: 70%;
+    top: 35%;
+}
+
+.firework:nth-child(5) {
+    left: 90%;
+    top: 20%;
+}
+
+.firework:nth-child(6) {
+    left: 20%;
+    top: 60%;
+}
+
+// Firework particles with different colors
+.firework:nth-child(1) .firework-particle {
+    background: #ff6b6b;
+}
+
+.firework:nth-child(2) .firework-particle {
+    background: #ffd93d;
+}
+
+.firework:nth-child(3) .firework-particle {
+    background: #6bcf7f;
+}
+
+.firework:nth-child(4) .firework-particle {
+    background: #4d96ff;
+}
+
+.firework:nth-child(5) .firework-particle {
+    background: #9b59b6;
+}
+
+.firework:nth-child(6) .firework-particle {
+    background: #ff8787;
+}
+

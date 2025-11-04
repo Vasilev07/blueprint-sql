@@ -8,12 +8,15 @@ import { GiftController } from "./gift.controller";
 import { GiftService } from "src/services/gift.service";
 import { WalletService } from "src/services/wallet.service";
 import { PaymentProviderService } from "src/services/payment-provider.service";
+import { GiftGateway } from "src/gateways/gift.gateway";
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Gift, Transaction, Wallet, User])],
-    exports: [TypeOrmModule, GiftService],
+    imports: [
+        TypeOrmModule.forFeature([Gift, Transaction, Wallet, User]),
+    ],
+    exports: [TypeOrmModule, GiftService, GiftGateway],
     controllers: [GiftController],
-    providers: [GiftService, WalletService, PaymentProviderService],
+    providers: [GiftService, WalletService, PaymentProviderService, GiftGateway],
 })
 export class GiftModule {}
 

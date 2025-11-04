@@ -1,50 +1,81 @@
 <div class="chat-home-container">
-  <!-- Chat Sidebar -->
-  <div class="chat-sidebar">
-    <div class="sidebar-header">
-      <h2>Chats</h2>
-      <button pButton icon="pi pi-plus" class="p-button-rounded p-button-text" pTooltip="New Chat"></button>
-    </div>
-    
-    <div class="chat-list">
-      <div class="chat-item" *ngFor="let conversation of conversations$ | async" (click)="startChatFromConversation(conversation)">
-        <div class="chat-avatar">
-          <p-avatar 
-            [image]="conversation.avatar" 
-            [label]="conversation.name?.charAt(0)?.toUpperCase()"
-            size="large"
-            shape="circle">
-          </p-avatar>
-          <div class="online-indicator" [class]="conversation.isOnline ? 'online' : 'offline'"></div>
-        </div>
-        
-        <div class="chat-info">
-          <div class="chat-name">{{ getConversationDisplayName(conversation) }}</div>
-          <div class="last-message">{{ conversation.lastMessage || 'No messages yet' }}</div>
-        </div>
-        
-        <div class="chat-meta">
-          <div class="chat-time">{{ formatTime(conversation.lastMessageTime) }}</div>
-          <div *ngIf="(conversation.unreadCount || 0) > 0" class="unread-badge">
-            {{ conversation.unreadCount }}
+  <div class="chat-split-view">
+    <!-- Chat Sidebar -->
+    <div class="chat-sidebar">
+      <div class="sidebar-header">
+        <h2>Messages</h2>
+        <button pButton icon="pi pi-plus" class="p-button-rounded p-button-text" pTooltip="New Chat"></button>
+      </div>
+
+      <div class="sidebar-search">
+        <span class="p-input-icon-left">
+          <i class="pi pi-search"></i>
+          <input 
+            type="text" 
+            pInputText 
+            placeholder="Search conversations..." 
+            class="search-input"
+          />
+        </span>
+      </div>
+      
+      <div class="chat-list">
+        <div 
+          class="chat-item" 
+          *ngFor="let conversation of conversations$ | async" 
+          [class.active]="selectedUserId && conversation.participants?.includes(selectedUserId)"
+          (click)="startChatFromConversation(conversation)">
+          <div class="chat-avatar">
+            <img 
+              [src]="getConversationAvatar(conversation)" 
+              [alt]="getConversationDisplayName(conversation)"
+              (error)="onImageError($event)"
+              class="conversation-avatar">
+            <div class="online-indicator" [class]="conversation.isOnline ? 'online' : 'offline'"></div>
           </div>
+          
+          <div class="chat-info">
+            <div class="chat-name-row">
+              <span class="chat-name">{{ getConversationDisplayName(conversation) }}</span>
+              <span *ngIf="conversation.unreadCount && conversation.unreadCount > 0" class="unread-badge">
+                {{ conversation.unreadCount }}
+              </span>
+            </div>
+            <div class="last-message">{{ conversation.lastMessage || 'No messages yet' }}</div>
+          </div>
+          
+          <div class="chat-meta">
+            <div class="chat-time">{{ formatTime(conversation.lastMessageTime) }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat View Area -->
+    <div class="chat-view-area">
+      <app-chat [userId]="selectedUserId || ''" [class.hidden]="!selectedUserId"></app-chat>
+      <div *ngIf="!selectedUserId" class="empty-chat-state">
+        <div class="empty-chat-content">
+          <i class="pi pi-comments"></i>
+          <h2>Select a conversation</h2>
+          <p>Choose a conversation from the sidebar to start messaging</p>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Main Chat Area -->
-  <div class="main-chat-area">
-    <div class="chat-header">
-      <h1>Chat Dashboard</h1>
-      <p>Select a chat to start messaging</p>
+  <!-- Dashboard Below -->
+  <div class="dashboard-section">
+    <div class="dashboard-header">
+      <h2>Discover & Connect</h2>
+      <p>Find new people and explore your network</p>
     </div>
 
     <div class="dashboard-grid">
       <!-- Last 10 Registered Users -->
       <div class="dashboard-card">
         <div class="card-header">
-          <h2>Recently Registered Users</h2>
+          <h3>Recently Registered Users</h3>
           <span class="badge">{{ (lastRegisteredUsers$ | async)?.length || 0 }}</span>
         </div>
         <div class="card-content">
@@ -58,7 +89,7 @@
       <!-- Top 10 Friends -->
       <div class="dashboard-card">
         <div class="card-header">
-          <h2>Your Top Friends</h2>
+          <h3>Your Top Friends</h3>
           <span class="badge">{{ (topFriends$ | async)?.length || 0 }}</span>
         </div>
         <div class="card-content">
@@ -72,7 +103,7 @@
       <!-- Recent Messages -->
       <div class="dashboard-card full-width">
         <div class="card-header">
-          <h2>Recent Messages</h2>
+          <h3>Recent Messages</h3>
           <span class="badge">{{ (recentMessages$ | async)?.length || 0 }}</span>
         </div>
         <div class="card-content">
