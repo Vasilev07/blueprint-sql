@@ -50,21 +50,65 @@
     
     <div *ngFor="let message of messages" 
          class="message-wrapper" 
-         [class.own-message]="isOwnMessage(message)">
-      <div *ngIf="!isOwnMessage(message)" class="message-avatar">
-        <img 
-          [src]="getSenderProfilePicture(message.senderId)" 
-          [alt]="getSenderInitials(message.senderId)"
-          (error)="onImageError($event)"
-          class="avatar-image">
+         [class.own-message]="isOwnMessage(message)"
+         [class.gift-message]="isGiftMessage(message)">
+      
+      <!-- Gift Message Display -->
+      <div *ngIf="isGiftMessage(message)" class="gift-message-bubble" [ngClass]="{'own-gift': isOwnMessage(message)}">
+        <div class="gift-message-container">
+          <div class="gift-sparkles">
+            <span class="sparkle sparkle-1">✨</span>
+            <span class="sparkle sparkle-2">✨</span>
+            <span class="sparkle sparkle-3">✨</span>
+            <span class="sparkle sparkle-4">✨</span>
+          </div>
+          
+          <div class="gift-message-header">
+            <div class="gift-emoji-large">{{ parseGiftMessage(message)?.emoji || '🎁' }}</div>
+            <div class="gift-info">
+              <div class="gift-label">
+                <i class="pi pi-gift"></i>
+                <span>Gift Sent</span>
+              </div>
+              <div class="gift-amount">
+                <i class="pi pi-wallet"></i>
+                <span>{{ parseGiftMessage(message)?.amount || '0' }} tokens</span>
+              </div>
+            </div>
+          </div>
+          
+          <div *ngIf="parseGiftMessage(message)?.giftMessage" class="gift-message-text">
+            <i class="pi pi-quote-left"></i>
+            <span>{{ parseGiftMessage(message)?.giftMessage }}</span>
+            <i class="pi pi-quote-right"></i>
+          </div>
+          
+          <div class="gift-message-footer">
+            <span class="message-time">{{ formatTime(message.timestamp) }}</span>
+            <div *ngIf="isOwnMessage(message)" class="message-status">
+              <i class="pi pi-check-double read"></i>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="message-bubble">
-        <div class="message-content">{{ message.content }}</div>
-        <div class="message-footer">
-          <span class="message-time">{{ formatTime(message.timestamp) }}</span>
-          <div *ngIf="isOwnMessage(message)" class="message-status">
-            <i *ngIf="message.isRead" class="pi pi-check-double read"></i>
-            <i *ngIf="!message.isRead" class="pi pi-check"></i>
+
+      <!-- Regular Message Display -->
+      <div *ngIf="!isGiftMessage(message)">
+        <div *ngIf="!isOwnMessage(message)" class="message-avatar">
+          <img 
+            [src]="getSenderProfilePicture(message.senderId)" 
+            [alt]="getSenderInitials(message.senderId)"
+            (error)="onImageError($event)"
+            class="avatar-image">
+        </div>
+        <div class="message-bubble">
+          <div class="message-content">{{ message.content }}</div>
+          <div class="message-footer">
+            <span class="message-time">{{ formatTime(message.timestamp) }}</span>
+            <div *ngIf="isOwnMessage(message)" class="message-status">
+              <i *ngIf="message.isRead" class="pi pi-check-double read"></i>
+              <i *ngIf="!message.isRead" class="pi pi-check"></i>
+            </div>
           </div>
         </div>
       </div>

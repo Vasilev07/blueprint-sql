@@ -12,6 +12,8 @@ import { Transaction, TransactionType } from "@entities/transaction.entity";
 import { SendGiftRequestDTO, SendGiftResponseDTO, GiftDTO } from "../models/gift.dto";
 import { WalletService } from "./wallet.service";
 import { GiftGateway } from "../gateways/gift.gateway";
+import { ChatService } from "./chat.service";
+import { ChatGateway } from "../gateways/chat.gateway";
 
 @Injectable()
 export class GiftService {
@@ -19,6 +21,8 @@ export class GiftService {
         private readonly entityManager: EntityManager,
         private readonly walletService: WalletService,
         private readonly giftGateway: GiftGateway,
+        private readonly chatService: ChatService,
+        private readonly chatGateway: ChatGateway,
     ) {}
 
     /**
@@ -140,6 +144,35 @@ export class GiftService {
 
             // Commit transaction
             await queryRunner.commitTransaction();
+
+            // Create system message in chat after successful gift save
+            try {
+                // Get or create conversation between sender and receiver
+                const conversation = await this.chatService.getOrCreateConversation(
+                    senderId,
+                    receiverId,
+                );
+
+                // Create system message with gift information
+                const giftMessageContent = `🎁 Gift Sent: ${giftEmoji} (${amount} tokens)${message ? ` - "${message}"` : ""}`;
+                
+                const systemMessage = await this.chatService.sendMessage(
+                    conversation.id,
+                    senderId, // System message appears as from sender
+                    giftMessageContent,
+                    "text",
+                );
+
+                // Emit the message via WebSocket so both users see it in real-time
+                this.chatGateway.server.emit(`chat:message:${conversation.id}`, systemMessage);
+                this.chatGateway.server.emit("chat:message", {
+                    conversationId: conversation.id,
+                    message: systemMessage,
+                });
+            } catch (error) {
+                // Log error but don't fail the gift send
+                console.error("Failed to create gift system message:", error);
+            }
 
             // Emit websocket notification to receiver
             try {

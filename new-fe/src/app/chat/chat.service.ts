@@ -30,6 +30,11 @@ export interface Message extends Omit<ChatMessageDTO, 'id' | 'senderId'> {
     senderId: string; // Convert number to string for UI
     receiverId?: string; // Computed for bilateral conversations
     timestamp?: Date; // Parsed date helper
+    // Gift-specific fields
+    isGift?: boolean;
+    giftEmoji?: string;
+    giftAmount?: string;
+    giftMessage?: string;
 }
 
 export interface Conversation extends Omit<ChatConversationDTO, 'id' | 'participants'> {

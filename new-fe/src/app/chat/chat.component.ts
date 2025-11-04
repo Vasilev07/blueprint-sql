@@ -607,4 +607,38 @@ export class ChatComponent implements OnInit, OnDestroy, OnChanges {
     hasSufficientBalance(amount: number): boolean {
         return amount <= this.getBalanceAsNumber();
     }
+
+    // Gift Message Detection and Parsing
+    isGiftMessage(message: Message): boolean {
+        return message.content?.includes('🎁 Gift Sent:') || false;
+    }
+
+    parseGiftMessage(message: Message): { emoji: string; amount: string; giftMessage: string } | null {
+        if (!this.isGiftMessage(message)) {
+            return null;
+        }
+
+        const content = message.content || '';
+        // Format: "🎁 Gift Sent: {emoji} ({amount} tokens) - "{message}""
+        const giftMatch = content.match(/🎁 Gift Sent:\s*([^\s]+)\s*\(([^)]+)\s*tokens\)(?:\s*-\s*"([^"]*)")?/);
+        
+        if (giftMatch) {
+            return {
+                emoji: giftMatch[1] || '🎁',
+                amount: giftMatch[2] || '0',
+                giftMessage: giftMatch[3] || '',
+            };
+        }
+
+        // Fallback parsing
+        const emojiMatch = content.match(/🎁 Gift Sent:\s*([^\s]+)/);
+        const amountMatch = content.match(/\(([^)]+)\s*tokens\)/);
+        const messageMatch = content.match(/-\s*"([^"]*)"/);
+
+        return {
+            emoji: emojiMatch?.[1] || '🎁',
+            amount: amountMatch?.[1] || '0',
+            giftMessage: messageMatch?.[1] || '',
+        };
+    }
 }
