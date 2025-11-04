@@ -399,10 +399,17 @@
       &.gift-message {
         margin: 1rem 0;
         
-        // Center gift messages by default
-        justify-content: center;
+        // Align gift messages from others to the left (like regular messages)
+        &:not(.own-message) {
+          justify-content: flex-start;
+          
+          .gift-message-bubble {
+            margin: 0;
+            margin-right: auto;
+          }
+        }
         
-        // But if it's also own-message, align to right
+        // Align own gift messages to the right
         &.own-message {
           justify-content: flex-end;
           
@@ -417,9 +424,6 @@
           width: 100%;
           position: relative;
           overflow: visible;
-          
-          // Center by default
-          margin: 0 auto;
 
           .gift-message-container {
             background: linear-gradient(135deg, rgba(236, 72, 153, 0.08) 0%, rgba(168, 85, 247, 0.08) 100%);
