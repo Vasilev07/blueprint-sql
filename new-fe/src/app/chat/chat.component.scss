@@ -366,6 +366,301 @@
           }
         }
       }
+
+      // Gift Message Styling - Glamorous Design
+      &.gift-message {
+        justify-content: center;
+        margin: 2rem 0;
+        
+        .gift-message-bubble {
+          max-width: 85%;
+          width: 100%;
+          position: relative;
+          overflow: visible;
+          margin: 0 auto;
+
+          .gift-message-container {
+            background: linear-gradient(135deg, rgba(236, 72, 153, 0.08) 0%, rgba(168, 85, 247, 0.08) 100%);
+            border: 2px solid;
+            border-image: linear-gradient(135deg, rgba(236, 72, 153, 0.6) 0%, rgba(168, 85, 247, 0.6) 100%) 1;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 
+              0 8px 32px rgba(236, 72, 153, 0.15),
+              0 0 40px rgba(168, 85, 247, 0.1),
+              inset 0 0 20px rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+            animation: giftAppear 0.6s ease-out;
+
+            @keyframes giftAppear {
+              0% {
+                opacity: 0;
+                transform: scale(0.8) translateY(20px);
+              }
+              50% {
+                transform: scale(1.05) translateY(-5px);
+              }
+              100% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+              }
+            }
+
+            // Animated background glow - more subtle
+            &::before {
+              content: '';
+              position: absolute;
+              top: -50%;
+              left: -50%;
+              width: 200%;
+              height: 200%;
+              background: radial-gradient(circle, rgba(236, 72, 153, 0.1) 0%, transparent 70%);
+              animation: giftGlow 3s ease-in-out infinite;
+              z-index: 0;
+            }
+
+            @keyframes giftGlow {
+              0%, 100% {
+                transform: scale(1) rotate(0deg);
+                opacity: 0.3;
+              }
+              50% {
+                transform: scale(1.15) rotate(180deg);
+                opacity: 0.5;
+              }
+            }
+
+            // Floating sparkles
+            .gift-sparkles {
+              position: absolute;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 100%;
+              pointer-events: none;
+              z-index: 1;
+
+              .sparkle {
+                position: absolute;
+                font-size: 1rem;
+                animation: sparkleFloat 3s ease-in-out infinite;
+                opacity: 0;
+
+                &.sparkle-1 {
+                  top: 10%;
+                  left: 10%;
+                  animation-delay: 0s;
+                }
+
+                &.sparkle-2 {
+                  top: 20%;
+                  right: 15%;
+                  animation-delay: 0.5s;
+                }
+
+                &.sparkle-3 {
+                  bottom: 30%;
+                  left: 20%;
+                  animation-delay: 1s;
+                }
+
+                &.sparkle-4 {
+                  bottom: 15%;
+                  right: 10%;
+                  animation-delay: 1.5s;
+                }
+
+                @keyframes sparkleFloat {
+                  0%, 100% {
+                    opacity: 0;
+                    transform: translateY(0) scale(0);
+                  }
+                  50% {
+                    opacity: 1;
+                    transform: translateY(-20px) scale(1.2);
+                  }
+                }
+              }
+            }
+
+            .gift-message-header {
+              display: flex;
+              align-items: center;
+              gap: 1.5rem;
+              margin-bottom: 1.5rem;
+              position: relative;
+              z-index: 2;
+
+              .gift-emoji-large {
+                font-size: 4.5rem;
+                line-height: 1;
+                filter: drop-shadow(0 4px 12px rgba(236, 72, 153, 0.3));
+                animation: giftBounce 2s ease-in-out infinite;
+                position: relative;
+
+                &::after {
+                  content: '✨';
+                  position: absolute;
+                  top: -10px;
+                  right: -10px;
+                  font-size: 1.3rem;
+                  animation: sparkleRotate 2s linear infinite;
+                  opacity: 0.8;
+                }
+
+                @keyframes giftBounce {
+                  0%, 100% {
+                    transform: translateY(0) rotate(0deg);
+                  }
+                  25% {
+                    transform: translateY(-8px) rotate(-5deg);
+                  }
+                  75% {
+                    transform: translateY(-8px) rotate(5deg);
+                  }
+                }
+
+                @keyframes sparkleRotate {
+                  0% {
+                    transform: rotate(0deg) scale(1);
+                    opacity: 1;
+                  }
+                  100% {
+                    transform: rotate(360deg) scale(1.2);
+                    opacity: 0.8;
+                  }
+                }
+              }
+
+              .gift-info {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                gap: 0.75rem;
+
+                .gift-label {
+                  display: flex;
+                  align-items: center;
+                  gap: 0.75rem;
+                  font-size: 1.1rem;
+                  font-weight: 600;
+                  background: linear-gradient(135deg, rgba(236, 72, 153, 0.9) 0%, rgba(168, 85, 247, 0.9) 100%);
+                  -webkit-background-clip: text;
+                  -webkit-text-fill-color: transparent;
+                  background-clip: text;
+
+                  i {
+                    font-size: 1.3rem;
+                    color: rgba(236, 72, 153, 0.85);
+                    filter: drop-shadow(0 2px 4px rgba(236, 72, 153, 0.2));
+                    animation: giftIconPulse 2s ease-in-out infinite;
+                  }
+
+                  @keyframes giftIconPulse {
+                    0%, 100% {
+                      transform: scale(1);
+                    }
+                    50% {
+                      transform: scale(1.1);
+                    }
+                  }
+                }
+
+                .gift-amount {
+                  display: flex;
+                  align-items: center;
+                  gap: 0.75rem;
+                  font-size: 1rem;
+                  font-weight: 600;
+                  color: var(--text-color, #1f2937);
+                  padding: 0.5rem 1rem;
+                  background: rgba(255, 255, 255, 0.7);
+                  border-radius: 10px;
+                  backdrop-filter: blur(10px);
+                  box-shadow: 0 2px 8px rgba(236, 72, 153, 0.15);
+                  border: 1px solid rgba(236, 72, 153, 0.2);
+
+                  i {
+                    color: rgba(99, 102, 241, 0.8);
+                    font-size: 1.1rem;
+                  }
+                }
+              }
+            }
+
+            .gift-message-text {
+              margin-top: 1.5rem;
+              padding: 1.25rem;
+              background: linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0.7) 100%);
+              border-radius: 14px;
+              border-left: 4px solid rgba(236, 72, 153, 0.7);
+              border-right: 4px solid rgba(168, 85, 247, 0.7);
+              font-style: italic;
+              color: var(--text-color, #1f2937);
+              font-size: 1rem;
+              line-height: 1.6;
+              position: relative;
+              z-index: 2;
+              box-shadow: 0 3px 10px rgba(236, 72, 153, 0.12);
+              display: flex;
+              align-items: center;
+              gap: 0.5rem;
+
+              i {
+                color: rgba(236, 72, 153, 0.7);
+                font-size: 1.1rem;
+                opacity: 0.6;
+
+                &.pi-quote-left {
+                  align-self: flex-start;
+                }
+
+                &.pi-quote-right {
+                  align-self: flex-end;
+                }
+              }
+
+              span {
+                flex: 1;
+              }
+            }
+
+            .gift-message-footer {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-top: 1.5rem;
+              padding-top: 1rem;
+              border-top: 1px solid rgba(236, 72, 153, 0.2);
+              font-size: 0.8rem;
+              color: var(--text-color-secondary, #6b7280);
+              position: relative;
+              z-index: 2;
+
+              .message-time {
+                font-weight: 500;
+                color: var(--text-color, #1f2937);
+              }
+
+              .message-status {
+                i {
+                  color: rgba(34, 197, 94, 0.9);
+                  font-size: 0.9rem;
+                  filter: drop-shadow(0 1px 2px rgba(34, 197, 94, 0.2));
+                }
+              }
+            }
+          }
+
+          &.own-gift {
+            .gift-message-container {
+              background: linear-gradient(135deg, rgba(236, 72, 153, 0.12) 0%, rgba(168, 85, 247, 0.12) 100%);
+              border-image: linear-gradient(135deg, rgba(236, 72, 153, 0.7) 0%, rgba(168, 85, 247, 0.7) 100%) 1;
+            }
+          }
+        }
+      }
     }
   }
 
