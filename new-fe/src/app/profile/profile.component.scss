@@ -73,6 +73,98 @@
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
+
+  // Style Send Gift button like chat component
+  ::ng-deep .p-button-success {
+    background: linear-gradient(135deg, #ec4899 0%, #a855f7 100%);
+    border: none;
+    color: white;
+    border-radius: 12px;
+    padding: 0.625rem 1.25rem;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(236, 72, 153, 0.4);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+    }
+
+    &:hover {
+      background: linear-gradient(135deg, #f06bac 0%, #b975f9 100%);
+      box-shadow: 0 6px 20px rgba(236, 72, 153, 0.6);
+      transform: scale(1.05) translateY(-2px);
+      color: white;
+
+      &::before {
+        width: 300px;
+        height: 300px;
+      }
+
+      &::after {
+        opacity: 1;
+      }
+    }
+
+    &:active {
+      transform: scale(1.02) translateY(0);
+      box-shadow: 0 2px 8px rgba(236, 72, 153, 0.4);
+    }
+
+    .p-button-label {
+      position: relative;
+      z-index: 1;
+    }
+
+    .p-button-icon {
+      position: relative;
+      z-index: 1;
+      animation: giftIconPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes giftIconPulse {
+      0%, 100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.1);
+      }
+    }
+
+    // Animated sparkle effect
+    &::after {
+      content: '✨';
+      position: absolute;
+      top: 10%;
+      right: 15%;
+      font-size: 0.7rem;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: 1;
+      animation: sparkleFloat 2s ease-in-out infinite;
+    }
+
+    @keyframes sparkleFloat {
+      0%, 100% {
+        transform: translateY(0) scale(1);
+        opacity: 0;
+      }
+      50% {
+        transform: translateY(-5px) scale(1.2);
+        opacity: 1;
+      }
+    }
+  }
 }
 
 .profile-avatar {
