@@ -16,6 +16,10 @@ import { DialogModule } from "primeng/dialog";
 import { InputTextareaModule } from "primeng/inputtextarea";
 import { DropdownModule } from "primeng/dropdown";
 import { CalendarModule } from "primeng/calendar";
+import { MessageModule } from "primeng/message";
+import { ToastModule } from "primeng/toast";
+import { MessageService } from "primeng/api";
+import { GiftService } from "src/typescript-api-client/src/api/api";
 
 import { ChatHomeComponent } from "./chat-home.component";
 import { ChatComponent } from "./chat.component";
@@ -65,8 +69,10 @@ const routes: Routes = [
         InputTextareaModule,
         DropdownModule,
         CalendarModule,
+        MessageModule,
+        ToastModule,
         HttpClientModule,
     ],
-    providers: [ChatService],
+    providers: [ChatService, MessageService, GiftService],
 })
 export class ChatModule {}
