@@ -3,6 +3,7 @@ import { Router } from "@angular/router";
 import { Subject, takeUntil } from "rxjs";
 import { HomeService, HomeUser } from "../home/home.service";
 import { MessageService } from "primeng/api";
+import { GiftDialogUser } from "../shared/send-gift-dialog/send-gift-dialog.component";
 
 export interface AdvancedSearchFilters {
     gender?: string;
@@ -27,6 +28,10 @@ export class AdvancedSearchComponent implements OnInit, OnDestroy {
     isLoading: boolean = true;
     isLoadingMore: boolean = false;
     hasMoreData: boolean = true;
+
+    // Gift dialog properties
+    showSendGiftDialog = false;
+    selectedUserForGift: GiftDialogUser | null = null;
 
     // Filter options
     genderOptions = [
@@ -287,6 +292,28 @@ export class AdvancedSearchComponent implements OnInit, OnDestroy {
         this.router.navigate(["/chat"], {
             queryParams: { userId: user.id },
         });
+    }
+
+    onGiftClick(user: HomeUser): void {
+        if (!user?.id) {
+            this.messageService.add({
+                severity: "error",
+                summary: "Error",
+                detail: "Unable to send gift. User information not available.",
+            });
+            return;
+        }
+        
+        this.selectedUserForGift = {
+            id: user.id,
+            fullName: user.fullName,
+        };
+        this.showSendGiftDialog = true;
+    }
+
+    onGiftSent(response: any): void {
+        // Gift was sent successfully, dialog is already closed
+        this.selectedUserForGift = null;
     }
 
     trackByUserId(index: number, user: HomeUser): number {

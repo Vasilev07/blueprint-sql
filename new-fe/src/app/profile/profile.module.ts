@@ -29,6 +29,7 @@ import {
     FriendsService,
     GiftService,
 } from "src/typescript-api-client/src/api/api";
+import { SharedComponentsModule } from "../shared/components.module";
 
 @NgModule({
     declarations: [ProfileComponent],
@@ -57,6 +58,7 @@ import {
         ConfirmDialogModule,
         CalendarModule,
         MessageModule,
+        SharedComponentsModule,
     ],
     providers: [
         MessageService,

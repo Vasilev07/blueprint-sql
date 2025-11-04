@@ -174,7 +174,8 @@
         *ngFor="let user of users; trackBy: trackByUserId"
         [user]="user"
         (chatClick)="onChatClick($event)"
-        (cardClick)="onCardClick($event)">
+        (cardClick)="onCardClick($event)"
+        (giftClick)="onGiftClick($event)">
       </app-user-card>
     </div>
 
@@ -195,6 +196,13 @@
     </div>
   </div>
 </div>
+
+<!-- Gift Send Dialog -->
+<app-send-gift-dialog
+  [(visible)]="showSendGiftDialog"
+  [recipientUser]="selectedUserForGift"
+  (giftSent)="onGiftSent($event)">
+</app-send-gift-dialog>
 
 <!-- Toast Messages -->
 <p-toast></p-toast>

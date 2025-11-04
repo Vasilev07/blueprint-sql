@@ -29,6 +29,7 @@ import { UserListComponent } from "./user-list.component";
 import { FriendsListComponent } from "./friends-list.component";
 import { RecentMessagesComponent } from "./recent-messages.component";
 import { ChatService } from "./chat.service";
+import { SharedComponentsModule } from "../shared/components.module";
 
 const routes: Routes = [
     {
@@ -72,6 +73,7 @@ const routes: Routes = [
         MessageModule,
         ToastModule,
         HttpClientModule,
+        SharedComponentsModule,
     ],
     providers: [ChatService, MessageService, GiftService],
 })

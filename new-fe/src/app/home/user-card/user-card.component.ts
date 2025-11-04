@@ -14,6 +14,7 @@ export class UserCardComponent implements OnInit, OnDestroy {
     @Input() user!: HomeUser;
     @Output() chatClick = new EventEmitter<HomeUser>();
     @Output() cardClick = new EventEmitter<HomeUser>();
+    @Output() giftClick = new EventEmitter<HomeUser>();
 
     // SVG data URL for default avatar - no external file needed
     defaultAvatar =
@@ -73,6 +74,11 @@ export class UserCardComponent implements OnInit, OnDestroy {
     onChatClick(event: Event): void {
         event.stopPropagation(); // Prevent card click
         this.chatClick.emit(this.user);
+    }
+
+    onGiftClick(event: Event): void {
+        event.stopPropagation(); // Prevent card click
+        this.giftClick.emit(this.user);
     }
 
     getUserInitials(): string {

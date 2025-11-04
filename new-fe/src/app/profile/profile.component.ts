@@ -76,10 +76,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     
     // Send Gift properties
     showSendGiftDialog = false;
-    isSendingGift = false;
-    giftForm: FormGroup;
-    availableGifts: any[] = [];
-    selectedGift: any | null = null;
+    recipientUserForGift: { id: number; fullName?: string; name?: string } | null = null;
 
     // Tab navigation
     activeTabIndex = 0;
@@ -103,13 +100,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
         private websocketService: WebsocketService,
         private http: HttpClient,
         private fb: FormBuilder,
-    ) {
-        this.giftForm = this.fb.group({
-            giftEmoji: [null, Validators.required],
-            amount: [null, [Validators.required]],
-            message: [""],
-        });
-    }
+    ) {}
 
     ngOnInit(): void {
         // Check if viewing another user's profile or own profile
@@ -957,116 +948,22 @@ export class ProfileComponent implements OnInit, OnDestroy {
             return;
         }
         
-        this.loadAvailableGifts();
-        this.loadBalance();
+        this.recipientUserForGift = {
+            id: this.viewingUserId,
+            fullName: this.viewingUser?.fullName,
+            name: this.viewingUser?.fullName,
+        };
         this.showSendGiftDialog = true;
     }
 
-    closeSendGiftDialog(): void {
-        this.showSendGiftDialog = false;
-        this.selectedGift = null;
-        this.giftForm.reset();
-    }
-
-    loadAvailableGifts(): void {
-        this.availableGifts = [
-            { name: "Flirty Drink", emoji: "🍹", value: "🍹", amount: 100 },
-            { name: "Red Rose", emoji: "🌹", value: "🌹", amount: 200 },
-            { name: "Sexy Cocktail", emoji: "🍸", value: "🍸", amount: 300 },
-            { name: "Love Potion", emoji: "💋", value: "💋", amount: 400 },
-            { name: "Naughty Toy", emoji: "🧸", value: "🧸", amount: 500 },
-            { name: "Diamond Ring", emoji: "💎", value: "💎", amount: 600 },
-            { name: "Luxury Lingerie", emoji: "👙", value: "👙", amount: 700 },
-            { name: "Champagne", emoji: "🍾", value: "🍾", amount: 800 },
-        ];
-    }
-
-    selectGift(gift: any): void {
-        this.selectedGift = gift;
-        this.giftForm.patchValue({
-            giftEmoji: gift.value,
-            amount: gift.amount,
-            message: "",
-        });
-    }
-
-    sendGift(): void {
-        if (this.giftForm.invalid || !this.selectedGift) {
-            this.messageService.add({
-                severity: "warn",
-                summary: "Validation Error",
-                detail: "Please select a gift",
-            });
-            return;
-        }
-
-        if (!this.viewingUserId) {
-            this.messageService.add({
-                severity: "error",
-                summary: "Error",
-                detail: "Unable to send gift. User information not available.",
-            });
-            return;
-        }
-
-        this.isSendingGift = true;
-        const formValue = this.giftForm.value;
-
-        // Convert amount to string as backend expects
-        if (typeof formValue.amount === "number") {
-            formValue.amount = formValue.amount.toString();
-        }
-
-        const giftData = {
-            receiverId: this.viewingUserId,
-            giftEmoji: formValue.giftEmoji,
-            amount: formValue.amount,
-            message: formValue.message || "",
-        };
-
-        this.giftService.sendGift(giftData).subscribe({
-            next: (response) => {
-                this.balance = response.senderBalance?.toString() || this.balance;
-                this.messageService.add({
-                    severity: "success",
-                    summary: "Success",
-                    detail: `Gift sent successfully! Your new balance is ${this.getBalanceAsInteger()} tokens`,
-                });
-                this.closeSendGiftDialog();
-                // Reload received gifts for the viewed user
-                this.loadReceivedGifts();
-                this.isSendingGift = false;
-            },
-            error: (error) => {
-                console.error("Error sending gift:", error);
-                const errorMsg =
-                    error.error?.message || "Failed to send gift. Please try again.";
-                this.messageService.add({
-                    severity: "error",
-                    summary: "Error",
-                    detail: errorMsg,
-                });
-                this.isSendingGift = false;
-            },
-        });
-    }
-
-    hasSufficientBalance(amount: number): boolean {
-        return amount <= this.getBalanceAsNumber();
+    onGiftSent(response: any): void {
+        // Gift was sent successfully, dialog is already closed
+        this.recipientUserForGift = null;
+        // Reload received gifts for the viewed user
+        this.loadReceivedGifts();
     }
 
     getBalanceAsNumber(): number {
         return parseFloat(this.balance || "0");
-    }
-
-    loadBalance(): void {
-        this.userService.getUser().subscribe({
-            next: (user: any) => {
-                this.balance = user.balance || "0";
-            },
-            error: (error) => {
-                console.error("Error loading balance:", error);
-            },
-        });
     }
 }

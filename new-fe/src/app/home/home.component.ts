@@ -3,6 +3,7 @@ import { Router } from "@angular/router";
 import { Subject, takeUntil } from "rxjs";
 import { HomeService, HomeUser, FilterType, SortType } from "./home.service";
 import { MessageService } from "primeng/api";
+import { GiftDialogUser } from "../shared/send-gift-dialog/send-gift-dialog.component";
 
 @Component({
     selector: "app-home",
@@ -20,6 +21,10 @@ export class HomeComponent implements OnInit, OnDestroy {
     isLoading: boolean = true;
     isLoadingMore: boolean = false;
     hasMoreData: boolean = true;
+
+    // Gift dialog properties
+    showSendGiftDialog = false;
+    selectedUserForGift: GiftDialogUser | null = null;
 
     filterOptions = [
         { label: "All", value: "all" as FilterType, icon: "pi pi-users" },
@@ -185,6 +190,28 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.router.navigate(["/chat"], {
             queryParams: { userId: user.id },
         });
+    }
+
+    onGiftClick(user: HomeUser): void {
+        if (!user?.id) {
+            this.messageService.add({
+                severity: "error",
+                summary: "Error",
+                detail: "Unable to send gift. User information not available.",
+            });
+            return;
+        }
+        
+        this.selectedUserForGift = {
+            id: user.id,
+            fullName: user.fullName,
+        };
+        this.showSendGiftDialog = true;
+    }
+
+    onGiftSent(response: any): void {
+        // Gift was sent successfully, dialog is already closed
+        this.selectedUserForGift = null;
     }
 
     onCardClick(user: HomeUser): void {
