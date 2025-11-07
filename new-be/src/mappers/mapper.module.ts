@@ -11,6 +11,7 @@ import { ProfileViewMapper } from "@mappers/implementations/profile-view.mapper"
 import { UserProfileMapper } from "@mappers/implementations/user-profile.mapper";
 import { GiftMapper } from "@mappers/implementations/gift.mapper";
 import { VideoCallMapper } from "@mappers/implementations/video-call.mapper";
+import { StoryMapper } from "@mappers/implementations/story.mapper";
 
 @Global()
 @Module({
@@ -27,6 +28,7 @@ import { VideoCallMapper } from "@mappers/implementations/video-call.mapper";
         UserProfileMapper,
         GiftMapper,
         VideoCallMapper,
+        StoryMapper,
     ],
     exports: [MapperService],
 })
@@ -44,6 +46,7 @@ export class MapperModule {
         private readonly userProfileMapper: UserProfileMapper,
         private readonly giftMapper: GiftMapper,
         private readonly videoCallMapper: VideoCallMapper,
+        private readonly storyMapper: StoryMapper,
     ) {
         this.mapperService.registerMapper("User", this.userMapper);
         this.mapperService.registerMapper("Product", this.productMapper);
@@ -68,5 +71,6 @@ export class MapperModule {
         );
         this.mapperService.registerMapper("Gift", this.giftMapper);
         this.mapperService.registerMapper("VideoCall", this.videoCallMapper);
+        this.mapperService.registerMapper("Story", this.storyMapper);
     }
 }

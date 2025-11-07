@@ -3,12 +3,16 @@ import {
     NotFoundException,
     BadRequestException,
     Logger,
+    Inject,
+    OnModuleInit,
 } from "@nestjs/common";
 import { EntityManager, LessThan, MoreThan } from "typeorm";
 import { Cron, CronExpression } from "@nestjs/schedule";
 import { ConfigService } from "@nestjs/config";
 import { Story } from "../entities/story.entity";
 import { StoryDTO } from "../models/story.dto";
+import { MapperService } from "@mappers/mapper.service";
+import { BaseMapper } from "@mappers/base.mapper";
 import * as path from "path";
 import * as fs from "fs/promises";
 import * as ffmpeg from "fluent-ffmpeg";
@@ -24,7 +28,7 @@ import * as ffmpeg from "fluent-ffmpeg";
  */
 
 @Injectable()
-export class StoryService {
+export class StoryService implements OnModuleInit {
     private readonly logger = new Logger(StoryService.name);
     private readonly uploadDir: string;
     private readonly storiesDir: string;
@@ -42,10 +46,12 @@ export class StoryService {
         "image/webp",
     ];
     private readonly imageStoryDuration = 30; // Default duration for image stories in seconds
+    private storyMapper: BaseMapper<Story, StoryDTO>;
 
     constructor(
         private entityManager: EntityManager,
         private configService: ConfigService,
+        @Inject(MapperService) private readonly mapperService: MapperService,
     ) {
         this.uploadDir = this.configService.get<string>(
             "UPLOAD_DIR",
@@ -53,6 +59,10 @@ export class StoryService {
         );
         this.storiesDir = path.join(this.uploadDir, "stories");
         this.ensureUploadDirectory();
+    }
+
+    public onModuleInit(): void {
+        this.storyMapper = this.mapperService.getMapper("Story");
     }
 
     private async ensureUploadDirectory(): Promise<void> {
@@ -345,7 +355,7 @@ export class StoryService {
             relations: ["user"],
         });
 
-        return stories.map((story) => this.mapToDTO(story));
+        return stories.map((story) => this.storyMapper.entityToDTO(story));
     }
 
     async getStoriesByUser(userId: number): Promise<StoryDTO[]> {
@@ -360,7 +370,7 @@ export class StoryService {
             relations: ["user"],
         });
 
-        return stories.map((story) => this.mapToDTO(story));
+        return stories.map((story) => this.storyMapper.entityToDTO(story));
     }
 
     async getStoryById(id: number): Promise<StoryDTO> {
@@ -373,7 +383,7 @@ export class StoryService {
             throw new NotFoundException(`Story ${id} not found`);
         }
 
-        return this.mapToDTO(story);
+        return this.storyMapper.entityToDTO(story);
     }
 
     async incrementViews(id: number): Promise<void> {
@@ -452,27 +462,5 @@ export class StoryService {
         }
 
         this.logger.log("Expired stories cleanup completed");
-    }
-
-    private mapToDTO(story: Story): StoryDTO {
-        return {
-            id: story.id,
-            userId: story.userId,
-            userName: story.user
-                ? `${story.user.firstname} ${story.user.lastname}`
-                : undefined,
-            filePath: story.filePath,
-            originalFilename: story.originalFilename,
-            fileSize: story.fileSize,
-            duration: story.duration,
-            mimeType: story.mimeType,
-            width: story.width,
-            height: story.height,
-            thumbnailPath: story.thumbnailPath,
-            views: story.views,
-            createdAt: story.createdAt,
-            expiresAt: story.expiresAt,
-            isProcessed: story.isProcessed,
-        };
     }
 }
