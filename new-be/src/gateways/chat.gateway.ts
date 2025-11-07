@@ -8,8 +8,10 @@ import {
 import { Server, Socket } from "socket.io";
 import { Injectable } from "@nestjs/common";
 import { ChatService } from "../services/chat.service";
+import { VideoCallService } from "../services/video-call.service";
 import { EntityManager } from "typeorm";
 import { User } from "../entities/user.entity";
+import { CallStatus } from "../enums/call-status.enum";
 
 @WebSocketGateway({
     cors: {
@@ -28,6 +30,7 @@ export class ChatGateway {
 
     constructor(
         private chatService: ChatService,
+        private videoCallService: VideoCallService,
         private entityManager: EntityManager,
     ) {}
 
@@ -135,6 +138,277 @@ export class ChatGateway {
                 typeof err?.message === "string"
                     ? err.message
                     : "Failed to send chat message";
+            return { error: true, message };
+        }
+    }
+
+    // Video Call Event Handlers
+    @SubscribeMessage("video-call:start")
+    async handleVideoCallStart(
+        @MessageBody() payload: { recipientId: number },
+        @ConnectedSocket() client: Socket,
+    ) {
+        console.log("🎥 Video call start received:", payload);
+        try {
+            const senderId = parseInt(client.handshake.query.userId as string);
+            console.log("🎥 Sender ID:", senderId);
+
+            if (!senderId) {
+                console.log("🎥 No sender ID found");
+                return { error: true, message: "User not authenticated" };
+            }
+
+            // Get sender info for notification
+            const sender = await this.entityManager.findOne(User, {
+                where: { id: senderId },
+                select: ['id', 'firstname', 'lastname', 'email']
+            });
+
+            console.log("🎥 Sender found:", sender);
+
+            if (!sender) {
+                return { error: true, message: "Sender not found" };
+            }
+
+            // Create the video call
+            console.log("🎥 Calling videoCallService.startCall with:", {
+                initiatorId: senderId,
+                recipientId: payload.recipientId,
+                isLiveStream: false,
+                maxParticipants: 2
+            });
+
+            const videoCall = await this.videoCallService.startCall({
+                initiatorId: senderId,
+                recipientId: payload.recipientId,
+                isLiveStream: false,
+                maxParticipants: 2
+            });
+
+            console.log("🎥 Video call created:", videoCall);
+
+            // Notify the recipient
+            console.log("🎥 Notifying recipient:", `user:${payload.recipientId}`);
+            const fullName = `${sender.firstname} ${sender.lastname}`.trim();
+            this.server.to(`user:${payload.recipientId}`).emit("video-call:incoming", {
+                callId: videoCall.id,
+                initiatorId: senderId,
+                initiatorName: fullName || sender.email,
+                sessionId: videoCall.id
+            });
+
+            console.log("🎥 Notification sent successfully");
+
+            return { success: true, callId: videoCall.id };
+        } catch (err: any) {
+            console.error("🎥 Error starting video call:", err);
+            const message =
+                typeof err?.message === "string"
+                    ? err.message
+                    : "Failed to start video call";
+            return { error: true, message };
+        }
+    }
+
+    @SubscribeMessage("video-call:accept")
+    async handleVideoCallAccept(
+        @MessageBody() payload: { callId: string },
+        @ConnectedSocket() client: Socket,
+    ) {
+        try {
+            const userId = parseInt(client.handshake.query.userId as string);
+
+            if (!userId) {
+                return { error: true, message: "User not authenticated" };
+            }
+
+            // Update call status to active
+            const videoCall = await this.videoCallService.updateCallStatus(
+                payload.callId,
+                CallStatus.ACTIVE
+            );
+
+            // Notify the initiator
+            const initiatorId = videoCall.initiatorId === userId ? videoCall.recipientId : videoCall.initiatorId;
+            this.server.to(`user:${initiatorId}`).emit("video-call:accepted", {
+                callId: payload.callId,
+                sessionId: payload.callId
+            });
+
+            return { success: true };
+        } catch (err: any) {
+            console.error("Error accepting video call:", err);
+            const message =
+                typeof err?.message === "string"
+                    ? err.message
+                    : "Failed to accept video call";
+            return { error: true, message };
+        }
+    }
+
+    @SubscribeMessage("video-call:reject")
+    async handleVideoCallReject(
+        @MessageBody() payload: { callId: string },
+        @ConnectedSocket() client: Socket,
+    ) {
+        try {
+            const userId = parseInt(client.handshake.query.userId as string);
+
+            if (!userId) {
+                return { error: true, message: "User not authenticated" };
+            }
+
+            // Update call status to rejected
+            await this.videoCallService.updateCallStatus(
+                payload.callId,
+                CallStatus.REJECTED,
+                { endReason: "Call rejected by recipient" }
+            );
+
+            // Get call details to notify initiator
+            const call = await this.videoCallService.getCallById(payload.callId);
+            const initiatorId = call.initiatorId;
+
+            // Notify the initiator
+            this.server.to(`user:${initiatorId}`).emit("video-call:rejected");
+
+            return { success: true };
+        } catch (err: any) {
+            console.error("Error rejecting video call:", err);
+            const message =
+                typeof err?.message === "string"
+                    ? err.message
+                    : "Failed to reject video call";
+            return { error: true, message };
+        }
+    }
+
+    @SubscribeMessage("video-call:end")
+    async handleVideoCallEnd(
+        @MessageBody() payload: { callId: string },
+        @ConnectedSocket() client: Socket,
+    ) {
+        try {
+            const userId = parseInt(client.handshake.query.userId as string);
+
+            if (!userId) {
+                return { error: true, message: "User not authenticated" };
+            }
+
+            // End the call
+            const videoCall = await this.videoCallService.endCall(payload.callId);
+
+            // Notify the other participant
+            const otherUserId = videoCall.initiatorId === userId ? videoCall.recipientId : videoCall.initiatorId;
+            this.server.to(`user:${otherUserId}`).emit("video-call:ended");
+
+            return { success: true };
+        } catch (err: any) {
+            console.error("Error ending video call:", err);
+            const message =
+                typeof err?.message === "string"
+                    ? err.message
+                    : "Failed to end video call";
+            return { error: true, message };
+        }
+    }
+
+    // WebRTC Signaling
+    @SubscribeMessage("video-call:webrtc:offer")
+    async handleWebRTCOffer(
+        @MessageBody() payload: { callId: string; offer: any },
+        @ConnectedSocket() client: Socket,
+    ) {
+        try {
+            const userId = parseInt(client.handshake.query.userId as string);
+
+            if (!userId) {
+                return { error: true, message: "User not authenticated" };
+            }
+
+            // Get call details to find the other participant
+            const call = await this.videoCallService.getCallById(payload.callId);
+            const otherUserId = call.initiatorId === userId ? call.recipientId : call.initiatorId;
+
+            // Forward the offer to the other participant
+            this.server.to(`user:${otherUserId}`).emit("video-call:webrtc:offer", {
+                callId: payload.callId,
+                offer: payload.offer
+            });
+
+            return { success: true };
+        } catch (err: any) {
+            console.error("Error handling WebRTC offer:", err);
+            const message =
+                typeof err?.message === "string"
+                    ? err.message
+                    : "Failed to handle WebRTC offer";
+            return { error: true, message };
+        }
+    }
+
+    @SubscribeMessage("video-call:webrtc:answer")
+    async handleWebRTCAnswer(
+        @MessageBody() payload: { callId: string; answer: any },
+        @ConnectedSocket() client: Socket,
+    ) {
+        try {
+            const userId = parseInt(client.handshake.query.userId as string);
+
+            if (!userId) {
+                return { error: true, message: "User not authenticated" };
+            }
+
+            // Get call details to find the other participant
+            const call = await this.videoCallService.getCallById(payload.callId);
+            const otherUserId = call.initiatorId === userId ? call.recipientId : call.initiatorId;
+
+            // Forward the answer to the other participant
+            this.server.to(`user:${otherUserId}`).emit("video-call:webrtc:answer", {
+                callId: payload.callId,
+                answer: payload.answer
+            });
+
+            return { success: true };
+        } catch (err: any) {
+            console.error("Error handling WebRTC answer:", err);
+            const message =
+                typeof err?.message === "string"
+                    ? err.message
+                    : "Failed to handle WebRTC answer";
+            return { error: true, message };
+        }
+    }
+
+    @SubscribeMessage("video-call:webrtc:ice-candidate")
+    async handleWebRTCIceCandidate(
+        @MessageBody() payload: { callId: string; candidate: any },
+        @ConnectedSocket() client: Socket,
+    ) {
+        try {
+            const userId = parseInt(client.handshake.query.userId as string);
+
+            if (!userId) {
+                return { error: true, message: "User not authenticated" };
+            }
+
+            // Get call details to find the other participant
+            const call = await this.videoCallService.getCallById(payload.callId);
+            const otherUserId = call.initiatorId === userId ? call.recipientId : call.initiatorId;
+
+            // Forward the ICE candidate to the other participant
+            this.server.to(`user:${otherUserId}`).emit("video-call:webrtc:ice-candidate", {
+                callId: payload.callId,
+                candidate: payload.candidate
+            });
+
+            return { success: true };
+        } catch (err: any) {
+            console.error("Error handling WebRTC ICE candidate:", err);
+            const message =
+                typeof err?.message === "string"
+                    ? err.message
+                    : "Failed to handle WebRTC ICE candidate";
             return { error: true, message };
         }
     }

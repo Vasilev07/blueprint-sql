@@ -10,6 +10,7 @@ import { ChatConversationMapper } from "@mappers/implementations/chat-conversati
 import { ProfileViewMapper } from "@mappers/implementations/profile-view.mapper";
 import { UserProfileMapper } from "@mappers/implementations/user-profile.mapper";
 import { GiftMapper } from "@mappers/implementations/gift.mapper";
+import { VideoCallMapper } from "@mappers/implementations/video-call.mapper";
 
 @Global()
 @Module({
@@ -25,6 +26,7 @@ import { GiftMapper } from "@mappers/implementations/gift.mapper";
         ProfileViewMapper,
         UserProfileMapper,
         GiftMapper,
+        VideoCallMapper,
     ],
     exports: [MapperService],
 })
@@ -41,6 +43,7 @@ export class MapperModule {
         private readonly profileViewMapper: ProfileViewMapper,
         private readonly userProfileMapper: UserProfileMapper,
         private readonly giftMapper: GiftMapper,
+        private readonly videoCallMapper: VideoCallMapper,
     ) {
         this.mapperService.registerMapper("User", this.userMapper);
         this.mapperService.registerMapper("Product", this.productMapper);
@@ -64,5 +67,6 @@ export class MapperModule {
             this.userProfileMapper,
         );
         this.mapperService.registerMapper("Gift", this.giftMapper);
+        this.mapperService.registerMapper("VideoCall", this.videoCallMapper);
     }
 }

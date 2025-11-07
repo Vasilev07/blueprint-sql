@@ -533,4 +533,27 @@ export class ChatComponent implements OnInit, OnDestroy, OnChanges {
             giftMessage: messageMatch?.[1] || '',
         };
     }
+
+    // Video Call Methods
+    startVideoCall(): void {
+        if (!this.currentUserId) {
+            this.messageService.add({
+                severity: "error",
+                summary: "Error",
+                detail: "Unable to start call. User information not available.",
+            });
+            return;
+        }
+
+        const recipientId = Number(this.currentUserId);
+        const recipientName = this.currentUser?.name || 'Unknown User';
+
+        // Navigate to video call page with recipient info
+        this.router.navigate(['/video-call'], {
+            queryParams: {
+                recipientId: recipientId,
+                recipientName: recipientName
+            }
+        });
+    }
 }

@@ -118,6 +118,12 @@ const routes: Routes = [
         loadChildren: () =>
             import("./register/register.module").then((m) => m.RegisterModule),
     },
+    {
+        path: "video-call",
+        loadChildren: () =>
+            import("./video-call/video-call.module").then((m) => m.VideoCallModule),
+        canActivate: [AuthGuard],
+    },
 ];
 
 @NgModule({

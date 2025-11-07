@@ -33,6 +33,12 @@
       </div>
       <div class="header-actions" *ngIf="!isOwnProfile">
         <p-button
+          icon="pi pi-phone"
+          label="Video Call"
+          styleClass="p-button-sm p-button-info"
+          (onClick)="startVideoCall()">
+        </p-button>
+        <p-button
           icon="pi pi-gift"
           label="Send Gift"
           styleClass="p-button-sm p-button-success"

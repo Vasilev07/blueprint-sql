@@ -966,4 +966,26 @@ export class ProfileComponent implements OnInit, OnDestroy {
     getBalanceAsNumber(): number {
         return parseFloat(this.balance || "0");
     }
+
+    // Video Call Methods
+    startVideoCall(): void {
+        if (!this.viewingUserId) {
+            this.messageService.add({
+                severity: "error",
+                summary: "Error",
+                detail: "Unable to start call. User information not available.",
+            });
+            return;
+        }
+
+        const recipientName = this.viewingUser?.fullName || 'Unknown User';
+
+        // Navigate to video call page with recipient info
+        this.router.navigate(['/video-call'], {
+            queryParams: {
+                recipientId: this.viewingUserId,
+                recipientName: recipientName
+            }
+        });
+    }
 }

@@ -15,6 +15,8 @@ import { Configuration } from "src/typescript-api-client/src";
 import { ApiModule } from "src/typescript-api-client/src/api.module";
 import { environment } from "src/environments/environment";
 import { GiftNotificationComponent } from "./components/gift-notification/gift-notification.component";
+import { SharedComponentsModule } from "./shared/components.module";
+import { MessageService } from "primeng/api";
 
 export function tokenGetter() {
     return localStorage.getItem("id_token");
@@ -28,6 +30,7 @@ export function tokenGetter() {
         AppRoutingModule,
         BrowserAnimationsModule,
         AppLayoutModule,
+        SharedComponentsModule,
         ApiModule.forRoot(() => new Configuration({
             basePath: environment.apiUrl,
             withCredentials: true,
@@ -48,7 +51,8 @@ export function tokenGetter() {
             multi: true
         },
         AuthService,
-        AuthGuard
+        AuthGuard,
+        MessageService
     ],
     bootstrap: [AppComponent],
 })

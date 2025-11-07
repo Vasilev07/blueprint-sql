@@ -1,0 +1,103 @@
+<div class="video-call-container">
+  <!-- Remote Video (Full Screen) -->
+  <div class="remote-video-wrapper">
+    <video 
+      #remoteVideo 
+      autoplay 
+      playsinline
+      class="remote-video"
+      [class.hidden]="!isActive">
+    </video>
+    
+    <!-- Placeholder when no remote stream -->
+    <div class="video-placeholder" *ngIf="!isActive">
+      <div class="placeholder-content">
+        <p-avatar 
+          [label]="participantName.charAt(0).toUpperCase()" 
+          size="xlarge"
+          styleClass="placeholder-avatar">
+        </p-avatar>
+        <h2>{{ participantName }}</h2>
+        <p class="status-text">{{ statusText }}</p>
+        <p-progressSpinner 
+          *ngIf="isConnecting"
+          styleClass="w-3rem h-3rem"
+          strokeWidth="4">
+        </p-progressSpinner>
+      </div>
+    </div>
+  </div>
+
+  <!-- Local Video (Picture-in-Picture) -->
+  <div class="local-video-wrapper" *ngIf="callState.localStream">
+    <video 
+      #localVideo 
+      autoplay 
+      muted 
+      playsinline
+      class="local-video"
+      [class.video-off]="callState.isVideoOff">
+    </video>
+    <div class="video-off-overlay" *ngIf="callState.isVideoOff">
+      <i class="pi pi-video-slash"></i>
+    </div>
+  </div>
+
+  <!-- Call Controls -->
+  <div class="call-controls">
+    <div class="controls-wrapper">
+      <!-- Call Info -->
+      <div class="call-info">
+        <span class="participant-name">{{ participantName }}</span>
+        <span class="call-status">{{ statusText }}</span>
+      </div>
+
+      <!-- Control Buttons -->
+      <div class="control-buttons">
+        <!-- Mute/Unmute -->
+        <button 
+          pButton 
+          pRipple 
+          type="button"
+          [icon]="callState.isMuted ? 'pi pi-microphone-slash' : 'pi pi-microphone'"
+          class="p-button-rounded control-btn"
+          [class.active]="!callState.isMuted"
+          [class.disabled-btn]="callState.isMuted"
+          (click)="toggleMute()"
+          pTooltip="{{ callState.isMuted ? 'Unmute' : 'Mute' }}"
+          tooltipPosition="top">
+        </button>
+
+        <!-- Video On/Off -->
+        <button 
+          pButton 
+          pRipple 
+          type="button"
+          [icon]="callState.isVideoOff ? 'pi pi-video-slash' : 'pi pi-video'"
+          class="p-button-rounded control-btn"
+          [class.active]="!callState.isVideoOff"
+          [class.disabled-btn]="callState.isVideoOff"
+          (click)="toggleVideo()"
+          pTooltip="{{ callState.isVideoOff ? 'Turn On Video' : 'Turn Off Video' }}"
+          tooltipPosition="top">
+        </button>
+
+        <!-- End Call -->
+        <button 
+          pButton 
+          pRipple 
+          type="button"
+          icon="pi pi-phone"
+          class="p-button-rounded p-button-danger end-call-btn"
+          (click)="endCall()"
+          pTooltip="End Call"
+          tooltipPosition="top">
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Messages -->
+<p-toast></p-toast>
+

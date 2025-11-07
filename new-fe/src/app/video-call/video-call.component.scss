@@ -1,0 +1,260 @@
+.video-call-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+}
+
+// Remote Video (Full Screen)
+.remote-video-wrapper {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  background: #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .remote-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    
+    &.hidden {
+      display: none;
+    }
+  }
+
+  .video-placeholder {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+    .placeholder-content {
+      text-align: center;
+      color: white;
+
+      .placeholder-avatar {
+        margin-bottom: 1rem;
+        font-size: 3rem;
+        width: 120px;
+        height: 120px;
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+      }
+
+      h2 {
+        font-size: 2rem;
+        margin: 1rem 0 0.5rem 0;
+        font-weight: 600;
+      }
+
+      .status-text {
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+        opacity: 0.9;
+      }
+    }
+  }
+}
+
+// Local Video (Picture-in-Picture)
+.local-video-wrapper {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 240px;
+  height: 180px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  z-index: 10;
+  background: #2a2a2a;
+
+  .local-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scaleX(-1); // Mirror effect for local video
+
+    &.video-off {
+      display: none;
+    }
+  }
+
+  .video-off-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #2a2a2a;
+    color: #fff;
+    font-size: 2rem;
+  }
+}
+
+// Call Controls
+.call-controls {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 2rem;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, transparent 100%);
+  z-index: 10;
+
+  .controls-wrapper {
+    max-width: 800px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .call-info {
+    text-align: center;
+    color: white;
+    margin-bottom: 0.5rem;
+
+    .participant-name {
+      display: block;
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    .call-status {
+      display: block;
+      font-size: 1rem;
+      opacity: 0.8;
+    }
+  }
+
+  .control-buttons {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+
+    .control-btn {
+      width: 60px;
+      height: 60px;
+      font-size: 1.5rem;
+      background: rgba(255, 255, 255, 0.2);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      color: white;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: scale(1.05);
+      }
+
+      &.active {
+        background: rgba(46, 213, 115, 0.3);
+        border-color: rgba(46, 213, 115, 0.5);
+      }
+
+      &.disabled-btn {
+        background: rgba(231, 76, 60, 0.3);
+        border-color: rgba(231, 76, 60, 0.5);
+      }
+    }
+
+    .end-call-btn {
+      width: 70px;
+      height: 70px;
+      font-size: 1.8rem;
+      background: #e74c3c;
+      border: none;
+      transform: rotate(135deg);
+      
+      &:hover {
+        background: #c0392b;
+        transform: rotate(135deg) scale(1.05);
+      }
+
+      i {
+        transform: rotate(-135deg);
+      }
+    }
+  }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .local-video-wrapper {
+    width: 120px;
+    height: 90px;
+    top: 10px;
+    right: 10px;
+    border-width: 2px;
+  }
+
+  .call-controls {
+    padding: 1rem;
+
+    .call-info {
+      .participant-name {
+        font-size: 1.2rem;
+      }
+
+      .call-status {
+        font-size: 0.9rem;
+      }
+    }
+
+    .control-buttons {
+      gap: 1rem;
+
+      .control-btn {
+        width: 50px;
+        height: 50px;
+        font-size: 1.2rem;
+      }
+
+      .end-call-btn {
+        width: 60px;
+        height: 60px;
+        font-size: 1.5rem;
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .control-buttons {
+    gap: 0.75rem !important;
+
+    .control-btn {
+      width: 45px !important;
+      height: 45px !important;
+      font-size: 1rem !important;
+    }
+
+    .end-call-btn {
+      width: 55px !important;
+      height: 55px !important;
+      font-size: 1.3rem !important;
+    }
+  }
+}
+

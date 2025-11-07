@@ -1,0 +1,44 @@
+<div class="incoming-call-overlay" *ngIf="showIncomingCall">
+  <div class="incoming-call-modal" [@slideInDown]>
+    <div class="call-header">
+      <i class="pi pi-phone call-icon"></i>
+      <h2>Incoming Video Call</h2>
+    </div>
+
+    <div class="caller-info">
+      <p-avatar 
+        [label]="callerName.charAt(0).toUpperCase()" 
+        size="xlarge"
+        styleClass="caller-avatar">
+      </p-avatar>
+      <h3 class="caller-name">{{ callerName }}</h3>
+      <p class="call-status">is calling you...</p>
+    </div>
+
+    <div class="call-actions">
+      <button 
+        pButton 
+        pRipple
+        type="button"
+        icon="pi pi-phone"
+        label="Decline"
+        class="p-button-rounded p-button-danger p-button-lg decline-btn"
+        (click)="rejectCall()">
+      </button>
+      
+      <button 
+        pButton 
+        pRipple
+        type="button"
+        icon="pi pi-video"
+        label="Accept"
+        class="p-button-rounded p-button-success p-button-lg accept-btn"
+        (click)="acceptCall()">
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Messages -->
+<p-toast></p-toast>
+

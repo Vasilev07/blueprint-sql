@@ -25,6 +25,13 @@
     <div class="chat-actions">
       <button pButton 
         type="button" 
+        icon="pi pi-phone" 
+        class="p-button-text video-call-btn" 
+        pTooltip="Video Call"
+        (click)="startVideoCall()">
+      </button>
+      <button pButton 
+        type="button" 
         icon="pi pi-gift" 
         class="gift-btn" 
         pTooltip="Send Gift"

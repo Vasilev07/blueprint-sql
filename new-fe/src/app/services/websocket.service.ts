@@ -225,6 +225,92 @@ export class WebsocketService {
         });
     }
 
+    // Video Call Events
+    emitStartCall(payload: { recipientId: number }) {
+        console.log("📞 Frontend: Emitting video-call:start", payload);
+        this.socket.emit("video-call:start", payload);
+    }
+
+    emitAcceptCall(payload: { callId: string }) {
+        this.socket.emit("video-call:accept", payload);
+    }
+
+    emitRejectCall(payload: { callId: string }) {
+        this.socket.emit("video-call:reject", payload);
+    }
+
+    emitEndCall(payload: { callId: string }) {
+        this.socket.emit("video-call:end", payload);
+    }
+
+    emitWebRTCOffer(payload: { callId: string; offer: RTCSessionDescriptionInit }) {
+        this.socket.emit("video-call:webrtc:offer", payload);
+    }
+
+    emitWebRTCAnswer(payload: { callId: string; answer: RTCSessionDescriptionInit }) {
+        this.socket.emit("video-call:webrtc:answer", payload);
+    }
+
+    emitWebRTCIceCandidate(payload: { callId: string; candidate: RTCIceCandidate }) {
+        this.socket.emit("video-call:webrtc:ice-candidate", payload);
+    }
+
+    onIncomingCall(): Observable<any> {
+        return new Observable<any>((observer) => {
+            const handler = (payload: any) => observer.next(payload);
+            this.socket.on("video-call:incoming", handler);
+            return () => this.socket.off("video-call:incoming", handler);
+        });
+    }
+
+    onCallAccepted(): Observable<any> {
+        return new Observable<any>((observer) => {
+            const handler = (payload: any) => observer.next(payload);
+            this.socket.on("video-call:accepted", handler);
+            return () => this.socket.off("video-call:accepted", handler);
+        });
+    }
+
+    onCallRejected(): Observable<any> {
+        return new Observable<any>((observer) => {
+            const handler = (payload: any) => observer.next(payload);
+            this.socket.on("video-call:rejected", handler);
+            return () => this.socket.off("video-call:rejected", handler);
+        });
+    }
+
+    onCallEnded(): Observable<any> {
+        return new Observable<any>((observer) => {
+            const handler = (payload: any) => observer.next(payload);
+            this.socket.on("video-call:ended", handler);
+            return () => this.socket.off("video-call:ended", handler);
+        });
+    }
+
+    onWebRTCOffer(): Observable<any> {
+        return new Observable<any>((observer) => {
+            const handler = (payload: any) => observer.next(payload);
+            this.socket.on("video-call:webrtc:offer", handler);
+            return () => this.socket.off("video-call:webrtc:offer", handler);
+        });
+    }
+
+    onWebRTCAnswer(): Observable<any> {
+        return new Observable<any>((observer) => {
+            const handler = (payload: any) => observer.next(payload);
+            this.socket.on("video-call:webrtc:answer", handler);
+            return () => this.socket.off("video-call:webrtc:answer", handler);
+        });
+    }
+
+    onWebRTCIceCandidate(): Observable<any> {
+        return new Observable<any>((observer) => {
+            const handler = (payload: any) => observer.next(payload);
+            this.socket.on("video-call:webrtc:ice-candidate", handler);
+            return () => this.socket.off("video-call:webrtc:ice-candidate", handler);
+        });
+    }
+
     disconnect() {
         if (this.socket) {
             this.socket.disconnect();

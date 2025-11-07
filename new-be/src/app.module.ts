@@ -19,6 +19,7 @@ import { WalletModule } from "./controllers/wallet/wallet.module";
 import { GiftModule } from "./controllers/gift/gift.module";
 import { ConfigModule } from "@nestjs/config";
 import { AuthGuard } from "./guards/auth.guard";
+import { VideoCallModule } from "./controllers/video-call/video-call.module";
 
 @Module({
     imports: [
@@ -41,6 +42,7 @@ import { AuthGuard } from "./guards/auth.guard";
         StoryModule,
         WalletModule,
         GiftModule,
+        VideoCallModule,
     ],
     controllers: [AppController],
     providers: [
