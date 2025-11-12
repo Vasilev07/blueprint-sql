@@ -139,32 +139,38 @@
   <div class="chat-input">
     <form [formGroup]="messageForm" (ngSubmit)="sendMessage()" class="message-form">
       <div class="input-container">
-        <button pButton 
+        <button pButton
           type="button"
-          icon="pi pi-paperclip" 
+          icon="pi pi-paperclip"
           class="p-button-text p-button-rounded attachment-btn"
-          pTooltip="Attach File">
+          pTooltip="Attach File"
+          tooltipPosition="top">
         </button>
-        
-        <input pInputText 
+
+        <input pInputText
           formControlName="content"
           placeholder="Type your message..."
           class="message-input"
+          autocomplete="off"
+          autocorrect="on"
+          autocapitalize="sentences"
+          spellcheck="true"
           [class.ng-invalid]="messageForm.get('content')?.invalid && messageForm.get('content')?.touched">
-        
-        <button pButton 
+
+        <button pButton
           type="submit"
-          icon="pi pi-send" 
+          icon="pi pi-send"
           class="p-button-rounded send-btn"
           [disabled]="messageForm.invalid"
-          pTooltip="Send Message">
+          pTooltip="Send Message"
+          tooltipPosition="top">
         </button>
       </div>
-      
-      <div *ngIf="messageForm.get('content')?.invalid && messageForm.get('content')?.touched" 
+
+      <div *ngIf="messageForm.get('content')?.invalid && messageForm.get('content')?.touched"
            class="validation-error">
         <small *ngIf="messageForm.get('content')?.errors?.['required']">Message is required</small>
-        <small *ngIf="messageForm.get('content')?.errors?.['maxlength']">Message too long</small>
+        <small *ngIf="messageForm.get('content')?.errors?.['maxlength']">Message too long (max 1000 chars)</small>
       </div>
     </form>
   </div>

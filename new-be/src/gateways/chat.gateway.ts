@@ -8,10 +8,10 @@ import {
 import { Server, Socket } from "socket.io";
 import { Injectable } from "@nestjs/common";
 import { ChatService } from "../services/chat.service";
-import { VideoCallService } from "../services/video-call.service";
+import { LiveStreamSessionService } from "../services/live-stream-session.service";
 import { EntityManager } from "typeorm";
 import { User } from "../entities/user.entity";
-import { CallStatus } from "../enums/call-status.enum";
+import { SessionStatus } from "../enums/session-status.enum";
 
 @WebSocketGateway({
     cors: {
@@ -30,7 +30,7 @@ export class ChatGateway {
 
     constructor(
         private chatService: ChatService,
-        private videoCallService: VideoCallService,
+        private liveStreamSessionService: LiveStreamSessionService,
         private entityManager: EntityManager,
     ) {}
 
@@ -171,14 +171,14 @@ export class ChatGateway {
             }
 
             // Create the video call
-            console.log("🎥 Calling videoCallService.startCall with:", {
+            console.log("🎥 Calling liveStreamSessionService.startSession with:", {
                 initiatorId: senderId,
                 recipientId: payload.recipientId,
                 isLiveStream: false,
                 maxParticipants: 2
             });
 
-            const videoCall = await this.videoCallService.startCall({
+            const videoCall = await this.liveStreamSessionService.startSession({
                 initiatorId: senderId,
                 recipientId: payload.recipientId,
                 isLiveStream: false,
@@ -223,9 +223,9 @@ export class ChatGateway {
             }
 
             // Update call status to active
-            const videoCall = await this.videoCallService.updateCallStatus(
+            const videoCall = await this.liveStreamSessionService.updateSessionStatus(
                 payload.callId,
-                CallStatus.ACTIVE
+                SessionStatus.ACTIVE
             );
 
             // Notify the initiator
@@ -259,14 +259,14 @@ export class ChatGateway {
             }
 
             // Update call status to rejected
-            await this.videoCallService.updateCallStatus(
+            await this.liveStreamSessionService.updateSessionStatus(
                 payload.callId,
-                CallStatus.REJECTED,
+                SessionStatus.REJECTED,
                 { endReason: "Call rejected by recipient" }
             );
 
             // Get call details to notify initiator
-            const call = await this.videoCallService.getCallById(payload.callId);
+            const call = await this.liveStreamSessionService.getSessionById(payload.callId);
             const initiatorId = call.initiatorId;
 
             // Notify the initiator
@@ -296,7 +296,7 @@ export class ChatGateway {
             }
 
             // End the call
-            const videoCall = await this.videoCallService.endCall(payload.callId);
+            const videoCall = await this.liveStreamSessionService.endSession(payload.callId);
 
             // Notify the other participant
             const otherUserId = videoCall.initiatorId === userId ? videoCall.recipientId : videoCall.initiatorId;
@@ -327,7 +327,7 @@ export class ChatGateway {
             }
 
             // Get call details to find the other participant
-            const call = await this.videoCallService.getCallById(payload.callId);
+            const call = await this.liveStreamSessionService.getSessionById(payload.callId);
             const otherUserId = call.initiatorId === userId ? call.recipientId : call.initiatorId;
 
             // Forward the offer to the other participant
@@ -360,7 +360,7 @@ export class ChatGateway {
             }
 
             // Get call details to find the other participant
-            const call = await this.videoCallService.getCallById(payload.callId);
+            const call = await this.liveStreamSessionService.getSessionById(payload.callId);
             const otherUserId = call.initiatorId === userId ? call.recipientId : call.initiatorId;
 
             // Forward the answer to the other participant
@@ -393,7 +393,7 @@ export class ChatGateway {
             }
 
             // Get call details to find the other participant
-            const call = await this.videoCallService.getCallById(payload.callId);
+            const call = await this.liveStreamSessionService.getSessionById(payload.callId);
             const otherUserId = call.initiatorId === userId ? call.recipientId : call.initiatorId;
 
             // Forward the ICE candidate to the other participant

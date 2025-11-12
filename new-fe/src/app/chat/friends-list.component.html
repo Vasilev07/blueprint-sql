@@ -1,4 +1,4 @@
-<div class="friends-list">
+<div class="friends-list" [class.compact]="compact">
   <div class="friend-item" *ngFor="let friend of friends" (click)="onFriendClick(friend.id)">
     <div class="friend-avatar">
       <p-avatar 

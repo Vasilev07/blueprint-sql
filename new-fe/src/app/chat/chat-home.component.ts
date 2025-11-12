@@ -1,4 +1,10 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from "@angular/core";
+import {
+    Component,
+    OnInit,
+    OnDestroy,
+    ChangeDetectorRef,
+    HostListener,
+} from "@angular/core";
 import { Router, ActivatedRoute } from "@angular/router";
 import { Observable, Subject, takeUntil } from "rxjs";
 import { User, Message, ChatService, Conversation } from "./chat.service";
@@ -22,7 +28,8 @@ export class ChatHomeComponent implements OnInit, OnDestroy {
     private loadingAvatars: Set<string> = new Set(); // Track which avatars are currently loading
     private avatarUpdateCounter = 0; // Force change detection
     private destroy$ = new Subject<void>();
-    
+    isMobile: boolean = false;
+
     // SVG data URL for default avatar
     defaultAvatar =
         "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCBmaWxsPSIjZGRkIiB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIvPjxjaXJjbGUgY3g9IjUwIiBjeT0iMzUiIHI9IjE1IiBmaWxsPSIjOTk5Ii8+PHBhdGggZD0iTTI1IDcwIGMyMC0xMCAzMC0xMCA1MCAwIiBzdHJva2U9IiM5OTkiIHN0cm9rZS13aWR0aD0iMTAiIGZpbGw9Im5vbmUiLz48L3N2Zz4=";
@@ -43,29 +50,32 @@ export class ChatHomeComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit(): void {
+        // Check initial screen size
+        this.checkScreenSize();
+
         // Observables are already initialized in constructor
         this.chatService.friends$
             .pipe(takeUntil(this.destroy$))
             .subscribe((f) => (this.friends = f || []));
-        
+
         // Load profile pictures for conversations
         this.conversations$
             .pipe(takeUntil(this.destroy$))
             .subscribe((conversations) => {
                 this.loadConversationAvatars(conversations);
             });
-        
+
         // Check if there's a userId in query params
         const initialParams = this.route.snapshot.queryParams;
-        if (initialParams['userId']) {
-            this.selectedUserId = initialParams['userId'];
+        if (initialParams["userId"]) {
+            this.selectedUserId = initialParams["userId"];
         }
-        
+
         this.route.queryParams
             .pipe(takeUntil(this.destroy$))
-            .subscribe(params => {
-                if (params['userId']) {
-                    this.selectedUserId = params['userId'];
+            .subscribe((params) => {
+                if (params["userId"]) {
+                    this.selectedUserId = params["userId"];
                 } else {
                     this.selectedUserId = null;
                 }
@@ -75,10 +85,10 @@ export class ChatHomeComponent implements OnInit, OnDestroy {
     ngOnDestroy(): void {
         this.destroy$.next();
         this.destroy$.complete();
-        
+
         // Revoke blob URLs to free memory
         this.conversationAvatars.forEach((url) => {
-            if (url && url !== this.defaultAvatar && url.startsWith('blob:')) {
+            if (url && url !== this.defaultAvatar && url.startsWith("blob:")) {
                 URL.revokeObjectURL(url);
             }
         });
@@ -92,7 +102,10 @@ export class ChatHomeComponent implements OnInit, OnDestroy {
         if (!id || id === "undefined" || id === "null") return;
         this.selectedUserId = id;
         // Update URL to reflect the selected conversation
-        this.router.navigate(['/chat'], { queryParams: { userId: id }, replaceUrl: true });
+        this.router.navigate(["/chat"], {
+            queryParams: { userId: id },
+            replaceUrl: true,
+        });
     }
 
     startChatFromConversation(conversation: Conversation): void {
@@ -104,13 +117,16 @@ export class ChatHomeComponent implements OnInit, OnDestroy {
         if (otherUserId) {
             this.selectedUserId = otherUserId;
             // Update URL to reflect the selected conversation
-            this.router.navigate(['/chat'], { queryParams: { userId: otherUserId }, replaceUrl: true });
+            this.router.navigate(["/chat"], {
+                queryParams: { userId: otherUserId },
+                replaceUrl: true,
+            });
         }
     }
 
     closeChat(): void {
         this.selectedUserId = null;
-        this.router.navigate(['/chat'], { replaceUrl: true });
+        this.router.navigate(["/chat"], { replaceUrl: true });
     }
 
     formatTime(date: Date | undefined): string {
@@ -167,26 +183,30 @@ export class ChatHomeComponent implements OnInit, OnDestroy {
         const parts = (conversation.participants || []).map((p: any) =>
             String(p),
         );
-        
+
         const others = parts.filter((p) => p !== me);
         const otherId = others[0] || parts[0] || "";
-        
+
         if (!otherId) {
             return this.defaultAvatar;
         }
-        
+
         // If avatar is not loaded yet and not currently loading, trigger loading
-        if (!this.conversationAvatars.has(otherId) && !this.loadingAvatars.has(otherId)) {
+        if (
+            !this.conversationAvatars.has(otherId) &&
+            !this.loadingAvatars.has(otherId)
+        ) {
             this.loadProfilePictureForUser(otherId);
         }
-        
+
+        // Return stored avatar (could be blob URL, regular URL, or default)
         return this.conversationAvatars.get(otherId) || this.defaultAvatar;
     }
 
     private loadConversationAvatars(conversations: Conversation[]): void {
         const me = this.getLoggedInUserId();
         const uniqueUserIds = new Set<string>();
-        
+
         conversations.forEach((conversation) => {
             const parts = (conversation.participants || []).map((p: any) =>
                 String(p),
@@ -222,8 +242,17 @@ export class ChatHomeComponent implements OnInit, OnDestroy {
             .pipe(takeUntil(this.destroy$))
             .subscribe({
                 next: (blob: Blob) => {
-                    const objectURL = URL.createObjectURL(blob);
-                    this.conversationAvatars.set(userId, objectURL);
+                    // Only create blob URL for non-empty images
+                    if (blob.size > 0) {
+                        const objectURL = URL.createObjectURL(blob);
+                        this.conversationAvatars.set(userId, objectURL);
+                    } else {
+                        // Empty blob, use default avatar
+                        this.conversationAvatars.set(
+                            userId,
+                            this.defaultAvatar,
+                        );
+                    }
                     this.loadingAvatars.delete(userId);
                     this.avatarUpdateCounter++; // Force change detection
                     this.cdr.markForCheck();
@@ -250,5 +279,24 @@ export class ChatHomeComponent implements OnInit, OnDestroy {
         if (img) {
             img.src = this.defaultAvatar;
         }
+    }
+
+    navigateToSearch(): void {
+        this.router.navigate(["/advanced-search"]);
+    }
+
+    createGroup(): void {
+        // TODO: Implement group creation functionality
+        // For now, navigate to friends page or show a dialog
+        this.router.navigate(["/friends"]);
+    }
+
+    @HostListener("window:resize", ["$event"])
+    onResize(event: any) {
+        this.checkScreenSize();
+    }
+
+    private checkScreenSize(): void {
+        this.isMobile = window.innerWidth <= 768;
     }
 }

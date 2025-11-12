@@ -53,12 +53,113 @@
 
     <!-- Chat View Area -->
     <div class="chat-view-area">
-      <app-chat [userId]="selectedUserId || ''" [class.hidden]="!selectedUserId"></app-chat>
+      <app-chat *ngIf="selectedUserId" [userId]="selectedUserId"></app-chat>
       <div *ngIf="!selectedUserId" class="empty-chat-state">
-        <div class="empty-chat-content">
+        <!-- Desktop: Select conversation message -->
+        <div *ngIf="!isMobile" class="empty-chat-content">
           <i class="pi pi-comments"></i>
           <h2>Select a conversation</h2>
           <p>Choose a conversation from the sidebar to start messaging</p>
+        </div>
+
+        <!-- Mobile: Show chats and discover content -->
+        <div *ngIf="isMobile" class="mobile-chat-content">
+          <!-- Recent Chats -->
+          <div class="mobile-section">
+            <div class="section-header">
+              <h3>Recent Chats</h3>
+              <span class="section-count">{{ (conversations$ | async)?.length || 0 }}</span>
+            </div>
+            <div class="mobile-chat-list">
+              <div
+                class="mobile-chat-item"
+                *ngFor="let conversation of (conversations$ | async)?.slice(0, 10)"
+                (click)="startChatFromConversation(conversation)">
+                <div class="chat-avatar">
+                  <img
+                    [src]="getConversationAvatar(conversation)"
+                    [alt]="getConversationDisplayName(conversation)"
+                    (error)="onImageError($event)"
+                    class="conversation-avatar">
+                  <div class="online-indicator" [class]="conversation.isOnline ? 'online' : 'offline'"></div>
+                </div>
+
+                <div class="chat-info">
+                  <div class="chat-name-row">
+                    <span class="chat-name">{{ getConversationDisplayName(conversation) }}</span>
+                    <span *ngIf="conversation.unreadCount && conversation.unreadCount > 0" class="unread-badge">
+                      {{ conversation.unreadCount }}
+                    </span>
+                  </div>
+                  <div class="last-message">{{ conversation.lastMessage || 'No messages yet' }}</div>
+                </div>
+
+                <div class="chat-meta">
+                  <div class="chat-time">{{ formatTime(conversation.lastMessageTime) }}</div>
+                </div>
+              </div>
+
+              <div *ngIf="(conversations$ | async)?.length === 0" class="empty-chats">
+                <i class="pi pi-comments"></i>
+                <p>No conversations yet</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Discover Section -->
+          <div class="mobile-section">
+            <div class="section-header">
+              <h3>Discover</h3>
+            </div>
+
+            <div class="mobile-discover-grid">
+              <!-- Recently Registered Users -->
+              <div class="discover-card">
+                <div class="card-header">
+                  <h4>New Users</h4>
+                  <span class="badge">{{ (lastRegisteredUsers$ | async)?.length || 0 }}</span>
+                </div>
+                <div class="card-content">
+                  <app-user-list
+                    [users]="(lastRegisteredUsers$ | async)?.slice(0, 5) ?? []"
+                    (userClick)="startChat($event)"
+                    [compact]="true">
+                  </app-user-list>
+                </div>
+              </div>
+
+              <!-- Top Friends -->
+              <div class="discover-card">
+                <div class="card-header">
+                  <h4>Top Friends</h4>
+                  <span class="badge">{{ (topFriends$ | async)?.length || 0 }}</span>
+                </div>
+                <div class="card-content">
+                  <app-friends-list
+                    [friends]="(topFriends$ | async)?.slice(0, 5) ?? []"
+                    (friendClick)="startChat($event)"
+                    [compact]="true">
+                  </app-friends-list>
+                </div>
+              </div>
+
+              <!-- Quick Actions -->
+              <div class="discover-actions">
+                <button pButton
+                  icon="pi pi-search"
+                  label="Find People"
+                  class="p-button-primary action-btn"
+                  (click)="navigateToSearch()">
+                </button>
+                <button pButton
+                  icon="pi pi-users"
+                  label="Create Group"
+                  class="p-button-secondary action-btn"
+                  (click)="createGroup()">
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

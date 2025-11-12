@@ -1,8 +1,8 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { CallStatus } from "../enums/call-status.enum";
+import { SessionStatus } from "../enums/session-status.enum";
 import { UserDTO } from "./user.dto";
 
-export class VideoCallDTO {
+export class LiveStreamSessionDTO {
     @ApiProperty()
     id: string;
 
@@ -12,14 +12,14 @@ export class VideoCallDTO {
     @ApiProperty()
     initiatorId: number;
 
-    @ApiProperty({ type: () => UserDTO })
-    recipient: UserDTO;
+    @ApiProperty({ type: () => UserDTO, required: false })
+    recipient?: UserDTO | null;
 
-    @ApiProperty()
-    recipientId: number;
+    @ApiProperty({ required: false })
+    recipientId?: number | null;
 
-    @ApiProperty({ enum: CallStatus })
-    status: CallStatus;
+    @ApiProperty({ enum: SessionStatus })
+    status: SessionStatus;
 
     @ApiProperty()
     createdAt: Date;
@@ -42,7 +42,9 @@ export class VideoCallDTO {
     @ApiProperty({ default: false })
     isLiveStream: boolean;
 
+    @ApiProperty({ required: false })
+    roomName?: string | null;
+
     @ApiProperty({ default: 2 })
     maxParticipants: number;
 }
-

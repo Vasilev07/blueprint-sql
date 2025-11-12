@@ -1,18 +1,18 @@
 import { BaseMapper } from "@mappers/base.mapper";
-import { VideoCall } from "@entities/video-call.entity";
-import { VideoCallDTO } from "../../models/video-call.dto";
+import { LiveStreamSession } from "@entities/live-stream-session.entity";
+import { LiveStreamSessionDTO } from "../../models/live-stream-session.dto";
 import { Injectable, Inject } from "@nestjs/common";
 import { MapperService } from "@mappers/mapper.service";
 
 @Injectable()
-export class VideoCallMapper implements BaseMapper<VideoCall, VideoCallDTO> {
+export class LiveStreamSessionMapper implements BaseMapper<LiveStreamSession, LiveStreamSessionDTO> {
     constructor(
         @Inject(MapperService)
         private readonly mapperService: MapperService,
     ) {}
 
-    entityToDTO(entity: VideoCall): VideoCallDTO {
-        const dto = new VideoCallDTO();
+    entityToDTO(entity: LiveStreamSession): LiveStreamSessionDTO {
+        const dto = new LiveStreamSessionDTO();
         dto.id = entity.id;
         dto.initiatorId = entity.initiatorId;
         dto.recipientId = entity.recipientId;
@@ -24,6 +24,7 @@ export class VideoCallMapper implements BaseMapper<VideoCall, VideoCallDTO> {
         dto.durationSeconds = entity.durationSeconds;
         dto.endReason = entity.endReason;
         dto.isLiveStream = entity.isLiveStream;
+        dto.roomName = entity.roomName;
         dto.maxParticipants = entity.maxParticipants;
 
         // Map user entities to UserDTOs using the User mapper
@@ -44,8 +45,7 @@ export class VideoCallMapper implements BaseMapper<VideoCall, VideoCallDTO> {
         return dto;
     }
 
-    dtoToEntity(dto: VideoCallDTO): VideoCall {
+    dtoToEntity(dto: LiveStreamSessionDTO): LiveStreamSession {
         throw new Error("Method not implemented.");
     }
 }
-

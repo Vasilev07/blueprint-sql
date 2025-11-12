@@ -31,10 +31,17 @@ export class ChatComponent implements OnInit, OnDestroy, OnChanges {
         "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCBmaWxsPSIjZGRkIiB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIvPjxjaXJjbGUgY3g9IjUwIiBjeT0iMzUiIHI9IjE1IiBmaWxsPSIjOTk5Ii8+PHBhdGggZD0iTTI1IDcwIGMyMC0xMCAzMC0xMCA1MCAwIiBzdHJva2U9IiM5OTkiIHN0cm9rZS13aWR0aD0iMTAiIGZpbGw9Im5vbmUiLz48L3N2Zz4=";
     headerProfilePictureUrl: string = this.defaultAvatar;
     senderProfilePictures: Map<string, string> = new Map();
-    
+
     // Gift properties
     showSendGiftDialog = false;
-    recipientUserForGift: { id: number; name?: string; fullName?: string } | null = null;
+    recipientUserForGift: {
+        id: number;
+        name?: string;
+        fullName?: string;
+    } | null = null;
+
+    // Mobile detection
+    isMobile = false;
 
     // Header computed properties
     get otherUserName(): string {
@@ -71,6 +78,10 @@ export class ChatComponent implements OnInit, OnDestroy, OnChanges {
     }
 
     ngOnInit(): void {
+        // Detect if we're on mobile
+        this.isMobile = window.innerWidth <= 768;
+        this.setupMobileOptimizations();
+
         // Cache users for display names/avatars
         this.chatService.users$
             .pipe(takeUntil(this.destroy$))
@@ -82,7 +93,7 @@ export class ChatComponent implements OnInit, OnDestroy, OnChanges {
             .subscribe((friends) => {
                 this.friends = friends || [];
             });
-        
+
         // Use Input userId if provided (when embedded), otherwise get from route params
         const userIdToUse = this.userId || this.route.snapshot.params["userId"];
         if (userIdToUse && userIdToUse !== "" && userIdToUse !== this.currentUserId) {
@@ -313,7 +324,7 @@ export class ChatComponent implements OnInit, OnDestroy, OnChanges {
             this.headerProfilePictureUrl = this.defaultAvatar;
             return;
         }
-        
+
         // Set default avatar initially while loading
         this.headerProfilePictureUrl = this.defaultAvatar;
 
@@ -364,9 +375,49 @@ export class ChatComponent implements OnInit, OnDestroy, OnChanges {
         setTimeout(() => {
             const chatContainer = document.querySelector(".chat-messages");
             if (chatContainer) {
-                chatContainer.scrollTop = chatContainer.scrollHeight;
+                // Smooth scroll on desktop, instant on mobile for better performance
+                if (this.isMobile) {
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                } else {
+                    chatContainer.scrollTo({
+                        top: chatContainer.scrollHeight,
+                        behavior: 'smooth'
+                    });
+                }
             }
-        }, 100);
+        }, this.isMobile ? 50 : 100);
+    }
+
+    private setupMobileOptimizations(): void {
+        if (!this.isMobile) return;
+
+        // Handle viewport height changes (iOS Safari, etc.)
+        const setVH = () => {
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        };
+
+        setVH();
+        window.addEventListener('resize', setVH);
+        window.addEventListener('orientationchange', () => {
+            setTimeout(setVH, 100);
+        });
+
+        // Prevent zoom on double tap
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', (event) => {
+            const now = Date.now();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+
+        // Cleanup on destroy
+        this.destroy$.subscribe(() => {
+            window.removeEventListener('resize', setVH);
+            window.removeEventListener('orientationchange', setVH);
+        });
     }
 
     goBack(): void {
@@ -486,7 +537,7 @@ export class ChatComponent implements OnInit, OnDestroy, OnChanges {
             });
             return;
         }
-        
+
         this.recipientUserForGift = {
             id: Number(this.currentUserId),
             name: this.currentUser?.name,
@@ -513,7 +564,7 @@ export class ChatComponent implements OnInit, OnDestroy, OnChanges {
         const content = message.content || '';
         // Format: "🎁 Gift Sent: {emoji} ({amount} tokens) - "{message}""
         const giftMatch = content.match(/🎁 Gift Sent:\s*([^\s]+)\s*\(([^)]+)\s*tokens\)(?:\s*-\s*"([^"]*)")?/);
-        
+
         if (giftMatch) {
             return {
                 emoji: giftMatch[1] || '🎁',

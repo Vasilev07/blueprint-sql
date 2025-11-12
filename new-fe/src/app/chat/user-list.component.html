@@ -1,4 +1,4 @@
-<div class="user-list">
+<div class="user-list" [class.compact]="compact">
   <div class="user-item" *ngFor="let user of users" (click)="onUserClick(user.id)">
     <div class="user-avatar">
       <p-avatar 

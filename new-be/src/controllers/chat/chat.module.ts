@@ -6,7 +6,7 @@ import { ChatMessage } from "../../entities/chat-message.entity";
 import { ChatService } from "../../services/chat.service";
 import { ChatGateway } from "../../gateways/chat.gateway";
 import { ChatController } from "./chat.controller";
-import { VideoCallModule } from "../video-call/video-call.module";
+import { LiveStreamSessionModule } from "../live-stream-session/live-stream-session.module";
 
 @Module({
     imports: [
@@ -15,7 +15,7 @@ import { VideoCallModule } from "../video-call/video-call.module";
             ChatParticipant,
             ChatMessage,
         ]),
-        VideoCallModule,
+        LiveStreamSessionModule,
     ],
     providers: [ChatService, ChatGateway],
     controllers: [ChatController],

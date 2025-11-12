@@ -8,10 +8,10 @@ import {
     JoinColumn,
 } from "typeorm";
 import { User } from "./user.entity";
-import { CallStatus } from "../enums/call-status.enum";
+import { SessionStatus } from "../enums/session-status.enum";
 
-@Entity("video_call")
-export class VideoCall {
+@Entity("live_stream_session")
+export class LiveStreamSession {
     @PrimaryGeneratedColumn("uuid")
     id: string;
 
@@ -22,19 +22,19 @@ export class VideoCall {
     @Column({ name: "initiator_id" })
     initiatorId: number;
 
-    @ManyToOne(() => User, { eager: true })
+    @ManyToOne(() => User, { eager: true, nullable: true })
     @JoinColumn({ name: "recipient_id" })
-    recipient: User;
+    recipient: User | null;
 
-    @Column({ name: "recipient_id" })
-    recipientId: number;
+    @Column({ name: "recipient_id", nullable: true })
+    recipientId: number | null;
 
     @Column({
         type: "enum",
-        enum: CallStatus,
-        default: CallStatus.PENDING,
+        enum: SessionStatus,
+        default: SessionStatus.PENDING,
     })
-    status: CallStatus;
+    status: SessionStatus;
 
     @CreateDateColumn({ name: "created_at" })
     createdAt: Date;
@@ -54,11 +54,13 @@ export class VideoCall {
     @Column({ name: "end_reason", nullable: true })
     endReason: string | null;
 
-    // For future extensibility to one-to-many live streams
+    // For one-to-many live streams (streaming rooms)
     @Column({ name: "is_live_stream", default: false })
     isLiveStream: boolean;
+
+    @Column({ name: "room_name", nullable: true })
+    roomName: string | null;
 
     @Column({ name: "max_participants", default: 2 })
     maxParticipants: number;
 }
-
