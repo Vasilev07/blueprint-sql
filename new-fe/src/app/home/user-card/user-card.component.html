@@ -1,19 +1,16 @@
 <div class="user-card" (click)="onCardClick()">
-  <!-- Profile Image with Badges -->
   <div class="card-image">
-    <img 
-      [src]="getProfilePicture()" 
+    <img
+      [src]="getProfilePicture()"
       [alt]="user.fullName"
       (error)="onImageError($event)"
       class="profile-image">
-    
-    <!-- Online Status -->
+
     <span *ngIf="user.isOnline" class="online-indicator">
       <i class="pi pi-circle-fill"></i>
       Online now
     </span>
-    
-    <!-- Badges -->
+
     <div class="card-badges">
       <span *ngIf="user.isFriend" class="badge friend-badge" pTooltip="Friend">
         <i class="pi pi-check-circle"></i>
