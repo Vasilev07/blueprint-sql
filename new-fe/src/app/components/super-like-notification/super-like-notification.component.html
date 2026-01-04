@@ -1,0 +1,66 @@
+<!-- Super Like Notification Animation Overlay - Received -->
+<div *ngIf="showSuperLikeAnimation && notificationType === 'received' && receivedSuperLike" class="super-like-animation-overlay" (click)="closeAnimation()">
+    <div class="super-like-animation-content" (click)="$event.stopPropagation()">
+        <!-- Main Super Like Display -->
+        <div class="main-super-like-display">
+            <div class="super-like-emoji-large">💖</div>
+            <h2 class="super-like-title">You Got a Super Like!</h2>
+            <p class="super-like-sender">From: {{ receivedSuperLike.senderName }}</p>
+            <p class="super-like-amount">{{ receivedSuperLike.amount }} tokens</p>
+            <p class="super-like-message">Someone thinks you're special! 💫</p>
+        </div>
+        
+        <!-- Floating Hearts -->
+        <div class="floating-hearts">
+            <div class="floating-heart" *ngFor="let heart of [1,2,3,4,5,6,7,8]" 
+                 [style.animation-delay]="(heart * 0.2) + 's'">
+                💖
+            </div>
+        </div>
+        
+        <!-- Fireworks -->
+        <div class="fireworks">
+            <div class="firework" *ngFor="let firework of [1,2,3,4,5,6]"
+                 [style.left]="(firework * 15) + '%'"
+                 [style.animation-delay]="(firework * 0.3) + 's'">
+                <div class="firework-particle" *ngFor="let particle of [1,2,3,4,5,6,7,8]"
+                     [style.transform]="'rotate(' + (particle * 45) + 'deg)'">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Super Like Notification Animation Overlay - Sent -->
+<div *ngIf="showSuperLikeAnimation && notificationType === 'sent' && sentSuperLike" class="super-like-animation-overlay" (click)="closeAnimation()">
+    <div class="super-like-animation-content" (click)="$event.stopPropagation()">
+        <!-- Main Super Like Display -->
+        <div class="main-super-like-display">
+            <div class="super-like-emoji-large">💖</div>
+            <h2 class="super-like-title">Super Like Sent!</h2>
+            <p class="super-like-sender">To: {{ sentSuperLike.receiverName }}</p>
+            <p class="super-like-amount">{{ sentSuperLike.cost }} tokens</p>
+            <p class="super-like-message">You made someone's day! ✨</p>
+        </div>
+        
+        <!-- Floating Hearts -->
+        <div class="floating-hearts">
+            <div class="floating-heart" *ngFor="let heart of [1,2,3,4,5,6,7,8]" 
+                 [style.animation-delay]="(heart * 0.2) + 's'">
+                💖
+            </div>
+        </div>
+        
+        <!-- Fireworks -->
+        <div class="fireworks">
+            <div class="firework" *ngFor="let firework of [1,2,3,4,5,6]"
+                 [style.left]="(firework * 15) + '%'"
+                 [style.animation-delay]="(firework * 0.3) + 's'">
+                <div class="firework-particle" *ngFor="let particle of [1,2,3,4,5,6,7,8]"
+                     [style.transform]="'rotate(' + (particle * 45) + 'deg)'">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

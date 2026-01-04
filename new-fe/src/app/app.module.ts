@@ -15,6 +15,7 @@ import { Configuration } from "src/typescript-api-client/src";
 import { ApiModule } from "src/typescript-api-client/src/api.module";
 import { environment } from "src/environments/environment";
 import { GiftNotificationComponent } from "./components/gift-notification/gift-notification.component";
+import { SuperLikeNotificationComponent } from "./components/super-like-notification/super-like-notification.component";
 import { SharedComponentsModule } from "./shared/components.module";
 import { MessageService } from "primeng/api";
 
@@ -23,7 +24,7 @@ export function tokenGetter() {
 }
 
 @NgModule({
-    declarations: [AppComponent, GiftNotificationComponent],
+    declarations: [AppComponent, GiftNotificationComponent, SuperLikeNotificationComponent],
     imports: [
         BrowserModule,
         HttpClientModule,

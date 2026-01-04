@@ -1,10 +1,7 @@
 import { Injectable } from "@angular/core";
 import { Socket, io } from "socket.io-client";
 import { Observable } from "rxjs";
-import {
-    MessageDTO,
-    ChatMessageDTO,
-} from "../../typescript-api-client/src/model/models";
+import { ChatMessageDTO } from "../../typescript-api-client/src/model/models";
 import { AuthService } from "./auth.service";
 import { environment } from "../../environments/environment";
 
@@ -44,6 +41,26 @@ interface GiftReceivedNotification {
 interface BalanceUpdateNotification {
     userId: number;
     balance: string;
+}
+
+interface SuperLikeReceivedNotification {
+    superLikeId: number;
+    senderId: number;
+    senderName: string;
+    senderEmail: string;
+    receiverId: number;
+    amount: string; // 50% of super like cost (100 tokens)
+    createdAt: string;
+}
+
+interface SuperLikeSentNotification {
+    superLikeId: number;
+    senderId: number;
+    receiverId: number;
+    receiverName: string;
+    receiverEmail: string;
+    cost: string; // Full cost (200 tokens)
+    createdAt: string;
 }
 
 @Injectable({
@@ -237,6 +254,31 @@ export class WebsocketService {
             };
             this.socket.on("wallet:balance:update", handler);
             return () => this.socket.off("wallet:balance:update", handler);
+        });
+    }
+
+    onSuperLikeReceived(): Observable<SuperLikeReceivedNotification> {
+        return new Observable<SuperLikeReceivedNotification>((observer) => {
+            const handler = (payload: SuperLikeReceivedNotification) => {
+                observer.next(payload);
+            };
+            this.socket.on("super-like:received", handler);
+            return () => this.socket.off("super-like:received", handler);
+        });
+    }
+
+    onSuperLikeSent(): Observable<SuperLikeSentNotification> {
+        return new Observable<SuperLikeSentNotification>((observer) => {
+            const handler = (payload: SuperLikeSentNotification) => {
+                console.log('🔔 WebSocket: Received super-like:sent event:', payload);
+                observer.next(payload);
+            };
+            console.log('👂 WebSocket: Setting up listener for super-like:sent');
+            this.socket.on("super-like:sent", handler);
+            return () => {
+                console.log('👋 WebSocket: Removing listener for super-like:sent');
+                this.socket.off("super-like:sent", handler);
+            };
         });
     }
 

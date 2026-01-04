@@ -14,6 +14,7 @@ import { WalletService } from "./wallet.service";
 import { SendSuperLikeRequestDTO, SendSuperLikeResponseDTO } from "../models/super-like.dto";
 import { SUPER_LIKE_COST } from "../constants";
 import { WalletGateway } from "../gateways/wallet.gateway";
+import { SuperLikeGateway } from "../gateways/super-like.gateway";
 
 @Injectable()
 export class SuperLikeService {
@@ -25,6 +26,7 @@ export class SuperLikeService {
         private readonly entityManager: EntityManager,
         private readonly walletService: WalletService,
         private readonly walletGateway: WalletGateway,
+        private readonly superLikeGateway: SuperLikeGateway,
     ) { }
 
     /**
@@ -80,11 +82,31 @@ export class SuperLikeService {
                 throw new BadRequestException("Insufficient balance. Super like costs 200 tokens");
             }
 
+            // Get receiver wallet (ensure it exists)
+            const receiverWallet = await this.walletService.getOrCreateWallet(receiverId);
+            
+            // Lock receiver wallet
+            const lockedReceiverWallet = await queryRunner.manager
+                .createQueryBuilder(Wallet, "wallet")
+                .where('"wallet"."id" = :walletId', { walletId: receiverWallet.id })
+                .setLock("pessimistic_write")
+                .getOne();
+
+            if (!lockedReceiverWallet) {
+                throw new NotFoundException("Receiver wallet not found");
+            }
+
+            // Calculate 50% of super like cost (100 tokens)
+            const receiverAmount = (this.parseDecimal(SUPER_LIKE_COST) / 2).toFixed(8);
+
             // Deduct 200 tokens from sender
             lockedSenderWallet.balance = this.subtractDecimals(lockedSenderWallet.balance, SUPER_LIKE_COST);
+            
+            // Add 100 tokens (50%) to receiver
+            lockedReceiverWallet.balance = this.addDecimals(lockedReceiverWallet.balance, receiverAmount);
 
-            // Save wallet
-            await queryRunner.manager.save(lockedSenderWallet);
+            // Save wallets
+            await queryRunner.manager.save([lockedSenderWallet, lockedReceiverWallet]);
 
             // Get sender entity
             const sender = await queryRunner.manager.findOne(User, {
@@ -96,11 +118,12 @@ export class SuperLikeService {
             }
 
             // Create transaction record
+            // Note: Sender pays 200 tokens, receiver gets 100 tokens (50%), platform fee is 100 tokens (50%)
             const transaction = new Transaction();
             transaction.fromWallet = lockedSenderWallet;
-            transaction.toWallet = null; // No recipient wallet - tokens are spent
-            transaction.amount = SUPER_LIKE_COST;
-            transaction.feeAmount = "0";
+            transaction.toWallet = lockedReceiverWallet; // Receiver gets 50% of tokens (100)
+            transaction.amount = SUPER_LIKE_COST; // Full cost (200)
+            transaction.feeAmount = receiverAmount; // Platform fee (100 tokens - the remaining 50% that doesn't go to receiver)
             transaction.type = TransactionType.SuperLike;
 
             const savedTransaction = await queryRunner.manager.save(transaction);
@@ -117,11 +140,52 @@ export class SuperLikeService {
             // Commit transaction
             await queryRunner.commitTransaction();
 
-            // Emit balance update via WebSocket
+            // Emit balance updates via WebSocket
             try {
                 this.walletGateway.notifyBalanceUpdate(senderId, lockedSenderWallet.balance);
+                this.walletGateway.notifyBalanceUpdate(receiverId, lockedReceiverWallet.balance);
             } catch (error) {
                 console.error("Failed to emit balance update:", error);
+            }
+
+            // Get receiver name for sender notification
+            const receiverName = receiver.firstname
+                ? `${receiver.firstname} ${receiver.lastname || ""}`.trim()
+                : receiver.email;
+
+            // Get sender name for receiver notification
+            const senderName = sender.firstname
+                ? `${sender.firstname} ${sender.lastname || ""}`.trim()
+                : sender.email;
+
+            // Emit super like notification to receiver
+            try {
+                this.superLikeGateway.notifySuperLikeReceived(receiverId, {
+                    superLikeId: savedSuperLike.id,
+                    senderId: senderId,
+                    senderName: senderName,
+                    senderEmail: sender.email,
+                    receiverId: receiverId,
+                    amount: receiverAmount, // 50% of super like cost (100 tokens)
+                    createdAt: savedSuperLike.createdAt,
+                });
+            } catch (error) {
+                console.error("Failed to emit super like notification to receiver:", error);
+            }
+
+            // Emit super like sent notification to sender
+            try {
+                this.superLikeGateway.notifySuperLikeSent(senderId, {
+                    superLikeId: savedSuperLike.id,
+                    senderId: senderId,
+                    receiverId: receiverId,
+                    receiverName: receiverName,
+                    receiverEmail: receiver.email,
+                    cost: SUPER_LIKE_COST, // Full cost (200 tokens)
+                    createdAt: savedSuperLike.createdAt,
+                });
+            } catch (error) {
+                console.error("Failed to emit super like sent notification to sender:", error);
             }
 
             return {
@@ -177,6 +241,15 @@ export class SuperLikeService {
             throw new BadRequestException(`Invalid decimal value: ${value}`);
         }
         return parsed;
+    }
+
+    /**
+     * Add two decimal strings and return as decimal string
+     */
+    private addDecimals(a: string, b: string): string {
+        const numA = this.parseDecimal(a);
+        const numB = this.parseDecimal(b);
+        return (numA + numB).toFixed(8);
     }
 
     /**
