@@ -4,6 +4,7 @@ import { Gender } from "../enums/gender.enum";
 import { UserProfile } from "./user-profile.entity";
 import { Wallet } from "./wallet.entity";
 import { Gift } from "./gift.entity";
+import { SuperLike } from "./super-like.entity";
 
 @Entity()
 export class User {
@@ -54,4 +55,10 @@ export class User {
 
     @OneToMany(() => Gift, (gift) => gift.receiver)
     receivedGifts: Gift[];
+
+    @OneToMany(() => SuperLike, (superLike) => superLike.sender)
+    sentSuperLikes: SuperLike[];
+
+    @OneToMany(() => SuperLike, (superLike) => superLike.receiver)
+    receivedSuperLikes: SuperLike[];
 }

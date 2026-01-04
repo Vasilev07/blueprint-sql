@@ -150,9 +150,21 @@
   gap: 0.5rem;
   padding: 0 1rem 1rem;
   
-  .like-btn {
+  .super-like-btn {
     flex-shrink: 0;
     align-self: flex-start;
+    color: #ef4444 !important;
+    background: rgba(239, 68, 68, 0.1);
+    transition: all 0.2s ease;
+    
+    &:hover {
+      background: rgba(239, 68, 68, 0.2);
+      transform: scale(1.1);
+    }
+
+    i {
+      font-size: 1.5rem;
+    }
   }
   
   .chat-btn {

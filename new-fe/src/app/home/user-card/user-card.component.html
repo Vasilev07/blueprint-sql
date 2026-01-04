@@ -1,10 +1,6 @@
 <div class="user-card" (click)="onCardClick()">
   <div class="card-image">
-    <img
-      [src]="getProfilePicture()"
-      [alt]="user.fullName"
-      (error)="onImageError($event)"
-      class="profile-image">
+    <img [src]="getProfilePicture()" [alt]="user.fullName" (error)="onImageError($event)" class="profile-image">
 
     <span *ngIf="user.isOnline" class="online-indicator">
       <i class="pi pi-circle-fill"></i>
@@ -28,7 +24,7 @@
         {{ user.fullName }}
         <span *ngIf="user.age" class="user-age">, {{ user.age }}</span>
       </h3>
-      
+
       <div class="user-location" *ngIf="user.location || user.city || user.distance">
         <i class="pi pi-map-marker"></i>
         <span>{{ user.location || user.city || user.distance }}</span>
@@ -52,33 +48,16 @@
 
   <!-- Actions -->
   <div class="card-actions">
-    <button 
-      pButton 
-      type="button" 
-      icon="pi pi-heart" 
-      class="p-button-rounded p-button-text p-button-secondary like-btn"
-      pTooltip="Like"
-      (click)="$event.stopPropagation()">
+    <button pButton type="button" icon="pi pi-heart-fill" class="p-button-rounded p-button-text super-like-btn"
+      pTooltip="Super Like" (click)="onSuperLikeClick($event)">
     </button>
-    
-    <button 
-      pButton 
-      type="button" 
-      label="Chat" 
-      icon="pi pi-comment" 
-      class="p-button-rounded chat-btn"
+
+    <button pButton type="button" label="Chat" icon="pi pi-comment" class="p-button-rounded chat-btn"
       (click)="onChatClick($event)">
     </button>
-    
-    <button 
-      pButton 
-      type="button" 
-      label="Send Gift" 
-      icon="pi pi-gift" 
-      class="p-button-rounded gift-btn"
+
+    <button pButton type="button" label="Send Gift" icon="pi pi-gift" class="p-button-rounded gift-btn"
       (click)="onGiftClick($event)">
     </button>
   </div>
 </div>
-
-
