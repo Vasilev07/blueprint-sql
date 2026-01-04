@@ -5,12 +5,13 @@ import { Transaction } from "src/entities/transaction.entity";
 import { WalletController } from "./wallet.controller";
 import { WalletService } from "src/services/wallet.service";
 import { PaymentProviderService } from "src/services/payment-provider.service";
+import { WalletGateway } from "src/gateways/wallet.gateway";
 
 @Module({
     imports: [TypeOrmModule.forFeature([Wallet, Transaction])],
-    exports: [TypeOrmModule, WalletService],
+    exports: [TypeOrmModule, WalletService, WalletGateway],
     controllers: [WalletController],
-    providers: [WalletService, PaymentProviderService],
+    providers: [WalletService, PaymentProviderService, WalletGateway],
 })
 export class WalletModule {}
 

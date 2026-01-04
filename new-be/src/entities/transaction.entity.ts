@@ -5,6 +5,7 @@ export enum TransactionType {
     Deposit = "DEPOSIT",
     Withdrawal = "WITHDRAWAL",
     Transfer = "TRANSFER",
+    SuperLike = "SUPER_LIKE",
 }
 
 @Entity()

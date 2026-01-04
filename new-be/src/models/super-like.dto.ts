@@ -5,3 +5,14 @@ export class SendSuperLikeRequestDTO {
     receiverId: number;
 }
 
+export class SendSuperLikeResponseDTO {
+    @ApiProperty({ description: "Super like ID" })
+    superLikeId: number;
+
+    @ApiProperty({ description: "Transaction ID" })
+    transactionId: number;
+
+    @ApiProperty({ description: "Sender's remaining balance after sending super like" })
+    senderBalance: string;
+}
+

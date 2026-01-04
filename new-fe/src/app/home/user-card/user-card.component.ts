@@ -6,6 +6,7 @@ import { Subject, takeUntil } from "rxjs";
 import { UserService, SuperLikeService } from "src/typescript-api-client/src/api/api";
 import { MessageService } from "primeng/api";
 import { SendSuperLikeRequestDTO } from "src/typescript-api-client/src";
+import { WalletService } from "../../services/wallet.service";
 
 @Component({
     selector: "app-user-card",
@@ -23,6 +24,8 @@ export class UserCardComponent implements OnInit, OnDestroy {
         "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCBmaWxsPSIjZGRkIiB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIvPjxjaXJjbGUgY3g9IjUwIiBjeT0iMzUiIHI9IjE1IiBmaWxsPSIjOTk5Ii8+PHBhdGggZD0iTTI1IDcwIGMyMC0xMCAzMC0xMCA1MCAwIiBzdHJva2U9IiM5OTkiIHN0cm9rZS13aWR0aD0iMTAiIGZpbGw9Im5vbmUiLz48L3N2Zz4=";
 
     profilePictureBlobUrl: SafeUrl | string = this.defaultAvatar;
+    canAffordSuperLike: boolean = false;
+    superLikeCost: number = 200;
     private destroy$ = new Subject<void>();
 
     constructor(
@@ -30,7 +33,8 @@ export class UserCardComponent implements OnInit, OnDestroy {
         private userService: UserService,
         private superLikeService: SuperLikeService,
         private sanitizer: DomSanitizer,
-        private messageService: MessageService
+        private messageService: MessageService,
+        private walletService: WalletService
     ) { }
 
     ngOnInit(): void {
@@ -38,6 +42,23 @@ export class UserCardComponent implements OnInit, OnDestroy {
         if (this.user.id) {
             this.loadProfilePicture();
         }
+        // Subscribe to real-time balance updates via WebSocket
+        this.subscribeToBalanceUpdates();
+    }
+
+    private subscribeToBalanceUpdates(): void {
+        // Get initial affordability state
+        this.canAffordSuperLike = this.walletService.canAffordSuperLike();
+        this.superLikeCost = this.walletService.getSuperLikeCost();
+
+        // Subscribe to real-time affordability updates via WebSocket
+        this.walletService.canAffordSuperLike$
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+                next: (canAfford) => {
+                    this.canAffordSuperLike = canAfford;
+                }
+            });
     }
 
     ngOnDestroy(): void {
@@ -87,23 +108,38 @@ export class UserCardComponent implements OnInit, OnDestroy {
 
     onSuperLikeClick(event: Event): void {
         event.stopPropagation();
-        console.log('this.user.id', this.user.id);
 
         if (!this.user.id) return;
 
-        // Type assertion needed until backend regenerates TypeScript client with DTO support
-        // Once regenerated, this will be: this.superLikeService.sendSuperLike({ receiverId: this.user.id })
-        console.log('this.user.id', this.user.id);
-        
+        // Frontend validation (first check) - using WalletService
+        if (!this.walletService.canAffordSuperLike()) {
+            this.messageService.add({ 
+                severity: 'warn', 
+                summary: 'Insufficient Balance', 
+                detail: `Super Like costs ${this.superLikeCost} tokens. Please add more tokens to your account.` 
+            });
+            return;
+        }
+
+        // Backend will validate again (second check - defensive programming)
         this.superLikeService.sendSuperLike({ receiverId: this.user.id })
             .pipe(takeUntil(this.destroy$))
             .subscribe({
-                next: () => {
-                    this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Super Like sent!' });
+                next: (response: any) => {
+                    this.messageService.add({ 
+                        severity: 'success', 
+                        summary: 'Success', 
+                        detail: 'Super Like sent!' 
+                    });
+                    // Balance will be updated automatically via WebSocket from backend
                 },
                 error: (err: any) => {
                     const errorMsg = err.error?.message || 'Failed to send Super Like';
-                    this.messageService.add({ severity: 'error', summary: 'Error', detail: errorMsg });
+                    this.messageService.add({ 
+                        severity: 'error', 
+                        summary: 'Error', 
+                        detail: errorMsg 
+                    });
                     console.error(err);
                 }
             });
@@ -125,5 +161,12 @@ export class UserCardComponent implements OnInit, OnDestroy {
 
     onImageError(event: Event): void {
         this.profilePictureBlobUrl = this.defaultAvatar;
+    }
+
+    getSuperLikeTooltip(): string {
+        if (this.canAffordSuperLike) {
+            return `Super Like (${this.superLikeCost} tokens)`;
+        }
+        return `Insufficient balance. Super Like costs ${this.superLikeCost} tokens`;
     }
 }

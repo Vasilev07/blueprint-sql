@@ -4,11 +4,16 @@ import { SuperLikeController } from "./super-like.controller";
 import { SuperLikeService } from "../../services/super-like.service";
 import { SuperLike } from "../../entities/super-like.entity";
 import { User } from "../../entities/user.entity";
+import { Wallet } from "../../entities/wallet.entity";
+import { Transaction } from "../../entities/transaction.entity";
+import { WalletService } from "../../services/wallet.service";
+import { PaymentProviderService } from "../../services/payment-provider.service";
+import { WalletGateway } from "../../gateways/wallet.gateway";
 
 @Module({
-    imports: [TypeOrmModule.forFeature([SuperLike, User])],
+    imports: [TypeOrmModule.forFeature([SuperLike, User, Wallet, Transaction])],
     controllers: [SuperLikeController],
-    providers: [SuperLikeService],
+    providers: [SuperLikeService, WalletService, PaymentProviderService, WalletGateway],
     exports: [SuperLikeService],
 })
 export class SuperLikeModule { }

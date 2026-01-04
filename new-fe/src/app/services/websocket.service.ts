@@ -41,6 +41,11 @@ interface GiftReceivedNotification {
     createdAt: string;
 }
 
+interface BalanceUpdateNotification {
+    userId: number;
+    balance: string;
+}
+
 @Injectable({
     providedIn: "root",
 })
@@ -222,6 +227,16 @@ export class WebsocketService {
             };
             this.socket.on("gift:received", handler);
             return () => this.socket.off("gift:received", handler);
+        });
+    }
+
+    onBalanceUpdate(): Observable<BalanceUpdateNotification> {
+        return new Observable<BalanceUpdateNotification>((observer) => {
+            const handler = (payload: BalanceUpdateNotification) => {
+                observer.next(payload);
+            };
+            this.socket.on("wallet:balance:update", handler);
+            return () => this.socket.off("wallet:balance:update", handler);
         });
     }
 

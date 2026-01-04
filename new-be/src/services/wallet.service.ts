@@ -12,12 +12,14 @@ import { TransferRequestDTO, TransferResponseDTO } from "../models/transfer.dto"
 import { DepositRequestDTO, DepositResponseDTO } from "../models/deposit.dto";
 import { PaymentProviderService } from "./payment-provider.service";
 import { AdminDepositRequestDTO, AdminTransferRequestDTO } from "../models/admin-wallet.dto";
+import { WalletGateway } from "../gateways/wallet.gateway";
 
 @Injectable()
 export class WalletService {
     constructor(
         private readonly entityManager: EntityManager,
         private readonly paymentProvider: PaymentProviderService,
+        private readonly walletGateway: WalletGateway,
     ) {}
 
     /**
@@ -177,6 +179,14 @@ export class WalletService {
             // Commit transaction
             await queryRunner.commitTransaction();
 
+            // Emit balance updates via WebSocket
+            try {
+                this.walletGateway.notifyBalanceUpdate(fromUserId, fromWallet.balance);
+                this.walletGateway.notifyBalanceUpdate(toUserId, toWallet.balance);
+            } catch (error) {
+                console.error("Failed to emit balance update:", error);
+            }
+
             return {
                 transactionId: savedTransaction.id,
                 fromBalance: fromWallet.balance,
@@ -282,6 +292,13 @@ export class WalletService {
 
             // Commit transaction
             await queryRunner.commitTransaction();
+
+            // Emit balance update via WebSocket
+            try {
+                this.walletGateway.notifyBalanceUpdate(userId, wallet.balance);
+            } catch (error) {
+                console.error("Failed to emit balance update:", error);
+            }
 
             return {
                 paymentTransactionId: paymentResult.transactionId,

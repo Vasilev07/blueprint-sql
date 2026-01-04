@@ -14,6 +14,7 @@ import { WalletService } from "./wallet.service";
 import { GiftGateway } from "../gateways/gift.gateway";
 import { ChatService } from "./chat.service";
 import { ChatGateway } from "../gateways/chat.gateway";
+import { WalletGateway } from "../gateways/wallet.gateway";
 
 @Injectable()
 export class GiftService {
@@ -23,6 +24,7 @@ export class GiftService {
         private readonly giftGateway: GiftGateway,
         private readonly chatService: ChatService,
         private readonly chatGateway: ChatGateway,
+        private readonly walletGateway: WalletGateway,
     ) {}
 
     /**
@@ -191,6 +193,14 @@ export class GiftService {
             } catch (error) {
                 // Log error but don't fail the gift send
                 console.error("Failed to emit gift notification:", error);
+            }
+
+            // Emit balance updates via WebSocket
+            try {
+                this.walletGateway.notifyBalanceUpdate(senderId, lockedSenderWallet.balance);
+                this.walletGateway.notifyBalanceUpdate(receiverId, lockedReceiverWallet.balance);
+            } catch (error) {
+                console.error("Failed to emit balance update:", error);
             }
 
             return {

@@ -49,7 +49,9 @@
   <!-- Actions -->
   <div class="card-actions">
     <button pButton type="button" icon="pi pi-heart-fill" class="p-button-rounded p-button-text super-like-btn"
-      pTooltip="Super Like" (click)="onSuperLikeClick($event)">
+      [disabled]="!canAffordSuperLike"
+      [pTooltip]="getSuperLikeTooltip()"
+      (click)="onSuperLikeClick($event)">
     </button>
 
     <button pButton type="button" label="Chat" icon="pi pi-comment" class="p-button-rounded chat-btn"
