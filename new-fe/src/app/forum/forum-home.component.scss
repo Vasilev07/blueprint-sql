@@ -1,0 +1,109 @@
+.forum-home-container {
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+
+    .forum-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+
+        h1 {
+            margin: 0;
+            font-size: 2rem;
+            font-weight: 600;
+        }
+    }
+
+    .forum-content {
+        .forum-section {
+            margin-bottom: 3rem;
+
+            h2 {
+                margin-bottom: 1rem;
+                font-size: 1.5rem;
+                font-weight: 600;
+            }
+
+            .room-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+                gap: 1.5rem;
+            }
+
+            .room-card {
+                background: var(--surface-card);
+                border: 1px solid var(--surface-border);
+                border-radius: 8px;
+                padding: 1.5rem;
+                cursor: pointer;
+                transition: all 0.2s;
+
+                &:hover {
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+                    transform: translateY(-2px);
+                }
+
+                .room-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: flex-start;
+                    margin-bottom: 0.75rem;
+
+                    h3 {
+                        margin: 0;
+                        font-size: 1.25rem;
+                        font-weight: 600;
+                        flex: 1;
+                        margin-right: 0.5rem;
+                    }
+                }
+
+                .room-description {
+                    color: var(--text-color-secondary);
+                    margin-bottom: 1rem;
+                    min-height: 3rem;
+                }
+
+                .room-footer {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    font-size: 0.875rem;
+                    color: var(--text-color-secondary);
+
+                    .member-count {
+                        display: flex;
+                        align-items: center;
+                        gap: 0.25rem;
+                    }
+                }
+            }
+
+            .loading-container {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 3rem;
+            }
+        }
+    }
+
+    .dialog-content {
+        .form-field {
+            margin-bottom: 1.5rem;
+
+            label {
+                display: block;
+                margin-bottom: 0.5rem;
+                font-weight: 500;
+            }
+
+            .w-full {
+                width: 100%;
+            }
+        }
+    }
+}
+

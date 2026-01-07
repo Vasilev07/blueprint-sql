@@ -1,0 +1,299 @@
+<div class="room-detail-container" *ngIf="room">
+    <!-- Room Header -->
+    <div class="room-header-section">
+        <button
+            pButton
+            type="button"
+            icon="pi pi-arrow-left"
+            class="p-button-text p-button-rounded back-btn"
+            pTooltip="Back"
+            (click)="goBack()"
+        ></button>
+
+        <div class="room-info">
+            <h1>{{ room.name }}</h1>
+            <p *ngIf="room.description" class="room-description">{{ room.description }}</p>
+            <div class="room-meta">
+                <span><i class="pi pi-users"></i> {{ room.memberCount }} members</span>
+                <p-tag
+                    [value]="room.visibility"
+                    [severity]="room.visibility === 'public' ? 'success' : 'warning'"
+                ></p-tag>
+            </div>
+        </div>
+
+        <div class="room-actions">
+            <button
+                *ngIf="!isMember"
+                pButton
+                label="Join Room"
+                icon="pi pi-sign-in"
+                class="p-button-primary"
+                (click)="joinRoom()"
+            ></button>
+        </div>
+    </div>
+
+    <!-- Create Post Section (if member) -->
+    <div *ngIf="isMember" class="create-post-section">
+        <div class="create-post-card">
+            <div class="create-post-header">
+                <h3>Create a post</h3>
+            </div>
+            <div class="create-post-content" (click)="openCreatePostDialog()">
+                <input
+                    pInputText
+                    placeholder="What's on your mind?"
+                    readonly
+                    class="create-post-input"
+                />
+            </div>
+        </div>
+    </div>
+
+    <!-- Feed Section -->
+    <div class="feed-section">
+        <div *ngIf="loading" class="loading-container">
+            <p-progressSpinner></p-progressSpinner>
+        </div>
+
+        <div *ngIf="!loading && posts.length === 0" class="empty-state">
+            <i class="pi pi-inbox" style="font-size: 3rem; color: var(--text-color-secondary)"></i>
+            <p>No posts yet. Be the first to create one!</p>
+        </div>
+
+        <!-- Feed Posts -->
+        <div *ngIf="!loading && posts.length > 0" class="feed-posts">
+            <div
+                *ngFor="let post of posts"
+                class="feed-post-card"
+                [class.pinned]="post.isPinned"
+            >
+                <!-- Post Header -->
+                <div class="post-header">
+                    <div class="post-author-info">
+                        <div class="author-avatar">
+                            <img
+                                [src]="getProfilePicture(post.authorId)"
+                                [alt]="'User #' + post.authorId"
+                                (error)="onImageError($event, post.authorId)"
+                                class="avatar-image"
+                            />
+                        </div>
+                        <div class="author-details">
+                            <span class="author-name">User #{{ post.authorId }}</span>
+                            <span class="post-time">{{ formatDate(post.createdAt!) }}</span>
+                        </div>
+                    </div>
+                    <div class="post-badges">
+                        <p-tag *ngIf="post.isPinned" value="Pinned" severity="info"></p-tag>
+                        <p-tag *ngIf="post.isLocked" value="Locked" severity="warning"></p-tag>
+                    </div>
+                </div>
+
+                <!-- Post Content -->
+                <div class="post-content">
+                    <h3 class="post-title">{{ post.title }}</h3>
+                    <p class="post-text">{{ post.content }}</p>
+                </div>
+
+                <!-- Post Actions -->
+                <div class="post-actions">
+                    <button
+                        pButton
+                        type="button"
+                        [label]="expandedPosts.has(post.id!) ? 'Hide Comments' : 'Show Comments'"
+                        [icon]="expandedPosts.has(post.id!) ? 'pi pi-chevron-up' : 'pi pi-comments'"
+                        class="p-button-text p-button-sm"
+                        (click)="toggleComments(post.id!)"
+                    >
+                        <span class="comment-count">({{ post.commentCount }})</span>
+                    </button>
+                </div>
+
+                <!-- Comments Section (Expandable) -->
+                <div *ngIf="expandedPosts.has(post.id!)" class="comments-section">
+                    <!-- Loading Comments -->
+                    <div *ngIf="loadingComments.has(post.id!)" class="comments-loading">
+                        <p-progressSpinner [style]="{ width: '30px', height: '30px' }"></p-progressSpinner>
+                    </div>
+
+                    <!-- Comments List -->
+                    <div *ngIf="!loadingComments.has(post.id!)" class="comments-list">
+                        <div
+                            *ngFor="let comment of getTopLevelComments(post.id!); trackBy: trackByCommentId"
+                            class="comment-item"
+                        >
+                            <div class="comment-content">
+                                <div class="comment-header">
+                                    <img
+                                        [src]="getProfilePicture(comment.authorId)"
+                                        [alt]="'User #' + comment.authorId"
+                                        (error)="onImageError($event, comment.authorId)"
+                                        class="comment-avatar"
+                                    />
+                                    <div class="comment-author-info">
+                                        <span class="comment-author">User #{{ comment.authorId }}</span>
+                                        <span class="comment-time">{{ formatDate(comment.createdAt!) }}</span>
+                                    </div>
+                                </div>
+                                <p class="comment-text">{{ comment.content }}</p>
+                                <div class="comment-actions">
+                                    <button
+                                        *ngIf="!post.isLocked"
+                                        pButton
+                                        type="button"
+                                        label="Reply"
+                                        icon="pi pi-reply"
+                                        class="p-button-text p-button-sm"
+                                        (click)="toggleReplyInput(post.id!, comment.id!)"
+                                    ></button>
+                                    <span
+                                        *ngIf="comment.replyCount! > 0"
+                                        class="reply-count"
+                                    >
+                                        {{ comment.replyCount }} replies
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Reply Input -->
+                            <div
+                                *ngIf="showReplyInputs.get((post.id! + '-' + comment.id!))"
+                                class="reply-input-section"
+                            >
+                                <textarea
+                                    pInputTextarea
+                                    [ngModel]="replyInputs.get((post.id! + '-' + comment.id!)) || ''"
+                                    (ngModelChange)="replyInputs.set((post.id! + '-' + comment.id!), $event)"
+                                    placeholder="Write a reply..."
+                                    rows="2"
+                                    class="reply-textarea"
+                                ></textarea>
+                                <div class="reply-actions">
+                                    <button
+                                        pButton
+                                        type="button"
+                                        label="Cancel"
+                                        class="p-button-text p-button-sm"
+                                        (click)="toggleReplyInput(post.id!, comment.id!)"
+                                    ></button>
+                                    <button
+                                        pButton
+                                        type="button"
+                                        label="Reply"
+                                        class="p-button-primary p-button-sm"
+                                        (click)="submitReply(post.id!, comment.id!)"
+                                    ></button>
+                                </div>
+                            </div>
+
+                            <!-- Nested Replies -->
+                            <div
+                                *ngIf="getRepliesToComment(post.id!, comment.id!).length > 0"
+                                class="replies-list"
+                            >
+                                <div
+                                    *ngFor="let reply of getRepliesToComment(post.id!, comment.id!)"
+                                    class="reply-item"
+                                >
+                                    <div class="comment-content">
+                                        <div class="comment-header">
+                                            <img
+                                                [src]="getProfilePicture(reply.authorId)"
+                                                [alt]="'User #' + reply.authorId"
+                                                (error)="onImageError($event, reply.authorId)"
+                                                class="comment-avatar"
+                                            />
+                                            <div class="comment-author-info">
+                                                <span class="comment-author">User #{{ reply.authorId }}</span>
+                                                <span class="comment-time">{{ formatDate(reply.createdAt!) }}</span>
+                                            </div>
+                                        </div>
+                                        <p class="comment-text">{{ reply.content }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div *ngIf="hasCommentsLoaded(post.id!) && getTopLevelComments(post.id!).length === 0" class="no-comments">
+                            <p>No comments yet. Be the first to comment!</p>
+                        </div>
+                    </div>
+
+                    <!-- Comment Input -->
+                    <div *ngIf="!post.isLocked" class="comment-input-section">
+                        <textarea
+                            pInputTextarea
+                            [ngModel]="commentInputs.get(post.id!) || ''"
+                            (ngModelChange)="commentInputs.set(post.id!, $event)"
+                            placeholder="Write a comment..."
+                            rows="3"
+                            class="comment-textarea"
+                        ></textarea>
+                        <div class="comment-input-actions">
+                            <button
+                                pButton
+                                type="button"
+                                label="Post"
+                                icon="pi pi-send"
+                                class="p-button-primary"
+                                (click)="submitComment(post.id!)"
+                            ></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Post Dialog -->
+    <p-dialog
+        [(visible)]="showCreatePostDialog"
+        header="Create Post"
+        [modal]="true"
+        [style]="{ width: '600px' }"
+    >
+        <div class="dialog-content">
+            <div class="form-field">
+                <label for="postTitle">Title *</label>
+                <input
+                    id="postTitle"
+                    pInputText
+                    [(ngModel)]="newPostTitle"
+                    placeholder="Enter post title"
+                    class="w-full"
+                />
+            </div>
+
+            <div class="form-field">
+                <label for="postContent">Content *</label>
+                <textarea
+                    id="postContent"
+                    pInputTextarea
+                    [(ngModel)]="newPostContent"
+                    placeholder="What's on your mind?"
+                    rows="8"
+                    class="w-full"
+                ></textarea>
+            </div>
+        </div>
+
+        <ng-template pTemplate="footer">
+            <button
+                pButton
+                label="Cancel"
+                icon="pi pi-times"
+                class="p-button-text"
+                (click)="showCreatePostDialog = false"
+            ></button>
+            <button
+                pButton
+                label="Post"
+                icon="pi pi-check"
+                class="p-button-primary"
+                (click)="createPost()"
+            ></button>
+        </ng-template>
+    </p-dialog>
+</div>

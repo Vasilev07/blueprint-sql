@@ -21,6 +21,7 @@ import { ConfigModule } from "@nestjs/config";
 import { AuthGuard } from "./guards/auth.guard";
 import { LiveStreamSessionModule } from "./controllers/live-stream-session/live-stream-session.module";
 import { SuperLikeModule } from "./controllers/super-like/super-like.module";
+import { ForumModule } from "./controllers/forum-room/forum-room.module";
 
 @Module({
     imports: [
@@ -45,6 +46,7 @@ import { SuperLikeModule } from "./controllers/super-like/super-like.module";
         GiftModule,
         LiveStreamSessionModule,
         SuperLikeModule,
+        ForumModule,
     ],
     controllers: [AppController],
     providers: [

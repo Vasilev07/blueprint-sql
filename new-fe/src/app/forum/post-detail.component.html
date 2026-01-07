@@ -1,0 +1,141 @@
+<div class="post-detail-container" *ngIf="post">
+    <button
+        pButton
+        type="button"
+        icon="pi pi-arrow-left"
+        class="p-button-text p-button-rounded back-btn"
+        pTooltip="Back"
+        (click)="goBack()"
+    ></button>
+
+    <div class="post-section">
+        <div class="post-header">
+            <h1>{{ post.title }}</h1>
+            <div class="post-badges">
+                <p-tag *ngIf="post.isPinned" value="Pinned" severity="info"></p-tag>
+                <p-tag *ngIf="post.isLocked" value="Locked" severity="warning"></p-tag>
+            </div>
+        </div>
+
+        <div class="post-content">
+            <p>{{ post.content }}</p>
+        </div>
+
+        <div class="post-footer">
+            <span class="post-meta">{{ formatDate(post.createdAt!) }} at {{ formatTime(post.createdAt!) }}</span>
+            <span class="comment-count"
+                ><i class="pi pi-comments"></i> {{ post.commentCount }} comments</span
+            >
+        </div>
+    </div>
+
+    <div class="comments-section">
+        <div class="comments-header">
+            <h2>Comments ({{ post.commentCount }})</h2>
+            <button
+                *ngIf="!post.isLocked"
+                pButton
+                label="Add Comment"
+                icon="pi pi-plus"
+                class="p-button-primary"
+                (click)="openCommentDialog()"
+            ></button>
+        </div>
+
+        <div *ngIf="loading" class="loading-container">
+            <p-progressSpinner></p-progressSpinner>
+        </div>
+
+        <div *ngIf="!loading && comments.length === 0" class="empty-state">
+            <p>No comments yet. Be the first to comment!</p>
+        </div>
+
+        <div *ngIf="!loading && comments.length > 0" class="comments-list">
+            <div *ngFor="let comment of getTopLevelComments()" class="comment-item">
+                <div class="comment-content">
+                    <div class="comment-header">
+                        <span class="comment-author">User #{{ comment.authorId }}</span>
+                        <span class="comment-date">{{ formatDate(comment.createdAt!) }}</span>
+                    </div>
+                    <p class="comment-text">{{ comment.content }}</p>
+                    <div class="comment-actions">
+                        <button
+                            *ngIf="!post.isLocked"
+                            pButton
+                            label="Reply"
+                            icon="pi pi-reply"
+                            class="p-button-text p-button-sm"
+                            (click)="openCommentDialog(comment.id!)"
+                        ></button>
+                        <span class="reply-count" *ngIf="comment.replyCount! > 0">
+                            {{ comment.replyCount }} replies
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Nested Replies -->
+                <div *ngIf="getRepliesToComment(comment.id!).length > 0" class="replies-list">
+                    <div *ngFor="let reply of getRepliesToComment(comment.id!)" class="reply-item">
+                        <div class="comment-content">
+                            <div class="comment-header">
+                                <span class="comment-author">User #{{ reply.authorId }}</span>
+                                <span class="comment-date">{{ formatDate(reply.createdAt!) }}</span>
+                            </div>
+                            <p class="comment-text">{{ reply.content }}</p>
+                            <div class="comment-actions">
+                                <button
+                                    *ngIf="!post.isLocked && reply.depth! < 5"
+                                    pButton
+                                    label="Reply"
+                                    icon="pi pi-reply"
+                                    class="p-button-text p-button-sm"
+                                    (click)="openCommentDialog(reply.id!)"
+                                ></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Comment Dialog -->
+    <p-dialog
+        [(visible)]="showCommentDialog"
+        [header]="replyToCommentId ? 'Reply to Comment' : 'Add Comment'"
+        [modal]="true"
+        [style]="{ width: '600px' }"
+    >
+        <div class="dialog-content">
+            <div class="form-field">
+                <label for="commentContent">Comment *</label>
+                <textarea
+                    id="commentContent"
+                    pInputTextarea
+                    [(ngModel)]="newCommentContent"
+                    placeholder="Enter your comment"
+                    rows="6"
+                    class="w-full"
+                ></textarea>
+            </div>
+        </div>
+
+        <ng-template pTemplate="footer">
+            <button
+                pButton
+                label="Cancel"
+                icon="pi pi-times"
+                class="p-button-text"
+                (click)="showCommentDialog = false"
+            ></button>
+            <button
+                pButton
+                label="Post"
+                icon="pi pi-check"
+                class="p-button-primary"
+                (click)="createComment()"
+            ></button>
+        </ng-template>
+    </p-dialog>
+</div>
+

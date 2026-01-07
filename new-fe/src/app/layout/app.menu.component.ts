@@ -56,6 +56,11 @@ export class AppMenuComponent implements OnInit, OnDestroy {
                 routerLink: ["/chat"],
             },
             {
+                label: "Forum",
+                icon: "pi pi-fw pi-comments",
+                routerLink: ["/forum"],
+            },
+            {
                 label: "Stories",
                 icon: "pi pi-fw pi-images",
                 routerLink: ["/stories"],

@@ -59,6 +59,11 @@ const routes: Routes = [
                     import("./chat/chat.module").then((m) => m.ChatModule),
             },
             {
+                path: "forum",
+                loadChildren: () =>
+                    import("./forum/forum.module").then((m) => m.ForumModule),
+            },
+            {
                 path: "messages",
                 loadChildren: () =>
                     import("./messages/messages.module").then(

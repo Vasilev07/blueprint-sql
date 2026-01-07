@@ -12,6 +12,10 @@ import { UserProfileMapper } from "@mappers/implementations/user-profile.mapper"
 import { GiftMapper } from "@mappers/implementations/gift.mapper";
 import { LiveStreamSessionMapper } from "@mappers/implementations/live-stream-session.mapper";
 import { StoryMapper } from "@mappers/implementations/story.mapper";
+import { ForumRoomMapper } from "@mappers/implementations/forum-room.mapper";
+import { ForumRoomMemberMapper } from "@mappers/implementations/forum-room-member.mapper";
+import { ForumPostMapper } from "@mappers/implementations/forum-post.mapper";
+import { ForumCommentMapper } from "@mappers/implementations/forum-comment.mapper";
 
 @Global()
 @Module({
@@ -29,6 +33,10 @@ import { StoryMapper } from "@mappers/implementations/story.mapper";
         GiftMapper,
         LiveStreamSessionMapper,
         StoryMapper,
+        ForumRoomMapper,
+        ForumRoomMemberMapper,
+        ForumPostMapper,
+        ForumCommentMapper,
     ],
     exports: [MapperService],
 })
@@ -47,6 +55,10 @@ export class MapperModule {
         private readonly giftMapper: GiftMapper,
         private readonly liveStreamSessionMapper: LiveStreamSessionMapper,
         private readonly storyMapper: StoryMapper,
+        private readonly forumRoomMapper: ForumRoomMapper,
+        private readonly forumRoomMemberMapper: ForumRoomMemberMapper,
+        private readonly forumPostMapper: ForumPostMapper,
+        private readonly forumCommentMapper: ForumCommentMapper,
     ) {
         this.mapperService.registerMapper("User", this.userMapper);
         this.mapperService.registerMapper("Product", this.productMapper);
@@ -72,5 +84,9 @@ export class MapperModule {
         this.mapperService.registerMapper("Gift", this.giftMapper);
         this.mapperService.registerMapper("LiveStreamSession", this.liveStreamSessionMapper);
         this.mapperService.registerMapper("Story", this.storyMapper);
+        this.mapperService.registerMapper("ForumRoom", this.forumRoomMapper);
+        this.mapperService.registerMapper("ForumRoomMember", this.forumRoomMemberMapper);
+        this.mapperService.registerMapper("ForumPost", this.forumPostMapper);
+        this.mapperService.registerMapper("ForumComment", this.forumCommentMapper);
     }
 }

@@ -1,0 +1,157 @@
+<div class="forum-home-container">
+    <div class="forum-header">
+        <h1>Forum Rooms</h1>
+        <button
+            pButton
+            label="Create Room"
+            icon="pi pi-plus"
+            class="p-button-primary"
+            (click)="openCreateDialog()"
+        ></button>
+    </div>
+
+    <div class="forum-content">
+        <!-- My Rooms Section -->
+        <div class="forum-section" *ngIf="myRooms.length > 0">
+            <h2>My Rooms</h2>
+            <div class="room-grid">
+                <div
+                    *ngFor="let room of myRooms"
+                    class="room-card"
+                    (click)="openRoom(room.id!)"
+                >
+                    <div class="room-header">
+                        <h3>{{ room.name }}</h3>
+                        <p-tag
+                            [value]="room.visibility"
+                            [severity]="getVisibilityBadge(room.visibility!)"
+                        ></p-tag>
+                    </div>
+                    <p class="room-description">{{ room.description || "No description" }}</p>
+                    <div class="room-footer">
+                        <span class="member-count"
+                            ><i class="pi pi-users"></i> {{ room.memberCount }} members</span
+                        >
+                        <span class="room-status" *ngIf="room.status !== 'active'">{{
+                            room.status
+                        }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- All Rooms Section -->
+        <div class="forum-section">
+            <h2>All Rooms</h2>
+            <div class="room-grid" *ngIf="!loading; else loadingTemplate">
+                <div
+                    *ngFor="let room of rooms"
+                    class="room-card"
+                    (click)="openRoom(room.id!)"
+                >
+                    <div class="room-header">
+                        <h3>{{ room.name }}</h3>
+                        <p-tag
+                            [value]="room.visibility"
+                            [severity]="getVisibilityBadge(room.visibility!)"
+                        ></p-tag>
+                    </div>
+                    <p class="room-description">{{ room.description || "No description" }}</p>
+                    <div class="room-footer">
+                        <span class="member-count"
+                            ><i class="pi pi-users"></i> {{ room.memberCount }} members</span
+                        >
+                        <span class="room-status" *ngIf="room.status !== 'active'">{{
+                            room.status
+                        }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <ng-template #loadingTemplate>
+                <div class="loading-container">
+                    <p-progressSpinner></p-progressSpinner>
+                </div>
+            </ng-template>
+        </div>
+    </div>
+
+    <!-- Create Room Dialog -->
+    <p-dialog
+        [(visible)]="showCreateDialog"
+        header="Create Forum Room"
+        [modal]="true"
+        [style]="{ width: '500px' }"
+    >
+        <div class="dialog-content">
+            <div class="form-field">
+                <label for="roomName">Room Name *</label>
+                <input
+                    id="roomName"
+                    pInputText
+                    [(ngModel)]="newRoomName"
+                    placeholder="Enter room name"
+                    class="w-full"
+                />
+            </div>
+
+            <div class="form-field">
+                <label for="roomDescription">Description</label>
+                <textarea
+                    id="roomDescription"
+                    pInputTextarea
+                    [(ngModel)]="newRoomDescription"
+                    placeholder="Enter room description"
+                    rows="3"
+                    class="w-full"
+                ></textarea>
+            </div>
+
+            <div class="form-field">
+                <label for="roomVisibility">Visibility</label>
+                <p-dropdown
+                    id="roomVisibility"
+                    [options]="[
+                        { label: 'Public', value: 'public' },
+                        { label: 'Private', value: 'private' },
+                        { label: 'Restricted', value: 'restricted' }
+                    ]"
+                    [(ngModel)]="newRoomVisibility"
+                    optionLabel="label"
+                    optionValue="value"
+                    class="w-full"
+                ></p-dropdown>
+            </div>
+
+            <div class="form-field">
+                <label for="maxMembers">Max Members (optional)</label>
+                <input
+                    id="maxMembers"
+                    type="number"
+                    pInputText
+                    [(ngModel)]="newRoomMaxMembers"
+                    placeholder="Leave empty for unlimited"
+                    class="w-full"
+                />
+            </div>
+        </div>
+
+        <ng-template pTemplate="footer">
+            <button
+                pButton
+                label="Cancel"
+                icon="pi pi-times"
+                class="p-button-text"
+                (click)="showCreateDialog = false"
+            ></button>
+            <button
+                pButton
+                label="Create"
+                icon="pi pi-check"
+                class="p-button-primary"
+                (click)="createRoom()"
+            ></button>
+        </ng-template>
+    </p-dialog>
+</div>
+

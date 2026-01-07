@@ -1,7 +1,11 @@
 import { Injectable } from "@angular/core";
 import { Socket, io } from "socket.io-client";
 import { Observable } from "rxjs";
-import { ChatMessageDTO } from "../../typescript-api-client/src/model/models";
+import {
+    ChatMessageDTO,
+    ForumPostDTO,
+    ForumCommentDTO,
+} from "../../typescript-api-client/src/model/models";
 import { AuthService } from "./auth.service";
 import { environment } from "../../environments/environment";
 
@@ -372,5 +376,73 @@ export class WebsocketService {
         if (this.socket) {
             this.socket.disconnect();
         }
+    }
+
+    // Forum WebSocket methods
+    joinForumRoom(roomId: number) {
+        this.socket.emit("forum:join-room", { roomId });
+    }
+
+    leaveForumRoom(roomId: number) {
+        this.socket.emit("forum:leave-room", { roomId });
+    }
+
+    onForumPostCreated(roomId: number): Observable<{ roomId: number; post: ForumPostDTO }> {
+        return new Observable<{ roomId: number; post: ForumPostDTO }>((observer) => {
+            const handler = (payload: { roomId: number; post: ForumPostDTO }) =>
+                observer.next(payload);
+            this.socket.on("forum:post:created", handler);
+            return () => this.socket.off("forum:post:created", handler);
+        });
+    }
+
+    onForumPostUpdated(roomId: number): Observable<{ roomId: number; post: ForumPostDTO }> {
+        return new Observable<{ roomId: number; post: ForumPostDTO }>((observer) => {
+            const handler = (payload: { roomId: number; post: ForumPostDTO }) =>
+                observer.next(payload);
+            this.socket.on("forum:post:updated", handler);
+            return () => this.socket.off("forum:post:updated", handler);
+        });
+    }
+
+    onForumPostDeleted(roomId: number): Observable<{ roomId: number; postId: number }> {
+        return new Observable<{ roomId: number; postId: number }>((observer) => {
+            const handler = (payload: { roomId: number; postId: number }) =>
+                observer.next(payload);
+            this.socket.on("forum:post:deleted", handler);
+            return () => this.socket.off("forum:post:deleted", handler);
+        });
+    }
+
+    onForumCommentCreated(roomId: number): Observable<{ postId: number; comment: ForumCommentDTO }> {
+        return new Observable<{ postId: number; comment: ForumCommentDTO }>((observer) => {
+            const handler = (payload: { postId: number; comment: ForumCommentDTO }) =>
+                observer.next(payload);
+            this.socket.on("forum:comment:created", handler);
+            return () => this.socket.off("forum:comment:created", handler);
+        });
+    }
+
+    onForumCommentUpdated(roomId: number): Observable<{ postId: number; comment: ForumCommentDTO }> {
+        return new Observable<{ postId: number; comment: ForumCommentDTO }>((observer) => {
+            const handler = (payload: { postId: number; comment: ForumCommentDTO }) =>
+                observer.next(payload);
+            this.socket.on("forum:comment:updated", handler);
+            return () => this.socket.off("forum:comment:updated", handler);
+        });
+    }
+
+    onForumCommentDeleted(roomId: number): Observable<{ roomId: number; postId: number; commentId: number }> {
+        return new Observable<{ roomId: number; postId: number; commentId: number }>(
+            (observer) => {
+                const handler = (payload: {
+                    roomId: number;
+                    postId: number;
+                    commentId: number;
+                }) => observer.next(payload);
+                this.socket.on("forum:comment:deleted", handler);
+                return () => this.socket.off("forum:comment:deleted", handler);
+            },
+        );
     }
 }
