@@ -133,7 +133,7 @@ export class ForumHomeComponent implements OnInit, OnDestroy {
             });
     }
 
-    getVisibilityBadge(visibility: string): string {
+    getVisibilityBadge(visibility: string): "success" | "secondary" | "info" | "warning" | "danger" | "contrast" | undefined {
         switch (visibility) {
             case "public":
                 return "success";
@@ -142,7 +142,7 @@ export class ForumHomeComponent implements OnInit, OnDestroy {
             case "restricted":
                 return "info";
             default:
-                return "";
+                return undefined;
         }
     }
 }

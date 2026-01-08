@@ -61,6 +61,11 @@ export class AppMenuComponent implements OnInit, OnDestroy {
                 routerLink: ["/forum"],
             },
             {
+                label: "Who Visited Me",
+                icon: "pi pi-fw pi-eye",
+                routerLink: ["/forum/who-visited-me"],
+            },
+            {
                 label: "Stories",
                 icon: "pi pi-fw pi-images",
                 routerLink: ["/stories"],
@@ -132,6 +137,9 @@ export class AppMenuComponent implements OnInit, OnDestroy {
                 items: menuItems,
             },
         ];
+        
+        // Debug: Log menu items to verify "Who Visited Me" is included
+        console.log("Menu items:", menuItems.map(item => item.label));
     }
 
 

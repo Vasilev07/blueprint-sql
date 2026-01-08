@@ -22,6 +22,7 @@ import { ProgressSpinnerModule } from "primeng/progressspinner";
 import { ForumHomeComponent } from "./forum-home.component";
 import { RoomDetailComponent } from "./room-detail.component";
 import { PostDetailComponent } from "./post-detail.component";
+import { WhoVisitedMeComponent } from "./who-visited-me.component";
 import { SharedComponentsModule } from "../shared/components.module";
 import {
     ForumRoomsService,
@@ -34,6 +35,10 @@ const routes: Routes = [
     {
         path: "",
         component: ForumHomeComponent,
+    },
+    {
+        path: "who-visited-me",
+        component: WhoVisitedMeComponent,
     },
     {
         path: "room/:roomId",
@@ -50,6 +55,7 @@ const routes: Routes = [
         ForumHomeComponent,
         RoomDetailComponent,
         PostDetailComponent,
+        WhoVisitedMeComponent,
     ],
     imports: [
         CommonModule,

@@ -1,0 +1,103 @@
+<div class="who-visited-me-container">
+    <div class="header">
+        <h1>
+            <i class="pi pi-eye"></i>
+            Who Visited Me
+        </h1>
+        <button
+            pButton
+            label="Refresh"
+            icon="pi pi-refresh"
+            class="p-button-text"
+            (click)="loadProfileViews()"
+            [disabled]="loading"
+        ></button>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="loading-container">
+        <p-progressSpinner styleClass="w-4rem h-4rem"></p-progressSpinner>
+        <p>Loading profile views...</p>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!loading && profileViews.length === 0" class="empty-state">
+        <i class="pi pi-eye-slash empty-icon"></i>
+        <h3>No Profile Views Yet</h3>
+        <p>When someone views your profile, they'll appear here.</p>
+    </div>
+
+    <!-- Profile Views List -->
+    <div *ngIf="!loading && profileViews.length > 0" class="profile-views-list">
+        <div class="stats-bar">
+            <span class="stat-item">
+                <i class="pi pi-users"></i>
+                {{ profileViews.length }} {{ profileViews.length === 1 ? 'viewer' : 'viewers' }}
+            </span>
+            <span class="stat-item">
+                <i class="pi pi-check-circle"></i>
+                {{ friendsCount }} {{ friendsLabel }}
+            </span>
+        </div>
+
+        <div class="viewers-list">
+            <div
+                *ngFor="let view of profileViews; trackBy: trackByViewId"
+                class="viewer-card"
+            >
+                <div class="viewer-avatar" (click)="onViewProfile(view.viewerId)">
+                    <img
+                        *ngIf="!isDefaultAvatar(getProfilePicture(view.viewerId))"
+                        [src]="getProfilePicture(view.viewerId)"
+                        [alt]="view.viewerName || 'Viewer'"
+                        (error)="onImageError($event)"
+                        class="avatar-image"
+                    />
+                    <div
+                        *ngIf="isDefaultAvatar(getProfilePicture(view.viewerId))"
+                        class="avatar-placeholder"
+                    >
+                        {{ getInitials(view.viewerName) }}
+                    </div>
+                </div>
+
+                <div class="viewer-info" (click)="onViewProfile(view.viewerId)">
+                    <div class="viewer-header">
+                        <h3 class="viewer-name">
+                            {{ view.viewerName || "Unknown User" }}
+                        </h3>
+                        <span *ngIf="view.isFriend" class="friend-badge" pTooltip="Friend">
+                            <i class="pi pi-check-circle"></i>
+                        </span>
+                    </div>
+                    <div class="viewer-meta">
+                        <span class="view-time">
+                            <i class="pi pi-clock"></i>
+                            {{ formatTimeAgo(view.viewedAt) }}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="viewer-actions">
+                    <button
+                        pButton
+                        type="button"
+                        icon="pi pi-user"
+                        class="p-button-rounded p-button-text"
+                        pTooltip="View Profile"
+                        (click)="onViewProfile(view.viewerId)"
+                    ></button>
+                    <button
+                        pButton
+                        type="button"
+                        icon="pi pi-comment"
+                        class="p-button-rounded p-button-text"
+                        pTooltip="Chat"
+                        (click)="onChatClick(view.viewerId, $event)"
+                    ></button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
