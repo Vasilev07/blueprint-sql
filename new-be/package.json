@@ -29,7 +29,7 @@
         "@nestjs/common": "^10.0.0",
         "@nestjs/config": "^3.2.2",
         "@nestjs/core": "^10.0.0",
-        "@nestjs/devtools-integration": "^0.1.6",
+        "@nestjs/devtools-integration": "^0.2.1",
         "@nestjs/platform-express": "^10.4.5",
         "@nestjs/platform-socket.io": "^11.1.6",
         "@nestjs/schedule": "^6.0.1",
