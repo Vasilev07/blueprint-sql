@@ -5,6 +5,7 @@ import { ChatParticipant } from "../../entities/chat-participant.entity";
 import { ChatMessage } from "../../entities/chat-message.entity";
 import { ChatService } from "../../services/chat.service";
 import { ChatGateway } from "../../gateways/chat.gateway";
+import { GrokService } from "../../services/grok.service";
 import { ChatController } from "./chat.controller";
 import { LiveStreamSessionModule } from "../live-stream-session/live-stream-session.module";
 
@@ -17,7 +18,7 @@ import { LiveStreamSessionModule } from "../live-stream-session/live-stream-sess
         ]),
         LiveStreamSessionModule,
     ],
-    providers: [ChatService, ChatGateway],
+    providers: [ChatService, ChatGateway, GrokService],
     controllers: [ChatController],
     exports: [ChatService, ChatGateway],
 })

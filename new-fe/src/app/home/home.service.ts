@@ -1,8 +1,9 @@
-import { Injectable } from "@angular/core";
-import { BehaviorSubject, Observable, combineLatest } from "rxjs";
-import { map } from "rxjs/operators";
+import { Injectable, OnDestroy } from "@angular/core";
+import { BehaviorSubject, Observable, combineLatest, Subject } from "rxjs";
+import { map, takeUntil } from "rxjs/operators";
 
 import { AuthService } from "../services/auth.service";
+import { WebsocketService } from "../services/websocket.service";
 import {
     FriendsService,
     UserService,
@@ -15,8 +16,9 @@ export interface HomeUser extends UserDTO {
     distance?: string; // Mocked for now (needs geolocation calculation)
     isOnline?: boolean;
     isFriend?: boolean;
-    // Note: bio, location, interests, isVerified, appearsInSearches, profileViewsCount 
-    // are now part of UserDTO from the backend
+    // Note: bio, location, interests, isVerified, appearsInSearches, profileViewsCount, superLikesCount
+    // are now part of UserDTO from the backend (or will be after API client regeneration)
+    superLikesCount?: number;
 }
 
 export type FilterType = "all" | "online" | "friends" | "nearby" | "new";
@@ -34,13 +36,14 @@ export interface AdvancedFilters {
 @Injectable({
     providedIn: "root",
 })
-export class HomeService {
+export class HomeService implements OnDestroy {
     private usersSubject = new BehaviorSubject<HomeUser[]>([]);
     private friendIdsSubject = new BehaviorSubject<number[]>([]);
     private filterSubject = new BehaviorSubject<FilterType>("all");
     private sortSubject = new BehaviorSubject<SortType>("recent");
     private searchSubject = new BehaviorSubject<string>("");
     private advancedFiltersSubject = new BehaviorSubject<AdvancedFilters>({});
+    private destroy$ = new Subject<void>();
 
     public users$ = this.usersSubject.asObservable();
     public filter$ = this.filterSubject.asObservable();
@@ -67,12 +70,74 @@ export class HomeService {
         private userService: UserService,
         private authService: AuthService,
         private friendsService: FriendsService,
+        private websocketService: WebsocketService,
     ) {
         this.initializeData();
+        this.setupSuperLikesCountUpdates();
+    }
+
+    ngOnDestroy(): void {
+        this.destroy$.next();
+        this.destroy$.complete();
     }
 
     private initializeData(): void {
         this.loadFriends();
+    }
+
+    /**
+     * Listen for real-time super likes count updates via WebSocket
+     * Listens to both received and sent events to update counts for both receiver and sender views
+     */
+    private setupSuperLikesCountUpdates(): void {
+        // Listen for when current user receives a super like (receiver's view)
+        this.websocketService
+            .onSuperLikeReceived()
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+                next: (notification) => {
+                    // Update count if included in the notification
+                    if (notification.superLikesCount !== undefined && notification.receiverId) {
+                        this.updateUserSuperLikesCount(notification.receiverId, notification.superLikesCount);
+                    }
+                },
+                error: (error) => {
+                    console.error("Error receiving super like notification:", error);
+                },
+            });
+
+        // Listen for when current user sends a super like (sender's view - update the user's count on sender's screen)
+        this.websocketService
+            .onSuperLikeSent()
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+                next: (notification) => {
+                    // Update the user's count if included in the notification
+                    if (notification.superLikesCount !== undefined && notification.receiverId) {
+                        this.updateUserSuperLikesCount(notification.receiverId, notification.superLikesCount);
+                    }
+                },
+                error: (error) => {
+                    console.error("Error receiving super like sent notification:", error);
+                },
+            });
+    }
+
+    /**
+     * Update a user's super likes count in the current users list
+     */
+    private updateUserSuperLikesCount(userId: number, newCount: number): void {
+        const currentUsers = this.usersSubject.value;
+        const updatedUsers = currentUsers.map((user) => {
+            if (user.id === userId) {
+                return {
+                    ...user,
+                    superLikesCount: newCount,
+                };
+            }
+            return user;
+        });
+        this.usersSubject.next(updatedUsers);
     }
 
     /**
@@ -129,11 +194,13 @@ export class HomeService {
     private enrichUserData(user: any, friendIds: number[]): HomeUser {
         return {
             ...user,
-            // Profile fields are now part of UserDTO from backend (bio, location, interests, isVerified, appearsInSearches, profileViewsCount)
+            // Profile fields are now part of UserDTO from backend (bio, location, interests, isVerified, appearsInSearches, profileViewsCount, superLikesCount)
             age: this.mockAge(), // TODO: Calculate from birthDate when added
             distance: this.mockDistance(), // TODO: Calculate from location coordinates
             isOnline: this.isUserOnline(user.lastOnline),
             isFriend: friendIds.includes(user.id!),
+            // Explicitly preserve superLikesCount from backend response
+            superLikesCount: user.superLikesCount ?? 0,
         };
     }
 

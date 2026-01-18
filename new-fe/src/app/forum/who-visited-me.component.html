@@ -32,7 +32,7 @@
         <div class="stats-bar">
             <span class="stat-item">
                 <i class="pi pi-users"></i>
-                {{ profileViews.length }} {{ profileViews.length === 1 ? 'viewer' : 'viewers' }}
+                {{ totalViewsCount }} {{ totalViewsCount === 1 ? 'viewer' : 'viewers' }}
             </span>
             <span class="stat-item">
                 <i class="pi pi-check-circle"></i>
@@ -42,38 +42,41 @@
 
         <div class="viewers-list">
             <div
-                *ngFor="let view of profileViews; trackBy: trackByViewId"
+                *ngFor="let grouped of groupedViews; trackBy: trackByViewerId"
                 class="viewer-card"
             >
-                <div class="viewer-avatar" (click)="onViewProfile(view.viewerId)">
+                <div class="viewer-avatar" (click)="onViewProfile(grouped.viewerId)">
                     <img
-                        *ngIf="!isDefaultAvatar(getProfilePicture(view.viewerId))"
-                        [src]="getProfilePicture(view.viewerId)"
-                        [alt]="view.viewerName || 'Viewer'"
+                        *ngIf="!isDefaultAvatar(getProfilePicture(grouped.viewerId))"
+                        [src]="getProfilePicture(grouped.viewerId)"
+                        [alt]="grouped.viewerName || 'Viewer'"
                         (error)="onImageError($event)"
                         class="avatar-image"
                     />
                     <div
-                        *ngIf="isDefaultAvatar(getProfilePicture(view.viewerId))"
+                        *ngIf="isDefaultAvatar(getProfilePicture(grouped.viewerId))"
                         class="avatar-placeholder"
                     >
-                        {{ getInitials(view.viewerName) }}
+                        {{ getInitials(grouped.viewerName) }}
                     </div>
+                    <span *ngIf="grouped.visitCount > 1" class="visit-count-badge" pTooltip="{{ grouped.visitCount }} visits">
+                        {{ grouped.visitCount }}
+                    </span>
                 </div>
 
-                <div class="viewer-info" (click)="onViewProfile(view.viewerId)">
+                <div class="viewer-info" (click)="onViewProfile(grouped.viewerId)">
                     <div class="viewer-header">
                         <h3 class="viewer-name">
-                            {{ view.viewerName || "Unknown User" }}
+                            {{ grouped.viewerName || "Unknown User" }}
                         </h3>
-                        <span *ngIf="view.isFriend" class="friend-badge" pTooltip="Friend">
+                        <span *ngIf="grouped.isFriend" class="friend-badge" pTooltip="Friend">
                             <i class="pi pi-check-circle"></i>
                         </span>
                     </div>
                     <div class="viewer-meta">
                         <span class="view-time">
                             <i class="pi pi-clock"></i>
-                            {{ formatTimeAgo(view.viewedAt) }}
+                            {{ formatTimeAgo(grouped.mostRecentView.viewedAt) }}
                         </span>
                     </div>
                 </div>
@@ -85,7 +88,7 @@
                         icon="pi pi-user"
                         class="p-button-rounded p-button-text"
                         pTooltip="View Profile"
-                        (click)="onViewProfile(view.viewerId)"
+                        (click)="onViewProfile(grouped.viewerId)"
                     ></button>
                     <button
                         pButton
@@ -93,7 +96,15 @@
                         icon="pi pi-comment"
                         class="p-button-rounded p-button-text"
                         pTooltip="Chat"
-                        (click)="onChatClick(view.viewerId, $event)"
+                        (click)="onChatClick(grouped.viewerId, $event)"
+                    ></button>
+                    <button
+                        pButton
+                        type="button"
+                        icon="pi pi-gift"
+                        class="p-button-rounded p-button-text"
+                        pTooltip="Send Gift"
+                        (click)="onGiftClick(grouped.viewerId, grouped.viewerName, $event)"
                     ></button>
                 </div>
             </div>
@@ -101,3 +112,9 @@
     </div>
 </div>
 
+<!-- Send Gift Dialog -->
+<app-send-gift-dialog
+    [(visible)]="showSendGiftDialog"
+    [recipientUser]="recipientUserForGift"
+    (giftSent)="onGiftSent($event)">
+</app-send-gift-dialog>

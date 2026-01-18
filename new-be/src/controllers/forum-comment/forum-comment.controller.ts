@@ -13,6 +13,7 @@ import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { ForumCommentService } from "@services/forum-comment.service";
 import { ForumCommentDTO } from "../../models/forum-comment.dto";
 import { CreateForumCommentDTO } from "../../models/create-forum-comment.dto";
+import { VoteForumCommentDTO } from "../../models/vote-forum-comment.dto";
 
 @Controller("forum-comments")
 @ApiTags("Forum Comments")
@@ -81,6 +82,28 @@ export class ForumCommentController {
     ): Promise<ForumCommentDTO[]> {
         const userId = req?.userData?.id;
         return this.forumCommentService.getCommentReplies(Number(id), userId);
+    }
+
+    @Post(":id/vote")
+    @ApiOperation({ summary: "Vote on a comment (upvote or downvote). Toggle off if already voted." })
+    @ApiResponse({
+        status: 200,
+        description: "Vote processed successfully",
+        type: ForumCommentDTO,
+    })
+    @ApiResponse({ status: 400, description: "Invalid vote type" })
+    @ApiResponse({ status: 403, description: "Not a room member" })
+    @ApiResponse({ status: 404, description: "Comment not found" })
+    async voteComment(
+        @Param("id") id: number,
+        @Body() dto: VoteForumCommentDTO,
+        @Req() req: any,
+    ): Promise<ForumCommentDTO> {
+        const userId = req.userData?.id;
+        if (!userId) {
+            throw new Error("User not authenticated");
+        }
+        return this.forumCommentService.voteComment(Number(id), userId, dto);
     }
 
     @Put(":id")

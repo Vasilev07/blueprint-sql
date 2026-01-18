@@ -11,6 +11,7 @@ import { ForumPost } from "@entities/forum-post.entity";
 import { ForumCommentController } from "../forum-comment/forum-comment.controller";
 import { ForumCommentService } from "@services/forum-comment.service";
 import { ForumComment } from "@entities/forum-comment.entity";
+import { ForumCommentVote } from "@entities/forum-comment-vote.entity";
 import { ForumGateway } from "src/gateways/forum.gateway";
 
 
@@ -21,6 +22,7 @@ import { ForumGateway } from "src/gateways/forum.gateway";
             ForumRoomMember,
             ForumPost,
             ForumComment,
+            ForumCommentVote,
             User,
         ]),
     ],

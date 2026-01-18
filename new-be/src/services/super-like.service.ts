@@ -130,9 +130,7 @@ export class SuperLikeService {
 
             // Create super like record
             const superLike = new SuperLike();
-            superLike.sender = sender;
             superLike.senderId = senderId;
-            superLike.receiver = receiver;
             superLike.receiverId = receiverId;
 
             const savedSuperLike = await queryRunner.manager.save(superLike);
@@ -158,7 +156,10 @@ export class SuperLikeService {
                 ? `${sender.firstname} ${sender.lastname || ""}`.trim()
                 : sender.email;
 
-            // Emit super like notification to receiver
+            // Get updated super likes count for receiver
+            const receiverSuperLikesCount = await this.getSuperLikesCount(receiverId);
+
+            // Emit super like notification to receiver (includes updated count)
             try {
                 this.superLikeGateway.notifySuperLikeReceived(receiverId, {
                     superLikeId: savedSuperLike.id,
@@ -168,12 +169,13 @@ export class SuperLikeService {
                     receiverId: receiverId,
                     amount: receiverAmount, // 50% of super like cost (100 tokens)
                     createdAt: savedSuperLike.createdAt,
+                    superLikesCount: receiverSuperLikesCount, // Updated count for real-time UI update
                 });
             } catch (error) {
                 console.error("Failed to emit super like notification to receiver:", error);
             }
 
-            // Emit super like sent notification to sender
+            // Emit super like sent notification to sender (includes receiver's updated count for UI update)
             try {
                 this.superLikeGateway.notifySuperLikeSent(senderId, {
                     superLikeId: savedSuperLike.id,
@@ -183,6 +185,7 @@ export class SuperLikeService {
                     receiverEmail: receiver.email,
                     cost: SUPER_LIKE_COST, // Full cost (200 tokens)
                     createdAt: savedSuperLike.createdAt,
+                    superLikesCount: receiverSuperLikesCount, // Updated count for the user (receiver) shown in home screen
                 });
             } catch (error) {
                 console.error("Failed to emit super like sent notification to sender:", error);
@@ -229,6 +232,15 @@ export class SuperLikeService {
             where: { receiverId: userId },
             relations: ["sender", "sender.profile"], // Load sender profile to show who liked
             order: { createdAt: "DESC" },
+        });
+    }
+
+    /**
+     * Get the count of super likes received by a user
+     */
+    async getSuperLikesCount(userId: number): Promise<number> {
+        return this.superLikeRepo.count({
+            where: { receiverId: userId },
         });
     }
 

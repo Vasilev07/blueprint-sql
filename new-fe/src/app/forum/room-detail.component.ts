@@ -14,6 +14,7 @@ import {
     CreateForumPostDTO,
     CreateForumCommentDTO,
     JoinForumRoomDTO,
+    VoteForumCommentDTO,
 } from "../../typescript-api-client/src/model/models";
 import { MessageService } from "primeng/api";
 import { AuthService } from "../services/auth.service";
@@ -41,6 +42,11 @@ export class RoomDetailComponent implements OnInit, OnDestroy {
     showReplyInputs: Map<string, boolean> = new Map();
     profilePictures: Map<number, string> = new Map();
     loadingProfilePictures: Set<number> = new Set();
+    
+    // Voting state: Map<commentId, 'upvote' | 'downvote' | null>
+    commentVotes: Map<number, 'upvote' | 'downvote' | null> = new Map();
+    // Vote counts: Map<commentId, { upvotes: number, downvotes: number }>
+    commentVoteCounts: Map<number, { upvotes: number; downvotes: number }> = new Map();
     
     // Default avatar SVG
     defaultAvatar =
@@ -185,11 +191,23 @@ export class RoomDetailComponent implements OnInit, OnDestroy {
                     console.log(`Loaded ${comments?.length || 0} comments for post ${postId}`, comments);
                     this.postComments.set(postId, comments || []);
                     
-                    // Load profile pictures for comment authors
+                    // Load profile pictures for comment authors and initialize vote counts from backend
                     if (comments) {
                         comments.forEach((comment) => {
                             if (comment.authorId) {
                                 this.loadProfilePicture(comment.authorId);
+                            }
+                            // Initialize vote counts from backend DTO
+                            if (comment.id) {
+                                this.commentVoteCounts.set(comment.id, {
+                                    upvotes: comment.upvoteCount ?? 0,
+                                    downvotes: comment.downvoteCount ?? 0
+                                });
+                                // Initialize user vote from backend DTO if available
+                                if (comment.userVote !== undefined) {
+                                    const vote = comment.userVote === null ? null : (comment.userVote as 'upvote' | 'downvote' | null);
+                                    this.commentVotes.set(comment.id, vote);
+                                }
                             }
                         });
                     }
@@ -355,6 +373,171 @@ export class RoomDetailComponent implements OnInit, OnDestroy {
             });
     }
 
+    upvoteComment(commentId: number | undefined): void {
+        if (!commentId) return;
+        
+        // Optimistic update
+        const currentVote = this.commentVotes.get(commentId);
+        const voteCounts = this.commentVoteCounts.get(commentId) || { upvotes: 0, downvotes: 0 };
+        
+        if (currentVote === 'upvote') {
+            // Optimistically remove upvote
+            this.commentVotes.set(commentId, null);
+            voteCounts.upvotes = Math.max(0, voteCounts.upvotes - 1);
+        } else if (currentVote === 'downvote') {
+            // Optimistically change from downvote to upvote
+            this.commentVotes.set(commentId, 'upvote');
+            voteCounts.downvotes = Math.max(0, voteCounts.downvotes - 1);
+            voteCounts.upvotes = voteCounts.upvotes + 1;
+        } else {
+            // Optimistically add upvote
+            this.commentVotes.set(commentId, 'upvote');
+            voteCounts.upvotes = voteCounts.upvotes + 1;
+        }
+        
+        this.commentVoteCounts.set(commentId, voteCounts);
+        this.commentVotes = new Map(this.commentVotes);
+        this.commentVoteCounts = new Map(this.commentVoteCounts);
+        this.cdr.detectChanges();
+
+        // Call backend API
+        const dto: VoteForumCommentDTO = { voteType: 'upvote' };
+        this.forumCommentsService
+            .voteComment(commentId, dto)
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+                next: (updatedComment) => {
+                    // Update with backend response
+                    if (updatedComment.id) {
+                        this.commentVoteCounts.set(updatedComment.id, {
+                            upvotes: updatedComment.upvoteCount ?? 0,
+                            downvotes: updatedComment.downvoteCount ?? 0
+                        });
+                        const vote = updatedComment.userVote === null ? null : (updatedComment.userVote as 'upvote' | 'downvote' | null);
+                        this.commentVotes.set(updatedComment.id, vote);
+                        
+                        // Update comment in postComments map if it exists
+                        this.postComments.forEach((comments, postId) => {
+                            const index = comments.findIndex(c => c.id === updatedComment.id);
+                            if (index !== -1) {
+                                comments[index] = updatedComment;
+                                this.postComments.set(postId, [...comments]);
+                            }
+                        });
+                        
+                        // Trigger change detection
+                        this.commentVotes = new Map(this.commentVotes);
+                        this.commentVoteCounts = new Map(this.commentVoteCounts);
+                        this.postComments = new Map(this.postComments);
+                        this.cdr.detectChanges();
+                    }
+                },
+                error: (error) => {
+                    console.error("Error voting on comment:", error);
+                    // Revert optimistic update by reloading comments
+                    const comment = Array.from(this.postComments.values())
+                        .flat()
+                        .find(c => c.id === commentId);
+                    if (comment?.postId) {
+                        this.loadCommentsForPost(comment.postId);
+                    }
+                    this.messageService.add({
+                        severity: "error",
+                        summary: "Error",
+                        detail: error?.error?.message || "Failed to vote on comment",
+                    });
+                },
+            });
+    }
+
+    downvoteComment(commentId: number | undefined): void {
+        if (!commentId) return;
+        
+        // Optimistic update
+        const currentVote = this.commentVotes.get(commentId);
+        const voteCounts = this.commentVoteCounts.get(commentId) || { upvotes: 0, downvotes: 0 };
+        
+        if (currentVote === 'downvote') {
+            // Optimistically remove downvote
+            this.commentVotes.set(commentId, null);
+            voteCounts.downvotes = Math.max(0, voteCounts.downvotes - 1);
+        } else if (currentVote === 'upvote') {
+            // Optimistically change from upvote to downvote
+            this.commentVotes.set(commentId, 'downvote');
+            voteCounts.upvotes = Math.max(0, voteCounts.upvotes - 1);
+            voteCounts.downvotes = voteCounts.downvotes + 1;
+        } else {
+            // Optimistically add downvote
+            this.commentVotes.set(commentId, 'downvote');
+            voteCounts.downvotes = voteCounts.downvotes + 1;
+        }
+        
+        this.commentVoteCounts.set(commentId, voteCounts);
+        this.commentVotes = new Map(this.commentVotes);
+        this.commentVoteCounts = new Map(this.commentVoteCounts);
+        this.cdr.detectChanges();
+
+        // Call backend API
+        const dto: VoteForumCommentDTO = { voteType: 'downvote' };
+        this.forumCommentsService
+            .voteComment(commentId, dto)
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+                next: (updatedComment) => {
+                    // Update with backend response
+                    if (updatedComment.id) {
+                        this.commentVoteCounts.set(updatedComment.id, {
+                            upvotes: updatedComment.upvoteCount ?? 0,
+                            downvotes: updatedComment.downvoteCount ?? 0
+                        });
+                        const vote = updatedComment.userVote === null ? null : (updatedComment.userVote as 'upvote' | 'downvote' | null);
+                        this.commentVotes.set(updatedComment.id, vote);
+                        
+                        // Update comment in postComments map if it exists
+                        this.postComments.forEach((comments, postId) => {
+                            const index = comments.findIndex(c => c.id === updatedComment.id);
+                            if (index !== -1) {
+                                comments[index] = updatedComment;
+                                this.postComments.set(postId, [...comments]);
+                            }
+                        });
+                        
+                        // Trigger change detection
+                        this.commentVotes = new Map(this.commentVotes);
+                        this.commentVoteCounts = new Map(this.commentVoteCounts);
+                        this.postComments = new Map(this.postComments);
+                        this.cdr.detectChanges();
+                    }
+                },
+                error: (error) => {
+                    console.error("Error voting on comment:", error);
+                    // Revert optimistic update by reloading comments
+                    const comment = Array.from(this.postComments.values())
+                        .flat()
+                        .find(c => c.id === commentId);
+                    if (comment?.postId) {
+                        this.loadCommentsForPost(comment.postId);
+                    }
+                    this.messageService.add({
+                        severity: "error",
+                        summary: "Error",
+                        detail: error?.error?.message || "Failed to vote on comment",
+                    });
+                },
+            });
+    }
+
+    getCommentScore(commentId: number | undefined): number {
+        if (!commentId) return 0;
+        const counts = this.commentVoteCounts.get(commentId) || { upvotes: 0, downvotes: 0 };
+        return counts.upvotes - counts.downvotes;
+    }
+
+    getCommentVote(commentId: number | undefined): 'upvote' | 'downvote' | null {
+        if (!commentId) return null;
+        return this.commentVotes.get(commentId) || null;
+    }
+
     joinRoom(): void {
         const dto: JoinForumRoomDTO = { roomId: this.roomId };
         this.forumRoomsService
@@ -475,6 +658,8 @@ export class RoomDetailComponent implements OnInit, OnDestroy {
         if (!postId) return 0;
         return this.postComments.get(postId)?.length || 0;
     }
+
+    
 
     loadProfilePicture(userId: number): void {
         // Skip if already loaded or loading

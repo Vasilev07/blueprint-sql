@@ -6,9 +6,10 @@ import {
     ConnectedSocket,
 } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { ChatService } from "../services/chat.service";
 import { LiveStreamSessionService } from "../services/live-stream-session.service";
+import { GrokService } from "../services/grok.service";
 import { EntityManager } from "typeorm";
 import { User } from "../entities/user.entity";
 import { SessionStatus } from "../enums/session-status.enum";
@@ -25,14 +26,61 @@ export class ChatGateway {
     @WebSocketServer()
     server: Server;
 
+    private readonly logger = new Logger(ChatGateway.name);
     private userSockets = new Map<string, Socket>();
     private userIdToEmail = new Map<number, string>();
+    private grokUserId: number | null = null;
 
     constructor(
         private chatService: ChatService,
         private liveStreamSessionService: LiveStreamSessionService,
+        private grokService: GrokService,
         private entityManager: EntityManager,
-    ) {}
+    ) {
+        // Initialize Grok user ID on startup
+        this.initializeGrokUser();
+    }
+
+    /**
+     * Find or create the Grok user
+     * Grok user is identified by email "grok@system" or username "Grok"
+     */
+    private async initializeGrokUser(): Promise<void> {
+        try {
+            // Try to find Grok user by email first
+            let grokUser = await this.entityManager.findOne(User, {
+                where: { email: "grok@system" },
+            });
+
+            // If not found, try by name (firstname + lastname = "Grok")
+            if (!grokUser) {
+                grokUser = await this.entityManager.findOne(User, {
+                    where: [
+                        { firstname: "Grok", lastname: "" },
+                        { firstname: "Grok", lastname: " " },
+                    ],
+                });
+            }
+
+            if (grokUser) {
+                this.grokUserId = grokUser.id;
+                this.logger.log(`Grok user found with ID: ${this.grokUserId}`);
+            } else {
+                this.logger.warn(
+                    "Grok user not found. Please create a user with email 'grok@system' or name 'Grok' to enable Grok integration.",
+                );
+            }
+        } catch (error) {
+            this.logger.error("Error initializing Grok user:", error);
+        }
+    }
+
+    /**
+     * Check if recipient is Grok user
+     */
+    private isGrokUser(userId: number): boolean {
+        return this.grokUserId !== null && userId === this.grokUserId;
+    }
 
     async handleConnection(client: Socket) {
         const email = client.handshake.query.email as string;
@@ -115,6 +163,11 @@ export class ChatGateway {
             // Update sender's lastOnline timestamp
             await this.updateLastOnline(payload.senderId);
 
+            // Check if recipient is Grok user and handle accordingly
+            if (this.isGrokUser(payload.recipientId)) {
+                return await this.handleGrokMessage(payload);
+            }
+
             let conversationId = payload.conversationId;
             if (!conversationId) {
                 const conv = await this.chatService.getOrCreateConversation(
@@ -139,6 +192,106 @@ export class ChatGateway {
                     ? err.message
                     : "Failed to send chat message";
             return { error: true, message };
+        }
+    }
+
+    /**
+     * Handle messages sent to Grok user
+     */
+    private async handleGrokMessage(payload: {
+        conversationId?: number;
+        senderId: number;
+        recipientId: number;
+        content: string;
+    }): Promise<any> {
+        try {
+            // Ensure Grok user is initialized
+            if (this.grokUserId === null) {
+                await this.initializeGrokUser();
+                if (this.grokUserId === null) {
+                    return {
+                        error: true,
+                        message: "Grok user not found. Please configure Grok user in the system.",
+                    };
+                }
+            }
+
+            // Get or create conversation
+            let conversationId = payload.conversationId;
+            if (!conversationId) {
+                const conv = await this.chatService.getOrCreateConversation(
+                    payload.senderId,
+                    this.grokUserId,
+                );
+                conversationId = conv.id;
+            }
+
+            // Save user's message first
+            const userMessage = await this.chatService.sendMessage(
+                conversationId,
+                payload.senderId,
+                payload.content,
+                "text",
+            );
+
+            // Emit user message immediately
+            this.server.emit(`chat:message:${conversationId}`, userMessage);
+            this.server.emit("chat:message", { conversationId, message: userMessage });
+
+            // Get Grok response (async, don't wait)
+            this.processGrokResponse(conversationId, payload.senderId, payload.content);
+
+            return userMessage;
+        } catch (err: any) {
+            this.logger.error("Error handling Grok message:", err);
+            const message =
+                typeof err?.message === "string"
+                    ? err.message
+                    : "Failed to send message to Grok";
+            return { error: true, message };
+        }
+    }
+
+    /**
+     * Process Grok response and send it back as a message
+     */
+    private async processGrokResponse(
+        conversationId: number,
+        senderId: number,
+        userContent: string,
+    ): Promise<void> {
+        try {
+            // Call Grok API
+            const grokResponse = await this.grokService.chat(senderId, userContent);
+
+            // Send Grok's response as a message from Grok user
+            const grokMessage = await this.chatService.sendMessage(
+                conversationId,
+                this.grokUserId!,
+                grokResponse,
+                "text",
+            );
+
+            // Emit Grok's response
+            this.server.emit(`chat:message:${conversationId}`, grokMessage);
+            this.server.emit("chat:message", { conversationId, message: grokMessage });
+
+            this.logger.log(`Grok response sent for conversation ${conversationId}`);
+        } catch (err: any) {
+            this.logger.error("Error processing Grok response:", err);
+            // Send error message as Grok's response
+            try {
+                const errorMessage = await this.chatService.sendMessage(
+                    conversationId,
+                    this.grokUserId!,
+                    "Sorry, I encountered an error processing your message. Please try again.",
+                    "text",
+                );
+                this.server.emit(`chat:message:${conversationId}`, errorMessage);
+                this.server.emit("chat:message", { conversationId, message: errorMessage });
+            } catch (sendErr) {
+                this.logger.error("Error sending error message:", sendErr);
+            }
         }
     }
 

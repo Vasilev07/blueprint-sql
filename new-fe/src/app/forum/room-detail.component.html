@@ -139,6 +139,29 @@
                                 </div>
                                 <p class="comment-text">{{ comment.content }}</p>
                                 <div class="comment-actions">
+                                    <div class="vote-section">
+                                        <button
+                                            pButton
+                                            type="button"
+                                            icon="pi pi-arrow-up"
+                                            [class.active]="getCommentVote(comment.id) === 'upvote'"
+                                            class="p-button-text p-button-sm vote-btn upvote-btn"
+                                            [pTooltip]="getCommentVote(comment.id) === 'upvote' ? 'Remove upvote' : 'Upvote'"
+                                            (click)="upvoteComment(comment.id!); $event.stopPropagation()"
+                                        ></button>
+                                        <span class="vote-score" [class.positive]="getCommentScore(comment.id) > 0" [class.negative]="getCommentScore(comment.id) < 0">
+                                            {{ getCommentScore(comment.id) }}
+                                        </span>
+                                        <button
+                                            pButton
+                                            type="button"
+                                            icon="pi pi-arrow-down"
+                                            [class.active]="getCommentVote(comment.id) === 'downvote'"
+                                            class="p-button-text p-button-sm vote-btn downvote-btn"
+                                            [pTooltip]="getCommentVote(comment.id) === 'downvote' ? 'Remove downvote' : 'Downvote'"
+                                            (click)="downvoteComment(comment.id!); $event.stopPropagation()"
+                                        ></button>
+                                    </div>
                                     <button
                                         *ngIf="!post.isLocked"
                                         pButton
@@ -211,6 +234,31 @@
                                             </div>
                                         </div>
                                         <p class="comment-text">{{ reply.content }}</p>
+                                        <div class="comment-actions">
+                                            <div class="vote-section">
+                                                <button
+                                                    pButton
+                                                    type="button"
+                                                    icon="pi pi-arrow-up"
+                                                    [class.active]="getCommentVote(reply.id) === 'upvote'"
+                                                    class="p-button-text p-button-sm vote-btn upvote-btn"
+                                                    [pTooltip]="getCommentVote(reply.id) === 'upvote' ? 'Remove upvote' : 'Upvote'"
+                                                    (click)="upvoteComment(reply.id!); $event.stopPropagation()"
+                                                ></button>
+                                                <span class="vote-score" [class.positive]="getCommentScore(reply.id) > 0" [class.negative]="getCommentScore(reply.id) < 0">
+                                                    {{ getCommentScore(reply.id) }}
+                                                </span>
+                                                <button
+                                                    pButton
+                                                    type="button"
+                                                    icon="pi pi-arrow-down"
+                                                    [class.active]="getCommentVote(reply.id) === 'downvote'"
+                                                    class="p-button-text p-button-sm vote-btn downvote-btn"
+                                                    [pTooltip]="getCommentVote(reply.id) === 'downvote' ? 'Remove downvote' : 'Downvote'"
+                                                    (click)="downvoteComment(reply.id!); $event.stopPropagation()"
+                                                ></button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

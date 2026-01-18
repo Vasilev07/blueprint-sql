@@ -6,7 +6,7 @@
   margin: 0;
   padding: 1rem;
   box-sizing: border-box;
-  background: linear-gradient(135deg, var(--purple-900, #432263) 0%, var(--purple-800, #5c2f88) 50%, var(--indigo-900, #282960) 100%);
+  background: var(--surface-ground, #f3f4f6);
   gap: 1rem;
 
   .chat-split-view {
@@ -691,7 +691,7 @@
 // Dark theme support
 :host-context(.layout-theme-dark) {
   .chat-home-container {
-    background: linear-gradient(135deg, #1a0d2e 0%, #2d1b42 50%, #1e1b3a 100%);
+    background: var(--surface-ground, #1f2937);
 
     .chat-split-view {
       background: var(--surface-card, #1f2937);

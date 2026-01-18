@@ -9,7 +9,7 @@ import {
 } from "typeorm";
 import { User } from "./user.entity";
 
-@Entity()
+@Entity("super_like")
 @Index(["senderId", "createdAt"])
 @Index(["receiverId", "createdAt"])
 export class SuperLike {

@@ -7,7 +7,7 @@ import { Injectable } from "@nestjs/common";
 export class ForumCommentMapper
     implements BaseMapper<ForumComment, ForumCommentDTO>
 {
-    entityToDTO(entity: ForumComment): ForumCommentDTO {
+    entityToDTO(entity: ForumComment, userId?: number, userVote?: "upvote" | "downvote" | null): ForumCommentDTO {
         return {
             id: entity.id,
             postId: entity.postId,
@@ -16,7 +16,10 @@ export class ForumCommentMapper
             content: entity.content,
             type: entity.type,
             replyCount: entity.replyCount,
-            likeCount: entity.likeCount,
+            upvoteCount: entity.upvoteCount ?? 0,
+            downvoteCount: entity.downvoteCount ?? 0,
+            userVote: userId ? (userVote ?? null) : undefined,
+            likeCount: entity.likeCount ?? 0, // Deprecated, kept for backward compatibility
             depth: entity.depth,
             status: entity.status,
             createdAt: entity.createdAt,
@@ -33,7 +36,9 @@ export class ForumCommentMapper
         comment.content = dto.content;
         comment.type = dto.type;
         comment.replyCount = dto.replyCount;
-        comment.likeCount = dto.likeCount;
+        comment.upvoteCount = dto.upvoteCount ?? 0;
+        comment.downvoteCount = dto.downvoteCount ?? 0;
+        comment.likeCount = dto.likeCount ?? 0;
         comment.depth = dto.depth;
         comment.status = dto.status;
         return comment;

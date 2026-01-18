@@ -224,26 +224,29 @@
             </div>
 
             <div *ngIf="!isLoadingGifts && receivedGifts.length > 0" class="gifts-grid">
-              <div *ngFor="let gift of receivedGifts" class="gift-card-received">
+              <div *ngFor="let groupedGift of groupedReceivedGifts" class="gift-card-received">
                 <div class="gift-emoji-large">
-                  <span>{{ gift.giftEmoji }}</span>
+                  <span>{{ groupedGift.giftEmoji }}</span>
+                  <span *ngIf="groupedGift.gifts.length > 1" class="gift-count-badge">{{ groupedGift.gifts.length }}</span>
                 </div>
                 <div class="gift-details">
                   <div class="gift-sender">
                     <i class="pi pi-user"></i>
-                    <span>{{ getSenderName(gift) }}</span>
+                    <span>{{ getSenderNameFromSender(groupedGift.sender) }}</span>
                   </div>
                   <div class="gift-amount">
                     <i class="pi pi-wallet"></i>
-                    <span>{{ gift.amount }} tokens</span>
+                    <span>{{ groupedGift.totalAmount }} tokens</span>
+                    <span *ngIf="groupedGift.gifts.length > 1" class="gift-count-text">({{ groupedGift.gifts.length }} gifts)</span>
                   </div>
                   <div class="gift-date">
                     <i class="pi pi-calendar"></i>
-                    <span>{{ gift.createdAt | date:'short' }}</span>
+                    <span>{{ groupedGift.latestDate | date:'short' }}</span>
                   </div>
-                  <div *ngIf="gift.message" class="gift-message">
+                  <div *ngIf="groupedGift.messages.length > 0" class="gift-message">
                     <i class="pi pi-comment"></i>
-                    <span>"{{ gift.message }}"</span>
+                    <span *ngIf="groupedGift.messages.length === 1">"{{ groupedGift.messages[0] }}"</span>
+                    <span *ngIf="groupedGift.messages.length > 1">{{ groupedGift.messages.length }} messages</span>
                   </div>
                 </div>
               </div>

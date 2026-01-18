@@ -23,6 +23,7 @@ import { User } from "@entities/user.entity";
 import { UserProfile } from "@entities/user-profile.entity";
 import { UserPhoto } from "@entities/user-photo.entity";
 import { PhotoLike } from "@entities/photo-like.entity";
+import { SuperLike } from "@entities/super-like.entity";
 import { UserFriend, FriendshipStatus } from "@entities/friend.entity";
 import { VerificationRequest } from "@entities/verification-request.entity";
 import { UserMapper } from "@mappers/implementations/user.mapper";
@@ -361,10 +362,12 @@ export class UserService implements OnModuleInit {
         console.log(`User IDs returned:`, users.map(u => u.id));
 
         // Get profile view counts for returned users
-        const userIds = users.map((u) => u.id);
+        const userIds = users.map((u) => u.id).filter((id): id is number => id !== undefined && id !== null);
         let viewCountMap = new Map<number, number>();
+        let likesCountMap = new Map<number, number>();
 
         if (userIds.length > 0) {
+            // Get profile view counts
             const profileViewRepo =
                 this.entityManager.getRepository("ProfileView");
             const viewCounts = await profileViewRepo
@@ -378,6 +381,29 @@ export class UserService implements OnModuleInit {
             viewCountMap = new Map(
                 viewCounts.map((v) => [v.userId, parseInt(v.viewCount)]),
             );
+
+            // Get super likes counts (count of super likes received by each user)
+            try {
+                const superLikeRepo = this.entityManager.getRepository(SuperLike);
+                const superLikesCounts = await superLikeRepo
+                    .createQueryBuilder("superLike")
+                    .select("superLike.receiverId", "userId")
+                    .addSelect("COUNT(superLike.id)", "superLikesCount")
+                    .where("superLike.receiverId IN (:...userIds)", { userIds })
+                    .groupBy("superLike.receiverId")
+                    .getRawMany();
+
+                likesCountMap = new Map(
+                    superLikesCounts.map((sl) => [
+                        parseInt(sl.userId),
+                        parseInt(sl.superLikesCount) || 0,
+                    ]),
+                );
+            } catch (error) {
+                console.error("Error counting super likes:", error);
+                // Continue with empty map - all users will have 0 super likes
+                likesCountMap = new Map();
+            }
         }
 
         // Map users to DTOs with profile data
@@ -390,6 +416,7 @@ export class UserService implements OnModuleInit {
                 interests: user.profile?.interests || [],
                 appearsInSearches: user.profile?.appearsInSearches !== false,
                 profileViewsCount: viewCountMap.get(user.id) || 0,
+                superLikesCount: likesCountMap.get(user.id) || 0,
                 isVerified: user.profile?.isVerified || false,
             };
         });
@@ -416,6 +443,8 @@ export class UserService implements OnModuleInit {
     private async mapUsersWithProfiles(users: User[]): Promise<UserDTO[]> {
         // Get profile view counts for all users
         let viewCountMap = new Map<number, number>();
+        let likesCountMap = new Map<number, number>();
+        
         try {
             const profileViewRepo =
                 this.entityManager.getRepository("ProfileView");
@@ -433,6 +462,32 @@ export class UserService implements OnModuleInit {
             // Continue without profile view counts
         }
 
+        try {
+            // Get super likes counts (count of super likes received by each user)
+            const userIds = users.map((u) => u.id);
+            if (userIds.length > 0) {
+                const superLikeRepo = this.entityManager.getRepository(SuperLike);
+                const superLikesCounts = await superLikeRepo
+                    .createQueryBuilder("superLike")
+                    .select("superLike.receiverId", "userId")
+                    .addSelect("COUNT(superLike.id)", "superLikesCount")
+                    .where("superLike.receiverId IN (:...userIds)", { userIds })
+                    .groupBy("superLike.receiverId")
+                    .getRawMany();
+
+                likesCountMap = new Map(
+                    superLikesCounts.map((sl) => [
+                        parseInt(sl.userId),
+                        parseInt(sl.superLikesCount) || 0,
+                    ]),
+                );
+            }
+        } catch (error) {
+            console.error("Error counting super likes in mapUsersWithProfiles:", error);
+            // Continue without likes counts
+            likesCountMap = new Map();
+        }
+
         return users.map((user) => {
             const userDTO = this.userMapper.entityToDTO(user);
             // Include profile data for home screen
@@ -443,6 +498,7 @@ export class UserService implements OnModuleInit {
                 interests: user.profile?.interests || [],
                 appearsInSearches: user.profile?.appearsInSearches !== false,
                 profileViewsCount: viewCountMap.get(user.id) || 0,
+                superLikesCount: likesCountMap.get(user.id) || 0,
                 isVerified: user.profile?.isVerified || false,
             };
         });

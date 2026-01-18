@@ -55,6 +55,7 @@ interface SuperLikeReceivedNotification {
     receiverId: number;
     amount: string; // 50% of super like cost (100 tokens)
     createdAt: string;
+    superLikesCount?: number; // Updated count of super likes received
 }
 
 interface SuperLikeSentNotification {
@@ -65,6 +66,7 @@ interface SuperLikeSentNotification {
     receiverEmail: string;
     cost: string; // Full cost (200 tokens)
     createdAt: string;
+    superLikesCount?: number; // Updated count for the user (receiver) shown in home screen
 }
 
 @Injectable({

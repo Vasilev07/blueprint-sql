@@ -263,6 +263,75 @@
                                     font-size: 0.8125rem;
                                     color: var(--text-color-secondary);
 
+                                    .vote-section {
+                                        display: flex;
+                                        align-items: center;
+                                        gap: 0.25rem;
+                                        padding: 0.25rem;
+                                        border-radius: 8px;
+                                        background: var(--surface-50);
+                                        margin-right: 0.5rem;
+
+                                        .vote-btn {
+                                            width: 28px;
+                                            height: 28px;
+                                            padding: 0;
+                                            display: flex;
+                                            align-items: center;
+                                            justify-content: center;
+                                            color: var(--text-color-secondary);
+                                            transition: all 0.2s ease;
+
+                                            &:hover {
+                                                background: var(--surface-100);
+                                                transform: scale(1.1);
+                                            }
+
+                                            &.upvote-btn {
+                                                &.active {
+                                                    color: var(--green-500, #22c55e);
+                                                    background: rgba(34, 197, 94, 0.1);
+
+                                                    &:hover {
+                                                        background: rgba(34, 197, 94, 0.2);
+                                                    }
+                                                }
+                                            }
+
+                                            &.downvote-btn {
+                                                &.active {
+                                                    color: var(--red-500, #ef4444);
+                                                    background: rgba(239, 68, 68, 0.1);
+
+                                                    &:hover {
+                                                        background: rgba(239, 68, 68, 0.2);
+                                                    }
+                                                }
+                                            }
+
+                                            i {
+                                                font-size: 0.875rem;
+                                            }
+                                        }
+
+                                        .vote-score {
+                                            min-width: 24px;
+                                            text-align: center;
+                                            font-weight: 600;
+                                            font-size: 0.8125rem;
+                                            padding: 0 0.25rem;
+                                            color: var(--text-color);
+
+                                            &.positive {
+                                                color: var(--green-500, #22c55e);
+                                            }
+
+                                            &.negative {
+                                                color: var(--red-500, #ef4444);
+                                            }
+                                        }
+                                    }
+
                                     .reply-count {
                                         font-style: italic;
                                     }

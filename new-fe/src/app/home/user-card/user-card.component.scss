@@ -6,6 +6,9 @@
   top: 0;
   transition: top 0.3s ease, box-shadow 0.3s ease;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  height: 100%; // Ensure cards fill grid cell height
 
   &:hover {
     top: -4px;
@@ -80,16 +83,24 @@
 
 .card-content {
   padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1; // Take available space
 }
 
 .user-info {
   margin-bottom: 0.75rem;
+  flex-shrink: 0;
+  height: 52px; // Fixed height: 1.75rem (name) + 0.5rem (margin) + 20px (location) = ~52px
   
   .user-name {
     margin: 0 0 0.5rem 0;
     font-size: 1.25rem;
     font-weight: 600;
     color: var(--text-color);
+    height: 1.75rem; // Fixed height for name
+    display: flex;
+    align-items: center;
     
     .user-age {
       font-weight: 400;
@@ -103,9 +114,15 @@
     gap: 6px;
     font-size: 0.875rem;
     color: var(--text-color-secondary);
+    height: 20px; // Fixed height
+    margin: 0; // No margin to maintain consistent spacing
     
     i {
       font-size: 0.75rem;
+    }
+
+    &.empty {
+      visibility: hidden; // Hide but reserve space
     }
   }
 }
@@ -117,8 +134,15 @@
   line-height: 1.5;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  height: 2.625rem; // Fixed height for 2 lines (1.5 line-height * 2 lines * 0.875rem = ~2.625rem)
+  flex-shrink: 0;
+
+  &.empty {
+    visibility: hidden; // Hide but reserve space
+  }
 }
 
 .user-stats {
@@ -128,6 +152,9 @@
   border-top: 1px solid var(--surface-border);
   border-bottom: 1px solid var(--surface-border);
   margin-bottom: 0.75rem;
+  flex-shrink: 0;
+  height: 44px; // Fixed height for consistent alignment
+  align-items: center; // Vertically center stats content
   
   .stat {
     display: flex;
@@ -149,6 +176,8 @@
   align-items: stretch;
   gap: 0.5rem;
   padding: 0 1rem 1rem;
+  margin-top: auto; // Push actions to bottom
+  flex-shrink: 0;
   
   .super-like-btn {
     flex-shrink: 0;

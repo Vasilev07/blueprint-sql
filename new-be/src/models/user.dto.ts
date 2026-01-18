@@ -47,4 +47,7 @@ export class UserDTO {
 
     @ApiProperty({ required: false })
     profileViewsCount?: number;
+
+    @ApiProperty({ required: false })
+    superLikesCount?: number;
 }

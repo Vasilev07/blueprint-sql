@@ -5,12 +5,14 @@ import {
     NotFoundException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { Repository, In } from "typeorm";
 import { ForumComment } from "../entities/forum-comment.entity";
 import { ForumPost } from "../entities/forum-post.entity";
 import { ForumRoomMember } from "../entities/forum-room-member.entity";
+import { ForumCommentVote } from "../entities/forum-comment-vote.entity";
 import { ForumCommentDTO } from "../models/forum-comment.dto";
 import { CreateForumCommentDTO } from "../models/create-forum-comment.dto";
+import { VoteForumCommentDTO } from "../models/vote-forum-comment.dto";
 import { MapperService } from "@mappers/mapper.service";
 import { ForumRoomService } from "./forum-room.service";
 
@@ -23,6 +25,8 @@ export class ForumCommentService {
         private forumPostRepo: Repository<ForumPost>,
         @InjectRepository(ForumRoomMember)
         private forumRoomMemberRepo: Repository<ForumRoomMember>,
+        @InjectRepository(ForumCommentVote)
+        private forumCommentVoteRepo: Repository<ForumCommentVote>,
         private mapperService: MapperService,
         private forumRoomService: ForumRoomService,
     ) {}
@@ -129,10 +133,13 @@ export class ForumCommentService {
             },
         );
 
-        return this.mapperService.entityToDTO<ForumComment, ForumCommentDTO>(
+        const commentDto = this.mapperService.entityToDTO<ForumComment, ForumCommentDTO>(
             "ForumComment",
             comment,
         );
+        // New comments don't have user votes yet
+        commentDto.userVote = null;
+        return commentDto;
     }
 
     async getCommentsByPost(
@@ -160,8 +167,7 @@ export class ForumCommentService {
 
         const queryBuilder = this.forumCommentRepo
             .createQueryBuilder("comment")
-            .where("comment.postId = :postId", { postId })
-            .andWhere("comment.parentCommentId IS NULL"); // Only top-level comments
+            .where("comment.postId = :postId", { postId });
 
         // Filter by status (hide deleted/hidden for non-admins)
         if (userId) {
@@ -181,14 +187,18 @@ export class ForumCommentService {
             });
         }
 
-        // Apply maxDepth limit if provided
-        if (options?.maxDepth !== undefined) {
+        // Apply maxDepth limit if provided (0 = top-level only, undefined/null = all depths)
+        if (options?.maxDepth !== undefined && options.maxDepth !== null) {
             queryBuilder.andWhere("comment.depth <= :maxDepth", {
                 maxDepth: options.maxDepth,
             });
+        } else if (options?.maxDepth === 0) {
+            // If maxDepth is 0, only load top-level comments
+            queryBuilder.andWhere("comment.parentCommentId IS NULL");
         }
 
-        queryBuilder.orderBy("comment.createdAt", "ASC");
+        // Order by depth first (to show top-level before replies), then by creation time
+        queryBuilder.orderBy("comment.depth", "ASC").addOrderBy("comment.createdAt", "ASC");
 
         // Pagination (optional, usually load all comments)
         if (options?.limit) {
@@ -200,12 +210,33 @@ export class ForumCommentService {
 
         const comments = await queryBuilder.getMany();
 
-        return comments.map((comment) =>
-            this.mapperService.entityToDTO<ForumComment, ForumCommentDTO>(
+        // Get user votes if userId provided
+        let userVotesMap: Map<number, "upvote" | "downvote"> | null = null;
+        if (userId && comments.length > 0) {
+            const commentIds = comments.map((c) => c.id);
+            const votes = await this.forumCommentVoteRepo.find({
+                where: {
+                    commentId: In(commentIds),
+                    userId: userId,
+                },
+            });
+            userVotesMap = new Map();
+            votes.forEach((vote) => {
+                userVotesMap!.set(vote.commentId, vote.voteType as "upvote" | "downvote");
+            });
+        }
+
+        // Map to DTOs with user vote information
+        return comments.map((comment) => {
+            const dto = this.mapperService.entityToDTO<ForumComment, ForumCommentDTO>(
                 "ForumComment",
                 comment,
-            ),
-        );
+            );
+            if (userId && userVotesMap) {
+                dto.userVote = userVotesMap.get(comment.id) ?? null;
+            }
+            return dto;
+        });
     }
 
     async getCommentReplies(
@@ -256,12 +287,33 @@ export class ForumCommentService {
 
         const replies = await queryBuilder.getMany();
 
-        return replies.map((reply) =>
-            this.mapperService.entityToDTO<ForumComment, ForumCommentDTO>(
+        // Get user votes if userId provided
+        let userVotesMap: Map<number, "upvote" | "downvote"> | null = null;
+        if (userId && replies.length > 0) {
+            const replyIds = replies.map((r) => r.id);
+            const votes = await this.forumCommentVoteRepo.find({
+                where: {
+                    commentId: In(replyIds),
+                    userId: userId,
+                },
+            });
+            userVotesMap = new Map();
+            votes.forEach((vote) => {
+                userVotesMap!.set(vote.commentId, vote.voteType as "upvote" | "downvote");
+            });
+        }
+
+        // Map to DTOs with user vote information
+        return replies.map((reply) => {
+            const dto = this.mapperService.entityToDTO<ForumComment, ForumCommentDTO>(
                 "ForumComment",
                 reply,
-            ),
-        );
+            );
+            if (userId && userVotesMap) {
+                dto.userVote = userVotesMap.get(reply.id) ?? null;
+            }
+            return dto;
+        });
     }
 
     async updateComment(
@@ -296,10 +348,24 @@ export class ForumCommentService {
         comment.content = content;
         const updated = await this.forumCommentRepo.save(comment);
 
-        return this.mapperService.entityToDTO<ForumComment, ForumCommentDTO>(
+        // Get user's vote status if userId provided
+        let userVote: "upvote" | "downvote" | null = null;
+        if (userId) {
+            const vote = await this.forumCommentVoteRepo.findOne({
+                where: {
+                    commentId: commentId,
+                    userId: userId,
+                },
+            });
+            userVote = vote?.voteType as "upvote" | "downvote" | null ?? null;
+        }
+
+        const commentDto = this.mapperService.entityToDTO<ForumComment, ForumCommentDTO>(
             "ForumComment",
             updated,
         );
+        commentDto.userVote = userId ? userVote : undefined;
+        return commentDto;
     }
 
     async deleteComment(commentId: number, userId: number): Promise<void> {
@@ -350,6 +416,123 @@ export class ForumCommentService {
                     .getRepository(ForumPost)
                     .decrement({ id: comment.postId }, "commentCount", 1);
             }
+        });
+    }
+
+    async voteComment(
+        commentId: number,
+        userId: number,
+        dto: VoteForumCommentDTO,
+    ): Promise<ForumCommentDTO> {
+        // Verify comment exists and get post for permission checks
+        const comment = await this.forumCommentRepo.findOne({
+            where: { id: commentId },
+            relations: ["post"],
+        });
+
+        if (!comment) {
+            throw new NotFoundException("Comment not found");
+        }
+
+        // Verify user is room member
+        const member = await this.forumRoomService.checkUserIsMember(
+            comment.post.roomId,
+            userId,
+        );
+        if (!member) {
+            throw new ForbiddenException(
+                "You must be a member of the room to vote on comments",
+            );
+        }
+
+        // Check if user already voted on this comment
+        const existingVote = await this.forumCommentVoteRepo.findOne({
+            where: {
+                commentId: commentId,
+                userId: userId,
+            },
+        });
+
+        return await this.forumCommentRepo.manager.transaction(async (trx) => {
+            if (existingVote) {
+                // User already voted - handle vote change or removal
+                if (existingVote.voteType === dto.voteType) {
+                    // Same vote type - remove vote (toggle off)
+                    await trx.getRepository(ForumCommentVote).remove(existingVote);
+                    
+                    // Update counts
+                    if (dto.voteType === "upvote") {
+                        await trx
+                            .getRepository(ForumComment)
+                            .decrement({ id: commentId }, "upvoteCount", 1);
+                    } else {
+                        await trx
+                            .getRepository(ForumComment)
+                            .decrement({ id: commentId }, "downvoteCount", 1);
+                    }
+                } else {
+                    // Different vote type - change vote
+                    const oldVoteType = existingVote.voteType;
+                    existingVote.voteType = dto.voteType;
+                    await trx.getRepository(ForumCommentVote).save(existingVote);
+                    
+                    // Update counts: decrement old, increment new
+                    if (oldVoteType === "upvote") {
+                        await trx
+                            .getRepository(ForumComment)
+                            .decrement({ id: commentId }, "upvoteCount", 1);
+                        await trx
+                            .getRepository(ForumComment)
+                            .increment({ id: commentId }, "downvoteCount", 1);
+                    } else {
+                        await trx
+                            .getRepository(ForumComment)
+                            .decrement({ id: commentId }, "downvoteCount", 1);
+                        await trx
+                            .getRepository(ForumComment)
+                            .increment({ id: commentId }, "upvoteCount", 1);
+                    }
+                }
+            } else {
+                // New vote - create vote record
+                const vote = trx.getRepository(ForumCommentVote).create({
+                    commentId: commentId,
+                    userId: userId,
+                    voteType: dto.voteType,
+                });
+                await trx.getRepository(ForumCommentVote).save(vote);
+                
+                // Update counts
+                if (dto.voteType === "upvote") {
+                    await trx
+                        .getRepository(ForumComment)
+                        .increment({ id: commentId }, "upvoteCount", 1);
+                } else {
+                    await trx
+                        .getRepository(ForumComment)
+                        .increment({ id: commentId }, "downvoteCount", 1);
+                }
+            }
+
+            // Reload comment with updated counts
+            const updatedComment = await trx.getRepository(ForumComment).findOne({
+                where: { id: commentId },
+            });
+
+            // Get user's vote status
+            const userVote = await trx.getRepository(ForumCommentVote).findOne({
+                where: {
+                    commentId: commentId,
+                    userId: userId,
+                },
+            });
+
+            const commentDto = this.mapperService.entityToDTO<ForumComment, ForumCommentDTO>(
+                "ForumComment",
+                updatedComment!,
+            );
+            commentDto.userVote = userVote?.voteType as "upvote" | "downvote" | null ?? null;
+            return commentDto;
         });
     }
 }

@@ -937,6 +937,71 @@ export class ProfileComponent implements OnInit, OnDestroy {
         return `${firstName} ${lastName}`.trim() || gift.sender.email || "Unknown";
     }
 
+    getSenderNameFromSender(sender: GiftDTO['sender']): string {
+        if (!sender) return "Unknown";
+        const firstName = sender.firstname || "";
+        const lastName = sender.lastname || "";
+        return `${firstName} ${lastName}`.trim() || sender.email || "Unknown";
+    }
+
+    /**
+     * Grouped gifts by sender and emoji
+     */
+    get groupedReceivedGifts(): Array<{
+        giftEmoji: string;
+        senderId: number;
+        sender: GiftDTO['sender'];
+        gifts: GiftDTO[];
+        totalAmount: string;
+        latestDate: Date;
+        messages: string[];
+    }> {
+        const grouped = new Map<string, GiftDTO[]>();
+        
+        // Group gifts by senderId and giftEmoji
+        this.receivedGifts.forEach(gift => {
+            const senderId = gift.senderId || gift.sender?.id || 0;
+            const key = `${senderId}_${gift.giftEmoji}`;
+            
+            if (!grouped.has(key)) {
+                grouped.set(key, []);
+            }
+            grouped.get(key)!.push(gift);
+        });
+
+        // Convert map to array and calculate totals
+        return Array.from(grouped.entries()).map(([key, gifts]) => {
+            const firstGift = gifts[0];
+            const senderId = firstGift.senderId || firstGift.sender?.id || 0;
+            
+            // Calculate total amount
+            const totalAmount = gifts.reduce((sum, gift) => {
+                return sum + parseFloat(gift.amount || '0');
+            }, 0).toFixed(8);
+
+            // Get latest date
+            const latestDate = gifts.reduce((latest, gift) => {
+                const giftDate = new Date(gift.createdAt);
+                return giftDate > latest ? giftDate : latest;
+            }, new Date(gifts[0].createdAt));
+
+            // Collect all non-empty messages
+            const messages = gifts
+                .map(g => g.message)
+                .filter((msg): msg is string => !!msg && msg.trim() !== '');
+
+            return {
+                giftEmoji: firstGift.giftEmoji,
+                senderId,
+                sender: firstGift.sender,
+                gifts,
+                totalAmount,
+                latestDate,
+                messages
+            };
+        });
+    }
+
     // Send Gift methods
     openSendGiftDialog(): void {
         if (!this.viewingUserId) {

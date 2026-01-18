@@ -10,6 +10,7 @@ import {
 } from "typeorm";
 import { ForumPost } from "./forum-post.entity";
 import { User } from "./user.entity";
+import { ForumCommentVote } from "./forum-comment-vote.entity";
 
 @Entity("forum_comment")
 export class ForumComment {
@@ -50,7 +51,13 @@ export class ForumComment {
     replyCount: number; // Denormalized count of nested replies
 
     @Column("int", { default: 0 })
-    likeCount: number; // For future likes feature
+    upvoteCount: number; // Count of upvotes
+
+    @Column("int", { default: 0 })
+    downvoteCount: number; // Count of downvotes
+
+    @Column("int", { default: 0 })
+    likeCount: number; // Deprecated - kept for backward compatibility, will be removed in future
 
     @Column("int", { default: 0 })
     depth: number; // 0 = comment on post, 1 = reply to comment, 2+ = nested reply
@@ -60,6 +67,9 @@ export class ForumComment {
 
     @OneToMany(() => ForumComment, (comment) => comment.parentComment)
     replies: ForumComment[];
+
+    @OneToMany(() => ForumCommentVote, (vote) => vote.comment)
+    votes: ForumCommentVote[];
 
     @CreateDateColumn()
     createdAt: Date;

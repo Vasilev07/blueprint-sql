@@ -23,7 +23,20 @@ export class ForumCommentDTO {
     replyCount: number;
 
     @ApiProperty()
-    likeCount: number;
+    upvoteCount: number;
+
+    @ApiProperty()
+    downvoteCount: number;
+
+    @ApiProperty({ 
+        required: false, 
+        enum: ["upvote", "downvote", null],
+        description: "Current user's vote on this comment (null if no vote, undefined if not authenticated)"
+    })
+    userVote?: "upvote" | "downvote" | null; // Current user's vote on this comment
+
+    @ApiProperty()
+    likeCount: number; // Deprecated - kept for backward compatibility
 
     @ApiProperty()
     depth: number;

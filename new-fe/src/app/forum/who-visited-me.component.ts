@@ -5,6 +5,15 @@ import { UserService } from "../../typescript-api-client/src/api/api";
 import { ProfileViewDTO } from "../../typescript-api-client/src/model/profile-view-dto";
 import { MessageService } from "primeng/api";
 import { DomSanitizer, SafeUrl } from "@angular/platform-browser";
+import { GiftDialogUser } from "../shared/send-gift-dialog/send-gift-dialog.component";
+
+interface GroupedProfileView {
+    viewerId: number;
+    viewerName?: string;
+    isFriend: boolean;
+    visitCount: number;
+    mostRecentView: ProfileViewDTO;
+}
 
 @Component({
     selector: "app-who-visited-me",
@@ -19,8 +28,54 @@ export class WhoVisitedMeComponent implements OnInit, OnDestroy {
     private loadingProfilePictures = new Set<number>();
     private destroy$ = new Subject<void>();
 
+    // Gift properties
+    showSendGiftDialog = false;
+    recipientUserForGift: GiftDialogUser | null = null;
+
+    get groupedViews(): GroupedProfileView[] {
+        const groupedMap = new Map<number, GroupedProfileView>();
+
+        this.profileViews.forEach((view) => {
+            if (!view.viewerId) return;
+
+            if (groupedMap.has(view.viewerId)) {
+                const grouped = groupedMap.get(view.viewerId)!;
+                grouped.visitCount++;
+                // Update most recent view if this one is more recent
+                const currentDate = new Date(view.viewedAt);
+                const existingDate = new Date(grouped.mostRecentView.viewedAt);
+                if (currentDate > existingDate) {
+                    grouped.mostRecentView = view;
+                }
+            } else {
+                groupedMap.set(view.viewerId, {
+                    viewerId: view.viewerId,
+                    viewerName: view.viewerName,
+                    isFriend: view.isFriend,
+                    visitCount: 1,
+                    mostRecentView: view,
+                });
+            }
+        });
+
+        // Convert map to array and sort by most recent view
+        return Array.from(groupedMap.values()).sort((a, b) => {
+            const dateA = new Date(a.mostRecentView.viewedAt);
+            const dateB = new Date(b.mostRecentView.viewedAt);
+            return dateB.getTime() - dateA.getTime();
+        });
+    }
+
+    get uniqueViewersCount(): number {
+        return this.groupedViews.length;
+    }
+
+    get totalViewsCount(): number {
+        return this.profileViews.length;
+    }
+
     get friendsCount(): number {
-        return this.profileViews.filter((v) => v.isFriend).length;
+        return this.groupedViews.filter((v) => v.isFriend).length;
     }
 
     get friendsLabel(): string {
@@ -69,9 +124,11 @@ export class WhoVisitedMeComponent implements OnInit, OnDestroy {
                 next: (views) => {
                     this.profileViews = views || [];
                     this.loading = false;
-                    // Load profile pictures for all viewers
+                    // Load profile pictures for unique viewers only
+                    const uniqueViewerIds = new Set<number>();
                     this.profileViews.forEach((view) => {
-                        if (view.viewerId) {
+                        if (view.viewerId && !uniqueViewerIds.has(view.viewerId)) {
+                            uniqueViewerIds.add(view.viewerId);
                             this.loadProfilePicture(view.viewerId);
                         }
                     });
@@ -130,8 +187,28 @@ export class WhoVisitedMeComponent implements OnInit, OnDestroy {
         this.router.navigate(["/chat"], { queryParams: { userId: viewerId } });
     }
 
+    onGiftClick(viewerId: number, viewerName?: string, event?: Event): void {
+        if (event) {
+            event.stopPropagation();
+        }
+        this.recipientUserForGift = {
+            id: viewerId,
+            name: viewerName,
+        };
+        this.showSendGiftDialog = true;
+    }
+
+    onGiftSent(response: any): void {
+        // Gift was sent successfully, dialog is already closed
+        this.recipientUserForGift = null;
+    }
+
     trackByViewId(index: number, view: ProfileViewDTO): number {
         return view.id;
+    }
+
+    trackByViewerId(index: number, grouped: GroupedProfileView): number {
+        return grouped.viewerId;
     }
 
     loadProfilePicture(userId: number): void {

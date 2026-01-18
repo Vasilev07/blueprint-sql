@@ -25,19 +25,19 @@
         <span *ngIf="user.age" class="user-age">, {{ user.age }}</span>
       </h3>
 
-      <div class="user-location" *ngIf="user.location || user.city || user.distance">
+      <div class="user-location" [class.empty]="!user.location && !user.city && !user.distance">
         <i class="pi pi-map-marker"></i>
-        <span>{{ user.location || user.city || user.distance }}</span>
+        <span>{{ user.location || user.city || user.distance || ' ' }}</span>
       </div>
     </div>
 
-    <p class="user-bio" *ngIf="user.bio">{{ user.bio }}</p>
+    <p class="user-bio" [class.empty]="!user.bio">{{ user.bio || ' ' }}</p>
 
     <!-- Stats -->
     <div class="user-stats">
-      <span class="stat" pTooltip="Likes">
+      <span class="stat" pTooltip="Super Likes">
         <i class="pi pi-heart"></i>
-        {{ (user.id! * 7) % 100 + 20 }}
+        {{ user.superLikesCount || 0 }}
       </span>
       <span class="stat" pTooltip="Profile Views">
         <i class="pi pi-eye"></i>
