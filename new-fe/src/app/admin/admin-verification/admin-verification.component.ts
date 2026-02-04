@@ -1,4 +1,5 @@
 import { Component, OnInit, OnDestroy } from "@angular/core";
+import { DomSanitizer, SafeUrl } from "@angular/platform-browser";
 import { Subject, takeUntil } from "rxjs";
 import { MessageService, ConfirmationService } from "primeng/api";
 import { UserService } from "src/typescript-api-client/src/api/api";
@@ -23,6 +24,9 @@ export class AdminVerificationComponent implements OnInit, OnDestroy {
     showRejectionDialog = false;
     showRevokeDialog = false;
 
+    // Photo URL cache
+    photoUrlCache = new Map<number, SafeUrl>();
+
     // Review form
     reviewForm = {
         status: "",
@@ -45,6 +49,7 @@ export class AdminVerificationComponent implements OnInit, OnDestroy {
         private userService: UserService,
         private messageService: MessageService,
         private confirmationService: ConfirmationService,
+        private sanitizer: DomSanitizer,
     ) { }
 
     ngOnInit(): void {
@@ -98,11 +103,8 @@ export class AdminVerificationComponent implements OnInit, OnDestroy {
             const searchLower = this.searchTerm.toLowerCase();
             filtered = filtered.filter(
                 (request) =>
-                    request.user.firstname
-                        .toLowerCase()
-                        .includes(searchLower) ||
-                    request.user.lastname.toLowerCase().includes(searchLower) ||
-                    request.user.email.toLowerCase().includes(searchLower),
+                    (request.user?.fullName && request.user.fullName.toLowerCase().includes(searchLower)) ||
+                    request.user?.email.toLowerCase().includes(searchLower),
             );
         }
 
@@ -120,6 +122,10 @@ export class AdminVerificationComponent implements OnInit, OnDestroy {
     openPhotoDialog(request: VerificationRequestDTO): void {
         this.selectedRequest = request;
         this.showPhotoDialog = true;
+        // Load the photo with authentication
+        if (request.id) {
+            this.loadVerificationPhoto(request.id);
+        }
     }
 
     openReviewDialog(request: VerificationRequestDTO): void {
@@ -151,7 +157,8 @@ export class AdminVerificationComponent implements OnInit, OnDestroy {
     }
 
     submitReview(): void {
-        if (!this.selectedRequest) return;
+        const request = this.selectedRequest;
+        if (!request || request.id === undefined) return;
 
         const reviewData = {
             status: this.reviewForm.status as 'verified' | 'rejected',
@@ -159,7 +166,7 @@ export class AdminVerificationComponent implements OnInit, OnDestroy {
         };
 
         this.userService
-            .reviewVerificationRequest(this.selectedRequest.id, reviewData)
+            .reviewVerificationRequest(request.id!, reviewData)
             .pipe(takeUntil(this.destroy$))
             .subscribe({
                 next: () => {
@@ -230,8 +237,34 @@ export class AdminVerificationComponent implements OnInit, OnDestroy {
         }
     }
 
-    getVerificationPhotoUrl(requestId: number): string {
-        return `/api/auth/admin/verifications/${requestId}/photo`;
+    getVerificationPhotoUrl(requestId: number): SafeUrl | null {
+        return this.photoUrlCache.get(requestId) || null;
+    }
+
+    loadVerificationPhoto(requestId: number): void {
+        // Check if already loaded
+        if (this.photoUrlCache.has(requestId)) {
+            return;
+        }
+
+        // Use the generated API service which handles authentication automatically
+        this.userService.getVerificationPhoto(requestId)
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+                next: (blob) => {
+                    const objectUrl = URL.createObjectURL(blob);
+                    const safeUrl = this.sanitizer.bypassSecurityTrustUrl(objectUrl);
+                    this.photoUrlCache.set(requestId, safeUrl);
+                },
+                error: (error) => {
+                    console.error('Error loading verification photo:', error);
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: 'Failed to load verification photo',
+                    });
+                },
+            });
     }
 
     viewUserProfile(userId: number): void {

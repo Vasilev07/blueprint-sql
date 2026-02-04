@@ -16,6 +16,7 @@ import { ForumRoomMapper } from "@mappers/implementations/forum-room.mapper";
 import { ForumRoomMemberMapper } from "@mappers/implementations/forum-room-member.mapper";
 import { ForumPostMapper } from "@mappers/implementations/forum-post.mapper";
 import { ForumCommentMapper } from "@mappers/implementations/forum-comment.mapper";
+import { VerificationRequestMapper } from "@mappers/implementations/verification-request.mapper";
 
 @Global()
 @Module({
@@ -37,6 +38,7 @@ import { ForumCommentMapper } from "@mappers/implementations/forum-comment.mappe
         ForumRoomMemberMapper,
         ForumPostMapper,
         ForumCommentMapper,
+        VerificationRequestMapper,
     ],
     exports: [MapperService],
 })
@@ -59,6 +61,7 @@ export class MapperModule {
         private readonly forumRoomMemberMapper: ForumRoomMemberMapper,
         private readonly forumPostMapper: ForumPostMapper,
         private readonly forumCommentMapper: ForumCommentMapper,
+        private readonly verificationRequestMapper: VerificationRequestMapper,
     ) {
         this.mapperService.registerMapper("User", this.userMapper);
         this.mapperService.registerMapper("Product", this.productMapper);
@@ -88,5 +91,6 @@ export class MapperModule {
         this.mapperService.registerMapper("ForumRoomMember", this.forumRoomMemberMapper);
         this.mapperService.registerMapper("ForumPost", this.forumPostMapper);
         this.mapperService.registerMapper("ForumComment", this.forumCommentMapper);
+        this.mapperService.registerMapper("VerificationRequest", this.verificationRequestMapper);
     }
 }

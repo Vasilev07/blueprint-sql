@@ -1,5 +1,6 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { VerificationStatus } from "../enums/verification-status.enum";
+import { UserDTO } from "./user.dto";
 
 export class VerificationRequestDTO {
     @ApiPropertyOptional()
@@ -7,6 +8,9 @@ export class VerificationRequestDTO {
 
     @ApiPropertyOptional()
     userId?: number;
+
+    @ApiPropertyOptional()
+    user?: UserDTO;
 
     @ApiPropertyOptional()
     verificationPhoto?: string;

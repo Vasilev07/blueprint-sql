@@ -523,7 +523,7 @@ export class ChatComponent implements OnInit, OnDestroy, OnChanges {
 
     openUserProfile(): void {
         if (this.currentUserId) {
-            this.router.navigate(['/profile', this.currentUserId]);
+            this.router.navigate(["/profile", this.currentUserId]);
         }
     }
 

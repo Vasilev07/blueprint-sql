@@ -1260,24 +1260,9 @@ export class UserService implements OnModuleInit {
             order: { createdAt: "DESC" },
         });
 
-        return requests.map((request) => ({
-            id: request.id,
-            userId: request.userId,
-            user: request.user
-                ? {
-                    id: request.user.id,
-                    firstname: request.user.firstname,
-                    lastname: request.user.lastname,
-                    email: request.user.email,
-                }
-                : null,
-            verificationPhoto: request.verificationPhoto,
-            status: request.status,
-            rejectionReason: request.rejectionReason,
-            reviewedBy: request.reviewedBy,
-            reviewedAt: request.reviewedAt,
-            createdAt: request.createdAt,
-        }));
+        return requests.map((request) =>
+            this.mapperService.entityToDTO("VerificationRequest", request),
+        );
     }
 
     async reviewVerificationRequest(
