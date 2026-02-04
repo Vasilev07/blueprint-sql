@@ -16,8 +16,6 @@ const initPostgres = async () => {
         .withPassword("root")
         .start();
 
-    console.log("PGPGPGPGPGPGGP", postgres);
-
     global.postgres = postgres;
 
     process.env.DB_HOST = postgres.getHost();

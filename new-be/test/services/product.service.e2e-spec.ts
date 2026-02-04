@@ -8,13 +8,16 @@ import { Order } from "../../src/entities/order.entity";
 import { Product } from "../../src/entities/product.entity";
 import { ProductDTO } from "../../src/models/product.dto";
 
+import { User } from "../../src/entities/user.entity";
+import { ProductImage } from "../../src/entities/product-image.entity";
+
 describe("Product Service (e2e)", () => {
     let app: INestApplication;
     let productService: ProductService;
 
     beforeAll(async () => {
         const moduleFixture: TestingModule = await Test.createTestingModule({
-            imports: [AppModule, TypeOrmModule.forFeature([Order, Product])],
+            imports: [AppModule, TypeOrmModule.forFeature([Order, Product, User, ProductImage])],
         }).compile();
 
         app = moduleFixture.createNestApplication();

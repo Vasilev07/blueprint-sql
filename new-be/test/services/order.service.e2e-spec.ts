@@ -64,6 +64,18 @@ describe("Order Service (e2e)", () => {
             status: OrderStatus.PENDING,
             total: 100,
             products: [productFromDB],
+            address: {
+                country: "Test Country",
+                city: "Test City",
+                postCode: "1234",
+                address: "Test Address 123",
+            },
+            contactInformation: {
+                firstName: "John",
+                lastName: "Doe",
+                email: "test@example.com",
+                phone: "+1234567890",
+            },
         };
 
         const orderFromDB: OrderDTO =
@@ -96,6 +108,18 @@ describe("Order Service (e2e)", () => {
             status: OrderStatus.PENDING,
             total: 100,
             products: [savedProduct],
+            address: {
+                country: "Test Country",
+                city: "Test City",
+                postCode: "1234",
+                address: "Test Address 123",
+            },
+            contactInformation: {
+                firstName: "John",
+                lastName: "Doe",
+                email: "test@example.com",
+                phone: "+1234567890",
+            },
         };
         const savedOrder = await orderService.createOrder(orderToSave);
         console.log(savedOrder, "savedOrder");

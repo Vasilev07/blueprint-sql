@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne, JoinColumn, PrimaryColumn } from "typeorm";
+import { Column, Entity, ManyToOne, JoinColumn, PrimaryColumn, CreateDateColumn } from "typeorm";
 import { User } from "./user.entity";
 
 export enum FriendshipStatus {
@@ -29,4 +29,7 @@ export class UserFriend {
         default: FriendshipStatus.PENDING,
     })
     status: FriendshipStatus;
+
+    @CreateDateColumn()
+    createdAt: Date;
 }

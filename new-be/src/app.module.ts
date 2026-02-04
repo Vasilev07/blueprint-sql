@@ -22,6 +22,7 @@ import { AuthGuard } from "./guards/auth.guard";
 import { LiveStreamSessionModule } from "./controllers/live-stream-session/live-stream-session.module";
 import { SuperLikeModule } from "./controllers/super-like/super-like.module";
 import { ForumModule } from "./controllers/forum-room/forum-room.module";
+import { StatisticsModule } from "./controllers/statistics/statistics.module";
 
 @Module({
     imports: [
@@ -32,7 +33,7 @@ import { ForumModule } from "./controllers/forum-room/forum-room.module";
                 ".env",
             ],
         }),
-        TypeOrmModule.forRoot(dataSourceOptions),
+        TypeOrmModule.forRoot({ ...dataSourceOptions, autoLoadEntities: true }),
         MapperModule,
         OrderModule,
         UserModule,
@@ -46,7 +47,9 @@ import { ForumModule } from "./controllers/forum-room/forum-room.module";
         GiftModule,
         LiveStreamSessionModule,
         SuperLikeModule,
+        SuperLikeModule,
         ForumModule,
+        StatisticsModule,
     ],
     controllers: [AppController],
     providers: [
