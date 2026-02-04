@@ -18,7 +18,7 @@ import {
 } from "../models/user-profile.dto";
 import { sign } from "jsonwebtoken";
 import { CryptoService } from "./crypto.service";
-import { EntityManager } from "typeorm";
+import { EntityManager, In } from "typeorm";
 import { User } from "@entities/user.entity";
 import { UserProfile } from "@entities/user-profile.entity";
 import { UserPhoto } from "@entities/user-photo.entity";
@@ -173,9 +173,9 @@ export class UserService implements OnModuleInit {
             const users = await this.entityManager.find(User, {
                 relations: ["profile"],
             });
-            
+
             const mappedUsers = await this.mapUsersWithProfiles(users);
-            
+
             return {
                 users: mappedUsers,
                 page: 1,
@@ -219,7 +219,7 @@ export class UserService implements OnModuleInit {
             whereConditions.push("user.id != :currentUserId");
             whereParams.currentUserId = currentUserId;
         }
-        
+
         // Count total users before filtering
         const totalUsersBeforeFilter = await this.entityManager.count(User);
         console.log(`Total users in database: ${totalUsersBeforeFilter}`);
@@ -319,7 +319,7 @@ export class UserService implements OnModuleInit {
             whereConditions.push("profile.isVerified = :verified");
             whereParams.verified = true;
         }
-        
+
         console.log(`verifiedOnly parameter: ${verifiedOnly}, type: ${typeof verifiedOnly}`);
 
         // Apply all where conditions at once
@@ -357,7 +357,7 @@ export class UserService implements OnModuleInit {
 
         // Execute query
         const users = await query.getMany();
-        
+
         console.log(`Query result: Found ${users.length} users after filtering`);
         console.log(`User IDs returned:`, users.map(u => u.id));
 
@@ -444,7 +444,7 @@ export class UserService implements OnModuleInit {
         // Get profile view counts for all users
         let viewCountMap = new Map<number, number>();
         let likesCountMap = new Map<number, number>();
-        
+
         try {
             const profileViewRepo =
                 this.entityManager.getRepository("ProfileView");
@@ -504,6 +504,15 @@ export class UserService implements OnModuleInit {
         });
     }
 
+    /**
+     * Converts Buffer to PostgreSQL bytea hex format.
+     * TypeORM truncates Buffer at null bytes (0x00) when saving to bytea -
+     * hex format avoids this corruption for binary image data.
+     */
+    private bufferToByteaHex(buffer: Buffer): string {
+        return "\\x" + buffer.toString("hex");
+    }
+
     private getUserIdFromRequest(req: any): number {
         const token = req.headers.authorization?.split(" ")[1];
         if (!token) throw new UnauthorizedException("No token provided");
@@ -540,7 +549,8 @@ export class UserService implements OnModuleInit {
         const photo = new UserPhoto();
         photo.userProfileId = profile.id;
         photo.name = file.originalname;
-        photo.data = file.buffer as any;
+        // TypeORM/PostgreSQL bytea truncates at null bytes - use hex format to avoid corruption
+        photo.data = this.bufferToByteaHex(file.buffer) as any;
 
         const saved = await this.entityManager.save(photo);
 
@@ -643,10 +653,12 @@ export class UserService implements OnModuleInit {
 
         // Get all user profiles to map userProfileId to userId
         const profileIds = photos.map((p) => p.userProfileId);
-        const profiles = await this.entityManager.findByIds(
-            UserProfile,
-            profileIds,
-        );
+        const profiles =
+            profileIds.length > 0
+                ? await this.entityManager.find(UserProfile, {
+                    where: { id: In(profileIds) },
+                })
+                : [];
         const profileMap = new Map(profiles.map((p) => [p.id, p.userId]));
 
         return photos.map((p) => ({
@@ -662,7 +674,7 @@ export class UserService implements OnModuleInit {
     }
 
     async getPhoto(photoId: number, req: any): Promise<UserPhoto> {
-        const currentUserId = this.getUserIdFromRequest(req);
+        this.getUserIdFromRequest(req); // Ensure user is authenticated
 
         const photo = await this.entityManager.findOne(UserPhoto, {
             where: { id: photoId },
@@ -673,22 +685,8 @@ export class UserService implements OnModuleInit {
             throw new NotFoundException("Photo not found");
         }
 
-        // Allow if it's the user's own photo
-        if (photo.userProfile.userId === currentUserId) {
-            return photo;
-        }
-
-        // Check if users are friends
-        const areFriends = await this.areUsersFriends(
-            currentUserId,
-            photo.userProfile.userId,
-        );
-        if (!areFriends) {
-            throw new ForbiddenException(
-                "You must be friends to view this photo",
-            );
-        }
-
+        // Allow any authenticated user to view photos (aligned with getUserPhotosByUserId
+        // which returns photo list to all authenticated users for profile viewing)
         return photo;
     }
 
@@ -812,7 +810,8 @@ export class UserService implements OnModuleInit {
         const photo = new UserPhoto();
         photo.userProfileId = profile.id;
         photo.name = file.originalname;
-        photo.data = file.buffer as any;
+        // TypeORM/PostgreSQL bytea truncates at null bytes - use hex format to avoid corruption
+        photo.data = this.bufferToByteaHex(file.buffer) as any;
 
         const savedPhoto = await this.entityManager.save(photo);
 
@@ -1207,16 +1206,12 @@ export class UserService implements OnModuleInit {
         const verificationDir = `${uploadDir}/verifications`;
         const filePath = `${verificationDir}/${filename}`;
 
-        // Ensure directory exists
         const fs = require("fs");
         if (!fs.existsSync(verificationDir)) {
             fs.mkdirSync(verificationDir, { recursive: true });
         }
 
-        // Write file
         fs.writeFileSync(filePath, file.buffer);
-
-        // Create verification request
 
         const verificationRequest = new VerificationRequest();
         verificationRequest.userId = userId;
@@ -1270,11 +1265,11 @@ export class UserService implements OnModuleInit {
             userId: request.userId,
             user: request.user
                 ? {
-                      id: request.user.id,
-                      firstname: request.user.firstname,
-                      lastname: request.user.lastname,
-                      email: request.user.email,
-                  }
+                    id: request.user.id,
+                    firstname: request.user.firstname,
+                    lastname: request.user.lastname,
+                    email: request.user.email,
+                }
                 : null,
             verificationPhoto: request.verificationPhoto,
             status: request.status,
@@ -1344,11 +1339,11 @@ export class UserService implements OnModuleInit {
         // Read the photo file from the file system
         const fs = require('fs');
         const path = require('path');
-        
+
         try {
             const photoPath = path.join(process.cwd(), 'uploads', verificationRequest.verificationPhoto);
             const photoData = fs.readFileSync(photoPath);
-            
+
             return {
                 data: photoData,
                 name: verificationRequest.verificationPhoto,

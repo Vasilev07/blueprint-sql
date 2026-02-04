@@ -3,22 +3,8 @@ import { Subject, takeUntil } from "rxjs";
 import { MessageService, ConfirmationService } from "primeng/api";
 import { UserService } from "src/typescript-api-client/src/api/api";
 
-interface VerificationRequest {
-    id: number;
-    userId: number;
-    user: {
-        id: number;
-        firstname: string;
-        lastname: string;
-        email: string;
-    };
-    verificationPhoto: string;
-    status: string;
-    rejectionReason?: string;
-    reviewedBy?: number;
-    reviewedAt?: Date;
-    createdAt: Date;
-}
+import { VerificationRequestDTO } from "src/typescript-api-client/src/model/verification-request-dto";
+import { ReviewVerificationRequestDTO } from "src/typescript-api-client/src/model/review-verification-request-dto";
 
 @Component({
     selector: "app-admin-verification",
@@ -28,10 +14,10 @@ interface VerificationRequest {
 export class AdminVerificationComponent implements OnInit, OnDestroy {
     private destroy$ = new Subject<void>();
 
-    verificationRequests: VerificationRequest[] = [];
-    filteredRequests: VerificationRequest[] = [];
+    verificationRequests: VerificationRequestDTO[] = [];
+    filteredRequests: VerificationRequestDTO[] = [];
     isLoading = false;
-    selectedRequest: VerificationRequest | null = null;
+    selectedRequest: VerificationRequestDTO | null = null;
     showPhotoDialog = false;
     showReviewDialog = false;
     showRejectionDialog = false;
@@ -59,7 +45,7 @@ export class AdminVerificationComponent implements OnInit, OnDestroy {
         private userService: UserService,
         private messageService: MessageService,
         private confirmationService: ConfirmationService,
-    ) {}
+    ) { }
 
     ngOnInit(): void {
         this.loadVerificationRequests();
@@ -77,7 +63,7 @@ export class AdminVerificationComponent implements OnInit, OnDestroy {
             .getAllVerificationRequests(this.statusFilter || "")
             .pipe(takeUntil(this.destroy$))
             .subscribe({
-                next: (requests: VerificationRequest[]) => {
+                next: (requests: VerificationRequestDTO[]) => {
                     this.verificationRequests = requests;
                     this.applyFilters();
                     this.isLoading = false;
@@ -131,33 +117,33 @@ export class AdminVerificationComponent implements OnInit, OnDestroy {
         this.applyFilters();
     }
 
-    openPhotoDialog(request: VerificationRequest): void {
+    openPhotoDialog(request: VerificationRequestDTO): void {
         this.selectedRequest = request;
         this.showPhotoDialog = true;
     }
 
-    openReviewDialog(request: VerificationRequest): void {
+    openReviewDialog(request: VerificationRequestDTO): void {
         this.selectedRequest = request;
         this.reviewForm.status = "";
         this.reviewForm.rejectionReason = "";
         this.showReviewDialog = true;
     }
 
-    openRejectionDialog(request: VerificationRequest): void {
+    openRejectionDialog(request: VerificationRequestDTO): void {
         this.selectedRequest = request;
         this.reviewForm.status = "rejected";
         this.reviewForm.rejectionReason = "";
         this.showRejectionDialog = true;
     }
 
-    openRevokeDialog(request: VerificationRequest): void {
+    openRevokeDialog(request: VerificationRequestDTO): void {
         this.selectedRequest = request;
         this.reviewForm.status = "rejected";
         this.reviewForm.rejectionReason = "";
         this.showRevokeDialog = true;
     }
 
-    approveRequest(request: VerificationRequest): void {
+    approveRequest(request: VerificationRequestDTO): void {
         this.selectedRequest = request;
         this.reviewForm.status = "verified";
         this.reviewForm.rejectionReason = "";
@@ -253,11 +239,11 @@ export class AdminVerificationComponent implements OnInit, OnDestroy {
         window.open(`/profile/${userId}`, "_blank");
     }
 
-    canReview(request: VerificationRequest): boolean {
+    canReview(request: VerificationRequestDTO): boolean {
         return request.status === "pending" || request.status === "in_review";
     }
 
-    canRevoke(request: VerificationRequest): boolean {
+    canRevoke(request: VerificationRequestDTO): boolean {
         return request.status === "verified";
     }
 }

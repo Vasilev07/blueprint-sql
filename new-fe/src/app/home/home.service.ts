@@ -83,6 +83,96 @@ export class HomeService implements OnDestroy {
 
     private initializeData(): void {
         this.loadFriends();
+        this.setupProfileViewsCountUpdates();
+    }
+
+    /**
+     * Listen for real-time profile views count updates via WebSocket
+     * Uses the existing onProfileView event which includes the count when current user views someone's profile
+     */
+    private setupProfileViewsCountUpdates(): void {
+        console.log(
+            "[HomeService] Setting up profile views count updates listener",
+        );
+        this.websocketService
+            .onProfileView()
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+                next: (notification) => {
+                    console.log(
+                        "[HomeService] Received profile:view event:",
+                        JSON.stringify(notification),
+                    );
+                    // Update count if this is a count update notification (has userId and profileViewsCount)
+                    // This happens when current user views someone else's profile
+                    if (
+                        notification.userId &&
+                        notification.profileViewsCount !== undefined
+                    ) {
+                        console.log(
+                            `[HomeService] Updating profile views count for user ${notification.userId} to ${notification.profileViewsCount}`,
+                        );
+                        this.updateUserProfileViewsCount(
+                            notification.userId,
+                            notification.profileViewsCount,
+                        );
+                    } else {
+                        console.log(
+                            "[HomeService] Notification doesn't have userId or profileViewsCount, skipping count update. Has userId:",
+                            !!notification.userId,
+                            "Has profileViewsCount:",
+                            notification.profileViewsCount !== undefined,
+                        );
+                    }
+                },
+                error: (error) => {
+                    console.error(
+                        "[HomeService] Error receiving profile view notification:",
+                        error,
+                    );
+                },
+            });
+        console.log(
+            "[HomeService] Profile views count updates listener set up",
+        );
+    }
+
+    /**
+     * Update a user's profile views count in the current users list
+     */
+    private updateUserProfileViewsCount(
+        userId: number,
+        newCount: number,
+    ): void {
+        const currentUsers = this.usersSubject.value;
+        console.log(
+            `updateUserProfileViewsCount: Updating user ${userId} to count ${newCount}, current users in list: ${currentUsers.length}`,
+        );
+
+        const userExists = currentUsers.some((u) => u.id === userId);
+        if (!userExists) {
+            console.log(
+                `updateUserProfileViewsCount: User ${userId} not found in current users list, skipping update`,
+            );
+            return;
+        }
+
+        const updatedUsers = currentUsers.map((user) => {
+            if (user.id === userId) {
+                console.log(
+                    `updateUserProfileViewsCount: Found user ${userId}, updating count from ${user.profileViewsCount} to ${newCount}`,
+                );
+                return {
+                    ...user,
+                    profileViewsCount: newCount,
+                };
+            }
+            return user;
+        });
+        this.usersSubject.next(updatedUsers);
+        console.log(
+            `updateUserProfileViewsCount: Updated users list, new count for user ${userId}: ${updatedUsers.find((u) => u.id === userId)?.profileViewsCount}`,
+        );
     }
 
     /**
@@ -97,12 +187,21 @@ export class HomeService implements OnDestroy {
             .subscribe({
                 next: (notification) => {
                     // Update count if included in the notification
-                    if (notification.superLikesCount !== undefined && notification.receiverId) {
-                        this.updateUserSuperLikesCount(notification.receiverId, notification.superLikesCount);
+                    if (
+                        notification.superLikesCount !== undefined &&
+                        notification.receiverId
+                    ) {
+                        this.updateUserSuperLikesCount(
+                            notification.receiverId,
+                            notification.superLikesCount,
+                        );
                     }
                 },
                 error: (error) => {
-                    console.error("Error receiving super like notification:", error);
+                    console.error(
+                        "Error receiving super like notification:",
+                        error,
+                    );
                 },
             });
 
@@ -113,12 +212,21 @@ export class HomeService implements OnDestroy {
             .subscribe({
                 next: (notification) => {
                     // Update the user's count if included in the notification
-                    if (notification.superLikesCount !== undefined && notification.receiverId) {
-                        this.updateUserSuperLikesCount(notification.receiverId, notification.superLikesCount);
+                    if (
+                        notification.superLikesCount !== undefined &&
+                        notification.receiverId
+                    ) {
+                        this.updateUserSuperLikesCount(
+                            notification.receiverId,
+                            notification.superLikesCount,
+                        );
                     }
                 },
                 error: (error) => {
-                    console.error("Error receiving super like sent notification:", error);
+                    console.error(
+                        "Error receiving super like sent notification:",
+                        error,
+                    );
                 },
             });
     }

@@ -20,33 +20,62 @@ export class ProfileViewService {
         userId: number,
         viewerId: number,
     ): Promise<ProfileViewDTO> {
+        console.log(
+            `[ProfileViewService] recordProfileView called: userId=${userId}, viewerId=${viewerId}`,
+        );
         // Don't record if viewing own profile
         if (userId === viewerId) {
+            console.log(
+                `[ProfileViewService] Skipping - user viewing own profile`,
+            );
             return null;
         }
 
-        // Check if they are friends
-        const areFriends = await this.checkIfFriends(userId, viewerId);
+        try {
+            // Check if they are friends
+            const areFriends = await this.checkIfFriends(userId, viewerId);
+            console.log(`[ProfileViewService] Are friends: ${areFriends}`);
 
-        // Create profile view record
-        const view = this.profileViewRepo.create({
-            userId,
-            viewerId,
-            isFriend: areFriends,
-        });
+            // Create profile view record
+            const view = this.profileViewRepo.create({
+                userId,
+                viewerId,
+                isFriend: areFriends,
+            });
 
-        const savedView = await this.profileViewRepo.save(view);
+            const savedView = await this.profileViewRepo.save(view);
+            console.log(
+                `[ProfileViewService] Profile view saved successfully with id: ${savedView.id}, userId: ${savedView.userId}, viewerId: ${savedView.viewerId}`,
+            );
 
-        // Load viewer info for DTO
-        const viewWithRelations = await this.profileViewRepo.findOne({
-            where: { id: savedView.id },
-            relations: ["viewer", "viewer.profile"],
-        });
+            // Load viewer info for DTO
+            const viewWithRelations = await this.profileViewRepo.findOne({
+                where: { id: savedView.id },
+                relations: ["viewer", "viewer.profile"],
+            });
 
-        return this.mapperService.entityToDTO<ProfileView, ProfileViewDTO>(
-            "ProfileView",
-            viewWithRelations,
-        );
+            if (!viewWithRelations) {
+                console.error(
+                    `[ProfileViewService] Failed to load saved view with id: ${savedView.id}`,
+                );
+                throw new Error("Failed to load saved profile view");
+            }
+
+            const dto = this.mapperService.entityToDTO<
+                ProfileView,
+                ProfileViewDTO
+            >("ProfileView", viewWithRelations);
+            console.log(
+                `[ProfileViewService] Profile view DTO created successfully`,
+            );
+            return dto;
+        } catch (error) {
+            console.error(
+                `[ProfileViewService] Error recording profile view:`,
+                error,
+            );
+            throw error;
+        }
     }
 
     async getProfileViews(

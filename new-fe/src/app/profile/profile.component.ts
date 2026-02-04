@@ -1,4 +1,9 @@
-import { Component, OnInit, OnDestroy } from "@angular/core";
+import {
+    Component,
+    OnInit,
+    OnDestroy,
+    ChangeDetectorRef,
+} from "@angular/core";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { Subject, takeUntil } from "rxjs";
 import { MessageService, ConfirmationService } from "primeng/api";
@@ -100,9 +105,13 @@ export class ProfileComponent implements OnInit, OnDestroy {
         private websocketService: WebsocketService,
         private http: HttpClient,
         private fb: FormBuilder,
+        private cdr: ChangeDetectorRef,
     ) {}
 
     ngOnInit(): void {
+        // Ensure auth token is set for UserService API calls (required for profile pictures and photos)
+        this.ensureAuthHeaders();
+
         // Check if viewing another user's profile or own profile
         this.route.paramMap
             .pipe(takeUntil(this.destroy$))
@@ -124,6 +133,17 @@ export class ProfileComponent implements OnInit, OnDestroy {
                     this.loadReceivedGifts();
                 }
             });
+    }
+
+    private ensureAuthHeaders(): void {
+        const token = localStorage.getItem("id_token");
+        if (token) {
+            this.userService.defaultHeaders =
+                this.userService.defaultHeaders.set(
+                    "Authorization",
+                    `Bearer ${token}`,
+                );
+        }
     }
 
     ngOnDestroy(): void {
@@ -211,6 +231,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
                 const blob = response.body as Blob;
                 const blobUrl = URL.createObjectURL(blob);
                 this.photoBlobUrls.set(photoId, blobUrl);
+                this.cdr.detectChanges();
             },
             error: (error) => {
                 console.error(`Error loading photo ${photoId}:`, error);
@@ -443,6 +464,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
                         URL.revokeObjectURL(this.profilePictureBlobUrl);
                     }
                     this.profilePictureBlobUrl = URL.createObjectURL(blob);
+                    this.cdr.detectChanges();
                 },
                 error: (error: any) => {
                     // Profile picture not found is okay, user might not have one
@@ -541,6 +563,15 @@ export class ProfileComponent implements OnInit, OnDestroy {
     loadOtherUserProfile(userId: number): void {
         this.isLoading = true;
 
+        // Clear previous user's photos and blob URLs to avoid stale/wrong images
+        this.userPhotos = [];
+        this.photoBlobUrls.forEach((url) => URL.revokeObjectURL(url));
+        this.photoBlobUrls.clear();
+        if (this.profilePictureBlobUrl) {
+            URL.revokeObjectURL(this.profilePictureBlobUrl);
+            this.profilePictureBlobUrl = null;
+        }
+
         // @ts-ignore - getUserById will return { user, profile }
         this.userService
             .getUserById(userId)
@@ -611,6 +642,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
                         URL.revokeObjectURL(this.profilePictureBlobUrl);
                     }
                     this.profilePictureBlobUrl = URL.createObjectURL(blob);
+                    this.cdr.detectChanges();
                 },
                 error: (error: any) => {
                     // Profile picture not found is okay, user might not have one

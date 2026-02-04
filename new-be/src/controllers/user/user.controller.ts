@@ -36,6 +36,8 @@ import {
     UpdateUserProfileDTO,
 } from "../../models/user-profile.dto";
 import { VerificationRequestDTO } from "../../models/verification-request.dto";
+import { CreateVerificationRequestDTO } from "../../models/create-verification-request.dto";
+import { ReviewVerificationRequestDTO } from "../../models/review-verification-request.dto";
 import { Response } from "express";
 import { Public } from "../../decorators/public.decorator";
 import { AdminGuard } from "../../guards/admin.guard";
@@ -50,7 +52,7 @@ export class UserController {
         private cryptoService: CryptoService,
         private authMiddleware: AuthMiddleware,
         private chatGateway: ChatGateway,
-    ) {}
+    ) { }
 
     @Get("/all")
     @ApiOperation({ summary: "Get all users with pagination and filters" })
@@ -60,9 +62,9 @@ export class UserController {
         schema: {
             type: "object",
             properties: {
-                users: { 
-                    type: "array", 
-                    items: { $ref: "#/components/schemas/UserDTO" } 
+                users: {
+                    type: "array",
+                    items: { $ref: "#/components/schemas/UserDTO" }
                 },
                 page: { type: "number" },
                 limit: { type: "number" },
@@ -439,15 +441,25 @@ export class UserController {
 
         // Record profile view if viewer is authenticated
         if (viewerId && viewerId !== Number(userId)) {
+            console.log(`[ProfileView] Recording profile view: userId=${userId}, viewerId=${viewerId}`);
             // Don't await - record async to not slow down response
             this.profileViewService
                 .recordProfileView(Number(userId), viewerId)
-                .then(async () => {
+                .then(async (savedView) => {
+                    if (!savedView) {
+                        console.log(`[ProfileView] Profile view was skipped (null returned)`);
+                        return;
+                    }
+                    console.log(`[ProfileView] Profile view recorded successfully, savedView id: ${savedView.id}`);
+                    // Get updated profile views count
+                    const profileViewsCount = await this.profileViewService.getUniqueViewerCount(Number(userId));
+                    console.log(`[ProfileView] Updated profile views count for user ${userId}: ${profileViewsCount}`);
+
                     // Get viewer information for the notification
                     try {
                         const viewer =
                             await this.userService.getUserById(viewerId);
-                        // Emit Socket.IO event to notify the profile owner
+                        // Emit Socket.IO event to notify the profile owner (includes updated count)
                         this.chatGateway.server
                             .to(`user:${userId}`)
                             .emit("profile:view", {
@@ -457,6 +469,7 @@ export class UserController {
                                 viewerProfilePictureId: viewer.profilePictureId,
                                 viewedAt: new Date().toISOString(),
                                 message: `${viewer.fullName} viewed your profile`,
+                                profileViewsCount: profileViewsCount, // Updated count for real-time UI update
                             });
                     } catch (error) {
                         console.error(
@@ -470,7 +483,25 @@ export class UserController {
                                 viewerId: viewerId,
                                 viewedAt: new Date().toISOString(),
                                 message: "Someone viewed your profile",
+                                profileViewsCount: profileViewsCount, // Updated count for real-time UI update
                             });
+                    }
+
+                    // Emit profile views count update to viewer (for real-time UI update on home screen)
+                    // This allows the viewer to see the updated count on the user's card they just viewed
+                    // Using the same profile:view event but with the viewed user's ID and count
+                    try {
+                        const countUpdatePayload = {
+                            userId: Number(userId), // The user whose profile was viewed
+                            profileViewsCount: profileViewsCount, // Updated count for real-time UI update
+                        };
+                        console.log(`[ProfileView] Emitting profile views count update to viewer ${viewerId} (room: user:${viewerId}):`, countUpdatePayload);
+                        this.chatGateway.server
+                            .to(`user:${viewerId}`)
+                            .emit("profile:view", countUpdatePayload);
+                        console.log(`[ProfileView] Profile views count update emitted successfully`);
+                    } catch (error) {
+                        console.error("[ProfileView] Failed to emit profile views count update:", error);
                     }
                 })
                 .catch((err) =>
@@ -790,6 +821,7 @@ export class UserController {
     @ApiResponse({
         status: 200,
         description: "Returns verification status",
+        type: VerificationRequestDTO,
     })
     async getVerificationStatus(@Req() req: any): Promise<{
         isVerified: boolean;
@@ -805,6 +837,7 @@ export class UserController {
     @ApiResponse({
         status: 200,
         description: "Returns all verification requests with user data",
+        type: [VerificationRequestDTO],
     })
     async getAllVerificationRequests(@Query("status") status?: string): Promise<any[]> {
         return await this.userService.getAllVerificationRequests(status);
@@ -813,28 +846,15 @@ export class UserController {
     @Put("admin/verifications/:id/review")
     @UseGuards(AdminGuard)
     @ApiOperation({ summary: "Review verification request (Admin only)" })
-    @ApiBody({
-        schema: {
-            type: "object",
-            properties: {
-                status: {
-                    type: "string",
-                    enum: ["verified", "rejected"],
-                },
-                rejectionReason: {
-                    type: "string",
-                    description: "Required if status is rejected",
-                },
-            },
-        },
-    })
+    @ApiBody({ type: ReviewVerificationRequestDTO })
     @ApiResponse({
         status: 200,
         description: "Verification request reviewed successfully",
+        type: VerificationRequestDTO,
     })
     async reviewVerificationRequest(
         @Param("id") id: number,
-        @Body() reviewData: { status: string; rejectionReason?: string },
+        @Body() reviewData: ReviewVerificationRequestDTO,
         @Req() req: any,
     ): Promise<{ message: string }> {
         const adminId = req.userData.id;
@@ -844,7 +864,7 @@ export class UserController {
             reviewData.rejectionReason,
             adminId,
         );
-        
+
         // Notify user via websocket if they're online
         if (result.userId) {
             this.chatGateway.server
@@ -853,12 +873,12 @@ export class UserController {
                     status: reviewData.status,
                     rejectionReason: reviewData.rejectionReason,
                     reviewedAt: new Date().toISOString(),
-                    message: reviewData.status === 'verified' 
-                        ? 'Your account has been verified! 🎉' 
+                    message: reviewData.status === 'verified'
+                        ? 'Your account has been verified! 🎉'
                         : 'Your verification request was rejected. Please check the reason and try again.'
                 });
         }
-        
+
         return { message: "Verification request reviewed successfully" };
     }
 

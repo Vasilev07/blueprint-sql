@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import { Socket, io } from "socket.io-client";
-import { Observable } from "rxjs";
+import { Observable, Subject, share } from "rxjs";
 import {
     ChatMessageDTO,
     ForumPostDTO,
@@ -11,12 +11,14 @@ import { environment } from "../../environments/environment";
 
 // Define proper types for Socket.IO events
 interface ProfileViewNotification {
-    viewerId: number;
-    viewerName: string;
-    viewerEmail: string;
+    viewerId?: number; // When current user views someone else's profile
+    viewerName?: string;
+    viewerEmail?: string;
     viewerProfilePictureId?: number;
-    viewedAt: string;
-    message: string;
+    viewedAt?: string;
+    message?: string;
+    userId?: number; // The user whose profile was viewed (for count updates)
+    profileViewsCount?: number; // Updated count for real-time UI update
 }
 
 interface ChatMessagePayload {
@@ -74,6 +76,9 @@ interface SuperLikeSentNotification {
 })
 export class WebsocketService {
     private socket: Socket;
+    private profileViewSubject = new Subject<ProfileViewNotification>();
+    private profileViewObservable: Observable<ProfileViewNotification> | null =
+        null;
 
     constructor(private authService: AuthService) {
         const email = this.authService.getUserEmail();
@@ -100,6 +105,7 @@ export class WebsocketService {
 
         this.socket.on("connect", () => {
             // Socket connected
+            this.setupSharedListeners();
         });
         this.socket.on("disconnect", (reason) => {
             // Socket disconnected
@@ -110,6 +116,38 @@ export class WebsocketService {
         this.socket.on("error", (err: Error) => {
             console.error("Socket error:", err);
         });
+
+        // Setup shared listeners if socket is already connected
+        if (this.socket.connected) {
+            this.setupSharedListeners();
+        }
+    }
+
+    /**
+     * Setup shared listeners that are used by multiple subscribers
+     * This prevents memory leaks from multiple listeners on the same event
+     */
+    private setupSharedListeners(): void {
+        // Setup profile:view listener once and share it
+        if (!this.profileViewObservable) {
+            this.socket.on(
+                "profile:view",
+                (payload: ProfileViewNotification) => {
+                    console.log(
+                        "[WebSocketService] Received profile:view event (shared listener):",
+                        payload,
+                    );
+                    this.profileViewSubject.next(payload);
+                },
+            );
+
+            this.profileViewObservable = this.profileViewSubject
+                .asObservable()
+                .pipe(share());
+            console.log(
+                "[WebSocketService] Shared profile:view listener set up",
+            );
+        }
     }
 
     subscribeToMessages(): Observable<void> {
@@ -224,23 +262,26 @@ export class WebsocketService {
     }
 
     onProfileView(): Observable<ProfileViewNotification> {
-        return new Observable<ProfileViewNotification>((observer) => {
-            const handler = (payload: ProfileViewNotification) => {
-                observer.next(payload);
-            };
-            this.socket.on("profile:view", handler);
-            return () => this.socket.off("profile:view", handler);
-        });
+        // Use shared Observable to prevent multiple listeners
+        if (!this.profileViewObservable) {
+            this.setupSharedListeners();
+        }
+        return this.profileViewObservable!;
     }
 
     onVerificationStatusChange(): Observable<VerificationStatusChangeNotification> {
-        return new Observable<VerificationStatusChangeNotification>((observer) => {
-            const handler = (payload: VerificationStatusChangeNotification) => {
-                observer.next(payload);
-            };
-            this.socket.on("verification:status_changed", handler);
-            return () => this.socket.off("verification:status_changed", handler);
-        });
+        return new Observable<VerificationStatusChangeNotification>(
+            (observer) => {
+                const handler = (
+                    payload: VerificationStatusChangeNotification,
+                ) => {
+                    observer.next(payload);
+                };
+                this.socket.on("verification:status_changed", handler);
+                return () =>
+                    this.socket.off("verification:status_changed", handler);
+            },
+        );
     }
 
     onGiftReceived(): Observable<GiftReceivedNotification> {
@@ -276,13 +317,20 @@ export class WebsocketService {
     onSuperLikeSent(): Observable<SuperLikeSentNotification> {
         return new Observable<SuperLikeSentNotification>((observer) => {
             const handler = (payload: SuperLikeSentNotification) => {
-                console.log('🔔 WebSocket: Received super-like:sent event:', payload);
+                console.log(
+                    "🔔 WebSocket: Received super-like:sent event:",
+                    payload,
+                );
                 observer.next(payload);
             };
-            console.log('👂 WebSocket: Setting up listener for super-like:sent');
+            console.log(
+                "👂 WebSocket: Setting up listener for super-like:sent",
+            );
             this.socket.on("super-like:sent", handler);
             return () => {
-                console.log('👋 WebSocket: Removing listener for super-like:sent');
+                console.log(
+                    "👋 WebSocket: Removing listener for super-like:sent",
+                );
                 this.socket.off("super-like:sent", handler);
             };
         });
@@ -306,15 +354,24 @@ export class WebsocketService {
         this.socket.emit("video-call:end", payload);
     }
 
-    emitWebRTCOffer(payload: { callId: string; offer: RTCSessionDescriptionInit }) {
+    emitWebRTCOffer(payload: {
+        callId: string;
+        offer: RTCSessionDescriptionInit;
+    }) {
         this.socket.emit("video-call:webrtc:offer", payload);
     }
 
-    emitWebRTCAnswer(payload: { callId: string; answer: RTCSessionDescriptionInit }) {
+    emitWebRTCAnswer(payload: {
+        callId: string;
+        answer: RTCSessionDescriptionInit;
+    }) {
         this.socket.emit("video-call:webrtc:answer", payload);
     }
 
-    emitWebRTCIceCandidate(payload: { callId: string; candidate: RTCIceCandidate }) {
+    emitWebRTCIceCandidate(payload: {
+        callId: string;
+        candidate: RTCIceCandidate;
+    }) {
         this.socket.emit("video-call:webrtc:ice-candidate", payload);
     }
 
@@ -370,7 +427,8 @@ export class WebsocketService {
         return new Observable<any>((observer) => {
             const handler = (payload: any) => observer.next(payload);
             this.socket.on("video-call:webrtc:ice-candidate", handler);
-            return () => this.socket.off("video-call:webrtc:ice-candidate", handler);
+            return () =>
+                this.socket.off("video-call:webrtc:ice-candidate", handler);
         });
     }
 
@@ -389,62 +447,94 @@ export class WebsocketService {
         this.socket.emit("forum:leave-room", { roomId });
     }
 
-    onForumPostCreated(roomId: number): Observable<{ roomId: number; post: ForumPostDTO }> {
-        return new Observable<{ roomId: number; post: ForumPostDTO }>((observer) => {
-            const handler = (payload: { roomId: number; post: ForumPostDTO }) =>
-                observer.next(payload);
-            this.socket.on("forum:post:created", handler);
-            return () => this.socket.off("forum:post:created", handler);
-        });
-    }
-
-    onForumPostUpdated(roomId: number): Observable<{ roomId: number; post: ForumPostDTO }> {
-        return new Observable<{ roomId: number; post: ForumPostDTO }>((observer) => {
-            const handler = (payload: { roomId: number; post: ForumPostDTO }) =>
-                observer.next(payload);
-            this.socket.on("forum:post:updated", handler);
-            return () => this.socket.off("forum:post:updated", handler);
-        });
-    }
-
-    onForumPostDeleted(roomId: number): Observable<{ roomId: number; postId: number }> {
-        return new Observable<{ roomId: number; postId: number }>((observer) => {
-            const handler = (payload: { roomId: number; postId: number }) =>
-                observer.next(payload);
-            this.socket.on("forum:post:deleted", handler);
-            return () => this.socket.off("forum:post:deleted", handler);
-        });
-    }
-
-    onForumCommentCreated(roomId: number): Observable<{ postId: number; comment: ForumCommentDTO }> {
-        return new Observable<{ postId: number; comment: ForumCommentDTO }>((observer) => {
-            const handler = (payload: { postId: number; comment: ForumCommentDTO }) =>
-                observer.next(payload);
-            this.socket.on("forum:comment:created", handler);
-            return () => this.socket.off("forum:comment:created", handler);
-        });
-    }
-
-    onForumCommentUpdated(roomId: number): Observable<{ postId: number; comment: ForumCommentDTO }> {
-        return new Observable<{ postId: number; comment: ForumCommentDTO }>((observer) => {
-            const handler = (payload: { postId: number; comment: ForumCommentDTO }) =>
-                observer.next(payload);
-            this.socket.on("forum:comment:updated", handler);
-            return () => this.socket.off("forum:comment:updated", handler);
-        });
-    }
-
-    onForumCommentDeleted(roomId: number): Observable<{ roomId: number; postId: number; commentId: number }> {
-        return new Observable<{ roomId: number; postId: number; commentId: number }>(
+    onForumPostCreated(
+        roomId: number,
+    ): Observable<{ roomId: number; post: ForumPostDTO }> {
+        return new Observable<{ roomId: number; post: ForumPostDTO }>(
             (observer) => {
                 const handler = (payload: {
                     roomId: number;
-                    postId: number;
-                    commentId: number;
+                    post: ForumPostDTO;
                 }) => observer.next(payload);
-                this.socket.on("forum:comment:deleted", handler);
-                return () => this.socket.off("forum:comment:deleted", handler);
+                this.socket.on("forum:post:created", handler);
+                return () => this.socket.off("forum:post:created", handler);
             },
         );
+    }
+
+    onForumPostUpdated(
+        roomId: number,
+    ): Observable<{ roomId: number; post: ForumPostDTO }> {
+        return new Observable<{ roomId: number; post: ForumPostDTO }>(
+            (observer) => {
+                const handler = (payload: {
+                    roomId: number;
+                    post: ForumPostDTO;
+                }) => observer.next(payload);
+                this.socket.on("forum:post:updated", handler);
+                return () => this.socket.off("forum:post:updated", handler);
+            },
+        );
+    }
+
+    onForumPostDeleted(
+        roomId: number,
+    ): Observable<{ roomId: number; postId: number }> {
+        return new Observable<{ roomId: number; postId: number }>(
+            (observer) => {
+                const handler = (payload: { roomId: number; postId: number }) =>
+                    observer.next(payload);
+                this.socket.on("forum:post:deleted", handler);
+                return () => this.socket.off("forum:post:deleted", handler);
+            },
+        );
+    }
+
+    onForumCommentCreated(
+        roomId: number,
+    ): Observable<{ postId: number; comment: ForumCommentDTO }> {
+        return new Observable<{ postId: number; comment: ForumCommentDTO }>(
+            (observer) => {
+                const handler = (payload: {
+                    postId: number;
+                    comment: ForumCommentDTO;
+                }) => observer.next(payload);
+                this.socket.on("forum:comment:created", handler);
+                return () => this.socket.off("forum:comment:created", handler);
+            },
+        );
+    }
+
+    onForumCommentUpdated(
+        roomId: number,
+    ): Observable<{ postId: number; comment: ForumCommentDTO }> {
+        return new Observable<{ postId: number; comment: ForumCommentDTO }>(
+            (observer) => {
+                const handler = (payload: {
+                    postId: number;
+                    comment: ForumCommentDTO;
+                }) => observer.next(payload);
+                this.socket.on("forum:comment:updated", handler);
+                return () => this.socket.off("forum:comment:updated", handler);
+            },
+        );
+    }
+
+    onForumCommentDeleted(
+        roomId: number,
+    ): Observable<{ roomId: number; postId: number; commentId: number }> {
+        return new Observable<{
+            roomId: number;
+            postId: number;
+            commentId: number;
+        }>((observer) => {
+            const handler = (payload: {
+                roomId: number;
+                postId: number;
+                commentId: number;
+            }) => observer.next(payload);
+            this.socket.on("forum:comment:deleted", handler);
+            return () => this.socket.off("forum:comment:deleted", handler);
+        });
     }
 }

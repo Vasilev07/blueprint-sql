@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { ApiPropertyOptional } from "@nestjs/swagger";
 import { VerificationStatus } from "../enums/verification-status.enum";
 
 export class VerificationRequestDTO {
@@ -28,17 +28,4 @@ export class VerificationRequestDTO {
 
     @ApiPropertyOptional()
     updatedAt?: Date;
-}
-
-export class CreateVerificationRequestDTO {
-    @ApiProperty()
-    verificationPhoto: string;
-}
-
-export class ReviewVerificationRequestDTO {
-    @ApiProperty({ enum: VerificationStatus })
-    status: VerificationStatus;
-
-    @ApiPropertyOptional()
-    rejectionReason?: string;
 }
