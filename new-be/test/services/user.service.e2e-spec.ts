@@ -27,7 +27,7 @@ describe("Admin Service (e2e)", () => {
     test("register", async () => {
         const userDto = {
             fullName: "Georgi Vasilev",
-            email: "georgevasile11v007@gmail.com",
+            email: `test-${Date.now()}@example.com`,
             password: "123456",
             confirmPassword: "123456",
         };
@@ -35,7 +35,9 @@ describe("Admin Service (e2e)", () => {
 
         const allUsers = await userService.getAll();
 
-        expect(allUsers.users.length).toBe(1);
-        expect(allUsers.users[0].email).toBe(userDto.email);
+        expect(allUsers.users.length).toBeGreaterThanOrEqual(1);
+        const registered = allUsers.users.find((u) => u.email === userDto.email);
+        expect(registered).toBeDefined();
+        expect(registered!.email).toBe(userDto.email);
     });
 });

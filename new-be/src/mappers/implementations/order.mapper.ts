@@ -15,7 +15,6 @@ export class OrderMapper implements BaseMapper<Order, OrderDTO>, OnModuleInit {
 
     onModuleInit(): any {
         this.productMapper = this.mappersService.getMapper("Product");
-        console.log("kuku");
     }
 
     public entityToDTO(entity: Order): OrderDTO {

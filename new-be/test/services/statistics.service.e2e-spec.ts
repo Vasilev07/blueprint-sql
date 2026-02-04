@@ -4,6 +4,7 @@ import { AppModule } from "../../src/app.module";
 import { StatisticsService } from "../../src/controllers/statistics/statistics.service";
 import { Gift } from "../../src/entities/gift.entity";
 import { ChatMessage } from "../../src/entities/chat-message.entity";
+import { ChatConversation } from "../../src/entities/chat-conversation.entity";
 import { UserFriend, FriendshipStatus } from "../../src/entities/friend.entity";
 import { SuperLike } from "../../src/entities/super-like.entity";
 import { User } from "../../src/entities/user.entity";
@@ -14,6 +15,7 @@ describe("Statistics Service (e2e)", () => {
     let statisticsService: StatisticsService;
     let giftRepo: Repository<Gift>;
     let chatMessageRepo: Repository<ChatMessage>;
+    let conversationRepo: Repository<ChatConversation>;
     let friendRepo: Repository<UserFriend>;
     let superLikeRepo: Repository<SuperLike>;
     let userRepo: Repository<User>;
@@ -27,6 +29,7 @@ describe("Statistics Service (e2e)", () => {
         statisticsService = moduleFixture.get<StatisticsService>(StatisticsService);
         giftRepo = moduleFixture.get("GiftRepository");
         chatMessageRepo = moduleFixture.get("ChatMessageRepository");
+        conversationRepo = moduleFixture.get("ChatConversationRepository");
         friendRepo = moduleFixture.get("UserFriendRepository");
         superLikeRepo = moduleFixture.get("SuperLikeRepository");
         userRepo = moduleFixture.get("UserRepository");
@@ -47,7 +50,8 @@ describe("Statistics Service (e2e)", () => {
             lastname: "User 1",
             // username property missing in User entity? Checking entity...
         } as any);
-        const user1 = await userRepo.save(u1);
+        const saved1 = await userRepo.save(u1);
+        const user1 = Array.isArray(saved1) ? saved1[0] : saved1;
 
         const u2 = userRepo.create({
             email: `testuser2_${Date.now()}@example.com`,
@@ -55,7 +59,8 @@ describe("Statistics Service (e2e)", () => {
             firstname: "Test",
             lastname: "User 2",
         } as any);
-        const user2 = await userRepo.save(u2);
+        const saved2 = await userRepo.save(u2);
+        const user2 = Array.isArray(saved2) ? saved2[0] : saved2;
 
         // 1. Create Gifts
         // Create one gift for today
@@ -84,15 +89,21 @@ describe("Statistics Service (e2e)", () => {
         } as any);
         await giftRepo.save(giftYesterday);
 
-        // 2. Create Chat Messages
-        // Avoid using casting if possible, but for test brevity/partial objects:
-        await chatMessageRepo.save(chatMessageRepo.create({
-            sender: user1,
-            senderId: user1.id,
-            conversationId: 0,
-            content: "Hello",
-            type: "text",
-        } as any));
+        // 2. Create Chat Messages (requires a conversation first)
+        const conversation = await conversationRepo.save(
+            conversationRepo.create({}),
+        );
+        const conv = Array.isArray(conversation) ? conversation[0] : conversation;
+        await chatMessageRepo.save(
+            chatMessageRepo.create({
+                sender: user1,
+                senderId: user1.id,
+                conversation: conv,
+                conversationId: conv.id,
+                content: "Hello",
+                type: "text",
+            } as any),
+        );
 
         // 3. Create Friend Requests
         await friendRepo.save(friendRepo.create({

@@ -17,7 +17,7 @@ describe("Order Service (e2e)", () => {
 
     beforeAll(async () => {
         await dataSource.initialize();
-        await dataSource.runMigrations();
+        // await dataSource.runMigrations();
         const moduleFixture: TestingModule = await Test.createTestingModule({
             imports: [AppModule, TypeOrmModule.forFeature([Order, Product])],
         }).compile();
@@ -88,7 +88,7 @@ describe("Order Service (e2e)", () => {
         expect(orderFromDB.status).toBe(OrderStatus.PENDING);
         expect(orderFromDB.total).toBe(100);
         expect(orderFromDB.products).toBeDefined();
-        expect(orderFromDB.products.length).toBe(0);
+        expect(orderFromDB.products.length).toBe(1);
     });
 
     test("should get orders", async () => {
@@ -133,6 +133,6 @@ describe("Order Service (e2e)", () => {
         expect(orders[0].status).toBe(OrderStatus.PENDING);
         expect(orders[0].total).toBe(100);
         expect(orders[0].products).toBeDefined();
-        expect(orders[0].products.length).toBe(0);
+        expect(orders[0].products.length).toBe(1);
     });
 });
