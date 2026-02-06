@@ -27,7 +27,7 @@ describe("Admin Service (e2e)", () => {
     test("register", async () => {
         const userDto = {
             fullName: "Georgi Vasilev",
-            email: `test-${Date.now()}@example.com`,
+            email: "georgevasile11v007@gmail.com",
             password: "123456",
             confirmPassword: "123456",
         };

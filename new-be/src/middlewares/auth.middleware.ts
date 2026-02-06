@@ -1,6 +1,6 @@
 import { Injectable, NestMiddleware } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { verify, sign } from "jsonwebtoken";
+import { verify, sign, SignOptions } from "jsonwebtoken";
 import { User } from "src/entities/user.entity";
 
 @Injectable()
@@ -28,6 +28,10 @@ export class AuthMiddleware implements NestMiddleware {
             "1h",
         );
 
+        const options: SignOptions = {
+            expiresIn: jwtExpiresIn as SignOptions["expiresIn"],
+        };
+
         return sign(
             {
                 id: user.id,
@@ -38,10 +42,8 @@ export class AuthMiddleware implements NestMiddleware {
                 gender: user.gender,
                 roles: user.roles,
             },
-            jwtSecret,
-            {
-                expiresIn: jwtExpiresIn,
-            },
+            jwtSecret!,
+            options,
         );
     }
 }

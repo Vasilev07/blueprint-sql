@@ -16,7 +16,7 @@ import {
     UserProfileDTO,
     UpdateUserProfileDTO,
 } from "../models/user-profile.dto";
-import { sign } from "jsonwebtoken";
+import { sign, SignOptions } from "jsonwebtoken";
 import { CryptoService } from "./crypto.service";
 import { EntityManager, In } from "typeorm";
 import { User } from "@entities/user.entity";
@@ -127,6 +127,14 @@ export class UserService implements OnModuleInit {
             "1h",
         );
 
+        if (!jwtSecret) {
+            throw new UnauthorizedException("JWT_SECRET is not configured");
+        }
+
+        const options: SignOptions = {
+            expiresIn: jwtExpiresIn as SignOptions["expiresIn"],
+        };
+
         return sign(
             {
                 name: admin.lastname,
@@ -134,9 +142,7 @@ export class UserService implements OnModuleInit {
                 id: admin.id,
             },
             jwtSecret,
-            {
-                expiresIn: jwtExpiresIn,
-            },
+            options,
         );
     };
 
