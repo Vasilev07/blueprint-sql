@@ -59,6 +59,8 @@ jobs:
           POSTGRESDB_DOCKER_PORT: 5432
           NODE_ENV: test
           DB_HOST: 0.0.0.0
+          JWT_SECRET: test-jwt-secret-key-for-e2e-tests
+          JWT_EXPIRES_IN: 1h
   lint-new-fe:
     needs: [ markdown-lint ]
     name: New FE lint

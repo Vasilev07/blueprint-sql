@@ -27,6 +27,10 @@ const initPostgres = async () => {
     process.env.DB_DATABASE = postgres.getDatabase();
     process.env.DB_LOGGING_ENABLED = "false";
 
+    // Set JWT configuration for tests
+    process.env.JWT_SECRET = process.env.JWT_SECRET || "test-jwt-secret-key-for-e2e-tests";
+    process.env.JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "1h";
+
     console.log("Postgres started");
     console.log("DB_HOST", process.env.DB_HOST);
     console.log("DB_PORT", process.env.DB_PORT);
