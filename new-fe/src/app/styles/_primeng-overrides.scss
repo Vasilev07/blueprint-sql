@@ -215,4 +215,108 @@ p-dialog .p-dialog {
       box-shadow: var(--focus-ring, 0 0 0 0.2rem rgba(129, 140, 248, 0.2)) !important;
     }
   }
+
+  /* Textarea styles - ensure dark theme backgrounds in dark mode */
+  textarea.p-inputtextarea,
+  textarea.p-inputtext,
+  textarea.p-inputtextarea.p-inputtext,
+  textarea.p-inputtextarea.p-component,
+  textarea.p-inputtext.p-component,
+  p-textarea textarea,
+  p-textarea textarea.p-inputtextarea,
+  p-textarea textarea.p-inputtext {
+    background: var(--surface-100, #374151) !important;
+    background-color: var(--surface-100, #374151) !important;
+    color: var(--text-color, rgba(255, 255, 255, 0.87)) !important;
+    border-color: var(--surface-border, rgba(255, 255, 255, 0.1)) !important;
+    
+    &::placeholder {
+      color: var(--text-color-secondary, rgba(255, 255, 255, 0.6)) !important;
+    }
+    
+    &:enabled:hover,
+    &:hover {
+      background: var(--surface-200, #4b5563) !important;
+      background-color: var(--surface-200, #4b5563) !important;
+      border-color: var(--surface-300, #6b7280) !important;
+    }
+    
+    &:enabled:focus,
+    &:focus,
+    &:focus-visible {
+      background: var(--surface-200, #4b5563) !important;
+      background-color: var(--surface-200, #4b5563) !important;
+      border-color: var(--primary-color, #818cf8) !important;
+      box-shadow: var(--focus-ring, 0 0 0 0.2rem rgba(129, 140, 248, 0.2)) !important;
+    }
+  }
+
+  /* Override for filled/component textarea states */
+  textarea.p-inputtextarea.p-filled,
+  textarea.p-inputtext.p-filled,
+  textarea.p-inputtextarea.p-component.p-filled,
+  textarea.p-inputtext.p-component.p-filled,
+  p-textarea textarea.p-filled,
+  p-textarea textarea.p-component.p-filled {
+    background: var(--surface-100, #374151) !important;
+    background-color: var(--surface-100, #374151) !important;
+    
+    &:enabled:hover,
+    &:hover {
+      background: var(--surface-200, #4b5563) !important;
+      background-color: var(--surface-200, #4b5563) !important;
+    }
+    
+    &:enabled:focus,
+    &:focus {
+      background: var(--surface-200, #4b5563) !important;
+      background-color: var(--surface-200, #4b5563) !important;
+    }
+  }
+
+  /* Dark theme overrides for send gift dialog sections */
+  app-send-gift-dialog {
+    .gift-form {
+      .selected-gift-summary,
+      div.selected-gift-summary,
+      .selected-gift-summary.ng-star-inserted {
+        background: #374151 !important;
+        background-color: #374151 !important;
+      }
+
+      .balance-check,
+      div.balance-check,
+      .balance-check.ng-star-inserted {
+        background: #374151 !important;
+        background-color: #374151 !important;
+      }
+    }
+
+    .p-dialog-content .gift-form {
+      .selected-gift-summary,
+      div.selected-gift-summary {
+        background: #374151 !important;
+        background-color: #374151 !important;
+      }
+
+      .balance-check,
+      div.balance-check {
+        background: #374151 !important;
+        background-color: #374151 !important;
+      }
+    }
+
+    // Even more specific targeting
+    p-dialog .p-dialog-content form.gift-form {
+      .selected-gift-summary {
+        background: #374151 !important;
+        background-color: #374151 !important;
+      }
+
+      .balance-check {
+        background: #374151 !important;
+        background-color: #374151 !important;
+      }
+    }
+  }
 }
