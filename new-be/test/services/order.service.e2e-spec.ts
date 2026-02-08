@@ -35,9 +35,13 @@ describe("Order Service (e2e)", () => {
 
     afterEach(async () => {
         try {
-            // Use clear() to remove all records, or use query builder with proper criteria
-            await dataSource.manager.clear(Order);
-            await dataSource.manager.clear(Product);
+            // Delete in correct order to handle foreign key constraints
+            // First delete the join table records
+            await dataSource.manager.query('DELETE FROM "order_products"');
+            // Then delete Orders (which reference Products)
+            await dataSource.manager.query('DELETE FROM "order"');
+            // Finally delete Products
+            await dataSource.manager.query('DELETE FROM "product"');
         } catch (e) {
             console.error(e);
         }
