@@ -4,7 +4,7 @@
     <!-- Search Bar -->
     <div class="search-bar-wrapper">
       <p-iconField iconPosition="left" class="search-field">
-        <p-inputIcon styleClass="pi pi-search"></p-inputIcon>
+        <p-inputIcon class="pi pi-search"></p-inputIcon>
         <input 
           type="text" 
           pInputText 
@@ -49,64 +49,76 @@
   </div>
 
   <!-- Sort Dropdown (Hidden by default, can be toggled) -->
-  <div class="sort-section" *ngIf="false">
-    <p-select 
-      [options]="sortOptions" 
-      [(ngModel)]="currentSort"
-      (onChange)="onSortChange($event)"
-      optionLabel="label" 
-      optionValue="value"
-      placeholder="Sort by">
-    </p-select>
-  </div>
+  @if (false) {
+    <div class="sort-section">
+      <p-select 
+        [options]="sortOptions" 
+        [(ngModel)]="currentSort"
+        (onChange)="onSortChange($event)"
+        optionLabel="label" 
+        optionValue="value"
+        placeholder="Sort by">
+      </p-select>
+    </div>
+  }
 
   <!-- Loading State -->
-  <div *ngIf="isLoading" class="loading-container">
-    <p-progressSpinner styleClass="w-4rem h-4rem"></p-progressSpinner>
-    <p>Loading users...</p>
-  </div>
+  @if (isLoading) {
+    <div class="loading-container">
+      <p-progressSpinner class="w-4rem h-4rem"></p-progressSpinner>
+      <p>Loading users...</p>
+    </div>
+  }
 
   <!-- Empty State -->
-  <div *ngIf="!isLoading && users.length === 0" class="empty-state">
-    <i class="pi pi-users empty-icon"></i>
-    <h3>No Users Found</h3>
-    <p>Try changing your filters or check back later.</p>
-    <button 
-      pButton 
-      type="button" 
-      label="Reset Filters" 
-      icon="pi pi-filter-slash"
-      class="p-button-outlined"
-      (click)="onFilterChange('all')">
-    </button>
-  </div>
+  @if (!isLoading && users.length === 0) {
+    <div class="empty-state">
+      <i class="pi pi-users empty-icon"></i>
+      <h3>No Users Found</h3>
+      <p>Try changing your filters or check back later.</p>
+      <button 
+        pButton 
+        type="button" 
+        label="Reset Filters" 
+        icon="pi pi-filter-slash"
+        class="p-button-outlined"
+        (click)="onFilterChange('all')">
+      </button>
+    </div>
+  }
 
   <!-- User Grid -->
-  <div *ngIf="!isLoading && users.length > 0" class="users-grid" (scroll)="onScroll($event)">
-    <app-user-card 
-      *ngFor="let user of users; trackBy: trackByUserId"
-      [user]="user"
-      (chatClick)="onChatClick(user)"
-      (cardClick)="onCardClick(user)"
-      (giftClick)="onGiftClick(user)">
-    </app-user-card>
-  </div>
+  @if (!isLoading && users.length > 0) {
+    <div class="users-grid" (scroll)="onScroll($event)">
+      <app-user-card 
+        *ngFor="let user of users; trackBy: trackByUserId"
+        [user]="user"
+        (chatClick)="onChatClick(user)"
+        (cardClick)="onCardClick(user)"
+        (giftClick)="onGiftClick(user)">
+      </app-user-card>
+    </div>
+  }
 
   <!-- Loading More Indicator -->
-  <div *ngIf="isLoadingMore" class="loading-more">
-    <p-progressSpinner 
-      styleClass="w-3rem h-3rem" 
-      strokeWidth="4"
-      animationDuration="1s">
-    </p-progressSpinner>
-    <p>Loading more users...</p>
-  </div>
+  @if (isLoadingMore) {
+    <div class="loading-more">
+      <p-progressSpinner 
+        class="w-3rem h-3rem" 
+        strokeWidth="4"
+        animationDuration="1s">
+      </p-progressSpinner>
+      <p>Loading more users...</p>
+    </div>
+  }
 
   <!-- End of Results -->
-  <div *ngIf="!isLoading && !hasMoreData && users.length > 0" class="end-of-results">
-    <i class="pi pi-check-circle"></i>
-    <p>You've reached the end! Showing all {{ totalUsers }} users.</p>
-  </div>
+  @if (!isLoading && !hasMoreData && users.length > 0) {
+    <div class="end-of-results">
+      <i class="pi pi-check-circle"></i>
+      <p>You've reached the end! Showing all {{ totalUsers }} users.</p>
+    </div>
+  }
 </div>
 
 <!-- Gift Send Dialog -->
