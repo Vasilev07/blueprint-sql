@@ -21,6 +21,10 @@ describe("Category Service (e2e)", () => {
         await app.init();
     }, 10000);
 
+    afterAll(async () => {
+        await app.close();
+    }, 10000);
+
     afterEach(async () => {
         const ds = app.get(DataSource);
         await ds.createQueryBuilder().delete().from(Category).execute();

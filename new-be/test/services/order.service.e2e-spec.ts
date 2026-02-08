@@ -30,8 +30,11 @@ describe("Order Service (e2e)", () => {
     }, 10000);
 
     afterAll(async () => {
-        await dataSource.destroy();
-    });
+        await app.close();
+        if (dataSource.isInitialized) {
+            await dataSource.destroy();
+        }
+    }, 10000);
 
     afterEach(async () => {
         try {
