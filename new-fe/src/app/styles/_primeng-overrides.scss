@@ -112,3 +112,107 @@ p-dialog .p-dialog {
 .p-dialog.p-dialog-confirm .p-dialog-content {
   background: var(--surface-overlay, #1f2937) !important;
 }
+
+/* --- Input fields: ensure dark theme backgrounds in dark mode --- */
+/* Override PrimeNG input styles to ensure dark backgrounds ONLY in dark theme */
+/* Scoped to .layout-theme-dark to avoid affecting light theme inputs */
+
+.layout-theme-dark {
+  /* Base input styles - only in dark theme */
+  input.p-inputtext,
+  .p-inputtext,
+  input.search-input,
+  .search-input {
+    background: var(--surface-100, #374151) !important;
+    background-color: var(--surface-100, #374151) !important;
+    color: var(--text-color, rgba(255, 255, 255, 0.87)) !important;
+    border-color: var(--surface-border, rgba(255, 255, 255, 0.1)) !important;
+    
+    &::placeholder {
+      color: var(--text-color-secondary, rgba(255, 255, 255, 0.6)) !important;
+    }
+    
+    &:enabled:hover,
+    &:hover {
+      background: var(--surface-200, #4b5563) !important;
+      background-color: var(--surface-200, #4b5563) !important;
+      border-color: var(--surface-300, #6b7280) !important;
+    }
+    
+    &:enabled:focus,
+    &:focus,
+    &:focus-visible {
+      background: var(--surface-200, #4b5563) !important;
+      background-color: var(--surface-200, #4b5563) !important;
+      border-color: var(--primary-color, #818cf8) !important;
+      box-shadow: var(--focus-ring, 0 0 0 0.2rem rgba(129, 140, 248, 0.2)) !important;
+    }
+  }
+
+  /* Override for filled/component states - higher specificity */
+  input.p-inputtext.p-filled,
+  input.p-inputtext.p-component,
+  input.p-inputtext.p-component.p-filled,
+  input.search-input.p-filled,
+  .p-input-filled .p-inputtext,
+  .p-input-filled input.p-inputtext,
+  .p-input-filled input.p-inputtext.p-filled,
+  .p-input-filled .p-inputtext.p-filled {
+    background: var(--surface-100, #374151) !important;
+    background-color: var(--surface-100, #374151) !important;
+    
+    &:enabled:hover,
+    &:hover {
+      background: var(--surface-200, #4b5563) !important;
+      background-color: var(--surface-200, #4b5563) !important;
+    }
+    
+    &:enabled:focus,
+    &:focus {
+      background: var(--surface-200, #4b5563) !important;
+      background-color: var(--surface-200, #4b5563) !important;
+    }
+  }
+
+  /* Override for iconField components */
+  p-iconField input.p-inputtext,
+  p-iconField .p-inputtext,
+  p-iconField input.search-input,
+  p-iconField input.p-inputtext.p-filled,
+  p-iconField input.search-input.p-filled,
+  .p-iconfield input.p-inputtext,
+  .p-iconfield input.search-input,
+  .p-iconfield-left input.p-inputtext,
+  .p-iconfield-left input.search-input,
+  .search-field input.p-inputtext,
+  .search-field input.search-input,
+  .search-field .p-inputtext,
+  .search-field .search-input,
+  .search-bar-wrapper input.p-inputtext,
+  .search-bar-wrapper input.search-input {
+    background: var(--surface-100, #374151) !important;
+    background-color: var(--surface-100, #374151) !important;
+    color: var(--text-color, rgba(255, 255, 255, 0.87)) !important;
+    border-color: var(--surface-border, rgba(255, 255, 255, 0.1)) !important;
+    
+    &::placeholder {
+      color: var(--text-color-secondary, rgba(255, 255, 255, 0.6)) !important;
+    }
+    
+    &:enabled:hover,
+    &:hover {
+      background: var(--surface-200, #4b5563) !important;
+      background-color: var(--surface-200, #4b5563) !important;
+      border-color: var(--surface-300, #6b7280) !important;
+    }
+    
+    &:enabled:focus,
+    &:focus,
+    &:focus-visible {
+      background: var(--surface-200, #4b5563) !important;
+      background-color: var(--surface-200, #4b5563) !important;
+      border-color: var(--primary-color, #818cf8) !important;
+      box-shadow: var(--focus-ring, 0 0 0 0.2rem rgba(129, 140, 248, 0.2)) !important;
+    }
+  }
+}

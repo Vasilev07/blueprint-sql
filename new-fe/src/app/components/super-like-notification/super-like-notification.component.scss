@@ -5,6 +5,7 @@
     left: 0;
     width: 100vw;
     height: 100vh;
+    // Theme-aware overlay - darker in dark theme, lighter in light theme
     background: rgba(0, 0, 0, 0.85);
     z-index: 9999;
     display: flex;
@@ -12,6 +13,11 @@
     justify-content: center;
     animation: fadeIn 0.3s ease-in-out;
     cursor: pointer;
+}
+
+// Dark theme specific overlay
+.layout-theme-dark .super-like-animation-overlay {
+    background: rgba(0, 0, 0, 0.9);
 }
 
 @keyframes fadeIn {
@@ -37,13 +43,16 @@
     text-align: center;
     z-index: 10;
     animation: bounceIn 0.8s ease-out;
-    background: rgba(255, 255, 255, 0.95);
+    // Theme-aware background - dark in dark theme, light in light theme
+    background: var(--surface-card, #1f2937);
     padding: 3rem 4rem;
     border-radius: 20px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(10px);
     max-width: 500px;
     margin: 0 auto;
+    border: 1px solid var(--surface-border, rgba(255, 255, 255, 0.1));
+    color: var(--text-color, rgba(255, 255, 255, 0.87));
 
     .super-like-emoji-large {
         font-size: 8rem;
@@ -55,10 +64,9 @@
 
     .super-like-title {
         font-size: 2.5rem;
-        color: var(--primary-color);
         margin: 1rem 0;
         font-weight: 700;
-        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
         background: linear-gradient(45deg, #ff6b9d, #c44569);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
@@ -67,14 +75,14 @@
 
     .super-like-sender {
         font-size: 1.5rem;
-        color: var(--text-color);
+        color: var(--text-color, rgba(255, 255, 255, 0.87));
         margin: 0.5rem 0;
         font-weight: 600;
     }
 
     .super-like-amount {
         font-size: 2rem;
-        color: var(--primary-color);
+        color: var(--primary-color, #818cf8);
         margin: 1rem 0;
         font-weight: 700;
         display: flex;
@@ -90,12 +98,13 @@
 
     .super-like-message {
         font-size: 1.5rem;
-        color: var(--primary-color);
+        color: var(--text-color, rgba(255, 255, 255, 0.87));
         margin-top: 1.5rem;
         padding: 1rem;
-        background: linear-gradient(135deg, rgba(255, 107, 157, 0.1), rgba(196, 69, 105, 0.1));
+        background: linear-gradient(135deg, rgba(255, 107, 157, 0.15), rgba(196, 69, 105, 0.15));
         border-radius: 8px;
         font-weight: 600;
+        border: 1px solid rgba(255, 107, 157, 0.2);
     }
 }
 

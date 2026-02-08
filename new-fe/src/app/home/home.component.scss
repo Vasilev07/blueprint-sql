@@ -1,18 +1,42 @@
+:host {
+  display: block;
+  background: transparent;
+}
+
 .home-container {
   padding: 2rem;
   max-width: 1400px;
   margin: 0 auto;
+  background: transparent;
 }
 
 // Search and Filter Section
+:host ::ng-deep .search-filter-section,
 .search-filter-section {
-  background: linear-gradient(135deg, var(--surface-0) 0%, var(--surface-b) 100%);
+  position: relative;
+  background: var(--surface-card, #1f2937) !important;
+  background-color: var(--surface-card, #1f2937) !important;
   border-radius: 16px;
   padding: 1.5rem;
   margin-bottom: 2rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.2);
   border: 1px solid var(--surface-border);
-  color: var(--text-color);
+  color: var(--text-color) !important;
+  
+  // Ensure text color inheritance for all text elements
+  span, a, p {
+    color: var(--text-color) !important;
+  }
+  
+  // Override any PrimeNG button text styles
+  ::ng-deep .p-button-text {
+    color: var(--pink-500) !important;
+    
+    &:not(:disabled):hover {
+      background: rgba(129, 140, 248, 0.04) !important;
+      color: var(--pink-500) !important;
+    }
+  }
 }
 
 .search-bar-wrapper {
@@ -21,60 +45,176 @@
   gap: 0.75rem;
   margin-bottom: 1.5rem;
   
+  // Direct override for search input - highest specificity
+  ::ng-deep p-iconField.search-field input.search-input.p-inputtext,
+  ::ng-deep .search-field input.search-input.p-inputtext,
+  ::ng-deep p-iconField input.search-input.p-inputtext {
+    background: #374151 !important;
+    background-color: #374151 !important;
+    color: rgba(255, 255, 255, 0.87) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+  }
+  
   .search-field {
     flex: 1;
     
+    // Ensure p-iconField wrapper doesn't have white background
+    ::ng-deep p-iconField,
+    ::ng-deep .p-iconfield,
+    ::ng-deep .p-iconfield-left {
+      background: transparent !important;
+      background-color: transparent !important;
+    }
+    
     ::ng-deep {
-      .p-inputtext {
+      // Component-specific styling: sizing, spacing, layout AND dark background
+      // Using direct hex colors with highest specificity to override PrimeNG
+      // Target ALL possible combinations to ensure override
+      .p-inputtext,
+      input.p-inputtext,
+      .search-input,
+      input.search-input,
+      input.p-inputtext.search-input,
+      .p-inputtext.search-input,
+      input.search-input.p-inputtext.p-component,
+      input.p-inputtext.p-component.search-input,
+      input.p-inputtext.p-filled,
+      input.search-input.p-filled,
+      input.p-inputtext.p-component.p-filled,
+      input.search-input.p-component.p-filled,
+      p-iconField input.p-inputtext,
+      p-iconField input.search-input,
+      p-iconField .p-inputtext,
+      p-iconField .search-input,
+      .p-iconfield input.p-inputtext,
+      .p-iconfield input.search-input,
+      .search-field input.p-inputtext,
+      .search-field input.search-input,
+      .search-field .p-inputtext,
+      .search-field .search-input {
         width: 100%;
-        background: var(--surface-c);
-        border: 1px solid var(--surface-border);
-        color: var(--text-color);
         padding: 0.875rem 1rem 0.875rem 2.75rem;
         border-radius: 12px;
         font-size: 0.95rem;
         transition: all 0.3s ease;
+        // Direct dark background - no CSS variables, highest specificity
+        background: #374151 !important;
+        background-color: #374151 !important;
+        color: rgba(255, 255, 255, 0.87) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
         
         &::placeholder {
-          color: var(--text-color-secondary);
+          color: rgba(255, 255, 255, 0.6) !important;
         }
         
-        &:focus {
-          background: var(--surface-hover);
-          border-color: var(--primary-color);
-          box-shadow: var(--focus-ring);
-        }
-        
+        &:enabled:hover,
         &:hover {
-          background: var(--surface-hover);
-          border-color: var(--surface-300);
+          background: #4b5563 !important;
+          background-color: #4b5563 !important;
+          border-color: #6b7280 !important;
+        }
+        
+        &:enabled:focus,
+        &:focus,
+        &:focus-visible {
+          background: #4b5563 !important;
+          background-color: #4b5563 !important;
+          border-color: #818cf8 !important;
+          box-shadow: 0 0 0 0.2rem rgba(129, 140, 248, 0.2) !important;
+        }
+      }
+      
+      // Extra specific override for .p-input-filled wrapper (PrimeNG adds this class)
+      .p-input-filled input.p-inputtext,
+      .p-input-filled input.search-input,
+      .p-input-filled .p-inputtext,
+      .p-input-filled .search-input {
+        background: #374151 !important;
+        background-color: #374151 !important;
+        
+        &:enabled:hover,
+        &:hover {
+          background: #4b5563 !important;
+          background-color: #4b5563 !important;
+        }
+        
+        &:enabled:focus,
+        &:focus {
+          background: #4b5563 !important;
+          background-color: #4b5563 !important;
         }
       }
       
       .p-inputicon {
-        color: var(--text-color-secondary);
+        color: var(--text-color-secondary) !important;
         left: 1rem;
         font-size: 1.1rem;
+        
+        i,
+        .pi,
+        [class*="pi-"] {
+          color: var(--text-color-secondary) !important;
+        }
+      }
+      
+      // Ensure the icon inside p-inputIcon component is visible
+      p-inputIcon {
+        color: var(--text-color-secondary) !important;
+        
+        i,
+        .pi,
+        [class*="pi-"] {
+          color: var(--text-color-secondary) !important;
+        }
+      }
+      
+      // Target the icon field wrapper and all nested elements
+      p-iconField {
+        .p-inputicon,
+        i,
+        .pi,
+        [class*="pi-"] {
+          color: var(--text-color-secondary) !important;
+        }
+        
+        // Deep target any icon elements
+        ::ng-deep {
+          i,
+          .pi,
+          [class*="pi-"] {
+            color: var(--text-color-secondary) !important;
+          }
+        }
       }
     }
   }
   
   .refresh-btn {
-    background: var(--surface-c);
-    border: 1px solid var(--surface-border);
-    color: var(--pink-500);
-    width: 2.75rem;
-    height: 2.75rem;
-    transition: all 0.3s ease;
-    
-    &:hover {
-      background: color-mix(in srgb, var(--pink-500) 10%, transparent);
-      border-color: var(--pink-500);
-      color: var(--pink-500);
-    }
-    
-    ::ng-deep .pi {
-      font-size: 1.1rem;
+    ::ng-deep {
+      button.p-button.p-button-text,
+      .p-button.p-button-text {
+        background: transparent !important;
+        border: 1px solid var(--surface-border) !important;
+        color: var(--pink-500) !important;
+        width: 2.75rem !important;
+        height: 2.75rem !important;
+        transition: all 0.3s ease !important;
+        
+        &:not(:disabled):hover {
+          background: color-mix(in srgb, var(--pink-500) 10%, transparent) !important;
+          border-color: var(--pink-500) !important;
+          color: var(--pink-500) !important;
+        }
+        
+        &:not(:disabled):active {
+          background: color-mix(in srgb, var(--pink-500) 20%, transparent) !important;
+        }
+        
+        .pi {
+          font-size: 1.1rem;
+          color: var(--pink-500) !important;
+        }
+      }
     }
   }
 }
@@ -86,37 +226,64 @@
   flex-wrap: wrap;
   
   .filter-pill {
-    background: var(--surface-c);
-    border: 1px solid var(--surface-border);
-    color: var(--text-color);
-    padding: 0.65rem 1.5rem;
-    border-radius: 24px;
-    font-size: 0.925rem;
-    font-weight: 500;
-    transition: all 0.3s ease;
-    white-space: nowrap;
-    
-    &:hover {
-      background: var(--surface-hover);
-      border-color: var(--surface-300);
-      color: var(--text-color);
-      transform: translateY(-1px);
-    }
-    
-    &.active {
-      background: linear-gradient(135deg, var(--pink-500) 0%, var(--pink-600) 100%);
-      border-color: transparent;
-      color: var(--surface-900);
-      box-shadow: 0 4px 12px color-mix(in srgb, var(--pink-500) 40%, transparent);
-      
-      &:hover {
-        background: linear-gradient(135deg, var(--pink-400) 0%, var(--pink-500) 100%);
-        transform: translateY(-1px);
+    ::ng-deep {
+      // Target buttons without modifier classes (default PrimeNG buttons)
+      button.p-button:not(.p-button-text):not(.p-button-outlined):not(.p-button-secondary):not(.p-button-success):not(.p-button-info):not(.p-button-warning):not(.p-button-help):not(.p-button-danger),
+      .p-button:not(.p-button-text):not(.p-button-outlined):not(.p-button-secondary):not(.p-button-success):not(.p-button-info):not(.p-button-warning):not(.p-button-help):not(.p-button-danger) {
+        background: var(--surface-100) !important;
+        border: 1px solid var(--surface-border) !important;
+        color: var(--text-color) !important;
+        padding: 0.65rem 1.5rem !important;
+        border-radius: 24px !important;
+        font-size: 0.925rem !important;
+        font-weight: 500 !important;
+        transition: all 0.3s ease !important;
+        white-space: nowrap !important;
+        
+        &:not(:disabled):hover {
+          background: var(--surface-200) !important;
+          border-color: var(--surface-300) !important;
+          color: var(--text-color) !important;
+          transform: translateY(-1px);
+        }
+        
+        &:not(:disabled):active {
+          background: var(--surface-200) !important;
+          border-color: var(--surface-300) !important;
+          color: var(--text-color) !important;
+        }
+        
+        .p-button-label {
+          color: var(--text-color) !important;
+          font-weight: 500 !important;
+        }
       }
     }
     
-    ::ng-deep .p-button-label {
-      font-weight: 500;
+    &.active {
+      ::ng-deep {
+        button.p-button,
+        .p-button {
+          background: linear-gradient(135deg, var(--pink-500) 0%, var(--pink-600) 100%) !important;
+          border-color: transparent !important;
+          color: var(--surface-900) !important;
+          box-shadow: 0 4px 12px color-mix(in srgb, var(--pink-500) 40%, transparent) !important;
+          
+          &:not(:disabled):hover {
+            background: linear-gradient(135deg, var(--pink-400) 0%, var(--pink-500) 100%) !important;
+            transform: translateY(-1px);
+          }
+          
+          &:not(:disabled):active {
+            background: linear-gradient(135deg, var(--pink-500) 0%, var(--pink-600) 100%) !important;
+          }
+          
+          .p-button-label {
+            color: var(--surface-900) !important;
+            font-weight: 500 !important;
+          }
+        }
+      }
     }
   }
 }
