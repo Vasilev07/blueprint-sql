@@ -35,12 +35,9 @@ describe("Order Service (e2e)", () => {
 
     afterEach(async () => {
         try {
-            try {
-                await dataSource.manager.delete(Order, {});
-                await dataSource.manager.delete(Product, {});
-            } catch (e) {
-                console.error(e);
-            }
+            // Use clear() to remove all records, or use query builder with proper criteria
+            await dataSource.manager.clear(Order);
+            await dataSource.manager.clear(Product);
         } catch (e) {
             console.error(e);
         }
