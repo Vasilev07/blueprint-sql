@@ -1,4 +1,4 @@
-    {
+{
     "name": "new-fe",
     "version": "0.0.0",
     "scripts": {
@@ -23,6 +23,7 @@
         "@angular/platform-browser-dynamic": "^21.1.3",
         "@angular/router": "^21.1.3",
         "@auth0/angular-jwt": "^5.2.0",
+        "@primeuix/themes": "^2.0.3",
         "chart.js": "^4.5.1",
         "moment": "^2.30.1",
         "primeflex": "^4.0.0",
@@ -51,4 +52,4 @@
         "karma-jasmine-html-reporter": "~2.2.0",
         "typescript": "~5.9.3"
     }
-    }
+}

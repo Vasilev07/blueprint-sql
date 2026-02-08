@@ -1,14 +1,45 @@
 import { Component, OnDestroy, OnInit } from "@angular/core";
-import { ProductDTO, OrderDTO, ContactInformationDTO, AddressDTO } from "../../typescript-api-client/src/model/models";
+import { CommonModule } from "@angular/common";
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { HttpClient } from "@angular/common/http";
 import { Subject, takeUntil } from "rxjs";
 import { ConfirmationService, MessageService } from "primeng/api";
 import { LayoutService } from "../layout/service/app.layout.service";
-import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { OrderService } from "../../typescript-api-client/src/api/api";
+import { OrderDTO, ProductDTO, ContactInformationDTO, AddressDTO } from "../../typescript-api-client/src/model/models";
+import { TableModule } from "primeng/table";
+import { ButtonModule } from "primeng/button";
+import { DialogModule } from "primeng/dialog";
+import { InputTextModule } from "primeng/inputtext";
+import { ToastModule } from "primeng/toast";
+import { ToolbarModule } from "primeng/toolbar";
+import { FileUploadModule } from "primeng/fileupload";
+import { TagModule } from "primeng/tag";
+import { ChartModule } from "primeng/chart";
+import { CardModule } from "primeng/card";
+import { DividerModule } from "primeng/divider";
+import { ConfirmDialogModule } from "primeng/confirmdialog";
 
 @Component({
     templateUrl: "./orders.component.html",
+    standalone: true,
+    imports: [
+        CommonModule,
+        FormsModule,
+        ReactiveFormsModule,
+        TableModule,
+        ButtonModule,
+        DialogModule,
+        InputTextModule,
+        ToastModule,
+        ToolbarModule,
+        FileUploadModule,
+        TagModule,
+        ChartModule,
+        CardModule,
+        DividerModule,
+        ConfirmDialogModule,
+    ],
 })
 export class OrdersComponent implements OnInit, OnDestroy {
     public selectedOrders: any;
@@ -80,14 +111,14 @@ export class OrdersComponent implements OnInit, OnDestroy {
         });
     }
 
-    deleteOrder(product: ProductDTO) {
+    deleteOrder(order: OrderDTO) {
         this.confirmationService.confirm({
-            message: "Are you sure you want to delete " + product.name + "?",
+            message: "Are you sure you want to delete this order?",
             header: "Confirm",
             icon: "pi pi-exclamation-triangle",
             accept: () => {
                 this.orders = this.orders.filter(
-                    (val) => val.id !== product.id,
+                    (val) => val.id !== order.id,
                 );
                 this.messageService.add({
                     severity: "success",

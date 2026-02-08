@@ -39,17 +39,7 @@
               }
             ],
             "styles": [
-              "src/styles.scss",
-              {
-                "input": "src/assets/css/dark-theme.css",
-                "bundleName": "dark-theme",
-                "inject": false
-              },
-              {
-                "input": "src/assets/css/light-theme.css",
-                "bundleName": "light-theme",
-                "inject": false
-              }
+              "src/styles.scss"
             ],
             "scripts": []
           },
@@ -114,17 +104,7 @@
               }
             ],
             "styles": [
-              "src/styles.scss",
-              {
-                "input": "src/assets/css/dark-theme.css",
-                "bundleName": "dark-theme",
-                "inject": false
-              },
-              {
-                "input": "src/assets/css/light-theme.css",
-                "bundleName": "light-theme",
-                "inject": false
-              }
+              "src/styles.scss"
             ],
             "scripts": []
           }

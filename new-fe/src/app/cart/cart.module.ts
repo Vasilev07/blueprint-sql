@@ -10,6 +10,7 @@ import { ImageModule } from "primeng/image";
 
 @NgModule({
     imports: [
+        CartComponent,
         CartRoutingModule,
         CardModule,
         NgForOf,
@@ -20,6 +21,6 @@ import { ImageModule } from "primeng/image";
         ImageModule,
         CurrencyPipe,
     ],
-    declarations: [CartComponent],
+    declarations: [],
 })
 export class CartModule {}

@@ -1,9 +1,25 @@
 import { Component, OnDestroy, OnInit } from "@angular/core";
+import { CommonModule } from "@angular/common";
 import { MenuItem } from "primeng/api";
 import { debounceTime, Subscription } from "rxjs";
 import { LayoutService } from "src/app/layout/service/app.layout.service";
+import { ChartModule } from "primeng/chart";
+import { MenuModule } from "primeng/menu";
+import { TableModule } from "primeng/table";
+import { ButtonModule } from "primeng/button";
+import { RippleModule } from "primeng/ripple";
 
 @Component({
+    selector: "app-dashboard",
+    standalone: true,
+    imports: [
+        CommonModule,
+        ChartModule,
+        MenuModule,
+        TableModule,
+        ButtonModule,
+        RippleModule,
+    ],
     templateUrl: "./dashboard.component.html",
 })
 export class DashboardComponent implements OnInit, OnDestroy {

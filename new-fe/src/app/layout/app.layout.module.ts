@@ -4,10 +4,10 @@ import { FormsModule } from "@angular/forms";
 import { HttpClientModule } from "@angular/common/http";
 import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
 import { InputTextModule } from "primeng/inputtext";
-import { SidebarModule } from "primeng/sidebar";
+import { DrawerModule } from "primeng/drawer";
 import { BadgeModule } from "primeng/badge";
 import { RadioButtonModule } from "primeng/radiobutton";
-import { InputSwitchModule } from "primeng/inputswitch";
+import { ToggleSwitchModule } from "primeng/toggleswitch";
 import { RippleModule } from "primeng/ripple";
 import { AppMenuComponent } from "./app.menu.component";
 import { AppMenuitemComponent } from "./app.menuitem.component";
@@ -18,38 +18,36 @@ import { AppConfigModule } from "./config/config.module";
 import { AppSidebarComponent } from "./app.sidebar.component";
 import { AppLayoutComponent } from "./app.layout.component";
 import { MenuModule } from "primeng/menu";
-import { Button } from "primeng/button";
+import { ButtonModule } from "primeng/button";
 import { ToastModule } from "primeng/toast";
 import { ConfirmDialogModule } from "primeng/confirmdialog";
 import { NotificationsModule } from "../notifications/notifications.module";
 
 @NgModule({
-    declarations: [
-        AppMenuitemComponent,
-        AppTopBarComponent,
-        AppFooterComponent,
-        AppMenuComponent,
-        AppSidebarComponent,
-        AppLayoutComponent,
-    ],
     imports: [
         BrowserModule,
         FormsModule,
         HttpClientModule,
         BrowserAnimationsModule,
         InputTextModule,
-        SidebarModule,
+        DrawerModule,
         BadgeModule,
         RadioButtonModule,
-        InputSwitchModule,
+        ToggleSwitchModule,
         RippleModule,
         RouterModule,
         AppConfigModule,
         MenuModule,
-        Button,
+        ButtonModule,
         ToastModule,
         ConfirmDialogModule,
         NotificationsModule,
+        AppMenuitemComponent,
+        AppTopBarComponent,
+        AppFooterComponent,
+        AppMenuComponent,
+        AppSidebarComponent,
+        AppLayoutComponent,
     ],
     exports: [AppLayoutComponent],
 })

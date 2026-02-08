@@ -48,8 +48,8 @@ import { ImageModule } from "primeng/image";
         DividerModule,
         ImageModule,
         NgOptimizedImage,
+        ProductsComponent,
     ],
-    declarations: [ProductsComponent],
     providers: [ConfirmationService],
 })
 export class ProductsModule {}

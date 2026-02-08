@@ -1,12 +1,29 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Location } from '@angular/common';
 import { Subject, takeUntil } from 'rxjs';
 import { VideoCallService, CallState } from '../services/video-call.service';
 import { MessageService } from 'primeng/api';
+import { ButtonModule } from 'primeng/button';
+import { ToastModule } from 'primeng/toast';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { AvatarModule } from 'primeng/avatar';
+import { TooltipModule } from 'primeng/tooltip';
+import { RippleModule } from 'primeng/ripple';
 
 @Component({
     selector: 'app-video-call',
+    standalone: true,
+    imports: [
+        CommonModule,
+        ButtonModule,
+        ToastModule,
+        ProgressSpinnerModule,
+        AvatarModule,
+        TooltipModule,
+        RippleModule,
+    ],
     templateUrl: './video-call.component.html',
     styleUrls: ['./video-call.component.scss']
 })

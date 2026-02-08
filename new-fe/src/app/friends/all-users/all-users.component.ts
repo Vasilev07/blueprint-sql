@@ -1,4 +1,5 @@
 import { Component, OnInit, OnDestroy } from "@angular/core";
+import { CommonModule } from "@angular/common";
 import { MessageService } from "primeng/api";
 import {
     UserService,
@@ -8,9 +9,14 @@ import { UserDTO } from "src/typescript-api-client/src/model/models";
 import { AuthService } from "../../services/auth.service";
 import { WebsocketService } from "../../services/websocket.service";
 import { Subject, takeUntil } from "rxjs";
+import { TableModule } from "primeng/table";
+import { ButtonModule } from "primeng/button";
+import { AvatarModule } from "primeng/avatar";
 
 @Component({
     selector: "app-all-users",
+    standalone: true,
+    imports: [CommonModule, TableModule, ButtonModule, AvatarModule],
     templateUrl: "./all-users.component.html",
     styleUrls: ["./all-users.component.scss"],
 })

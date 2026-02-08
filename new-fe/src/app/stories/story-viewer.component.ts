@@ -6,13 +6,17 @@ import {
     ElementRef,
     HostListener,
 } from "@angular/core";
+import { CommonModule } from "@angular/common";
 import { ActivatedRoute, Router } from "@angular/router";
 import { Subject, takeUntil } from "rxjs";
-// import { MessageService } from 'primeng/api';
 import { Story, StoryService } from "./story.service";
+import { ButtonModule } from "primeng/button";
+import { ToastModule } from "primeng/toast";
 
 @Component({
     selector: "app-story-viewer",
+    standalone: true,
+    imports: [CommonModule, ButtonModule, ToastModule],
     templateUrl: "./story-viewer.component.html",
     styleUrls: ["./story-viewer.component.scss"],
 })
@@ -84,24 +88,24 @@ export class StoryViewerComponent implements OnInit, OnDestroy {
     }
 
     @HostListener("document:keydown.escape", ["$event"])
-    onEscapeKey(event: KeyboardEvent): void {
+    onEscapeKey(event: Event): void {
         this.onClose();
     }
 
     @HostListener("document:keydown.arrowleft", ["$event"])
-    onLeftArrowKey(event: KeyboardEvent): void {
+    onLeftArrowKey(event: Event): void {
         event.preventDefault();
         this.previousStory();
     }
 
     @HostListener("document:keydown.arrowright", ["$event"])
-    onRightArrowKey(event: KeyboardEvent): void {
+    onRightArrowKey(event: Event): void {
         event.preventDefault();
         this.nextStory();
     }
 
     @HostListener("document:keydown.space", ["$event"])
-    onSpaceKey(event: KeyboardEvent): void {
+    onSpaceKey(event: Event): void {
         event.preventDefault();
         this.togglePlayPause();
     }

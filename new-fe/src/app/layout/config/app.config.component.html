@@ -2,7 +2,7 @@
     <i class="pi pi-cog"></i>
 </button>
 
-<p-sidebar [(visible)]="visible" position="right" [transitionOptions]="'.3s cubic-bezier(0, 0, 0.2, 1)'" styleClass="layout-config-sidebar w-20rem">
+<p-drawer [(visible)]="visible" position="right" styleClass="layout-config-sidebar w-20rem" [dismissible]="true" [modal]="true">
     <h5>Scale</h5>
     <div class="flex align-items-center">
         <button icon="pi pi-minus" type="button" pButton (click)="decrementScale()" class="p-button-text p-button-rounded w-2rem h-2rem mr-2" [disabled]="scale === scales[0]"></button>
@@ -38,7 +38,7 @@
         </div>
 
         <h5>Ripple Effect</h5>
-        <p-inputSwitch [(ngModel)]="ripple"></p-inputSwitch>
+        <p-toggleswitch [(ngModel)]="ripple"></p-toggleswitch>
     </ng-container>
 
 
@@ -230,4 +230,4 @@
             </button>
         </div>
     </div>
-</p-sidebar>
+</p-drawer>

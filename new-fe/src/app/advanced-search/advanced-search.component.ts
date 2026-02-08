@@ -1,9 +1,23 @@
-import { Component, OnInit, OnDestroy } from "@angular/core";
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from "@angular/core";
+import { CommonModule } from "@angular/common";
+import { FormsModule } from "@angular/forms";
 import { Router } from "@angular/router";
 import { Subject, takeUntil } from "rxjs";
 import { HomeService, HomeUser } from "../home/home.service";
 import { MessageService } from "primeng/api";
-import { GiftDialogUser } from "../shared/send-gift-dialog/send-gift-dialog.component";
+import { GiftDialogUser, SendGiftDialogComponent } from "../shared/send-gift-dialog/send-gift-dialog.component";
+import { UserCardComponent } from "../home/user-card/user-card.component";
+import { ButtonModule } from "primeng/button";
+import { SelectModule } from "primeng/select";
+import { MultiSelectModule } from "primeng/multiselect";
+import { SliderModule } from "primeng/slider";
+import { InputTextModule } from "primeng/inputtext";
+import { IconFieldModule } from "primeng/iconfield";
+import { InputIconModule } from "primeng/inputicon";
+import { CheckboxModule } from "primeng/checkbox";
+import { ProgressSpinnerModule } from "primeng/progressspinner";
+import { ToastModule } from "primeng/toast";
+import { TooltipModule } from "primeng/tooltip";
 
 export interface AdvancedSearchFilters {
     gender?: string;
@@ -18,6 +32,24 @@ export interface AdvancedSearchFilters {
 
 @Component({
     selector: "app-advanced-search",
+    standalone: true,
+    imports: [
+        CommonModule,
+        FormsModule,
+        ButtonModule,
+        SelectModule,
+        MultiSelectModule,
+        SliderModule,
+        InputTextModule,
+        IconFieldModule,
+        InputIconModule,
+        CheckboxModule,
+        ProgressSpinnerModule,
+        ToastModule,
+        TooltipModule,
+        UserCardComponent,
+        SendGiftDialogComponent,
+    ],
     templateUrl: "./advanced-search.component.html",
     styleUrls: ["./advanced-search.component.scss"],
     providers: [MessageService],
@@ -91,11 +123,15 @@ export class AdvancedSearchComponent implements OnInit, OnDestroy {
         private homeService: HomeService,
         private router: Router,
         private messageService: MessageService,
+        private cdr: ChangeDetectorRef,
     ) {}
 
     ngOnInit(): void {
+        // Set up subscriptions first
         this.subscribeToUsers();
         this.subscribeToPaginationState();
+        
+        // Load users immediately - subscriptions are already set up
         this.loadUsers();
 
         // Add scroll event listener
@@ -113,16 +149,27 @@ export class AdvancedSearchComponent implements OnInit, OnDestroy {
     private subscribeToUsers(): void {
         this.homeService.users$.pipe(takeUntil(this.destroy$)).subscribe({
             next: (users) => {
+                console.log("AdvancedSearchComponent - Users updated:", users.length);
                 // Backend handles all filtering, just display the results
                 this.users = users;
+                // Clear loading state when we receive users data
+                // This ensures loading is cleared even if pagination state hasn't updated yet
+                if (users && users.length > 0 && this.isLoading) {
+                    console.log("AdvancedSearchComponent - Clearing loading state after receiving users");
+                    this.isLoading = false;
+                }
+                // Mark for check to ensure change detection runs
+                this.cdr.markForCheck();
             },
             error: (error) => {
                 console.error("Error loading users:", error);
+                this.isLoading = false;
                 this.messageService.add({
                     severity: "error",
                     summary: "Error",
                     detail: "Failed to load users",
                 });
+                this.cdr.markForCheck();
             },
         });
     }
@@ -134,26 +181,42 @@ export class AdvancedSearchComponent implements OnInit, OnDestroy {
                 next: (state) => {
                     this.totalUsers = state.totalUsers;
                     this.hasMoreData = state.hasMore;
-                    this.isLoading = false;
-                    this.isLoadingMore = false;
+                    if (state.currentPage > 0) {
+                        this.isLoading = false;
+                        this.isLoadingMore = false;
+                    }
+                    // Mark for check to ensure change detection runs
+                    this.cdr.markForCheck();
                 },
             });
     }
 
     private loadUsers(): void {
         this.isLoading = true;
+        console.log("AdvancedSearchComponent - Loading users...");
         this.homeService
             .getFilteredAndSortedUsers()
             .pipe(takeUntil(this.destroy$))
             .subscribe({
                 next: (users) => {
-                    // Backend handles all filtering, just display the results
+                    console.log("AdvancedSearchComponent - getFilteredAndSortedUsers returned:", users.length);
+                    // Data will be updated via users$ subscription
+                    // But also set directly as fallback
                     this.users = users;
-                    this.isLoading = false;
+                    // Loading state will be cleared in subscribeToUsers() when data arrives
+                    // But also clear here if no users (empty result)
+                    if (!users || users.length === 0) {
+                        this.isLoading = false;
+                    }
                 },
                 error: (error) => {
-                    console.error("Error loading users:", error);
+                    console.error("AdvancedSearchComponent - Error in loadUsers:", error);
                     this.isLoading = false;
+                    this.messageService.add({
+                        severity: "error",
+                        summary: "Error",
+                        detail: "Failed to load users",
+                    });
                 },
             });
     }

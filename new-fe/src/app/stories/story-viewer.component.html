@@ -33,7 +33,7 @@
         </div>
         <div class="user-info">
           <span class="user-name">{{ story.userName }}</span>
-          <span class="story-time">{{ formatTime(story.createdAt) }}</span>
+          <span class="story-time">{{ story ? formatTime(story.createdAt) : '' }}</span>
         </div>
       </div>
       
@@ -92,7 +92,7 @@
         <div class="action-buttons">
           <button class="action-btn" (click)="onLikeStory()">
             <i [class]="isLiked ? 'pi pi-heart-fill liked' : 'pi pi-heart'"></i>
-            <span>{{ story.likes || 0 }}</span>
+            <span>{{ story.likes ?? 0 }}</span>
           </button>
           
           <button class="action-btn" (click)="toggleMute()" *ngIf="isVideo">

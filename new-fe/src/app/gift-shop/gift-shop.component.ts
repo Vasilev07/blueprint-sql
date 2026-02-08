@@ -1,8 +1,19 @@
 import { Component, OnInit } from "@angular/core";
-import { FormBuilder, FormGroup, Validators } from "@angular/forms";
+import { CommonModule } from "@angular/common";
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { GiftService, UserService, WalletService } from "src/typescript-api-client/src/api/api";
 import { MessageService } from "primeng/api";
 import { AuthService } from "../services/auth.service";
+import { InputTextModule } from "primeng/inputtext";
+import { ButtonModule } from "primeng/button";
+import { CardModule } from "primeng/card";
+import { TextareaModule } from "primeng/textarea";
+import { InputNumberModule } from "primeng/inputnumber";
+import { AutoCompleteModule } from "primeng/autocomplete";
+import { AvatarModule } from "primeng/avatar";
+import { ProgressSpinnerModule } from "primeng/progressspinner";
+import { ToastModule } from "primeng/toast";
+import { DialogModule } from "primeng/dialog";
 
 interface GiftOption {
     name: string; // human-readable label
@@ -13,6 +24,22 @@ interface GiftOption {
 
 @Component({
     selector: "app-gift-shop",
+    standalone: true,
+    imports: [
+        CommonModule,
+        FormsModule,
+        ReactiveFormsModule,
+        InputTextModule,
+        ButtonModule,
+        CardModule,
+        TextareaModule,
+        InputNumberModule,
+        AutoCompleteModule,
+        AvatarModule,
+        ProgressSpinnerModule,
+        ToastModule,
+        DialogModule,
+    ],
     templateUrl: "./gift-shop.component.html",
     styleUrls: ["./gift-shop.component.scss"],
     providers: [MessageService],

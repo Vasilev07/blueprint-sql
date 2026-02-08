@@ -5,14 +5,27 @@ import {
     ChangeDetectorRef,
     HostListener,
 } from "@angular/core";
+import { CommonModule } from "@angular/common";
 import { Router, ActivatedRoute } from "@angular/router";
 import { Observable, Subject, takeUntil } from "rxjs";
 import { User, Message, ChatService, Conversation } from "./chat.service";
 import { UserService } from "src/typescript-api-client/src/api/api";
 import { DomSanitizer } from "@angular/platform-browser";
+import { ChatComponent } from "./chat.component";
+import { UserListComponent } from "./user-list.component";
+import { FriendsListComponent } from "./friends-list.component";
+import { RecentMessagesComponent } from "./recent-messages.component";
 
 @Component({
     selector: "app-chat-home",
+    standalone: true,
+    imports: [
+        CommonModule,
+        ChatComponent,
+        UserListComponent,
+        FriendsListComponent,
+        RecentMessagesComponent,
+    ],
     templateUrl: "./chat-home.component.html",
     styleUrls: ["./chat-home.component.scss"],
 })

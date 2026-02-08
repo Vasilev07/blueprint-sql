@@ -11,8 +11,8 @@ import { ScrollPanelModule } from "primeng/scrollpanel";
 import { DividerModule } from "primeng/divider";
 import { TooltipModule } from "primeng/tooltip";
 import { DialogModule } from "primeng/dialog";
-import { InputTextareaModule } from "primeng/inputtextarea";
-import { DropdownModule } from "primeng/dropdown";
+import { TextareaModule } from "primeng/textarea";
+import { SelectModule } from "primeng/select";
 import { ToastModule } from "primeng/toast";
 import { MessageService } from "primeng/api";
 import { PanelModule } from "primeng/panel";
@@ -51,13 +51,12 @@ const routes: Routes = [
 ];
 
 @NgModule({
-    declarations: [
+    declarations: [],
+    imports: [
         ForumHomeComponent,
         RoomDetailComponent,
         PostDetailComponent,
         WhoVisitedMeComponent,
-    ],
-    imports: [
         CommonModule,
         FormsModule,
         ReactiveFormsModule,
@@ -71,8 +70,8 @@ const routes: Routes = [
         DividerModule,
         TooltipModule,
         DialogModule,
-        InputTextareaModule,
-        DropdownModule,
+        TextareaModule,
+        SelectModule,
         ToastModule,
         PanelModule,
         TagModule,

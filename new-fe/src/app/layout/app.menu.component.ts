@@ -1,11 +1,16 @@
 import { Component, OnInit, OnDestroy } from "@angular/core";
-import { LayoutService } from "./service/app.layout.service";
 import { JwtHelperService } from "@auth0/angular-jwt";
 import { Subject, takeUntil } from "rxjs";
+import { CommonModule } from "@angular/common";
+import { RouterModule } from "@angular/router";
 import { AuthService } from "../services/auth.service";
+import { LayoutService } from "./service/app.layout.service";
+import { AppMenuitemComponent } from "./app.menuitem.component";
 
 @Component({
     selector: "app-menu",
+    standalone: true,
+    imports: [CommonModule, RouterModule, AppMenuitemComponent],
     templateUrl: "./app.menu.component.html",
 })
 export class AppMenuComponent implements OnInit, OnDestroy {

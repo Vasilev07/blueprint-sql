@@ -78,9 +78,18 @@
   <!-- Main Content with Tabs -->
   <div class="main-content">
     <div class="content-area">
-      <p-tabView [(activeIndex)]="activeTabIndex">
-        <!-- Photos Tab -->
-        <p-tabPanel header="Photos">
+      <p-tabs [(value)]="activeTabIndex">
+        <p-tablist>
+          <p-tab [value]="0">Photos</p-tab>
+          <p-tab [value]="1">Videos</p-tab>
+          <p-tab [value]="2">What's up</p-tab>
+          <p-tab [value]="3">Friends</p-tab>
+          <p-tab [value]="4">Groups</p-tab>
+          <p-tab [value]="5">Validations</p-tab>
+          <p-tab [value]="6">Gifts</p-tab>
+        </p-tablist>
+        <p-tabpanels>
+          <p-tabpanel [value]="0">
           <div class="photos-content">
             <!-- Profile Images Section -->
             <div class="profile-images-section">
@@ -174,45 +183,33 @@
                 </div>
             </div>
           </div>
-        </p-tabPanel>
-
-        <!-- Videos Tab -->
-        <p-tabPanel header="Videos">
+          </p-tabpanel>
+          <p-tabpanel [value]="1">
           <div class="videos-content">
             <p>Videos content coming soon...</p>
           </div>
-        </p-tabPanel>
-
-        <!-- What's Up Tab -->
-        <p-tabPanel header="What's Up">
+          </p-tabpanel>
+          <p-tabpanel [value]="2">
           <div class="whats-up-content">
             <p>What's up content coming soon...</p>
           </div>
-        </p-tabPanel>
-
-        <!-- Friends Tab -->
-        <p-tabPanel header="Friends">
+          </p-tabpanel>
+          <p-tabpanel [value]="3">
           <div class="friends-content">
             <p>Friends content coming soon...</p>
           </div>
-        </p-tabPanel>
-
-        <!-- Groups Tab -->
-        <p-tabPanel header="Groups">
+          </p-tabpanel>
+          <p-tabpanel [value]="4">
           <div class="groups-content">
             <p>Groups content coming soon...</p>
           </div>
-        </p-tabPanel>
-
-        <!-- Validations Tab -->
-        <p-tabPanel header="Validations">
+          </p-tabpanel>
+          <p-tabpanel [value]="5">
           <div class="validations-content">
             <p>Validations content coming soon...</p>
           </div>
-        </p-tabPanel>
-
-        <!-- Received Gifts Tab -->
-        <p-tabPanel header="Received Gifts">
+          </p-tabpanel>
+          <p-tabpanel [value]="6">
           <div class="gifts-content">
             <p-progressSpinner *ngIf="isLoadingGifts" styleClass="w-4rem h-4rem"></p-progressSpinner>
             
@@ -252,8 +249,9 @@
               </div>
             </div>
           </div>
-        </p-tabPanel>
-      </p-tabView>
+          </p-tabpanel>
+        </p-tabpanels>
+      </p-tabs>
     </div>
 
     <!-- Right Sidebar -->
@@ -280,13 +278,13 @@
             <div *ngFor="let friend of friends" class="friend-item">
               <div class="friend-avatar-container">
                 <p-avatar
-                  [label]="friend.user.firstname?.charAt(0) || 'F'"
+                  [label]="friend.user?.firstname?.charAt(0) || 'F'"
                   styleClass="friend-avatar">
                 </p-avatar>
                 <span class="online-status" [class.online]="isOnline(friend.friendId)"></span>
               </div>
               <div class="friend-info">
-                <span class="friend-name">{{ friend.user.firstname }}</span>
+                <span class="friend-name">{{ friend.user?.firstname }}</span>
                 <span class="friend-status" *ngIf="isOnline(friend.friendId)">Online</span>
               </div>
               <p-button
@@ -524,9 +522,12 @@
   [resizable]="false">
   
   <div class="edit-form">
-    <p-tabView>
-      <!-- Bio Tab -->
-      <p-tabPanel header="Bio">
+    <p-tabs [value]="0">
+      <p-tablist>
+        <p-tab [value]="0">Bio</p-tab>
+      </p-tablist>
+      <p-tabpanels>
+        <p-tabpanel [value]="0">
     <div class="field">
       <label for="bio">Bio</label>
       <textarea
@@ -587,15 +588,15 @@
 
     <div class="field">
       <label for="dateOfBirth">Date of Birth</label>
-      <p-calendar
+      <p-datepicker
         id="dateOfBirth"
         [(ngModel)]="editForm.dateOfBirth"
         [showIcon]="true"
         [maxDate]="maxDate"
         dateFormat="mm/dd/yy"
         placeholder="Select your date of birth"
-        [style]="{ width: '100%' }">
-      </p-calendar>
+        [inputStyle]="{ width: '100%' }">
+      </p-datepicker>
     </div>
 
     <div class="field">
@@ -606,7 +607,7 @@
             <strong>Show in Search</strong>
             <p class="privacy-description">Appear in browse results</p>
           </div>
-          <p-inputSwitch [(ngModel)]="editForm.appearsInSearches"></p-inputSwitch>
+          <p-toggleswitch [(ngModel)]="editForm.appearsInSearches"></p-toggleswitch>
         </div>
       </div>
     </div>
@@ -669,10 +670,10 @@
           <span style="color: green; font-weight: 500;">Account Verified</span>
         </div>
       </div>
-    </div>
-      </p-tabPanel>
-
-    </p-tabView>
+          </div>
+        </p-tabpanel>
+      </p-tabpanels>
+    </p-tabs>
   </div>
 
   <ng-template pTemplate="footer">

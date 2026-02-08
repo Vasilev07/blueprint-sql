@@ -15,7 +15,7 @@
     .layout-topbar-logo {
         display: flex;
         align-items: center;
-        color: var(--surface-900);
+        color: var(--text-color);
         font-size: 1.5rem;
         font-weight: 500;
         //width: 70px;
@@ -31,25 +31,37 @@
         }
     }
 
-    .layout-topbar-button {
-        display: inline-flex;
-        justify-content: center;
-        align-items: center;
-        position: relative;
-        color: var(--text-color-secondary);
-        border-radius: 50%;
-        width: 3rem;
-        height: 3rem;
-        cursor: pointer;
-        transition: background-color $transitionDuration;
+    /* Topbar icon buttons (p-link): reset theme/button styles so layout styles apply (PrimeNG 21) */
+    button.p-link.layout-topbar-button:not(.layout-topbar-menu-button),
+    button.layout-topbar-button:not(.layout-topbar-menu-button) {
+        -webkit-appearance: none;
+        appearance: none;
+        background: transparent !important;
+        border: none !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+        min-width: 3rem !important;
+        width: 3rem !important;
+        height: 3rem !important;
+        border-radius: 50% !important;
+        display: inline-flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        color: var(--text-color-secondary) !important;
+        cursor: pointer !important;
+        transition: background-color $transitionDuration, color $transitionDuration;
 
         &:hover {
-            color: var(--text-color);
-            background-color: var(--surface-hover);
+            color: var(--text-color) !important;
+            background-color: var(--surface-hover) !important;
+            border: none !important;
+            box-shadow: none !important;
         }
 
-        &:focus {
-            @include focused();
+        &:focus,
+        &:focus-visible {
+            outline: none !important;
+            box-shadow: none !important;
         }
 
         i {
@@ -60,6 +72,50 @@
             font-size: 1rem;
             display: none;
         }
+    }
+
+    /* Menu button (ellipsis) same reset but allow display:none on desktop */
+    button.layout-topbar-menu-button {
+        -webkit-appearance: none;
+        appearance: none;
+        background: transparent !important;
+        border: none !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+        min-width: 3rem !important;
+        width: 3rem !important;
+        height: 3rem !important;
+        border-radius: 50% !important;
+        justify-content: center !important;
+        align-items: center !important;
+        color: var(--text-color-secondary) !important;
+        cursor: pointer !important;
+        transition: background-color $transitionDuration, color $transitionDuration;
+
+        &:hover {
+            color: var(--text-color) !important;
+            background-color: var(--surface-hover) !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+
+        &:focus,
+        &:focus-visible {
+            outline: none !important;
+            box-shadow: none !important;
+        }
+
+        i {
+            font-size: 1.25rem;
+        }
+    }
+
+    /* Base for all .layout-topbar-button (e.g. notification wrapper div) */
+    .layout-topbar-button {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
     }
 
     .layout-menu-button {

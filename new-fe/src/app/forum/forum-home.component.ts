@@ -1,4 +1,6 @@
 import { Component, OnInit, OnDestroy } from "@angular/core";
+import { CommonModule } from "@angular/common";
+import { FormsModule } from "@angular/forms";
 import { Router } from "@angular/router";
 import { Subject, takeUntil } from "rxjs";
 import { ForumRoomsService } from "../../typescript-api-client/src/api/api";
@@ -7,9 +9,28 @@ import {
     CreateForumRoomDTO,
 } from "../../typescript-api-client/src/model/models";
 import { MessageService } from "primeng/api";
+import { ButtonModule } from "primeng/button";
+import { TagModule } from "primeng/tag";
+import { ProgressSpinnerModule } from "primeng/progressspinner";
+import { DialogModule } from "primeng/dialog";
+import { InputTextModule } from "primeng/inputtext";
+import { TextareaModule } from "primeng/textarea";
+import { SelectModule } from "primeng/select";
 
 @Component({
     selector: "app-forum-home",
+    standalone: true,
+    imports: [
+        CommonModule,
+        FormsModule,
+        ButtonModule,
+        TagModule,
+        ProgressSpinnerModule,
+        DialogModule,
+        InputTextModule,
+        TextareaModule,
+        SelectModule,
+    ],
     templateUrl: "./forum-home.component.html",
     styleUrls: ["./forum-home.component.scss"],
 })
@@ -133,12 +154,12 @@ export class ForumHomeComponent implements OnInit, OnDestroy {
             });
     }
 
-    getVisibilityBadge(visibility: string): "success" | "secondary" | "info" | "warning" | "danger" | "contrast" | undefined {
+    getVisibilityBadge(visibility: string): "success" | "secondary" | "info" | "warn" | "danger" | "contrast" | undefined {
         switch (visibility) {
             case "public":
                 return "success";
             case "private":
-                return "warning";
+                return "warn";
             case "restricted":
                 return "info";
             default:

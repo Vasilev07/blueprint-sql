@@ -19,7 +19,7 @@ import { RouterModule } from "@angular/router";
         FormsModule,
         PasswordModule,
         RouterModule,
+        LoginComponent,
     ],
-    declarations: [LoginComponent],
 })
 export class LoginModule {}

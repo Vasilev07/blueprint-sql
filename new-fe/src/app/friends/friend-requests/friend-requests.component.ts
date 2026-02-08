@@ -5,6 +5,7 @@ import {
     Output,
     EventEmitter,
 } from "@angular/core";
+import { CommonModule } from "@angular/common";
 import { MessageService } from "primeng/api";
 import { FriendsService } from "src/typescript-api-client/src/api/api";
 import { FriendDTO } from "src/typescript-api-client/src/model/models";
@@ -12,9 +13,13 @@ import { WebsocketService } from "../../services/websocket.service";
 import { PresenceService } from "../../services/presence.service";
 import { Subject, takeUntil } from "rxjs";
 import { switchMap } from "rxjs/operators";
+import { AvatarModule } from "primeng/avatar";
+import { ButtonModule } from "primeng/button";
 
 @Component({
     selector: "app-friend-requests",
+    standalone: true,
+    imports: [CommonModule, AvatarModule, ButtonModule],
     templateUrl: "./friend-requests.component.html",
     styleUrls: ["./friend-requests.component.scss"],
 })

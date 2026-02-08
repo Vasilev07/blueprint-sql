@@ -1,4 +1,6 @@
 import { Component, OnInit, OnDestroy } from "@angular/core";
+import { CommonModule } from "@angular/common";
+import { FormsModule } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
 import { Subject, takeUntil } from "rxjs";
 import {
@@ -12,9 +14,26 @@ import {
 } from "../../typescript-api-client/src/model/models";
 import { MessageService } from "primeng/api";
 import { AuthService } from "../services/auth.service";
+import { ButtonModule } from "primeng/button";
+import { TooltipModule } from "primeng/tooltip";
+import { TagModule } from "primeng/tag";
+import { ProgressSpinnerModule } from "primeng/progressspinner";
+import { DialogModule } from "primeng/dialog";
+import { TextareaModule } from "primeng/textarea";
 
 @Component({
     selector: "app-post-detail",
+    standalone: true,
+    imports: [
+        CommonModule,
+        FormsModule,
+        ButtonModule,
+        TooltipModule,
+        TagModule,
+        ProgressSpinnerModule,
+        DialogModule,
+        TextareaModule,
+    ],
     templateUrl: "./post-detail.component.html",
     styleUrls: ["./post-detail.component.scss"],
 })

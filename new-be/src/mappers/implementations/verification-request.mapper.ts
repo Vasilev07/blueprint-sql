@@ -9,6 +9,9 @@ export class VerificationRequestMapper implements BaseMapper<VerificationRequest
     constructor(private readonly userMapper: UserMapper) { }
 
     entityToDTO(entity: VerificationRequest): VerificationRequestDTO {
+        if (!entity) {
+            return null as any;
+        }
         return {
             id: entity.id,
             userId: entity.userId,

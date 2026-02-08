@@ -1,11 +1,27 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
+import { trigger, state, style, transition, animate } from '@angular/animations';
 import { VideoCallService, CallState } from '../../services/video-call.service';
 import { MessageService } from 'primeng/api';
+import { ButtonModule } from 'primeng/button';
+import { RippleModule } from 'primeng/ripple';
+import { AvatarModule } from 'primeng/avatar';
+import { ToastModule } from 'primeng/toast';
 
 @Component({
     selector: 'app-incoming-call',
+    standalone: true,
+    imports: [CommonModule, ButtonModule, RippleModule, AvatarModule, ToastModule],
+    animations: [
+        trigger('slideInDown', [
+            transition(':enter', [
+                style({ transform: 'translateY(-50px)', opacity: 0 }),
+                animate('0.4s ease', style({ transform: 'translateY(0)', opacity: 1 })),
+            ]),
+        ]),
+    ],
     templateUrl: './incoming-call.component.html',
     styleUrls: ['./incoming-call.component.scss']
 })

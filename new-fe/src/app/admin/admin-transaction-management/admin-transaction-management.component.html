@@ -121,12 +121,12 @@
 
   <div class="deposit-dialog-content" *ngIf="selectedUser">
     <div class="user-info">
-      <h4>{{ selectedUser.fullName }}</h4>
-      <p>{{ selectedUser.email }}</p>
-      <p class="text-muted">User ID: {{ selectedUser.id }}</p>
+      <h4>{{ selectedUser!.fullName }}</h4>
+      <p>{{ selectedUser!.email }}</p>
+      <p class="text-muted">User ID: {{ selectedUser!.id }}</p>
       <p class="balance-info">
         <strong>Current Balance:</strong> 
-        <span class="balance-amount">{{ selectedUser.balance || '0' }}</span>
+        <span class="balance-amount">{{ selectedUser!.balance || '0' }}</span>
       </p>
     </div>
     
@@ -178,18 +178,18 @@
 
   <div class="transfer-dialog-content" *ngIf="selectedUser">
     <div class="user-info">
-      <h4>From: {{ selectedUser.fullName }}</h4>
-      <p>{{ selectedUser.email }}</p>
-      <p class="text-muted">User ID: {{ selectedUser.id }}</p>
+      <h4>From: {{ selectedUser!.fullName }}</h4>
+      <p>{{ selectedUser!.email }}</p>
+      <p class="text-muted">User ID: {{ selectedUser!.id }}</p>
       <p class="balance-info">
         <strong>Current Balance:</strong> 
-        <span class="balance-amount">{{ selectedUser.balance || '0' }}</span>
+        <span class="balance-amount">{{ selectedUser!.balance || '0' }}</span>
       </p>
     </div>
     
     <div class="form-group">
       <label for="toUser">To User:</label>
-      <p-dropdown
+      <p-select
         id="toUser"
         [(ngModel)]="transferForm.toUserId"
         [options]="users"
@@ -197,10 +197,10 @@
         optionValue="id"
         placeholder="Select recipient user"
         [style]="{ width: '100%' }">
-        <ng-template let-user pTemplate="item">
-          <div>{{ user.fullName }} ({{ user.email }})</div>
+        <ng-template let-item pTemplate="item">
+          <div>{{ item.fullName }} ({{ item.email }})</div>
         </ng-template>
-      </p-dropdown>
+      </p-select>
     </div>
     
     <div class="form-group">

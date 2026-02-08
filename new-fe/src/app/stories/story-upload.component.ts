@@ -1,12 +1,29 @@
 import { Component, OnInit, OnDestroy } from "@angular/core";
-import { FormBuilder, FormGroup, Validators } from "@angular/forms";
+import { CommonModule } from "@angular/common";
+import { FormBuilder, FormGroup, Validators, FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { Router } from "@angular/router";
 import { Subject, takeUntil } from "rxjs";
 import { MessageService, ConfirmationService } from "primeng/api";
 import { Story, StoryService } from "./story.service";
+import { ButtonModule } from "primeng/button";
+import { FileUploadModule } from "primeng/fileupload";
+import { ProgressBarModule } from "primeng/progressbar";
+import { ToastModule } from "primeng/toast";
+import { ConfirmDialogModule } from "primeng/confirmdialog";
 
 @Component({
     selector: "app-story-upload",
+    standalone: true,
+    imports: [
+        CommonModule,
+        FormsModule,
+        ReactiveFormsModule,
+        ButtonModule,
+        FileUploadModule,
+        ProgressBarModule,
+        ToastModule,
+        ConfirmDialogModule,
+    ],
     templateUrl: "./story-upload.component.html",
     styleUrls: ["./story-upload.component.scss"],
 })

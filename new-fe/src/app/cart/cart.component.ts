@@ -1,12 +1,19 @@
 import { Component, OnDestroy, OnInit } from "@angular/core";
+import { CommonModule } from "@angular/common";
 import { ProductDTO } from "../../typescript-api-client/src/model/models";
 import { OrderDTO } from "../../typescript-api-client/src/model/models";
 import { Subject, takeUntil } from "rxjs";
 import { HttpClient } from "@angular/common/http";
 import { DomSanitizer, SafeResourceUrl } from "@angular/platform-browser";
+import { FormsModule } from "@angular/forms";
+import { CardModule } from "primeng/card";
+import { DividerModule } from "primeng/divider";
+import { InputNumberModule } from "primeng/inputnumber";
 
 @Component({
     selector: "cart",
+    standalone: true,
+    imports: [CommonModule, FormsModule, CardModule, DividerModule, InputNumberModule],
     templateUrl: "./cart.component.html",
 })
 export class CartComponent implements OnInit, OnDestroy {

@@ -1,8 +1,12 @@
 import { Component, Input, Output, EventEmitter } from "@angular/core";
+import { CommonModule } from "@angular/common";
 import { Message, User } from "./chat.service";
+import { AvatarModule } from "primeng/avatar";
 
 @Component({
     selector: "app-recent-messages",
+    standalone: true,
+    imports: [CommonModule, AvatarModule],
     templateUrl: "./recent-messages.component.html",
     styleUrls: ["./recent-messages.component.scss"],
 })

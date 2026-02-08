@@ -45,8 +45,8 @@ import { DividerModule } from "primeng/divider";
         ReactiveFormsModule,
         CardModule,
         DividerModule,
+        OrdersComponent,
     ],
-    declarations: [OrdersComponent],
     providers: [ConfirmationService, MessageService],
 })
 export class OrdersModule {}

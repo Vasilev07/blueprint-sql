@@ -8,8 +8,7 @@ import { CardModule } from "primeng/card";
 import { TooltipModule } from "primeng/tooltip";
 import { AvatarModule } from "primeng/avatar";
 import { DialogModule } from "primeng/dialog";
-import { InputTextareaModule } from "primeng/inputtextarea";
-import { MessagesModule } from "primeng/messages";
+import { TextareaModule } from "primeng/textarea";
 import { MessageModule } from "primeng/message";
 import { RippleModule } from "primeng/ripple";
 import { ToastModule } from "primeng/toast";
@@ -20,24 +19,21 @@ import { SendGiftDialogComponent } from "./send-gift-dialog/send-gift-dialog.com
 import { IncomingCallComponent } from "../components/incoming-call/incoming-call.component";
 
 @NgModule({
-    declarations: [
-        UserCardComponent, 
-        SendGiftDialogComponent, 
-        IncomingCallComponent
-    ],
     imports: [
         CommonModule,
+        SendGiftDialogComponent,
         ReactiveFormsModule,
         ButtonModule,
         CardModule,
         TooltipModule,
         AvatarModule,
         DialogModule,
-        InputTextareaModule,
-        MessagesModule,
+        TextareaModule,
         MessageModule,
         RippleModule,
         ToastModule,
+        UserCardComponent,
+        IncomingCallComponent,
     ],
     exports: [
         UserCardComponent, 

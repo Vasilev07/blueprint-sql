@@ -5,7 +5,7 @@ import { RouterModule, Routes } from "@angular/router";
 
 // PrimeNG Modules
 import { ButtonModule } from "primeng/button";
-import { DropdownModule } from "primeng/dropdown";
+import { SelectModule } from "primeng/select";
 import { TooltipModule } from "primeng/tooltip";
 import { ProgressSpinnerModule } from "primeng/progressspinner";
 import { ToastModule } from "primeng/toast";
@@ -28,13 +28,12 @@ const routes: Routes = [
 ];
 
 @NgModule({
-    declarations: [HomeComponent],
     imports: [
         CommonModule,
         FormsModule,
         RouterModule.forChild(routes),
         ButtonModule,
-        DropdownModule,
+        SelectModule,
         TooltipModule,
         ProgressSpinnerModule,
         ToastModule,
@@ -42,6 +41,7 @@ const routes: Routes = [
         IconFieldModule,
         InputIconModule,
         SharedComponentsModule,
+        HomeComponent,
     ],
     providers: [HomeService],
 })

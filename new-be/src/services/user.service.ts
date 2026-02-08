@@ -1257,18 +1257,24 @@ export class UserService implements OnModuleInit {
     }
 
     async getAllVerificationRequests(status?: string): Promise<any[]> {
+        try {
+            const whereCondition = status && status.trim() !== "" ? { status: status as any } : {};
 
-        const whereCondition = status ? { status: status as any } : {};
+            const requests = await this.entityManager.find(VerificationRequest, {
+                where: whereCondition,
+                relations: ["user", "user.profile"],
+                order: { createdAt: "DESC" },
+            });
 
-        const requests = await this.entityManager.find(VerificationRequest, {
-            where: whereCondition,
-            relations: ["user"],
-            order: { createdAt: "DESC" },
-        });
+            const mappedRequests = requests.map((request) =>
+                this.mapperService.entityToDTO("VerificationRequest", request),
+            );
 
-        return requests.map((request) =>
-            this.mapperService.entityToDTO("VerificationRequest", request),
-        );
+            return mappedRequests;
+        } catch (error) {
+            console.error("Error in getAllVerificationRequests:", error);
+            throw error;
+        }
     }
 
     async reviewVerificationRequest(

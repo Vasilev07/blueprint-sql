@@ -1,4 +1,6 @@
 import { Component, Input, Output, EventEmitter, OnInit, OnDestroy } from "@angular/core";
+import { CommonModule } from "@angular/common";
+import { RouterModule } from "@angular/router";
 import { HomeUser } from "../home.service";
 import { Router } from "@angular/router";
 import { DomSanitizer, SafeUrl } from "@angular/platform-browser";
@@ -7,9 +9,13 @@ import { UserService, SuperLikeService } from "src/typescript-api-client/src/api
 import { MessageService } from "primeng/api";
 import { SendSuperLikeRequestDTO } from "src/typescript-api-client/src";
 import { WalletService } from "../../services/wallet.service";
+import { ButtonModule } from "primeng/button";
+import { TooltipModule } from "primeng/tooltip";
 
 @Component({
     selector: "app-user-card",
+    standalone: true,
+    imports: [CommonModule, RouterModule, ButtonModule, TooltipModule],
     templateUrl: "./user-card.component.html",
     styleUrls: ["./user-card.component.scss"],
 })

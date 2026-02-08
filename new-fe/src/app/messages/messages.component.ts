@@ -1,5 +1,8 @@
 import { Component, OnInit, OnDestroy } from "@angular/core";
-import { Router } from "@angular/router";
+import { CommonModule } from "@angular/common";
+import { Router, RouterModule } from "@angular/router";
+import { ButtonModule } from "primeng/button";
+import { AvatarModule } from "primeng/avatar";
 import { HttpClient } from "@angular/common/http";
 import { MessagesService } from 'src/typescript-api-client/src/api/api';
 import { MessageDTO } from "../../typescript-api-client/src/model/models";
@@ -10,6 +13,8 @@ import { Subscription } from 'rxjs';
 
 @Component({
     selector: "app-messages",
+    standalone: true,
+    imports: [CommonModule, RouterModule, ButtonModule, AvatarModule],
     templateUrl: "./messages.component.html",
     styleUrls: ["./messages.component.scss"],
 })

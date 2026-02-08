@@ -1,8 +1,18 @@
 import { Component, OnInit, OnDestroy } from "@angular/core";
+import { CommonModule } from "@angular/common";
+import { FormsModule } from "@angular/forms";
 import { Subject, takeUntil } from "rxjs";
 import { MessageService } from "primeng/api";
 import { UserService } from "src/typescript-api-client/src/api/api";
 import { WalletService } from "src/typescript-api-client/src/api/api";
+import { TableModule } from "primeng/table";
+import { ButtonModule } from "primeng/button";
+import { DialogModule } from "primeng/dialog";
+import { InputNumberModule } from "primeng/inputnumber";
+import { SelectModule } from "primeng/select";
+import { InputTextModule } from "primeng/inputtext";
+import { ProgressSpinnerModule } from "primeng/progressspinner";
+import { ToastModule } from "primeng/toast";
 
 interface User {
     id?: number;
@@ -15,6 +25,19 @@ interface User {
 
 @Component({
     selector: "app-admin-transaction-management",
+    standalone: true,
+    imports: [
+        CommonModule,
+        FormsModule,
+        TableModule,
+        ButtonModule,
+        DialogModule,
+        InputNumberModule,
+        SelectModule,
+        InputTextModule,
+        ProgressSpinnerModule,
+        ToastModule,
+    ],
     templateUrl: "./admin-transaction-management.component.html",
     styleUrls: ["./admin-transaction-management.component.scss"],
 })

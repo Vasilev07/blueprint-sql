@@ -1,5 +1,6 @@
 import { Component, OnInit } from "@angular/core";
-import { FormBuilder, FormGroup, Validators } from "@angular/forms";
+import { CommonModule } from "@angular/common";
+import { FormBuilder, FormGroup, Validators, FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { Router } from "@angular/router";
 import { MessagesService } from "src/typescript-api-client/src/api/api";
 import { UserService } from "src/typescript-api-client/src/api/api";
@@ -8,9 +9,25 @@ import { MessageService } from "primeng/api";
 import { MessageDTO } from "src/typescript-api-client/src/model/models";
 import { CreateMessageDTO } from "src/typescript-api-client/src/model/models";
 import { AuthService } from "../services/auth.service";
+import { ButtonModule } from "primeng/button";
+import { InputTextModule } from "primeng/inputtext";
+import { TextareaModule } from "primeng/textarea";
+import { TooltipModule } from "primeng/tooltip";
+import { MultiSelectModule } from "primeng/multiselect";
 
 @Component({
     selector: "app-message-compose",
+    standalone: true,
+    imports: [
+        CommonModule,
+        FormsModule,
+        ReactiveFormsModule,
+        ButtonModule,
+        InputTextModule,
+        TextareaModule,
+        TooltipModule,
+        MultiSelectModule,
+    ],
     templateUrl: "./message-compose.component.html",
     styleUrls: ["./message-compose.component.scss"],
 })

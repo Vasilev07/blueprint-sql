@@ -19,9 +19,6 @@ const routes: Routes = [
 ];
 
 @NgModule({
-    declarations: [
-        VideoCallComponent
-    ],
     imports: [
         CommonModule,
         RouterModule.forChild(routes),
@@ -30,8 +27,9 @@ const routes: Routes = [
         ProgressSpinnerModule,
         AvatarModule,
         TooltipModule,
-        RippleModule
-    ]
+        RippleModule,
+        VideoCallComponent,
+    ],
 })
 export class VideoCallModule { }
 

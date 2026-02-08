@@ -119,8 +119,11 @@ export class LayoutService {
     }
 
     changeTheme() {
+        // When using PrimeNG preset (providePrimeNG theme), there is no theme-css link
+        const themeLink = document.getElementById("theme-css") as HTMLLinkElement | null;
+        if (!themeLink?.href) return;
+
         const config = this.config();
-        const themeLink = <HTMLLinkElement>document.getElementById("theme-css");
         const themeLinkHref = themeLink.getAttribute("href")!;
         const newHref = themeLinkHref
             .split("/")
@@ -138,16 +141,14 @@ export class LayoutService {
 
     replaceThemeLink(href: string) {
         const id = "theme-css";
-        const themeLink = <HTMLLinkElement>document.getElementById(id);
-        const cloneLinkElement = <HTMLLinkElement>themeLink.cloneNode(true);
+        const themeLink = document.getElementById(id) as HTMLLinkElement | null;
+        if (!themeLink?.parentNode) return;
 
+        const cloneLinkElement = themeLink.cloneNode(true) as HTMLLinkElement;
         cloneLinkElement.setAttribute("href", href);
         cloneLinkElement.setAttribute("id", id + "-clone");
 
-        themeLink.parentNode!.insertBefore(
-            cloneLinkElement,
-            themeLink.nextSibling,
-        );
+        themeLink.parentNode.insertBefore(cloneLinkElement, themeLink.nextSibling);
         cloneLinkElement.addEventListener("load", () => {
             themeLink.remove();
             cloneLinkElement.setAttribute("id", id);

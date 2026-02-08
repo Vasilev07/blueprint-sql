@@ -295,7 +295,14 @@ export class HomeService implements OnDestroy {
 
     private updateUserFriendStatus(): void {
         // Reload users to reflect friend status changes
-        this.resetPagination();
+        // Reset pagination state but don't clear users until new data arrives
+        this.paginationStateSubject.next({
+            currentPage: 0,
+            totalPages: 0,
+            totalUsers: 0,
+            hasMore: true,
+            limit: this.paginationStateSubject.value.limit,
+        });
         this.loadUsersPage(1).subscribe();
     }
 
@@ -337,30 +344,54 @@ export class HomeService implements OnDestroy {
     // Public methods for filtering and sorting
     setFilter(filter: FilterType): void {
         this.filterSubject.next(filter);
-        // Reset to first page when filter changes
-        this.resetPagination();
-        this.loadUsersPage(1);
+        // Reset pagination state but don't clear users until new data arrives
+        this.paginationStateSubject.next({
+            currentPage: 0,
+            totalPages: 0,
+            totalUsers: 0,
+            hasMore: true,
+            limit: this.paginationStateSubject.value.limit,
+        });
+        this.loadUsersPage(1).subscribe();
     }
 
     setSort(sort: SortType): void {
         this.sortSubject.next(sort);
-        // Reset to first page when sort changes
-        this.resetPagination();
-        this.loadUsersPage(1);
+        // Reset pagination state but don't clear users until new data arrives
+        this.paginationStateSubject.next({
+            currentPage: 0,
+            totalPages: 0,
+            totalUsers: 0,
+            hasMore: true,
+            limit: this.paginationStateSubject.value.limit,
+        });
+        this.loadUsersPage(1).subscribe();
     }
 
     setSearch(search: string): void {
         this.searchSubject.next(search);
-        // Reset to first page when search changes
-        this.resetPagination();
-        this.loadUsersPage(1);
+        // Reset pagination state but don't clear users until new data arrives
+        this.paginationStateSubject.next({
+            currentPage: 0,
+            totalPages: 0,
+            totalUsers: 0,
+            hasMore: true,
+            limit: this.paginationStateSubject.value.limit,
+        });
+        this.loadUsersPage(1).subscribe();
     }
 
     setAdvancedFilters(filters: AdvancedFilters): void {
         this.advancedFiltersSubject.next(filters);
-        // Reset to first page when advanced filters change
-        this.resetPagination();
-        this.loadUsersPage(1);
+        // Reset pagination state but don't clear users until new data arrives
+        this.paginationStateSubject.next({
+            currentPage: 0,
+            totalPages: 0,
+            totalUsers: 0,
+            hasMore: true,
+            limit: this.paginationStateSubject.value.limit,
+        });
+        this.loadUsersPage(1).subscribe();
     }
 
     private resetPagination(): void {
@@ -489,17 +520,20 @@ export class HomeService implements OnDestroy {
         return this.loadUsersPage(nextPage, true); // Append to existing users
     }
 
+   
     getFilteredAndSortedUsers(): Observable<HomeUser[]> {
-        // This method now just triggers the first page load and returns the observable
-        this.resetPagination();
-        this.loadUsersPage(1).subscribe();
-        return this.users$;
+        // Don't clear users immediately - let the new data replace them
+        // This prevents the UI from flashing empty state
+        this.paginationStateSubject.next({
+            currentPage: 0,
+            totalPages: 0,
+            totalUsers: 0,
+            hasMore: true,
+            limit: this.paginationStateSubject.value.limit,
+        });
+        return this.loadUsersPage(1);
     }
 
-    /**
-     * Get paginated users - Now handled by backend
-     * This method is deprecated but kept for backwards compatibility
-     */
     getPaginatedUsers(
         allUsers: HomeUser[],
         page: number,
@@ -518,7 +552,14 @@ export class HomeService implements OnDestroy {
 
     refreshData(): void {
         this.loadFriends();
-        this.resetPagination();
+        // Reset pagination state but don't clear users until new data arrives
+        this.paginationStateSubject.next({
+            currentPage: 0,
+            totalPages: 0,
+            totalUsers: 0,
+            hasMore: true,
+            limit: this.paginationStateSubject.value.limit,
+        });
         this.loadUsersPage(1).subscribe();
     }
 }

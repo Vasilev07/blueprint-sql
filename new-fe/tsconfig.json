@@ -5,9 +5,6 @@
   "compilerOptions": {
     "outDir": "./dist",
     "baseUrl": "./",
-    "paths": {
-      "tslib" : ["path/to/node_modules/tslib/tslib.d.ts"]
-    },
     "strict": true,
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
@@ -18,7 +15,7 @@
     "sourceMap": true,
     "declaration": false,
     "experimentalDecorators": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "importHelpers": false,
     "target": "es5",
     "module": "commonjs",

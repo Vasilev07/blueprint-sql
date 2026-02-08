@@ -10,7 +10,7 @@ import { CardModule } from 'primeng/card';
 import { AvatarModule } from 'primeng/avatar';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { TabViewModule } from 'primeng/tabview';
+import { TabsModule } from 'primeng/tabs';
 import { ChipModule } from 'primeng/chip';
 import { BadgeModule } from 'primeng/badge';
 import { MessageService, ConfirmationService } from 'primeng/api';
@@ -29,13 +29,12 @@ const routes: Routes = [
 ];
 
 @NgModule({
-  declarations: [
+  declarations: [],
+  imports: [
     FriendsComponent,
     AllUsersComponent,
     FriendRequestsComponent,
-    MyFriendsComponent
-  ],
-  imports: [
+    MyFriendsComponent,
     CommonModule,
     FormsModule,
     RouterModule.forChild(routes),
@@ -45,7 +44,7 @@ const routes: Routes = [
     AvatarModule,
     ToastModule,
     ConfirmDialogModule,
-    TabViewModule,
+    TabsModule,
     ChipModule,
     BadgeModule
   ],

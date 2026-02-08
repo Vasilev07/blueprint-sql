@@ -1,18 +1,44 @@
 import { Component, OnDestroy, OnInit, ViewChild } from "@angular/core";
+import { CommonModule } from "@angular/common";
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { Subject, takeUntil } from "rxjs";
 import { ConfirmationService, MessageService } from "primeng/api";
 import { ProductService } from "../../typescript-api-client/src/api/api";
-import { FormBuilder, FormGroup, Validators } from "@angular/forms";
-import {
-    FileSelectEvent,
-    FileUpload,
-    FileUploadEvent,
-} from "primeng/fileupload";
+import { FileUpload, FileUploadEvent } from "primeng/fileupload";
+import type { FileSelectEvent } from "primeng/types/fileupload";
 import { DomSanitizer } from "@angular/platform-browser";
 import { ProductDTO } from "../../typescript-api-client/src/model/models";
+import { TableModule } from "primeng/table";
+import { ButtonModule } from "primeng/button";
+import { DialogModule } from "primeng/dialog";
+import { InputTextModule } from "primeng/inputtext";
+import { FileUploadModule } from "primeng/fileupload";
+import { TagModule } from "primeng/tag";
+import { ToastModule } from "primeng/toast";
+import { ToolbarModule } from "primeng/toolbar";
+import { RatingModule } from "primeng/rating";
+import { DividerModule } from "primeng/divider";
+import { ImageModule } from "primeng/image";
 
 @Component({
     templateUrl: "./products.component.html",
+    standalone: true,
+    imports: [
+        CommonModule,
+        FormsModule,
+        ReactiveFormsModule,
+        TableModule,
+        ButtonModule,
+        DialogModule,
+        InputTextModule,
+        FileUploadModule,
+        TagModule,
+        ToastModule,
+        ToolbarModule,
+        RatingModule,
+        DividerModule,
+        ImageModule,
+    ],
     providers: [MessageService, ConfirmationService],
 })
 export class ProductsComponent implements OnInit, OnDestroy {

@@ -28,7 +28,7 @@
       <!-- Gender Filter -->
       <div class="filter-group">
         <label class="filter-label">Gender</label>
-        <p-dropdown
+        <p-select
           [options]="genderOptions"
           [(ngModel)]="filters.gender"
           (onChange)="onFilterChange()"
@@ -36,13 +36,13 @@
           optionValue="value"
           [style]="{'width': '100%'}"
           styleClass="custom-dropdown">
-        </p-dropdown>
+        </p-select>
       </div>
 
       <!-- Online Status Filter -->
       <div class="filter-group">
         <label class="filter-label">Online Status</label>
-        <p-dropdown
+        <p-select
           [options]="onlineStatusOptions"
           [(ngModel)]="filters.onlineStatus"
           (onChange)="onFilterChange()"
@@ -50,13 +50,13 @@
           optionValue="value"
           [style]="{'width': '100%'}"
           styleClass="custom-dropdown">
-        </p-dropdown>
+        </p-select>
       </div>
 
       <!-- Relationship Status Filter -->
       <div class="filter-group">
         <label class="filter-label">Relationship Status</label>
-        <p-dropdown
+        <p-select
           [options]="relationshipStatusOptions"
           [(ngModel)]="filters.relationshipStatus"
           (onChange)="onFilterChange()"
@@ -64,7 +64,7 @@
           optionValue="value"
           [style]="{'width': '100%'}"
           styleClass="custom-dropdown">
-        </p-dropdown>
+        </p-select>
       </div>
 
       <!-- Interests Filter -->

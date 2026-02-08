@@ -1,10 +1,13 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { GiftNotificationService, GiftNotification } from '../../services/gift-notification.service';
 import { UserService, WalletService } from 'src/typescript-api-client/src/api/api';
 import { Subject, takeUntil } from 'rxjs';
 
 @Component({
     selector: 'app-gift-notification',
+    standalone: true,
+    imports: [CommonModule],
     templateUrl: './gift-notification.component.html',
     styleUrls: ['./gift-notification.component.scss']
 })

@@ -1,10 +1,13 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { SuperLikeNotificationService, SuperLikeReceivedNotification, SuperLikeSentNotification } from '../../services/super-like-notification.service';
 import { UserService } from 'src/typescript-api-client/src/api/api';
 import { Subject, takeUntil } from 'rxjs';
 
 @Component({
     selector: 'app-super-like-notification',
+    standalone: true,
+    imports: [CommonModule],
     templateUrl: './super-like-notification.component.html',
     styleUrls: ['./super-like-notification.component.scss']
 })

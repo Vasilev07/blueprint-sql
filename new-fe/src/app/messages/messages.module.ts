@@ -1,4 +1,4 @@
-import { NgModule } from '@angular/core';
+import { NgModule, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Routes } from '@angular/router';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -12,15 +12,15 @@ import { DividerModule } from 'primeng/divider';
 import { TooltipModule } from 'primeng/tooltip';
 import { MenuModule } from 'primeng/menu';
 import { DialogModule } from 'primeng/dialog';
-import { InputTextareaModule } from 'primeng/inputtextarea';
-import { DropdownModule } from 'primeng/dropdown';
-import { CalendarModule } from 'primeng/calendar';
+import { TextareaModule } from 'primeng/textarea';
+import { SelectModule } from 'primeng/select';
+import { DatePickerModule } from 'primeng/datepicker';
 import { FileUploadModule } from 'primeng/fileupload';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { CheckboxModule } from 'primeng/checkbox';
-import { TabViewModule } from 'primeng/tabview';
+import { TabsModule } from 'primeng/tabs';
 import { SplitButtonModule } from 'primeng/splitbutton';
 import { MultiSelectModule } from 'primeng/multiselect';
 
@@ -48,12 +48,7 @@ const routes: Routes = [
 ];
 
 @NgModule({
-  declarations: [
-    MessagesComponent,
-    MessageComposeComponent,
-    MessageListComponent,
-    MessageViewComponent
-  ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   imports: [
     CommonModule,
     FormsModule,
@@ -69,17 +64,21 @@ const routes: Routes = [
     TooltipModule,
     MenuModule,
     DialogModule,
-    InputTextareaModule,
-    DropdownModule,
-    CalendarModule,
+    TextareaModule,
+    SelectModule,
+        DatePickerModule,
     FileUploadModule,
     ProgressBarModule,
     ToastModule,
     ConfirmDialogModule,
     CheckboxModule,
-    TabViewModule,
+    TabsModule,
     SplitButtonModule,
-    MultiSelectModule
+    MultiSelectModule,
+    MessageComposeComponent,
+    MessagesComponent,
+    MessageListComponent,
+    MessageViewComponent
   ],
   providers: [MessageService, MessagesService, UserService]
 })

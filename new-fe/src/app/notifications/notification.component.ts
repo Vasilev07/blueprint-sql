@@ -7,16 +7,23 @@ import {
 } from "@angular/core";
 import { Subject, takeUntil } from "rxjs";
 import { NotificationService } from "../services/notification.service";
+import { CommonModule } from "@angular/common";
+import { RouterModule } from "@angular/router";
 import { ProfileViewDTO } from "../../typescript-api-client/src";
-import { OverlayPanel } from "primeng/overlaypanel";
+import { Popover, PopoverModule } from "primeng/popover";
+import { ButtonModule } from "primeng/button";
+import { AvatarModule } from "primeng/avatar";
+import { TooltipModule } from "primeng/tooltip";
 
 @Component({
     selector: "app-notification",
+    standalone: true,
+    imports: [CommonModule, RouterModule, PopoverModule, ButtonModule, AvatarModule, TooltipModule],
     templateUrl: "./notification.component.html",
     styleUrls: ["./notification.component.scss"],
 })
 export class NotificationComponent implements OnInit, OnDestroy {
-    @ViewChild("notificationPanel") notificationPanel!: OverlayPanel;
+    @ViewChild("notificationPanel") notificationPanel!: Popover;
 
     profileViews: ProfileViewDTO[] = [];
     unreadCount: number = 0;

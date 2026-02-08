@@ -1,4 +1,6 @@
 import { Component, OnInit, OnDestroy } from "@angular/core";
+import { CommonModule, DatePipe } from "@angular/common";
+import { FormsModule } from "@angular/forms";
 import { DomSanitizer, SafeUrl } from "@angular/platform-browser";
 import { Subject, takeUntil } from "rxjs";
 import { MessageService, ConfirmationService } from "primeng/api";
@@ -7,8 +9,33 @@ import { UserService } from "src/typescript-api-client/src/api/api";
 import { VerificationRequestDTO } from "src/typescript-api-client/src/model/verification-request-dto";
 import { ReviewVerificationRequestDTO } from "src/typescript-api-client/src/model/review-verification-request-dto";
 
+import { TableModule } from "primeng/table";
+import { ButtonModule } from "primeng/button";
+import { DialogModule } from "primeng/dialog";
+import { SelectModule } from "primeng/select";
+import { InputTextModule } from "primeng/inputtext";
+import { TextareaModule } from "primeng/textarea";
+import { TagModule } from "primeng/tag";
+import { ProgressSpinnerModule } from "primeng/progressspinner";
+import { ToastModule } from "primeng/toast";
+
 @Component({
     selector: "app-admin-verification",
+    standalone: true,
+    imports: [
+        CommonModule,
+        FormsModule,
+        DatePipe,
+        TableModule,
+        ButtonModule,
+        DialogModule,
+        SelectModule,
+        InputTextModule,
+        TextareaModule,
+        TagModule,
+        ProgressSpinnerModule,
+        ToastModule,
+    ],
     templateUrl: "./admin-verification.component.html",
     styleUrls: ["./admin-verification.component.scss"],
 })
@@ -69,7 +96,8 @@ export class AdminVerificationComponent implements OnInit, OnDestroy {
             .pipe(takeUntil(this.destroy$))
             .subscribe({
                 next: (requests: VerificationRequestDTO[]) => {
-                    this.verificationRequests = requests;
+                    console.log("Loaded verification requests:", requests);
+                    this.verificationRequests = requests || [];
                     this.applyFilters();
                     this.isLoading = false;
                 },
@@ -83,6 +111,8 @@ export class AdminVerificationComponent implements OnInit, OnDestroy {
                         summary: "Error",
                         detail: "Failed to load verification requests",
                     });
+                    this.verificationRequests = [];
+                    this.filteredRequests = [];
                     this.isLoading = false;
                 },
             });
@@ -92,23 +122,24 @@ export class AdminVerificationComponent implements OnInit, OnDestroy {
         let filtered = [...this.verificationRequests];
 
         // Apply status filter
-        if (this.statusFilter) {
+        if (this.statusFilter && this.statusFilter.trim() !== "") {
             filtered = filtered.filter(
                 (request) => request.status === this.statusFilter,
             );
         }
 
         // Apply search filter
-        if (this.searchTerm) {
+        if (this.searchTerm && this.searchTerm.trim() !== "") {
             const searchLower = this.searchTerm.toLowerCase();
             filtered = filtered.filter(
                 (request) =>
                     (request.user?.fullName && request.user.fullName.toLowerCase().includes(searchLower)) ||
-                    request.user?.email.toLowerCase().includes(searchLower),
+                    (request.user?.email && request.user.email.toLowerCase().includes(searchLower)),
             );
         }
 
         this.filteredRequests = filtered;
+        console.log("Filtered requests:", this.filteredRequests.length, "out of", this.verificationRequests.length);
     }
 
     onStatusFilterChange(): void {
@@ -207,10 +238,10 @@ export class AdminVerificationComponent implements OnInit, OnDestroy {
         this.selectedRequest = null;
     }
 
-    getStatusSeverity(status: string): "success" | "secondary" | "info" | "warning" | "danger" | "contrast" {
+    getStatusSeverity(status: string): "success" | "secondary" | "info" | "warn" | "danger" | "contrast" {
         switch (status) {
             case "pending":
-                return "warning";
+                return "warn";
             case "in_review":
                 return "info";
             case "verified":

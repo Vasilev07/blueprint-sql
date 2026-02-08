@@ -1,9 +1,9 @@
-import { NgModule } from "@angular/core";
+import { NgModule, CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { ProfileRoutingModule } from "./profile-routing.module";
 import { ProfileComponent } from "./profile.component";
-import { TabViewModule } from "primeng/tabview";
+import { TabsModule } from "primeng/tabs";
 import { ButtonModule } from "primeng/button";
 import { FileUploadModule } from "primeng/fileupload";
 import { CardModule } from "primeng/card";
@@ -11,16 +11,15 @@ import { AvatarModule } from "primeng/avatar";
 import { BadgeModule } from "primeng/badge";
 import { ProgressSpinnerModule } from "primeng/progressspinner";
 import { DialogModule } from "primeng/dialog";
-import { DropdownModule } from "primeng/dropdown";
 import { InputTextModule } from "primeng/inputtext";
-import { InputTextareaModule } from "primeng/inputtextarea";
-import { InputSwitchModule } from "primeng/inputswitch";
+import { TextareaModule } from "primeng/textarea";
+import { ToggleSwitchModule } from "primeng/toggleswitch";
 import { InputNumberModule } from "primeng/inputnumber";
 import { ChipModule } from "primeng/chip";
 import { TooltipModule } from "primeng/tooltip";
 import { DividerModule } from "primeng/divider";
 import { ConfirmDialogModule } from "primeng/confirmdialog";
-import { CalendarModule } from "primeng/calendar";
+import { DatePickerModule } from "primeng/datepicker";
 import { MessageModule } from "primeng/message";
 import { MessageService, ConfirmationService } from "primeng/api";
 import { ToastModule } from "primeng/toast";
@@ -32,13 +31,13 @@ import {
 import { SharedComponentsModule } from "../shared/components.module";
 
 @NgModule({
-    declarations: [ProfileComponent],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [
         CommonModule,
         FormsModule,
         ReactiveFormsModule,
         ProfileRoutingModule,
-        TabViewModule,
+        TabsModule,
         ButtonModule,
         FileUploadModule,
         CardModule,
@@ -46,19 +45,19 @@ import { SharedComponentsModule } from "../shared/components.module";
         BadgeModule,
         ProgressSpinnerModule,
         DialogModule,
-        DropdownModule,
         InputTextModule,
-        InputTextareaModule,
-        InputSwitchModule,
+        TextareaModule,
+        ToggleSwitchModule,
         InputNumberModule,
         ChipModule,
         TooltipModule,
         ToastModule,
         DividerModule,
         ConfirmDialogModule,
-        CalendarModule,
+        DatePickerModule,
         MessageModule,
         SharedComponentsModule,
+        ProfileComponent,
     ],
     providers: [
         MessageService,

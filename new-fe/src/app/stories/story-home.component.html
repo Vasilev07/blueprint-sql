@@ -49,7 +49,7 @@
             <div class="story-avatar"
                  [style.background-image]="group.userAvatar ? 'url(' + group.userAvatar + ')' : 'none'"
                  [class.has-multiple]="group.stories.length > 1">
-              <span *ngIf="!group.userAvatar">{{ group.userName?.charAt(0)?.toUpperCase() }}</span>
+              <span *ngIf="!group.userAvatar">{{ group.userName.charAt(0).toUpperCase() }}</span>
               <span *ngIf="group.stories.length > 1" class="story-count">{{ group.stories.length }}</span>
             </div>
             <span class="username">{{ group.userName }}</span>
@@ -99,7 +99,7 @@
             <div class="user-badge">
               <div class="user-avatar-small"
                    [style.background-image]="group.userAvatar ? 'url(' + group.userAvatar + ')' : 'none'">
-                <span *ngIf="!group.userAvatar">{{ group.userName?.charAt(0)?.toUpperCase() }}</span>
+                <span *ngIf="!group.userAvatar">{{ group.userName.charAt(0).toUpperCase() }}</span>
               </div>
               <span class="user-name">{{ group.userName }}</span>
               <span *ngIf="group.stories.length > 1" class="story-count-badge">{{ group.stories.length }}</span>

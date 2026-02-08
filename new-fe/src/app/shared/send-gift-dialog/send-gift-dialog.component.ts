@@ -1,8 +1,14 @@
 import { Component, Input, Output, EventEmitter, OnInit, OnDestroy } from "@angular/core";
-import { FormBuilder, FormGroup, Validators } from "@angular/forms";
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
+import { CommonModule } from "@angular/common";
 import { Subject, takeUntil } from "rxjs";
 import { MessageService } from "primeng/api";
 import { UserService, GiftService } from "src/typescript-api-client/src/api/api";
+import { ButtonModule } from "primeng/button";
+import { DialogModule } from "primeng/dialog";
+import { TextareaModule } from "primeng/textarea";
+import { TooltipModule } from "primeng/tooltip";
+import { MessageModule } from "primeng/message";
 
 export interface GiftDialogUser {
     id: number;
@@ -14,6 +20,16 @@ export interface GiftDialogUser {
     selector: "app-send-gift-dialog",
     templateUrl: "./send-gift-dialog.component.html",
     styleUrls: ["./send-gift-dialog.component.scss"],
+    standalone: true,
+    imports: [
+        CommonModule,
+        ReactiveFormsModule,
+        ButtonModule,
+        DialogModule,
+        TextareaModule,
+        TooltipModule,
+        MessageModule,
+    ],
 })
 export class SendGiftDialogComponent implements OnInit, OnDestroy {
     @Input() visible: boolean = false;

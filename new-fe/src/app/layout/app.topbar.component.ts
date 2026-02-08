@@ -4,10 +4,16 @@ import { LayoutService } from "./service/app.layout.service";
 import { Menu } from "primeng/menu";
 import { ThemeService } from "../services/theme.service";
 import { AuthService } from "../services/auth.service";
-import { Router } from "@angular/router";
+import { CommonModule } from "@angular/common";
+import { Router, RouterModule } from "@angular/router";
+import { MenuModule } from "primeng/menu";
+import { ButtonModule } from "primeng/button";
+import { NotificationComponent } from "../notifications/notification.component";
 
 @Component({
     selector: "app-topbar",
+    standalone: true,
+    imports: [CommonModule, RouterModule, MenuModule, ButtonModule, NotificationComponent],
     templateUrl: "./app.topbar.component.html",
 })
 export class AppTopBarComponent implements OnInit {
@@ -79,10 +85,18 @@ export class AppTopBarComponent implements OnInit {
 
     private toggleLightTheme(): void {
         this.themeService.switchTheme(this.themes[1].id);
+        this.layoutService.config.set({
+            ...this.layoutService.config(),
+            colorScheme: "light",
+        });
     }
 
     private toggleDarkTheme(): void {
         this.themeService.switchTheme(this.themes[0].id);
+        this.layoutService.config.set({
+            ...this.layoutService.config(),
+            colorScheme: "dark",
+        });
     }
 
     private logout(): void {

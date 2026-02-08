@@ -17,7 +17,7 @@
                 <span><i class="pi pi-users"></i> {{ room.memberCount }} members</span>
                 <p-tag
                     [value]="room.visibility"
-                    [severity]="room.visibility === 'public' ? 'success' : 'warning'"
+                    [severity]="room.visibility === 'public' ? 'success' : 'warn'"
                 ></p-tag>
             </div>
         </div>
@@ -87,7 +87,7 @@
                     </div>
                     <div class="post-badges">
                         <p-tag *ngIf="post.isPinned" value="Pinned" severity="info"></p-tag>
-                        <p-tag *ngIf="post.isLocked" value="Locked" severity="warning"></p-tag>
+                        <p-tag *ngIf="post.isLocked" value="Locked" severity="warn"></p-tag>
                     </div>
                 </div>
 

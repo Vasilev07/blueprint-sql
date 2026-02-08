@@ -1,11 +1,15 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef } from "@angular/core";
+import { CommonModule } from "@angular/common";
 import { Router } from "@angular/router";
 import { Subject, takeUntil } from "rxjs";
 import { UserService } from "../../typescript-api-client/src/api/api";
 import { ProfileViewDTO } from "../../typescript-api-client/src/model/profile-view-dto";
 import { MessageService } from "primeng/api";
 import { DomSanitizer, SafeUrl } from "@angular/platform-browser";
-import { GiftDialogUser } from "../shared/send-gift-dialog/send-gift-dialog.component";
+import { GiftDialogUser, SendGiftDialogComponent } from "../shared/send-gift-dialog/send-gift-dialog.component";
+import { ButtonModule } from "primeng/button";
+import { TooltipModule } from "primeng/tooltip";
+import { ProgressSpinnerModule } from "primeng/progressspinner";
 
 interface GroupedProfileView {
     viewerId: number;
@@ -17,6 +21,14 @@ interface GroupedProfileView {
 
 @Component({
     selector: "app-who-visited-me",
+    standalone: true,
+    imports: [
+        CommonModule,
+        ButtonModule,
+        TooltipModule,
+        ProgressSpinnerModule,
+        SendGiftDialogComponent,
+    ],
     templateUrl: "./who-visited-me.component.html",
     styleUrls: ["./who-visited-me.component.scss"],
 })

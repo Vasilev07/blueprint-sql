@@ -1,4 +1,6 @@
 import { Component, OnInit, OnDestroy, Input, OnChanges, SimpleChanges, ChangeDetectorRef } from "@angular/core";
+import { CommonModule } from "@angular/common";
+import { ReactiveFormsModule } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { Subject, takeUntil } from "rxjs";
@@ -6,9 +8,24 @@ import { ChatService, User, Message } from "./chat.service";
 import { UserService } from "src/typescript-api-client/src/api/api";
 import { MessageService } from "primeng/api";
 import { DomSanitizer } from "@angular/platform-browser";
+import { SendGiftDialogComponent } from "../shared/send-gift-dialog/send-gift-dialog.component";
+import { ToastModule } from "primeng/toast";
+import { ButtonModule } from "primeng/button";
+import { InputTextModule } from "primeng/inputtext";
+import { TooltipModule } from "primeng/tooltip";
 
 @Component({
     selector: "app-chat",
+    standalone: true,
+    imports: [
+        CommonModule,
+        ReactiveFormsModule,
+        SendGiftDialogComponent,
+        ToastModule,
+        ButtonModule,
+        InputTextModule,
+        TooltipModule,
+    ],
     templateUrl: "./chat.component.html",
     styleUrls: ["./chat.component.scss"],
 })

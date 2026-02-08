@@ -1,11 +1,15 @@
 import { Component, OnInit } from "@angular/core";
-import { ActivatedRoute, Router } from "@angular/router";
+import { CommonModule } from "@angular/common";
+import { ActivatedRoute, Router, RouterModule } from "@angular/router";
+import { ButtonModule } from "primeng/button";
 import { MessagesService } from 'src/typescript-api-client/src/api/api';
 import { MessageDTO } from "src/typescript-api-client/src/model/models";
 import { MessageService } from "primeng/api";
 
 @Component({
     selector: "app-message-view",
+    standalone: true,
+    imports: [CommonModule, RouterModule, ButtonModule],
     templateUrl: "./message-view.component.html",
     styleUrls: ['./message-view.component.scss'],
 })

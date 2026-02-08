@@ -5,8 +5,8 @@
         <div class="main-super-like-display">
             <div class="super-like-emoji-large">💖</div>
             <h2 class="super-like-title">You Got a Super Like!</h2>
-            <p class="super-like-sender">From: {{ receivedSuperLike.senderName }}</p>
-            <p class="super-like-amount">{{ receivedSuperLike.amount }} tokens</p>
+            <p class="super-like-sender">From: {{ receivedSuperLike?.senderName }}</p>
+            <p class="super-like-amount">{{ receivedSuperLike?.amount }} tokens</p>
             <p class="super-like-message">Someone thinks you're special! 💫</p>
         </div>
         
@@ -38,8 +38,8 @@
         <div class="main-super-like-display">
             <div class="super-like-emoji-large">💖</div>
             <h2 class="super-like-title">Super Like Sent!</h2>
-            <p class="super-like-sender">To: {{ sentSuperLike.receiverName }}</p>
-            <p class="super-like-amount">{{ sentSuperLike.cost }} tokens</p>
+            <p class="super-like-sender">To: {{ sentSuperLike?.receiverName }}</p>
+            <p class="super-like-amount">{{ sentSuperLike?.cost }} tokens</p>
             <p class="super-like-message">You made someone's day! ✨</p>
         </div>
         

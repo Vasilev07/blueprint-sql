@@ -9,9 +9,9 @@
     <div class="filter-row">
       <div class="filter-group">
         <label for="statusFilter">Status Filter:</label>
-        <p-dropdown id="statusFilter" [(ngModel)]="statusFilter" [options]="statusOptions"
+        <p-select id="statusFilter" [(ngModel)]="statusFilter" [options]="statusOptions"
           (onChange)="onStatusFilterChange()" placeholder="All Statuses" styleClass="w-full">
-        </p-dropdown>
+        </p-select>
       </div>
 
       <div class="filter-group">
@@ -111,16 +111,16 @@
 
   <div class="photo-dialog-content" *ngIf="selectedRequest">
     <div class="user-context">
-      <h3>{{ selectedRequest.user?.fullName }}</h3>
-      <p>{{ selectedRequest.user?.email }}</p>
+      <h3>{{ selectedRequest.user?.fullName ?? '' }}</h3>
+      <p>{{ selectedRequest.user?.email ?? '' }}</p>
       <p class="text-muted">Submitted: {{ selectedRequest.createdAt | date: 'medium' }}</p>
     </div>
 
     <div class="photo-display">
-      <img *ngIf="selectedRequest.id && getVerificationPhotoUrl(selectedRequest.id)"
-        [src]="getVerificationPhotoUrl(selectedRequest.id)!"
+      <img *ngIf="selectedRequest.id != null && getVerificationPhotoUrl(selectedRequest.id)"
+        [src]="getVerificationPhotoUrl(selectedRequest.id!)!"
         [alt]="'Verification photo for request ' + selectedRequest.id" class="verification-photo">
-      <div *ngIf="!selectedRequest.id || !getVerificationPhotoUrl(selectedRequest.id)" class="photo-loading">
+      <div *ngIf="selectedRequest.id == null || !getVerificationPhotoUrl(selectedRequest.id!)" class="photo-loading">
         <i class="pi pi-spin pi-spinner" style="font-size: 2rem;"></i>
         <p>Loading photo...</p>
       </div>
@@ -139,16 +139,16 @@
 
   <div class="review-dialog-content" *ngIf="selectedRequest">
     <div class="user-info">
-      <h4>{{ selectedRequest.user?.fullName }}</h4>
-      <p>{{ selectedRequest.user?.email }}</p>
+      <h4>{{ selectedRequest.user?.fullName ?? '' }}</h4>
+      <p>{{ selectedRequest.user?.email ?? '' }}</p>
     </div>
 
     <div class="review-actions">
-      <p-button label="Approve" icon="pi pi-check" (onClick)="approveRequest(selectedRequest)"
+      <p-button label="Approve" icon="pi pi-check" (onClick)="approveRequest(selectedRequest!)"
         styleClass="p-button-success">
       </p-button>
 
-      <p-button label="Reject" icon="pi pi-times" (onClick)="openRejectionDialog(selectedRequest)"
+      <p-button label="Reject" icon="pi pi-times" (onClick)="openRejectionDialog(selectedRequest!)"
         styleClass="p-button-danger">
       </p-button>
     </div>
@@ -166,8 +166,8 @@
 
   <div class="rejection-dialog-content" *ngIf="selectedRequest">
     <div class="user-info">
-      <h4>{{ selectedRequest.user?.fullName }}</h4>
-      <p>{{ selectedRequest.user?.email }}</p>
+      <h4>{{ selectedRequest!.user?.fullName ?? '' }}</h4>
+      <p>{{ selectedRequest!.user?.email ?? '' }}</p>
     </div>
 
     <div class="form-group">
@@ -199,8 +199,8 @@
 
   <div class="revoke-dialog-content" *ngIf="selectedRequest">
     <div class="user-info">
-      <h4>{{ selectedRequest.user?.fullName }}</h4>
-      <p>{{ selectedRequest.user?.email }}</p>
+      <h4>{{ selectedRequest!.user?.fullName ?? '' }}</h4>
+      <p>{{ selectedRequest!.user?.email ?? '' }}</p>
     </div>
 
     <div class="warning-message">

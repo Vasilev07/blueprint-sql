@@ -4,7 +4,29 @@ import {
     OnDestroy,
     ChangeDetectorRef,
 } from "@angular/core";
-import { FormBuilder, FormGroup, Validators } from "@angular/forms";
+import { CommonModule } from "@angular/common";
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from "@angular/forms";
+import { RouterModule } from "@angular/router";
+import { TabsModule } from "primeng/tabs";
+import { ButtonModule } from "primeng/button";
+import { FileUploadModule } from "primeng/fileupload";
+import { CardModule } from "primeng/card";
+import { AvatarModule } from "primeng/avatar";
+import { BadgeModule } from "primeng/badge";
+import { ProgressSpinnerModule } from "primeng/progressspinner";
+import { DialogModule } from "primeng/dialog";
+import { InputTextModule } from "primeng/inputtext";
+import { TextareaModule } from "primeng/textarea";
+import { ToggleSwitchModule } from "primeng/toggleswitch";
+import { InputNumberModule } from "primeng/inputnumber";
+import { ChipModule } from "primeng/chip";
+import { TooltipModule } from "primeng/tooltip";
+import { DividerModule } from "primeng/divider";
+import { DatePickerModule } from "primeng/datepicker";
+import { MessageModule } from "primeng/message";
+import { ToastModule } from "primeng/toast";
+import { ConfirmDialogModule } from "primeng/confirmdialog";
+import { SharedComponentsModule } from "../shared/components.module";
 import { Subject, takeUntil } from "rxjs";
 import { MessageService, ConfirmationService } from "primeng/api";
 import { Router, ActivatedRoute } from "@angular/router";
@@ -29,6 +51,33 @@ import {
 
 @Component({
     selector: "app-profile",
+    standalone: true,
+    imports: [
+        CommonModule,
+        FormsModule,
+        ReactiveFormsModule,
+        RouterModule,
+        TabsModule,
+        ButtonModule,
+        FileUploadModule,
+        CardModule,
+        AvatarModule,
+        BadgeModule,
+        ProgressSpinnerModule,
+        DialogModule,
+        InputTextModule,
+        TextareaModule,
+        ToggleSwitchModule,
+        InputNumberModule,
+        ChipModule,
+        TooltipModule,
+        DividerModule,
+        DatePickerModule,
+        MessageModule,
+        ToastModule,
+        ConfirmDialogModule,
+        SharedComponentsModule,
+    ],
     templateUrl: "./profile.component.html",
     styleUrls: ["./profile.component.scss"],
 })
@@ -799,20 +848,20 @@ export class ProfileComponent implements OnInit, OnDestroy {
         }
     }
 
-    getVerificationStatusSeverity(): string {
-        if (!this.verificationStatus) return "info";
+    getVerificationStatusSeverity(): "error" | "success" | "info" | "warn" | "secondary" | "contrast" {
+        if (!this.verificationStatus) return "info" as const;
 
         switch (this.verificationStatus.verificationRequest?.status) {
             case "pending":
-                return "warn";
+                return "warn" as const;
             case "in_review":
-                return "info";
+                return "info" as const;
             case "verified":
-                return "success";
+                return "success" as const;
             case "rejected":
-                return "error";
+                return "error" as const;
             default:
-                return "info";
+                return "info" as const;
         }
     }
 

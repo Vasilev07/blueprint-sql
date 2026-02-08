@@ -1,0 +1,64 @@
+/**
+ * PrimeNG preset semantic bridge: map Lara/semantic variable names to Prime design tokens (--p-*).
+ * Layout and components use --surface-ground, --surface-card, --primary-color, etc.
+ * Preset (Lara/Aura) injects --p-surface-*, --p-primary-color, etc. This file defines the semantic
+ * names so existing layout and component styles work without changing variable names.
+ * Fallbacks (Lara/indigo-like) avoid broken flash before theme CSS is injected.
+ * Requires @primeuix/themes and @primeuix/styles >= 2.0.2.
+ */
+:root {
+  --font-family: "Inter var", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  --surface-ground: light-dark(var(--p-surface-50, #f9fafb), var(--p-surface-950, #111827));
+  --surface-section: light-dark(var(--p-surface-0, #ffffff), var(--p-surface-950, #111827));
+  --surface-card: light-dark(var(--p-surface-0, #ffffff), var(--p-surface-900, #1f2937));
+  --surface-overlay: light-dark(var(--p-surface-0, #ffffff), var(--p-surface-900, #1f2937));
+  --surface-border: light-dark(var(--p-surface-200, #e5e7eb), var(--p-surface-700, rgba(255, 255, 255, 0.1)));
+  /* Light mode: hover = slightly darker surface (surface-100). Dark mode: hover = surface-800 */
+  --surface-hover: light-dark(var(--p-surface-100, #f3f4f6), var(--p-surface-800, rgba(255, 255, 255, 0.05)));
+
+  --surface-0: var(--p-surface-0, #ffffff);
+  --surface-50: var(--p-surface-50, #f9fafb);
+  --surface-100: var(--p-surface-100, #f3f4f6);
+  --surface-200: var(--p-surface-200, #e5e7eb);
+  --surface-300: var(--p-surface-300, #d1d5db);
+  --surface-400: var(--p-surface-400, #9ca3af);
+  --surface-500: var(--p-surface-500, #6b7280);
+  --surface-600: var(--p-surface-600, #4b5563);
+  --surface-700: var(--p-surface-700, #374151);
+  --surface-800: var(--p-surface-800, #1f2937);
+  --surface-900: var(--p-surface-900, #111827);
+  --surface-950: var(--p-surface-950, #030712);
+
+  /* Legacy semantic aliases (layout/search/components) */
+  --surface-a: var(--surface-0);
+  --surface-b: var(--surface-50);
+  --surface-c: var(--surface-100);
+  --surface-d: var(--surface-200);
+  --surface-e: var(--surface-0);
+  --surface-f: var(--surface-0);
+
+  --primary-color: var(--p-primary-color, #6366f1);
+  --primary-color-text: var(--p-primary-contrast-color, #ffffff);
+  --primary-hover-color: var(--p-primary-hover-color, #4f46e5);
+  --text-color: var(--p-text-color, #4b5563);
+  --text-color-secondary: var(--p-text-muted-color, #6b7280);
+
+  --border-radius: var(--p-content-border-radius, 6px);
+  --focus-ring: var(--p-focus-ring-shadow, 0 0 0 0.2rem rgba(99, 102, 241, 0.25));
+
+  /* Palette aliases (components use --pink-500, --red-500, etc.) */
+  --pink-50: var(--p-pink-50, #fdf2f8);
+  --pink-400: var(--p-pink-400, #f472b6);
+  --pink-500: var(--p-pink-500, #ec4899);
+  --pink-600: var(--p-pink-600, #db2777);
+  --purple-50: var(--p-purple-50, #faf5ff);
+  --purple-500: var(--p-purple-500, #a855f7);
+  --purple-600: var(--p-purple-600, #9333ea);
+  --red-50: var(--p-red-50, #fef2f2);
+  --red-200: var(--p-red-200, #fecaca);
+  --red-500: var(--p-red-500, #ef4444);
+  --red-600: var(--p-red-600, #dc2626);
+  --red-700: var(--p-red-700, #b91c1c);
+  --blue-500: var(--p-blue-500, #3b82f6);
+}

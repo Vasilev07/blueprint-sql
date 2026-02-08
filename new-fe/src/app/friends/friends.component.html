@@ -9,29 +9,25 @@
       <span class="email">{{ currentUserEmail }}</span>
     </span>
   </div>
-  <p-tabView>
-    <!-- All Users Tab -->
-    <p-tabPanel header="All Users">
-      <app-all-users></app-all-users>
-    </p-tabPanel>
-
-    <!-- Friend Requests Tab -->
-    <p-tabPanel>
-      <ng-template pTemplate="header">
-        <span style="display: flex; align-items: center; gap: 0.5rem;">
-          Friend Requests
-          <p-badge *ngIf="incomingRequestsCount > 0" 
-                   [value]="incomingRequestsCount.toString()" 
-                   severity="danger">
-          </p-badge>
-        </span>
-      </ng-template>
-      <app-friend-requests (requestCountChange)="onRequestCountChange($event)"></app-friend-requests>
-    </p-tabPanel>
-
-    <!-- My Friends Tab -->
-    <p-tabPanel header="My Friends">
-      <app-my-friends></app-my-friends>
-    </p-tabPanel>
-  </p-tabView>
+  <p-tabs [value]="activeTab" (valueChange)="onTabChange($event)">
+    <p-tablist>
+      <p-tab value="all">All Users</p-tab>
+      <p-tab value="requests">
+        Friend Requests
+        <span *ngIf="incomingRequestsCount > 0" class="tab-badge">({{ incomingRequestsCount }})</span>
+      </p-tab>
+      <p-tab value="friends">My Friends</p-tab>
+    </p-tablist>
+    <p-tabpanels>
+      <p-tabpanel value="all">
+        <app-all-users></app-all-users>
+      </p-tabpanel>
+      <p-tabpanel value="requests">
+        <app-friend-requests (requestCountChange)="onRequestCountChange($event)"></app-friend-requests>
+      </p-tabpanel>
+      <p-tabpanel value="friends">
+        <app-my-friends></app-my-friends>
+      </p-tabpanel>
+    </p-tabpanels>
+  </p-tabs>
 </div>

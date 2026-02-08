@@ -50,14 +50,14 @@
 
   <!-- Sort Dropdown (Hidden by default, can be toggled) -->
   <div class="sort-section" *ngIf="false">
-    <p-dropdown 
+    <p-select 
       [options]="sortOptions" 
       [(ngModel)]="currentSort"
       (onChange)="onSortChange($event)"
       optionLabel="label" 
       optionValue="value"
       placeholder="Sort by">
-    </p-dropdown>
+    </p-select>
   </div>
 
   <!-- Loading State -->
@@ -86,9 +86,9 @@
     <app-user-card 
       *ngFor="let user of users; trackBy: trackByUserId"
       [user]="user"
-      (chatClick)="onChatClick($event)"
-      (cardClick)="onCardClick($event)"
-      (giftClick)="onGiftClick($event)">
+      (chatClick)="onChatClick(user)"
+      (cardClick)="onCardClick(user)"
+      (giftClick)="onGiftClick(user)">
     </app-user-card>
   </div>
 

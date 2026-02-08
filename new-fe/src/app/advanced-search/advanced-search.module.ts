@@ -5,7 +5,7 @@ import { RouterModule } from "@angular/router";
 
 // PrimeNG Imports
 import { ButtonModule } from "primeng/button";
-import { DropdownModule } from "primeng/dropdown";
+import { SelectModule } from "primeng/select";
 import { MultiSelectModule } from "primeng/multiselect";
 import { SliderModule } from "primeng/slider";
 import { InputTextModule } from "primeng/inputtext";
@@ -21,8 +21,9 @@ import { AdvancedSearchComponent } from "./advanced-search.component";
 import { SharedComponentsModule } from "../shared/components.module";
 
 @NgModule({
-    declarations: [AdvancedSearchComponent],
+    declarations: [],
     imports: [
+        AdvancedSearchComponent,
         CommonModule,
         FormsModule,
         SharedComponentsModule,
@@ -34,7 +35,7 @@ import { SharedComponentsModule } from "../shared/components.module";
         ]),
         // PrimeNG Modules
         ButtonModule,
-        DropdownModule,
+        SelectModule,
         MultiSelectModule,
         SliderModule,
         InputTextModule,

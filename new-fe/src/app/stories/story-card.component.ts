@@ -1,8 +1,14 @@
 import { Component, Input, Output, EventEmitter } from "@angular/core";
+import { CommonModule } from "@angular/common";
 import { Story } from "./story.service";
+import { ButtonModule } from "primeng/button";
+import { TooltipModule } from "primeng/tooltip";
+import { AvatarModule } from "primeng/avatar";
 
 @Component({
     selector: "app-story-card",
+    standalone: true,
+    imports: [CommonModule, ButtonModule, TooltipModule, AvatarModule],
     templateUrl: "./story-card.component.html",
     styleUrls: ["./story-card.component.scss"],
 })

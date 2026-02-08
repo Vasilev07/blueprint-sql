@@ -8,9 +8,9 @@ import { AdminRoutingModule } from './admin-routing.module';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
-import { DropdownModule } from 'primeng/dropdown';
+import { SelectModule } from 'primeng/select';
 import { InputTextModule } from 'primeng/inputtext';
-import { InputTextareaModule } from 'primeng/inputtextarea';
+import { TextareaModule } from 'primeng/textarea';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { TagModule } from 'primeng/tag';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
@@ -26,11 +26,10 @@ import { AdminTransactionManagementComponent } from './admin-transaction-managem
 import { MessageService, ConfirmationService } from 'primeng/api';
 
 @NgModule({
-  declarations: [
-    AdminVerificationComponent,
-    AdminTransactionManagementComponent
-  ],
+  declarations: [],
   imports: [
+    AdminVerificationComponent,
+    AdminTransactionManagementComponent,
     CommonModule,
     FormsModule,
     RouterModule,
@@ -38,9 +37,9 @@ import { MessageService, ConfirmationService } from 'primeng/api';
     TableModule,
     ButtonModule,
     DialogModule,
-    DropdownModule,
+    SelectModule,
     InputTextModule,
-    InputTextareaModule,
+    TextareaModule,
     InputNumberModule,
     TagModule,
     ProgressSpinnerModule,

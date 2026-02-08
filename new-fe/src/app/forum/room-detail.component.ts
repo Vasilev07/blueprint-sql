@@ -1,4 +1,6 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef } from "@angular/core";
+import { CommonModule } from "@angular/common";
+import { FormsModule } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
 import { Subject, takeUntil } from "rxjs";
 import {
@@ -18,9 +20,28 @@ import {
 } from "../../typescript-api-client/src/model/models";
 import { MessageService } from "primeng/api";
 import { AuthService } from "../services/auth.service";
+import { ButtonModule } from "primeng/button";
+import { TooltipModule } from "primeng/tooltip";
+import { TagModule } from "primeng/tag";
+import { ProgressSpinnerModule } from "primeng/progressspinner";
+import { InputTextModule } from "primeng/inputtext";
+import { TextareaModule } from "primeng/textarea";
+import { DialogModule } from "primeng/dialog";
 
 @Component({
     selector: "app-room-detail",
+    standalone: true,
+    imports: [
+        CommonModule,
+        FormsModule,
+        ButtonModule,
+        TooltipModule,
+        TagModule,
+        ProgressSpinnerModule,
+        InputTextModule,
+        TextareaModule,
+        DialogModule,
+    ],
     templateUrl: "./room-detail.component.html",
     styleUrls: ["./room-detail.component.scss"],
 })

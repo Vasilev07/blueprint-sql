@@ -1,9 +1,18 @@
 import { Component } from "@angular/core";
+import { CommonModule } from "@angular/common";
+import { FormsModule } from "@angular/forms";
+import { RouterModule } from "@angular/router";
+import { ButtonModule } from "primeng/button";
+import { CheckboxModule } from "primeng/checkbox";
+import { InputTextModule } from "primeng/inputtext";
+import { PasswordModule } from "primeng/password";
 import { LayoutService } from "src/app/layout/service/app.layout.service";
 import { AuthService } from "../services/auth.service";
 
 @Component({
     selector: "app-login",
+    standalone: true,
+    imports: [CommonModule, FormsModule, RouterModule, ButtonModule, CheckboxModule, InputTextModule, PasswordModule],
     templateUrl: "./login.component.html",
     styles: [
         `

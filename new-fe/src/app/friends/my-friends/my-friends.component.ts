@@ -1,12 +1,16 @@
 import { Component, OnInit, OnDestroy } from "@angular/core";
+import { CommonModule } from "@angular/common";
 import { FriendsService } from "src/typescript-api-client/src/api/api";
 import { FriendDTO } from "src/typescript-api-client/src/model/models";
 import { WebsocketService } from "../../services/websocket.service";
 import { PresenceService } from "../../services/presence.service";
 import { Subject, takeUntil } from "rxjs";
+import { AvatarModule } from "primeng/avatar";
 
 @Component({
     selector: "app-my-friends",
+    standalone: true,
+    imports: [CommonModule, AvatarModule],
     templateUrl: "./my-friends.component.html",
     styleUrls: ["./my-friends.component.scss"],
 })

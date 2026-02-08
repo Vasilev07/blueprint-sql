@@ -1,5 +1,16 @@
-import { Component, OnInit, OnDestroy } from "@angular/core";
-import { Router } from "@angular/router";
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from "@angular/core";
+import { CommonModule } from "@angular/common";
+import { FormsModule } from "@angular/forms";
+import { Router, RouterModule } from "@angular/router";
+import { ButtonModule } from "primeng/button";
+import { SelectModule } from "primeng/select";
+import { TooltipModule } from "primeng/tooltip";
+import { ProgressSpinnerModule } from "primeng/progressspinner";
+import { ToastModule } from "primeng/toast";
+import { InputTextModule } from "primeng/inputtext";
+import { IconFieldModule } from "primeng/iconfield";
+import { InputIconModule } from "primeng/inputicon";
+import { SharedComponentsModule } from "../shared/components.module";
 import { Subject, takeUntil } from "rxjs";
 import { HomeService, HomeUser, FilterType, SortType } from "./home.service";
 import { MessageService } from "primeng/api";
@@ -7,6 +18,21 @@ import { GiftDialogUser } from "../shared/send-gift-dialog/send-gift-dialog.comp
 
 @Component({
     selector: "app-home",
+    standalone: true,
+    imports: [
+        CommonModule,
+        FormsModule,
+        RouterModule,
+        ButtonModule,
+        SelectModule,
+        TooltipModule,
+        ProgressSpinnerModule,
+        ToastModule,
+        InputTextModule,
+        IconFieldModule,
+        InputIconModule,
+        SharedComponentsModule,
+    ],
     templateUrl: "./home.component.html",
     styleUrls: ["./home.component.scss"],
     providers: [MessageService],
@@ -62,12 +88,16 @@ export class HomeComponent implements OnInit, OnDestroy {
         private homeService: HomeService,
         private router: Router,
         private messageService: MessageService,
+        private cdr: ChangeDetectorRef,
     ) {}
 
     ngOnInit(): void {
+        // Set up subscriptions first
         this.subscribeToUsers();
         this.subscribeToPaginationState();
         this.subscribeToOnlineCount();
+        
+        // Load users immediately - subscriptions are already set up
         this.loadUsers();
 
         // Add scroll event listener
@@ -85,15 +115,26 @@ export class HomeComponent implements OnInit, OnDestroy {
     private subscribeToUsers(): void {
         this.homeService.users$.pipe(takeUntil(this.destroy$)).subscribe({
             next: (users) => {
+                console.log("HomeComponent - Users updated:", users.length);
                 this.users = users;
+                // Clear loading state when we receive users data
+                // This ensures loading is cleared even if pagination state hasn't updated yet
+                if (users && users.length > 0 && this.isLoading) {
+                    console.log("HomeComponent - Clearing loading state after receiving users");
+                    this.isLoading = false;
+                }
+                // Mark for check to ensure change detection runs
+                this.cdr.markForCheck();
             },
             error: (error) => {
                 console.error("Error loading users:", error);
+                this.isLoading = false;
                 this.messageService.add({
                     severity: "error",
                     summary: "Error",
                     detail: "Failed to load users",
                 });
+                this.cdr.markForCheck();
             },
         });
     }
@@ -106,18 +147,40 @@ export class HomeComponent implements OnInit, OnDestroy {
                     console.log("Pagination state updated:", state);
                     this.totalUsers = state.totalUsers;
                     this.hasMoreData = state.hasMore;
-                    this.isLoading = false;
-                    this.isLoadingMore = false;
+                    // Only set loading to false when we have actual data (currentPage > 0)
+                    // This prevents clearing loading state before data arrives
+                    if (state.currentPage > 0) {
+                        this.isLoading = false;
+                        this.isLoadingMore = false;
+                    }
+                    // Mark for check to ensure change detection runs
+                    this.cdr.markForCheck();
                 },
             });
     }
 
     private loadUsers(): void {
         this.isLoading = true;
+        console.log("HomeComponent - Loading users...");
         this.homeService
             .getFilteredAndSortedUsers()
             .pipe(takeUntil(this.destroy$))
-            .subscribe();
+            .subscribe({
+                next: (users) => {
+                    console.log("HomeComponent - getFilteredAndSortedUsers returned:", users.length);
+                    // Data will be updated via users$ subscription
+                    // Loading state will be cleared in subscribeToUsers() when data arrives
+                },
+                error: (error) => {
+                    console.error("HomeComponent - Error in loadUsers:", error);
+                    this.isLoading = false;
+                    this.messageService.add({
+                        severity: "error",
+                        summary: "Error",
+                        detail: "Failed to load users",
+                    });
+                },
+            });
     }
 
     private loadMoreUsers(): void {

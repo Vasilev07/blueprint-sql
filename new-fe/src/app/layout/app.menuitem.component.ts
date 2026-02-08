@@ -16,11 +16,16 @@ import {
 } from "@angular/animations";
 import { Subscription } from "rxjs";
 import { filter } from "rxjs/operators";
+import { CommonModule } from "@angular/common";
+import { RouterModule } from "@angular/router";
+import { RippleModule } from "primeng/ripple";
 import { MenuService } from "./app.menu.service";
 import { LayoutService } from "./service/app.layout.service";
 
 @Component({
     selector: "[app-menuitem]",
+    standalone: true,
+    imports: [CommonModule, RouterModule, RippleModule, AppMenuitemComponent],
     template: `
         <ng-container>
             <div

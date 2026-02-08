@@ -23,6 +23,7 @@ import { CategoriesRoutingModule } from "./categories-routing.module";
 
 @NgModule({
     imports: [
+        CategoriesComponent,
         Button,
         PrimeTemplate,
         CurrencyPipe,
@@ -47,7 +48,7 @@ import { CategoriesRoutingModule } from "./categories-routing.module";
         Ripple,
         ReactiveFormsModule,
     ],
-    declarations: [CategoriesComponent],
+    declarations: [],
     providers: [ConfirmationService],
 })
 export class CategoriesModule {}

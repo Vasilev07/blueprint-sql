@@ -5,7 +5,7 @@ import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { InputTextModule } from "primeng/inputtext";
 import { ButtonModule } from "primeng/button";
 import { CardModule } from "primeng/card";
-import { InputTextareaModule } from "primeng/inputtextarea";
+import { TextareaModule } from "primeng/textarea";
 import { InputNumberModule } from "primeng/inputnumber";
 import { AutoCompleteModule } from "primeng/autocomplete";
 import { AvatarModule } from "primeng/avatar";
@@ -24,7 +24,6 @@ const routes: Routes = [
 ];
 
 @NgModule({
-    declarations: [GiftShopComponent],
     imports: [
         CommonModule,
         FormsModule,
@@ -33,13 +32,14 @@ const routes: Routes = [
         InputTextModule,
         ButtonModule,
         CardModule,
-        InputTextareaModule,
+        TextareaModule,
         InputNumberModule,
         AutoCompleteModule,
         AvatarModule,
         ProgressSpinnerModule,
         ToastModule,
         DialogModule,
+        GiftShopComponent,
     ],
     providers: [MessageService],
 })

@@ -1,0 +1,114 @@
+/**
+ * PrimeNG 21 migration overrides:
+ * - Opaque modals/dialogs only (no transparency)
+ * - Ensure host elements (p-table, p-button) display correctly so theme applies
+ * - Reinforce table and button styles so theme cascades
+ */
+
+/* --- Host elements: must display so theme styles apply --- */
+p-table,
+p-table.p-datatable {
+  display: block;
+}
+
+p-button {
+  display: inline-flex;
+}
+
+/* --- Tables: ensure root and inner structure get theme --- */
+.p-datatable,
+p-table.p-datatable {
+  background: var(--surface-ground, #111827);
+  color: var(--text-color);
+}
+
+.p-datatable .p-datatable-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.p-datatable .p-datatable-thead > tr > th,
+.p-datatable .p-datatable-tbody > tr > td,
+.p-datatable .p-datatable-tfoot > tr > td {
+  border: 1px solid var(--surface-border, rgba(255, 255, 255, 0.1));
+  padding: 1rem;
+  text-align: left;
+}
+
+.p-datatable .p-datatable-thead > tr > th {
+  background: var(--surface-100, #1f2937);
+  font-weight: 700;
+  color: var(--text-color);
+}
+
+.p-datatable .p-datatable-tbody > tr {
+  background: var(--surface-card, #1f2937);
+  color: var(--text-color);
+}
+
+.p-datatable .p-datatable-tbody > tr:hover {
+  background: var(--surface-hover, rgba(255, 255, 255, 0.03));
+}
+
+/* --- Buttons: ensure theme applies (reinforce, don't replace) --- */
+button.p-button,
+.p-button,
+p-button .p-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.25rem;
+  font-size: 1rem;
+  font-weight: 500;
+  border-radius: var(--border-radius, 6px);
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+button.p-button:not(.p-button-text):not(.p-button-outlined),
+.p-button:not(.p-button-text):not(.p-button-outlined) {
+  background: var(--primary-color, #818cf8);
+  color: var(--primary-color-text, #030712);
+  border-color: var(--primary-color, #818cf8);
+}
+
+button.p-button:not(.p-button-text):not(.p-button-outlined):hover:not(:disabled),
+.p-button:not(.p-button-text):not(.p-button-outlined):hover:not(:disabled) {
+  background: var(--primary-hover-color, var(--primary-color));
+  border-color: var(--primary-hover-color, var(--primary-color));
+  color: var(--primary-color-text, #030712);
+}
+
+.p-button-label,
+.p-button .p-button-label {
+  opacity: 1;
+}
+
+.p-button-icon,
+.p-button .p-button-icon {
+  opacity: 1;
+}
+
+/* --- Dialogs / Modals: force opaque panel only --- */
+.p-dialog,
+p-dialog .p-dialog {
+  opacity: 1 !important;
+  background: var(--surface-overlay, #1f2937) !important;
+}
+
+.p-dialog .p-dialog-header,
+.p-dialog .p-dialog-content,
+.p-dialog .p-dialog-footer {
+  background: var(--surface-overlay, #1f2937) !important;
+  opacity: 1 !important;
+}
+
+.p-component-overlay.p-dialog-mask {
+  background-color: rgba(0, 0, 0, 0.5) !important;
+}
+
+.p-dialog.p-confirm-dialog .p-dialog-content,
+.p-dialog.p-dialog-confirm .p-dialog-content {
+  background: var(--surface-overlay, #1f2937) !important;
+}

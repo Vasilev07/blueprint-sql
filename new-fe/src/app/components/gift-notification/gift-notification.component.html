@@ -3,18 +3,18 @@
     <div class="gift-animation-content" (click)="$event.stopPropagation()">
         <!-- Main Gift Display -->
         <div class="main-gift-display">
-            <div class="gift-emoji-large">{{ receivedGift.giftEmoji }}</div>
+            <div class="gift-emoji-large">{{ receivedGift?.giftEmoji }}</div>
             <h2 class="gift-title">You Received a Gift!</h2>
-            <p class="gift-sender">From: {{ receivedGift.senderName }}</p>
-            <p class="gift-amount">{{ receivedGift.amount }} tokens</p>
-            <p class="gift-message" *ngIf="receivedGift.message">{{ receivedGift.message }}</p>
+            <p class="gift-sender">From: {{ receivedGift?.senderName }}</p>
+            <p class="gift-amount">{{ receivedGift?.amount }} tokens</p>
+            <p class="gift-message" *ngIf="receivedGift?.message">{{ receivedGift?.message }}</p>
         </div>
         
         <!-- Floating Gifts -->
         <div class="floating-gifts">
             <div class="floating-gift" *ngFor="let gift of [1,2,3,4,5,6,7,8]" 
                  [style.animation-delay]="(gift * 0.2) + 's'">
-                {{ receivedGift.giftEmoji }}
+                {{ receivedGift?.giftEmoji }}
             </div>
         </div>
         

@@ -1,8 +1,11 @@
 import { Component, OnInit, OnDestroy } from "@angular/core";
-import { Router } from "@angular/router";
+import { CommonModule } from "@angular/common";
+import { Router, RouterModule } from "@angular/router";
 import { Subject, takeUntil } from "rxjs";
 import { Story, StoryService } from "./story.service";
 import { UserService } from "src/typescript-api-client/src/api/api";
+import { ButtonModule } from "primeng/button";
+import { TooltipModule } from "primeng/tooltip";
 
 export interface UserStoryGroup {
     userId: string;
@@ -16,6 +19,8 @@ export interface UserStoryGroup {
 
 @Component({
     selector: "app-story-home",
+    standalone: true,
+    imports: [CommonModule, RouterModule, ButtonModule, TooltipModule],
     templateUrl: "./story-home.component.html",
     styleUrls: ["./story-home.component.scss"],
 })

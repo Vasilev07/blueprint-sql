@@ -1,22 +1,22 @@
 import { NgModule } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
-import { SidebarModule } from "primeng/sidebar";
+import { DrawerModule } from "primeng/drawer";
 import { RadioButtonModule } from "primeng/radiobutton";
 import { ButtonModule } from "primeng/button";
-import { InputSwitchModule } from "primeng/inputswitch";
+import { ToggleSwitchModule } from "primeng/toggleswitch";
 import { AppConfigComponent } from "./app.config.component";
 
 @NgModule({
     imports: [
         CommonModule,
         FormsModule,
-        SidebarModule,
+        DrawerModule,
         RadioButtonModule,
         ButtonModule,
-        InputSwitchModule,
+        ToggleSwitchModule,
+        AppConfigComponent,
     ],
-    declarations: [AppConfigComponent],
     exports: [AppConfigComponent],
 })
 export class AppConfigModule {}

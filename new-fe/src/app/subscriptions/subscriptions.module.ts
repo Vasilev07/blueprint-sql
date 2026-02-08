@@ -7,8 +7,14 @@ import { ButtonModule } from "primeng/button";
 import { CardModule } from "primeng/card";
 
 @NgModule({
-    declarations: [SubscriptionsComponent],
-    imports: [CommonModule, RouterModule, ButtonModule, CardModule, SubscriptionsRoutingModule],
+    imports: [
+        CommonModule,
+        RouterModule,
+        ButtonModule,
+        CardModule,
+        SubscriptionsRoutingModule,
+        SubscriptionsComponent,
+    ],
 })
 export class SubscriptionsModule {}
 

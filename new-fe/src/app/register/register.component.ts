@@ -1,12 +1,21 @@
 import { Component } from "@angular/core";
+import { CommonModule } from "@angular/common";
+import { FormsModule } from "@angular/forms";
+import { Router, RouterModule } from "@angular/router";
+import { ButtonModule } from "primeng/button";
+import { InputTextModule } from "primeng/inputtext";
+import { PasswordModule } from "primeng/password";
+import { SelectModule } from "primeng/select";
+import { ToastModule } from "primeng/toast";
 import { LayoutService } from "src/app/layout/service/app.layout.service";
 import { AuthService } from "../services/auth.service";
-import { Router } from "@angular/router";
 import { UserDTO } from "src/typescript-api-client/src";
 import { MessageService } from "primeng/api";
 
 @Component({
     selector: "app-register",
+    standalone: true,
+    imports: [CommonModule, FormsModule, RouterModule, ButtonModule, InputTextModule, PasswordModule, SelectModule, ToastModule],
     templateUrl: "./register.component.html",
     providers: [MessageService],
     styles: [

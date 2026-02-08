@@ -1,11 +1,30 @@
 import { Component, OnDestroy, OnInit } from "@angular/core";
-import { FormBuilder, FormGroup, Validators } from "@angular/forms";
+import { CommonModule } from "@angular/common";
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { ConfirmationService, MessageService } from "primeng/api";
 import { CategoryService } from "../../typescript-api-client/src/api/api";
 import { CategoryDTO } from "../../typescript-api-client/src/model/models";
 import { Subject, takeUntil } from "rxjs";
+import { ToastModule } from "primeng/toast";
+import { ToolbarModule } from "primeng/toolbar";
+import { ButtonModule } from "primeng/button";
+import { TableModule } from "primeng/table";
+import { DialogModule } from "primeng/dialog";
+import { InputTextModule } from "primeng/inputtext";
 
 @Component({
+    selector: "app-categories",
+    standalone: true,
+    imports: [
+        CommonModule,
+        ReactiveFormsModule,
+        ToastModule,
+        ToolbarModule,
+        ButtonModule,
+        TableModule,
+        DialogModule,
+        InputTextModule,
+    ],
     templateUrl: "categories.component.html",
     providers: [MessageService, ConfirmationService, CategoryService],
 })

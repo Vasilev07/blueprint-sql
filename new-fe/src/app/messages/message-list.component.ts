@@ -1,8 +1,13 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { MessageDTO } from 'src/typescript-api-client/src/model/models';
+import { ButtonModule } from 'primeng/button';
+import { AvatarModule } from 'primeng/avatar';
 
 @Component({
   selector: 'app-message-list',
+  standalone: true,
+  imports: [CommonModule, ButtonModule, AvatarModule],
   templateUrl: './message-list.component.html',
   // styleUrls: ['./message-list.component.scss']
 })

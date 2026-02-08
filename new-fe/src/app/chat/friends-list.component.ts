@@ -1,8 +1,13 @@
 import { Component, Input, Output, EventEmitter } from "@angular/core";
+import { CommonModule } from "@angular/common";
 import { User } from "./chat.service";
+import { AvatarModule } from "primeng/avatar";
+import { ButtonModule } from "primeng/button";
 
 @Component({
     selector: "app-friends-list",
+    standalone: true,
+    imports: [CommonModule, AvatarModule, ButtonModule],
     templateUrl: "./friends-list.component.html",
     styleUrls: ["./friends-list.component.scss"],
 })

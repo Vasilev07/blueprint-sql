@@ -294,7 +294,7 @@
 }
 
 // Dark theme adjustments
-:host-context(.dark-theme) {
+:host-context(.app-dark) {
     .viewer-card {
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 

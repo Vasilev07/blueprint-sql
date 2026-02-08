@@ -13,9 +13,9 @@ import { DividerModule } from "primeng/divider";
 import { TooltipModule } from "primeng/tooltip";
 import { MenuModule } from "primeng/menu";
 import { DialogModule } from "primeng/dialog";
-import { InputTextareaModule } from "primeng/inputtextarea";
-import { DropdownModule } from "primeng/dropdown";
-import { CalendarModule } from "primeng/calendar";
+import { TextareaModule } from "primeng/textarea";
+import { SelectModule } from "primeng/select";
+import { DatePickerModule } from "primeng/datepicker";
 import { MessageModule } from "primeng/message";
 import { ToastModule } from "primeng/toast";
 import { MessageService } from "primeng/api";
@@ -43,7 +43,8 @@ const routes: Routes = [
 ];
 
 @NgModule({
-    declarations: [
+    declarations: [],
+    imports: [
         ChatHomeComponent,
         ChatComponent,
         ChatListComponent,
@@ -51,8 +52,6 @@ const routes: Routes = [
         UserListComponent,
         FriendsListComponent,
         RecentMessagesComponent,
-    ],
-    imports: [
         CommonModule,
         FormsModule,
         ReactiveFormsModule,
@@ -67,9 +66,9 @@ const routes: Routes = [
         TooltipModule,
         MenuModule,
         DialogModule,
-        InputTextareaModule,
-        DropdownModule,
-        CalendarModule,
+        TextareaModule,
+        SelectModule,
+        DatePickerModule,
         MessageModule,
         ToastModule,
         HttpClientModule,
