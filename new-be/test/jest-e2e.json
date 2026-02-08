@@ -22,6 +22,7 @@
     "globalSetup": "<rootDir>/config/setup.ts",
     "globalTeardown": "<rootDir>/config/teardown.ts",
     "openHandlesTimeout": 10000,
+    "forceExit": true,
     "moduleNameMapper": {
         "^src/(.*)$": "<rootDir>/../src/$1",
         "^@services/(.*)$": "<rootDir>/../src/services/$1",
