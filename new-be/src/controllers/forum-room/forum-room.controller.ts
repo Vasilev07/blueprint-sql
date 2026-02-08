@@ -45,7 +45,9 @@ export class ForumRoomController {
     }
 
     @Get()
-    @ApiOperation({ summary: "Get all forum rooms (filtered by visibility/status)" })
+    @ApiOperation({
+        summary: "Get all forum rooms (filtered by visibility/status)",
+    })
     @ApiResponse({
         status: 200,
         description: "Rooms retrieved successfully",
@@ -199,4 +201,3 @@ export class ForumRoomController {
         return this.forumRoomService.deleteRoom(Number(id), userId);
     }
 }
-

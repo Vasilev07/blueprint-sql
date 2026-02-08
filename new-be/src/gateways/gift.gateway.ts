@@ -7,7 +7,6 @@ import {
 import { Server, Socket } from "socket.io";
 import { Injectable } from "@nestjs/common";
 import { EntityManager } from "typeorm";
-import { User } from "../entities/user.entity";
 
 @WebSocketGateway({
     cors: {
@@ -39,7 +38,9 @@ export class GiftGateway implements OnGatewayConnection, OnGatewayDisconnect {
                 // Join user to their own room for targeted notifications
                 client.join(`user:${userIdNum}`);
 
-                console.log(`GiftGateway: User ${userIdNum} (${email}) connected`);
+                console.log(
+                    `GiftGateway: User ${userIdNum} (${email}) connected`,
+                );
             }
         }
     }
@@ -53,7 +54,7 @@ export class GiftGateway implements OnGatewayConnection, OnGatewayDisconnect {
             if (userId) {
                 const userIdNum = parseInt(userId);
                 this.userIdToEmail.delete(userIdNum);
-                
+
                 // Leave user room
                 client.leave(`user:${userIdNum}`);
             }
@@ -82,4 +83,3 @@ export class GiftGateway implements OnGatewayConnection, OnGatewayDisconnect {
         return Array.from(this.userIdToEmail.keys());
     }
 }
-

@@ -7,4 +7,3 @@ export class CreateConversationDTO {
     @ApiProperty({ description: "Other user ID to start conversation with" })
     otherUserId: number;
 }
-

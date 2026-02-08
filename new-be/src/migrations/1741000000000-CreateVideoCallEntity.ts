@@ -97,4 +97,3 @@ export class CreateVideoCallEntity1741000000000 implements MigrationInterface {
         `);
     }
 }
-

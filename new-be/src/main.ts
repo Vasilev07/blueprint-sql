@@ -2,7 +2,6 @@ import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { DocumentBuilder } from "@nestjs/swagger";
 import { OpenApiNestFactory } from "nest-openapi-tools";
-import { BE_PORT } from "./constants";
 import { IoAdapter } from "@nestjs/platform-socket.io";
 import "reflect-metadata";
 import { ConfigService } from "@nestjs/config";

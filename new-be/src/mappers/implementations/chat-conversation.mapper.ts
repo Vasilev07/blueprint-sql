@@ -4,11 +4,14 @@ import { ChatConversationDTO } from "../../models/chat-conversation.dto";
 import { Injectable } from "@nestjs/common";
 
 @Injectable()
-export class ChatConversationMapper implements BaseMapper<ChatConversation, ChatConversationDTO> {
+export class ChatConversationMapper implements BaseMapper<
+    ChatConversation,
+    ChatConversationDTO
+> {
     entityToDTO(entity: ChatConversation): ChatConversationDTO {
         return {
             id: entity.id,
-            participants: entity.participants?.map(p => p.userId) || [],
+            participants: entity.participants?.map((p) => p.userId) || [],
             messages: [],
             unreadCount: 0,
             createdAt: entity.createdAt,
@@ -16,10 +19,9 @@ export class ChatConversationMapper implements BaseMapper<ChatConversation, Chat
         };
     }
 
-    dtoToEntity(dto: ChatConversationDTO): ChatConversation {
+    dtoToEntity(_dto: ChatConversationDTO): ChatConversation {
         const conversation = new ChatConversation();
         // Minimal implementation - conversation creation is handled in service
         return conversation;
     }
 }
-

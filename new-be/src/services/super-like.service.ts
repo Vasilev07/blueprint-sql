@@ -11,7 +11,10 @@ import { User } from "../entities/user.entity";
 import { Wallet } from "../entities/wallet.entity";
 import { Transaction, TransactionType } from "../entities/transaction.entity";
 import { WalletService } from "./wallet.service";
-import { SendSuperLikeRequestDTO, SendSuperLikeResponseDTO } from "../models/super-like.dto";
+import {
+    SendSuperLikeRequestDTO,
+    SendSuperLikeResponseDTO,
+} from "../models/super-like.dto";
 import { SUPER_LIKE_COST } from "../constants";
 import { WalletGateway } from "../gateways/wallet.gateway";
 import { SuperLikeGateway } from "../gateways/super-like.gateway";
@@ -27,7 +30,7 @@ export class SuperLikeService {
         private readonly walletService: WalletService,
         private readonly walletGateway: WalletGateway,
         private readonly superLikeGateway: SuperLikeGateway,
-    ) { }
+    ) {}
 
     /**
      * Send a super like from authenticated user to another user
@@ -50,24 +53,30 @@ export class SuperLikeService {
         }
 
         // Validate receiver exists
-        const receiver = await this.userRepo.findOne({ where: { id: receiverId } });
+        const receiver = await this.userRepo.findOne({
+            where: { id: receiverId },
+        });
         if (!receiver) {
             throw new NotFoundException("Receiver not found");
         }
 
         // Use QueryRunner for transaction with row-level locks
-        const queryRunner: QueryRunner = this.entityManager.connection.createQueryRunner();
+        const queryRunner: QueryRunner =
+            this.entityManager.connection.createQueryRunner();
         await queryRunner.connect();
         await queryRunner.startTransaction();
 
         try {
             // Get sender wallet
-            const senderWallet = await this.walletService.getOrCreateWallet(senderId);
-            
+            const senderWallet =
+                await this.walletService.getOrCreateWallet(senderId);
+
             // Lock sender wallet
             const lockedSenderWallet = await queryRunner.manager
                 .createQueryBuilder(Wallet, "wallet")
-                .where('"wallet"."id" = :walletId', { walletId: senderWallet.id })
+                .where('"wallet"."id" = :walletId', {
+                    walletId: senderWallet.id,
+                })
                 .setLock("pessimistic_write")
                 .getOne();
 
@@ -76,19 +85,26 @@ export class SuperLikeService {
             }
 
             // Validate sender has sufficient balance (200 tokens)
-            const currentBalanceNum = this.parseDecimal(lockedSenderWallet.balance);
+            const currentBalanceNum = this.parseDecimal(
+                lockedSenderWallet.balance,
+            );
             const superLikeCostNum = this.parseDecimal(SUPER_LIKE_COST);
             if (currentBalanceNum < superLikeCostNum) {
-                throw new BadRequestException("Insufficient balance. Super like costs 200 tokens");
+                throw new BadRequestException(
+                    "Insufficient balance. Super like costs 200 tokens",
+                );
             }
 
             // Get receiver wallet (ensure it exists)
-            const receiverWallet = await this.walletService.getOrCreateWallet(receiverId);
-            
+            const receiverWallet =
+                await this.walletService.getOrCreateWallet(receiverId);
+
             // Lock receiver wallet
             const lockedReceiverWallet = await queryRunner.manager
                 .createQueryBuilder(Wallet, "wallet")
-                .where('"wallet"."id" = :walletId', { walletId: receiverWallet.id })
+                .where('"wallet"."id" = :walletId', {
+                    walletId: receiverWallet.id,
+                })
                 .setLock("pessimistic_write")
                 .getOne();
 
@@ -97,16 +113,27 @@ export class SuperLikeService {
             }
 
             // Calculate 50% of super like cost (100 tokens)
-            const receiverAmount = (this.parseDecimal(SUPER_LIKE_COST) / 2).toFixed(8);
+            const receiverAmount = (
+                this.parseDecimal(SUPER_LIKE_COST) / 2
+            ).toFixed(8);
 
             // Deduct 200 tokens from sender
-            lockedSenderWallet.balance = this.subtractDecimals(lockedSenderWallet.balance, SUPER_LIKE_COST);
-            
+            lockedSenderWallet.balance = this.subtractDecimals(
+                lockedSenderWallet.balance,
+                SUPER_LIKE_COST,
+            );
+
             // Add 100 tokens (50%) to receiver
-            lockedReceiverWallet.balance = this.addDecimals(lockedReceiverWallet.balance, receiverAmount);
+            lockedReceiverWallet.balance = this.addDecimals(
+                lockedReceiverWallet.balance,
+                receiverAmount,
+            );
 
             // Save wallets
-            await queryRunner.manager.save([lockedSenderWallet, lockedReceiverWallet]);
+            await queryRunner.manager.save([
+                lockedSenderWallet,
+                lockedReceiverWallet,
+            ]);
 
             // Get sender entity
             const sender = await queryRunner.manager.findOne(User, {
@@ -126,7 +153,8 @@ export class SuperLikeService {
             transaction.feeAmount = receiverAmount; // Platform fee (100 tokens - the remaining 50% that doesn't go to receiver)
             transaction.type = TransactionType.SuperLike;
 
-            const savedTransaction = await queryRunner.manager.save(transaction);
+            const savedTransaction =
+                await queryRunner.manager.save(transaction);
 
             // Create super like record
             const superLike = new SuperLike();
@@ -140,8 +168,14 @@ export class SuperLikeService {
 
             // Emit balance updates via WebSocket
             try {
-                this.walletGateway.notifyBalanceUpdate(senderId, lockedSenderWallet.balance);
-                this.walletGateway.notifyBalanceUpdate(receiverId, lockedReceiverWallet.balance);
+                this.walletGateway.notifyBalanceUpdate(
+                    senderId,
+                    lockedSenderWallet.balance,
+                );
+                this.walletGateway.notifyBalanceUpdate(
+                    receiverId,
+                    lockedReceiverWallet.balance,
+                );
             } catch (error) {
                 console.error("Failed to emit balance update:", error);
             }
@@ -157,7 +191,8 @@ export class SuperLikeService {
                 : sender.email;
 
             // Get updated super likes count for receiver
-            const receiverSuperLikesCount = await this.getSuperLikesCount(receiverId);
+            const receiverSuperLikesCount =
+                await this.getSuperLikesCount(receiverId);
 
             // Emit super like notification to receiver (includes updated count)
             try {
@@ -172,7 +207,10 @@ export class SuperLikeService {
                     superLikesCount: receiverSuperLikesCount, // Updated count for real-time UI update
                 });
             } catch (error) {
-                console.error("Failed to emit super like notification to receiver:", error);
+                console.error(
+                    "Failed to emit super like notification to receiver:",
+                    error,
+                );
             }
 
             // Emit super like sent notification to sender (includes receiver's updated count for UI update)
@@ -188,7 +226,10 @@ export class SuperLikeService {
                     superLikesCount: receiverSuperLikesCount, // Updated count for the user (receiver) shown in home screen
                 });
             } catch (error) {
-                console.error("Failed to emit super like sent notification to sender:", error);
+                console.error(
+                    "Failed to emit super like sent notification to sender:",
+                    error,
+                );
             }
 
             return {
@@ -210,7 +251,9 @@ export class SuperLikeService {
     /**
      * Check if user can afford to send a super like (has at least 200 tokens)
      */
-    async canAffordSuperLike(req: any): Promise<{ canAfford: boolean; balance: string; cost: string }> {
+    async canAffordSuperLike(
+        req: any,
+    ): Promise<{ canAfford: boolean; balance: string; cost: string }> {
         const userId = req.userData?.id;
         if (!userId) {
             throw new UnauthorizedException("User not authenticated");

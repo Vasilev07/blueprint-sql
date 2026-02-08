@@ -1,4 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToOne, OneToMany, JoinColumn } from "typeorm";
+import {
+    Entity,
+    PrimaryGeneratedColumn,
+    Column,
+    OneToOne,
+    OneToMany,
+    JoinColumn,
+} from "typeorm";
 import { User } from "./user.entity";
 import { Transaction } from "./transaction.entity";
 
@@ -23,5 +30,3 @@ export class Wallet {
     @OneToMany(() => Transaction, (tx) => tx.fromWallet)
     outgoingTransactions: Transaction[];
 }
-
-

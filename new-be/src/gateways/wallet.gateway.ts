@@ -35,7 +35,9 @@ export class WalletGateway implements OnGatewayConnection, OnGatewayDisconnect {
                 // Join user to their own room for targeted balance notifications
                 client.join(`user:${userIdNum}`);
 
-                console.log(`WalletGateway: User ${userIdNum} (${email}) connected`);
+                console.log(
+                    `WalletGateway: User ${userIdNum} (${email}) connected`,
+                );
             }
         }
     }
@@ -49,7 +51,7 @@ export class WalletGateway implements OnGatewayConnection, OnGatewayDisconnect {
             if (userId) {
                 const userIdNum = parseInt(userId);
                 this.userIdToEmail.delete(userIdNum);
-                
+
                 // Leave user room
                 client.leave(`user:${userIdNum}`);
             }
@@ -64,7 +66,9 @@ export class WalletGateway implements OnGatewayConnection, OnGatewayDisconnect {
             userId,
             balance,
         });
-        console.log(`WalletGateway: Emitted balance update to user ${userId}: ${balance}`);
+        console.log(
+            `WalletGateway: Emitted balance update to user ${userId}: ${balance}`,
+        );
     }
 
     /**
@@ -74,4 +78,3 @@ export class WalletGateway implements OnGatewayConnection, OnGatewayDisconnect {
         return this.userIdToEmail.has(userId);
     }
 }
-

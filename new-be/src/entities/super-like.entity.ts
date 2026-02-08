@@ -16,14 +16,18 @@ export class SuperLike {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @ManyToOne(() => User, (user) => user.sentSuperLikes, { onDelete: "CASCADE" })
+    @ManyToOne(() => User, (user) => user.sentSuperLikes, {
+        onDelete: "CASCADE",
+    })
     @JoinColumn({ name: "senderId" })
     sender: User;
 
     @Column("int")
     senderId: number;
 
-    @ManyToOne(() => User, (user) => user.receivedSuperLikes, { onDelete: "CASCADE" })
+    @ManyToOne(() => User, (user) => user.receivedSuperLikes, {
+        onDelete: "CASCADE",
+    })
     @JoinColumn({ name: "receiverId" })
     receiver: User;
 

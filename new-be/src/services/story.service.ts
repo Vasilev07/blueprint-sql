@@ -148,7 +148,7 @@ export class StoryService implements OnModuleInit {
         videoPath: string,
         thumbnailPath: string,
     ): Promise<void> {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve, _reject) => {
             try {
                 ffmpeg(videoPath)
                     .screenshots({
@@ -159,7 +159,9 @@ export class StoryService implements OnModuleInit {
                     })
                     .on("end", () => resolve())
                     .on("error", (err) => {
-                        this.logger.warn(`Thumbnail generation failed: ${err.message}`);
+                        this.logger.warn(
+                            `Thumbnail generation failed: ${err.message}`,
+                        );
                         resolve();
                     });
             } catch (error) {
@@ -236,12 +238,18 @@ export class StoryService implements OnModuleInit {
                     path.extname(filename),
                     ".jpg",
                 );
-                const thumbnailPath = path.join(this.storiesDir, thumbnailFilename);
+                const thumbnailPath = path.join(
+                    this.storiesDir,
+                    thumbnailFilename,
+                );
                 relativeThumbnailPath = path.join("stories", thumbnailFilename);
 
                 try {
                     await this.generateThumbnail(filePath, thumbnailPath);
-                    const exists = await fs.access(thumbnailPath).then(() => true).catch(() => false);
+                    const exists = await fs
+                        .access(thumbnailPath)
+                        .then(() => true)
+                        .catch(() => false);
                     if (!exists) {
                         relativeThumbnailPath = null;
                     }
@@ -253,14 +261,17 @@ export class StoryService implements OnModuleInit {
                 // For images, set default duration and use image as its own thumbnail
                 metadata.duration = this.imageStoryDuration;
                 relativeThumbnailPath = relativeFilePath; // Image is its own thumbnail
-                
+
                 // Try to extract image dimensions using ffprobe (works for images too)
                 try {
-                    const imgMetadata = await this.extractVideoMetadata(filePath);
+                    const imgMetadata =
+                        await this.extractVideoMetadata(filePath);
                     metadata.width = imgMetadata.width;
                     metadata.height = imgMetadata.height;
                 } catch (error) {
-                    this.logger.warn(`Could not extract image dimensions: ${error}`);
+                    this.logger.warn(
+                        `Could not extract image dimensions: ${error}`,
+                    );
                 }
             }
 
@@ -282,13 +293,15 @@ export class StoryService implements OnModuleInit {
 
             // Only compress videos, not images
             if (isVideo) {
-                this.compressVideoAsync(savedStory.id, filePath, filename).catch(
-                    (error) => {
-                        this.logger.error(
-                            `Async compression failed for story ${savedStory.id}: ${error.message}`,
-                        );
-                    },
-                );
+                this.compressVideoAsync(
+                    savedStory.id,
+                    filePath,
+                    filename,
+                ).catch((error) => {
+                    this.logger.error(
+                        `Async compression failed for story ${savedStory.id}: ${error.message}`,
+                    );
+                });
             }
 
             return savedStory;
@@ -426,7 +439,7 @@ export class StoryService implements OnModuleInit {
             );
             try {
                 await fs.unlink(thumbnailFullPath);
-            } catch (error) {
+            } catch (_error) {
                 // Ignore
             }
         }

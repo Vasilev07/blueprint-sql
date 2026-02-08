@@ -14,7 +14,13 @@ import { SuperLikeGateway } from "../../gateways/super-like.gateway";
 @Module({
     imports: [TypeOrmModule.forFeature([SuperLike, User, Wallet, Transaction])],
     controllers: [SuperLikeController],
-    providers: [SuperLikeService, WalletService, PaymentProviderService, WalletGateway, SuperLikeGateway],
+    providers: [
+        SuperLikeService,
+        WalletService,
+        PaymentProviderService,
+        WalletGateway,
+        SuperLikeGateway,
+    ],
     exports: [SuperLikeService],
 })
-export class SuperLikeModule { }
+export class SuperLikeModule {}

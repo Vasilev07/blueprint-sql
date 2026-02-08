@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn } from "typeorm";
+import {
+    Entity,
+    PrimaryGeneratedColumn,
+    Column,
+    ManyToOne,
+    CreateDateColumn,
+} from "typeorm";
 import { Wallet } from "./wallet.entity";
 
 export enum TransactionType {
@@ -13,10 +19,16 @@ export class Transaction {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @ManyToOne(() => Wallet, (wallet) => wallet.outgoingTransactions, { nullable: true, onDelete: "SET NULL" })
+    @ManyToOne(() => Wallet, (wallet) => wallet.outgoingTransactions, {
+        nullable: true,
+        onDelete: "SET NULL",
+    })
     fromWallet: Wallet | null;
 
-    @ManyToOne(() => Wallet, (wallet) => wallet.incomingTransactions, { nullable: true, onDelete: "SET NULL" })
+    @ManyToOne(() => Wallet, (wallet) => wallet.incomingTransactions, {
+        nullable: true,
+        onDelete: "SET NULL",
+    })
     toWallet: Wallet | null;
 
     @Column({ type: "decimal", precision: 20, scale: 8 })
@@ -31,5 +43,3 @@ export class Transaction {
     @CreateDateColumn()
     createdAt: Date;
 }
-
-

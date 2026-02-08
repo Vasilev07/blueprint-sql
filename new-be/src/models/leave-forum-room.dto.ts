@@ -4,4 +4,3 @@ export class LeaveForumRoomDTO {
     @ApiProperty({ description: "Room ID to leave" })
     roomId: number;
 }
-

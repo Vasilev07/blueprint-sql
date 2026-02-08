@@ -15,13 +15,15 @@ import { StartLiveStreamSessionDTO } from "../models/start-live-stream-session.d
 import { CreateLiveStreamRoomDTO } from "../models/create-live-stream-room.dto";
 import { JoinLiveStreamRoomDTO } from "../models/join-live-stream-room.dto";
 import { LeaveLiveStreamRoomDTO } from "../models/leave-live-stream-room.dto";
-import { LiveStreamRoomParticipantsDTO } from "../models/live-stream-room-participants.dto";
 import { MapperService } from "@mappers/mapper.service";
 import { BaseMapper } from "@mappers/base.mapper";
 
 @Injectable()
 export class LiveStreamSessionService implements OnModuleInit {
-    private liveStreamSessionMapper: BaseMapper<LiveStreamSession, LiveStreamSessionDTO>;
+    private liveStreamSessionMapper: BaseMapper<
+        LiveStreamSession,
+        LiveStreamSessionDTO
+    >;
 
     constructor(
         private readonly entityManager: EntityManager,
@@ -29,12 +31,20 @@ export class LiveStreamSessionService implements OnModuleInit {
     ) {}
 
     public onModuleInit(): void {
-        this.liveStreamSessionMapper = this.mapperService.getMapper("LiveStreamSession");
+        this.liveStreamSessionMapper =
+            this.mapperService.getMapper("LiveStreamSession");
     }
 
-    async startSession(startSessionDto: StartLiveStreamSessionDTO): Promise<LiveStreamSessionDTO> {
-        const { initiatorId, recipientId, isLiveStream, maxParticipants, roomName } =
-            startSessionDto;
+    async startSession(
+        startSessionDto: StartLiveStreamSessionDTO,
+    ): Promise<LiveStreamSessionDTO> {
+        const {
+            initiatorId,
+            recipientId,
+            isLiveStream,
+            maxParticipants,
+            roomName,
+        } = startSessionDto;
 
         // Validate users exist
         const initiator = await this.entityManager.findOne(User, {
@@ -62,30 +72,33 @@ export class LiveStreamSessionService implements OnModuleInit {
 
         // Check if there's already an active call between these users (only for 1-to-1 calls)
         if (recipientId && !isLiveStream) {
-            const existingSession = await this.entityManager.findOne(LiveStreamSession, {
-                where: [
-                    {
-                        initiatorId,
-                        recipientId,
-                        status: SessionStatus.ACTIVE,
-                    },
-                    {
-                        initiatorId,
-                        recipientId,
-                        status: SessionStatus.RINGING,
-                    },
-                    {
-                        initiatorId: recipientId,
-                        recipientId: initiatorId,
-                        status: SessionStatus.ACTIVE,
-                    },
-                    {
-                        initiatorId: recipientId,
-                        recipientId: initiatorId,
-                        status: SessionStatus.RINGING,
-                    },
-                ],
-            });
+            const existingSession = await this.entityManager.findOne(
+                LiveStreamSession,
+                {
+                    where: [
+                        {
+                            initiatorId,
+                            recipientId,
+                            status: SessionStatus.ACTIVE,
+                        },
+                        {
+                            initiatorId,
+                            recipientId,
+                            status: SessionStatus.RINGING,
+                        },
+                        {
+                            initiatorId: recipientId,
+                            recipientId: initiatorId,
+                            status: SessionStatus.ACTIVE,
+                        },
+                        {
+                            initiatorId: recipientId,
+                            recipientId: initiatorId,
+                            status: SessionStatus.RINGING,
+                        },
+                    ],
+                },
+            );
 
             if (existingSession) {
                 throw new BadRequestException(
@@ -101,10 +114,13 @@ export class LiveStreamSessionService implements OnModuleInit {
         liveStreamSession.initiatorId = initiatorId;
         liveStreamSession.recipient = recipient;
         liveStreamSession.recipientId = recipientId;
-        liveStreamSession.status = isLiveStream ? SessionStatus.ACTIVE : SessionStatus.PENDING;
+        liveStreamSession.status = isLiveStream
+            ? SessionStatus.ACTIVE
+            : SessionStatus.PENDING;
         liveStreamSession.isLiveStream = isLiveStream || false;
         liveStreamSession.roomName = roomName || null;
-        liveStreamSession.maxParticipants = maxParticipants || (isLiveStream ? 50 : 2);
+        liveStreamSession.maxParticipants =
+            maxParticipants || (isLiveStream ? 50 : 2);
 
         await this.entityManager.save(LiveStreamSession, liveStreamSession);
 
@@ -118,7 +134,9 @@ export class LiveStreamSessionService implements OnModuleInit {
         });
 
         if (!session) {
-            throw new NotFoundException(`Session with ID ${sessionId} not found`);
+            throw new NotFoundException(
+                `Session with ID ${sessionId} not found`,
+            );
         }
 
         return this.liveStreamSessionMapper.entityToDTO(session);
@@ -135,7 +153,9 @@ export class LiveStreamSessionService implements OnModuleInit {
         });
 
         if (!session) {
-            throw new NotFoundException(`Session with ID ${sessionId} not found`);
+            throw new NotFoundException(
+                `Session with ID ${sessionId} not found`,
+            );
         }
 
         session.status = status;
@@ -171,7 +191,10 @@ export class LiveStreamSessionService implements OnModuleInit {
         return this.liveStreamSessionMapper.entityToDTO(session);
     }
 
-    async endSession(sessionId: string, endReason?: string): Promise<LiveStreamSessionDTO> {
+    async endSession(
+        sessionId: string,
+        endReason?: string,
+    ): Promise<LiveStreamSessionDTO> {
         return this.updateSessionStatus(sessionId, SessionStatus.ENDED, {
             endReason: endReason || "Session ended",
         });
@@ -188,10 +211,14 @@ export class LiveStreamSessionService implements OnModuleInit {
             take: limit,
         });
 
-        return sessions.map((session) => this.liveStreamSessionMapper.entityToDTO(session));
+        return sessions.map((session) =>
+            this.liveStreamSessionMapper.entityToDTO(session),
+        );
     }
 
-    async getActiveSessionByUserId(userId: number): Promise<LiveStreamSessionDTO | null> {
+    async getActiveSessionByUserId(
+        userId: number,
+    ): Promise<LiveStreamSessionDTO | null> {
         const session = await this.entityManager.findOne(LiveStreamSession, {
             where: [
                 { initiatorId: userId, status: SessionStatus.ACTIVE },
@@ -202,12 +229,17 @@ export class LiveStreamSessionService implements OnModuleInit {
             relations: ["initiator", "recipient"],
         });
 
-        return session ? this.liveStreamSessionMapper.entityToDTO(session) : null;
+        return session
+            ? this.liveStreamSessionMapper.entityToDTO(session)
+            : null;
     }
 
     // Streaming room methods
-    async createLiveStreamRoom(createLiveStreamRoomDto: CreateLiveStreamRoomDTO): Promise<LiveStreamSessionDTO> {
-        const { initiatorId, roomName, maxParticipants } = createLiveStreamRoomDto;
+    async createLiveStreamRoom(
+        createLiveStreamRoomDto: CreateLiveStreamRoomDTO,
+    ): Promise<LiveStreamSessionDTO> {
+        const { initiatorId, roomName, maxParticipants } =
+            createLiveStreamRoomDto;
 
         // Validate user exists
         const initiator = await this.entityManager.findOne(User, {
@@ -235,7 +267,9 @@ export class LiveStreamSessionService implements OnModuleInit {
         return this.liveStreamSessionMapper.entityToDTO(liveStreamSession);
     }
 
-    async joinLiveStreamRoom(joinLiveStreamRoomDto: JoinLiveStreamRoomDTO): Promise<LiveStreamSessionDTO> {
+    async joinLiveStreamRoom(
+        joinLiveStreamRoomDto: JoinLiveStreamRoomDTO,
+    ): Promise<LiveStreamSessionDTO> {
         const { sessionId, userId } = joinLiveStreamRoomDto;
 
         // Validate user exists
@@ -254,7 +288,9 @@ export class LiveStreamSessionService implements OnModuleInit {
         });
 
         if (!session) {
-            throw new NotFoundException(`Live stream room with ID ${sessionId} not found`);
+            throw new NotFoundException(
+                `Live stream room with ID ${sessionId} not found`,
+            );
         }
 
         if (!session.isLiveStream) {
@@ -271,7 +307,9 @@ export class LiveStreamSessionService implements OnModuleInit {
         return this.liveStreamSessionMapper.entityToDTO(session);
     }
 
-    async leaveLiveStreamRoom(leaveLiveStreamRoomDto: LeaveLiveStreamRoomDTO): Promise<void> {
+    async leaveLiveStreamRoom(
+        leaveLiveStreamRoomDto: LeaveLiveStreamRoomDTO,
+    ): Promise<void> {
         const { sessionId, userId } = leaveLiveStreamRoomDto;
 
         // Validate user exists
@@ -289,7 +327,9 @@ export class LiveStreamSessionService implements OnModuleInit {
         });
 
         if (!session) {
-            throw new NotFoundException(`Live stream room with ID ${sessionId} not found`);
+            throw new NotFoundException(
+                `Live stream room with ID ${sessionId} not found`,
+            );
         }
 
         if (!session.isLiveStream) {
@@ -304,7 +344,9 @@ export class LiveStreamSessionService implements OnModuleInit {
         // Note: Participant tracking and cleanup will be handled by the gateway
     }
 
-    async getLiveStreamRooms(limit: number = 50): Promise<LiveStreamSessionDTO[]> {
+    async getLiveStreamRooms(
+        limit: number = 50,
+    ): Promise<LiveStreamSessionDTO[]> {
         const rooms = await this.entityManager.find(LiveStreamSession, {
             where: {
                 isLiveStream: true,
@@ -315,17 +357,23 @@ export class LiveStreamSessionService implements OnModuleInit {
             take: limit,
         });
 
-        return rooms.map((room) => this.liveStreamSessionMapper.entityToDTO(room));
+        return rooms.map((room) =>
+            this.liveStreamSessionMapper.entityToDTO(room),
+        );
     }
 
-    async getLiveStreamRoomById(sessionId: string): Promise<LiveStreamSessionDTO> {
+    async getLiveStreamRoomById(
+        sessionId: string,
+    ): Promise<LiveStreamSessionDTO> {
         const session = await this.entityManager.findOne(LiveStreamSession, {
             where: { id: sessionId },
             relations: ["initiator"],
         });
 
         if (!session) {
-            throw new NotFoundException(`Live stream room with ID ${sessionId} not found`);
+            throw new NotFoundException(
+                `Live stream room with ID ${sessionId} not found`,
+            );
         }
 
         if (!session.isLiveStream) {

@@ -8,20 +8,23 @@ import {
     HttpCode,
     HttpStatus,
     ParseIntPipe,
-    UnauthorizedException,
 } from "@nestjs/common";
-import {
-    ApiTags,
-    ApiOperation,
-    ApiResponse,
-    ApiBody,
-} from "@nestjs/swagger";
+import { ApiTags, ApiOperation, ApiResponse, ApiBody } from "@nestjs/swagger";
 import { WalletService } from "src/services/wallet.service";
-import { TransferRequestDTO, TransferResponseDTO } from "../../models/transfer.dto";
-import { DepositRequestDTO, DepositResponseDTO } from "../../models/deposit.dto";
+import {
+    TransferRequestDTO,
+    TransferResponseDTO,
+} from "../../models/transfer.dto";
+import {
+    DepositRequestDTO,
+    DepositResponseDTO,
+} from "../../models/deposit.dto";
 import { UseGuards } from "@nestjs/common";
 import { AdminGuard } from "../../guards/admin.guard";
-import { AdminDepositRequestDTO, AdminTransferRequestDTO } from "../../models/admin-wallet.dto";
+import {
+    AdminDepositRequestDTO,
+    AdminTransferRequestDTO,
+} from "../../models/admin-wallet.dto";
 import { EntityManager } from "typeorm";
 
 @Controller("/wallets")
@@ -34,7 +37,9 @@ export class WalletController {
 
     @Post("/transfer")
     @HttpCode(HttpStatus.OK)
-    @ApiOperation({ summary: "Transfer tokens from authenticated user to another user" })
+    @ApiOperation({
+        summary: "Transfer tokens from authenticated user to another user",
+    })
     @ApiBody({ type: TransferRequestDTO })
     @ApiResponse({
         status: 200,
@@ -71,7 +76,8 @@ export class WalletController {
     })
     @ApiResponse({
         status: 400,
-        description: "Bad request - validation failed or payment processing failed",
+        description:
+            "Bad request - validation failed or payment processing failed",
     })
     @ApiResponse({
         status: 401,
@@ -89,7 +95,9 @@ export class WalletController {
     @Post("/admin/deposit")
     @HttpCode(HttpStatus.OK)
     @ApiOperation({ summary: "Admin deposit into a user's wallet" })
-    async adminDeposit(@Body() body: AdminDepositRequestDTO): Promise<{ transactionId: number; balance: string }> {
+    async adminDeposit(
+        @Body() body: AdminDepositRequestDTO,
+    ): Promise<{ transactionId: number; balance: string }> {
         return this.walletService.adminDeposit(body);
     }
 
@@ -97,7 +105,11 @@ export class WalletController {
     @Post("/admin/transfer")
     @HttpCode(HttpStatus.OK)
     @ApiOperation({ summary: "Admin transfer between users" })
-    async adminTransfer(@Body() body: AdminTransferRequestDTO): Promise<{ transactionId: number; fromBalance: string; toBalance: string }> {
+    async adminTransfer(@Body() body: AdminTransferRequestDTO): Promise<{
+        transactionId: number;
+        fromBalance: string;
+        toBalance: string;
+    }> {
         return this.walletService.adminTransfer(body);
     }
 
@@ -114,7 +126,9 @@ export class WalletController {
             },
         },
     })
-    async getBalance(@Param("userId", ParseIntPipe) userId: number): Promise<{ balance: string }> {
+    async getBalance(
+        @Param("userId", ParseIntPipe) userId: number,
+    ): Promise<{ balance: string }> {
         const balance = await this.walletService.getBalance(userId);
         return { balance };
     }
@@ -126,25 +140,45 @@ export class WalletController {
     async listUsersWithBalance(
         @Param() _unused?: any,
         @Req() _req?: any,
-    ): Promise<{ users: Array<{ id: number; firstname: string; lastname: string; email: string; balance: string }> }> {
+    ): Promise<{
+        users: Array<{
+            id: number;
+            firstname: string;
+            lastname: string;
+            email: string;
+            balance: string;
+        }>;
+    }> {
         // Simple listing without pagination for admin management UI; extend as needed
         // Convert balance from base units (bigint) to decimal by dividing by 100000000
         const rows = await this.entityManager
             .createQueryBuilder()
             .from("user", "u")
-            .leftJoin("wallet", "w", "w.\"userId\" = u.id")
-            .select(["u.id AS id", "u.firstname AS firstname", "u.lastname AS lastname", "u.email AS email"]) 
+            .leftJoin("wallet", "w", 'w."userId" = u.id')
+            .select([
+                "u.id AS id",
+                "u.firstname AS firstname",
+                "u.lastname AS lastname",
+                "u.email AS email",
+            ])
             .addSelect("COALESCE(w.balance, 0) / 100000000.0", "balance")
             .orderBy("u.id", "ASC")
             .limit(1000)
-            .getRawMany<{ id: number; firstname: string; lastname: string; email: string; balance: number | string }>();
+            .getRawMany<{
+                id: number;
+                firstname: string;
+                lastname: string;
+                email: string;
+                balance: number | string;
+            }>();
 
         return {
-            users: rows.map(r => {
+            users: rows.map((r) => {
                 // Ensure balance is converted to number before calling toFixed
-                const balanceValue = typeof r.balance === 'string' 
-                    ? parseFloat(r.balance) 
-                    : (r.balance ?? 0);
+                const balanceValue =
+                    typeof r.balance === "string"
+                        ? parseFloat(r.balance)
+                        : (r.balance ?? 0);
                 return {
                     id: r.id,
                     firstname: r.firstname,
@@ -156,4 +190,3 @@ export class WalletController {
         };
     }
 }
-

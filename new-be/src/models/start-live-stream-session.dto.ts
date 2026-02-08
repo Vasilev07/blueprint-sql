@@ -1,11 +1,14 @@
 import { ApiProperty } from "@nestjs/swagger";
 
-
 export class StartLiveStreamSessionDTO {
     @ApiProperty({ description: "ID of the user initiating the call/session" })
     initiatorId: number;
 
-    @ApiProperty({ description: "ID of the user receiving the call (optional for live streams)", required: false })
+    @ApiProperty({
+        description:
+            "ID of the user receiving the call (optional for live streams)",
+        required: false,
+    })
     recipientId?: number;
 
     @ApiProperty({
@@ -22,10 +25,10 @@ export class StartLiveStreamSessionDTO {
     roomName?: string;
 
     @ApiProperty({
-        description: "Maximum number of participants (for future extensibility)",
+        description:
+            "Maximum number of participants (for future extensibility)",
         required: false,
         default: 2,
     })
-
     maxParticipants?: number;
 }

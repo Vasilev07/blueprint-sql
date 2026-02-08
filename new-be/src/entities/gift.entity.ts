@@ -50,4 +50,3 @@ export class Gift {
     @CreateDateColumn()
     createdAt: Date;
 }
-

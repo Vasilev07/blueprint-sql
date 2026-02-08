@@ -28,10 +28,11 @@ export class ForumCommentDTO {
     @ApiProperty()
     downvoteCount: number;
 
-    @ApiProperty({ 
-        required: false, 
+    @ApiProperty({
+        required: false,
         enum: ["upvote", "downvote", null],
-        description: "Current user's vote on this comment (null if no vote, undefined if not authenticated)"
+        description:
+            "Current user's vote on this comment (null if no vote, undefined if not authenticated)",
     })
     userVote?: "upvote" | "downvote" | null; // Current user's vote on this comment
 
@@ -50,4 +51,3 @@ export class ForumCommentDTO {
     @ApiProperty()
     updatedAt: Date;
 }
-

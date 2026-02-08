@@ -96,11 +96,12 @@ export class ForumPostService {
         // Filter deleted posts for non-admins
         if (post.status === "deleted" || post.status === "hidden") {
             if (userId) {
-                const hasAdminPermission = await this.forumRoomService.hasPermission(
-                    post.roomId,
-                    userId,
-                    "admin",
-                );
+                const hasAdminPermission =
+                    await this.forumRoomService.hasPermission(
+                        post.roomId,
+                        userId,
+                        "admin",
+                    );
                 if (!hasAdminPermission) {
                     throw new NotFoundException("Post not found");
                 }
@@ -133,18 +134,21 @@ export class ForumPostService {
 
         // Filter by status (hide deleted/hidden for non-admins)
         if (userId) {
-            const hasAdminPermission = await this.forumRoomService.hasPermission(
-                roomId,
-                userId,
-                "admin",
-            );
+            const hasAdminPermission =
+                await this.forumRoomService.hasPermission(
+                    roomId,
+                    userId,
+                    "admin",
+                );
             if (!hasAdminPermission) {
                 queryBuilder.andWhere("post.status = :status", {
                     status: "active",
                 });
             }
         } else {
-            queryBuilder.andWhere("post.status = :status", { status: "active" });
+            queryBuilder.andWhere("post.status = :status", {
+                status: "active",
+            });
         }
 
         // Sort: pinned first, then by sortBy option
@@ -186,11 +190,12 @@ export class ForumPostService {
 
         // Check permissions: author, moderator, or admin
         const isAuthor = post.authorId === userId;
-        const hasModeratorPermission = await this.forumRoomService.hasPermission(
-            post.roomId,
-            userId,
-            "moderator",
-        );
+        const hasModeratorPermission =
+            await this.forumRoomService.hasPermission(
+                post.roomId,
+                userId,
+                "moderator",
+            );
 
         if (!isAuthor && !hasModeratorPermission) {
             throw new ForbiddenException(
@@ -228,11 +233,12 @@ export class ForumPostService {
 
         // Check permissions: author, moderator, or admin
         const isAuthor = post.authorId === userId;
-        const hasModeratorPermission = await this.forumRoomService.hasPermission(
-            post.roomId,
-            userId,
-            "moderator",
-        );
+        const hasModeratorPermission =
+            await this.forumRoomService.hasPermission(
+                post.roomId,
+                userId,
+                "moderator",
+            );
 
         if (!isAuthor && !hasModeratorPermission) {
             throw new ForbiddenException(
@@ -254,11 +260,12 @@ export class ForumPostService {
         }
 
         // Only moderators/admins can pin
-        const hasModeratorPermission = await this.forumRoomService.hasPermission(
-            post.roomId,
-            userId,
-            "moderator",
-        );
+        const hasModeratorPermission =
+            await this.forumRoomService.hasPermission(
+                post.roomId,
+                userId,
+                "moderator",
+            );
 
         if (!hasModeratorPermission) {
             throw new ForbiddenException(
@@ -286,11 +293,12 @@ export class ForumPostService {
         }
 
         // Only moderators/admins can lock
-        const hasModeratorPermission = await this.forumRoomService.hasPermission(
-            post.roomId,
-            userId,
-            "moderator",
-        );
+        const hasModeratorPermission =
+            await this.forumRoomService.hasPermission(
+                post.roomId,
+                userId,
+                "moderator",
+            );
 
         if (!hasModeratorPermission) {
             throw new ForbiddenException(
@@ -308,4 +316,3 @@ export class ForumPostService {
         );
     }
 }
-

@@ -46,4 +46,3 @@ export class StoryDTO {
     @ApiProperty()
     isProcessed: boolean;
 }
-

@@ -15,4 +15,4 @@ import { SuperLike } from "../../entities/super-like.entity";
     providers: [StatisticsService],
     exports: [StatisticsService],
 })
-export class StatisticsModule { }
+export class StatisticsModule {}

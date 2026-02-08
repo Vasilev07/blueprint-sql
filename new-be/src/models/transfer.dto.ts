@@ -18,4 +18,3 @@ export class TransferResponseDTO {
     @ApiProperty({ description: "Receiver's updated balance" })
     toBalance: string;
 }
-

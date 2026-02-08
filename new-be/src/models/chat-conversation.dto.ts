@@ -37,4 +37,3 @@ export class ChatConversationDTO {
     @ApiProperty()
     updatedAt: Date;
 }
-

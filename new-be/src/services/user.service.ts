@@ -9,7 +9,6 @@ import {
     ForbiddenException,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { Role } from "../enums/role.enum";
 import { UserDTO } from "../models/user.dto";
 import { UserPhotoDTO } from "../models/user-photo.dto";
 import {
@@ -149,7 +148,7 @@ export class UserService implements OnModuleInit {
     async findOneByEmail(email: string) {
         return await this.entityManager.findOne(User, {
             where: { email },
-            relations: ['profile']
+            relations: ["profile"],
         });
     }
 
@@ -200,10 +199,10 @@ export class UserService implements OnModuleInit {
             search = "",
             currentUserId,
             gender,
-            ageMin,
-            ageMax,
+            ageMin: _ageMin,
+            ageMax: _ageMax,
             interests,
-            relationshipStatus,
+            relationshipStatus: _relationshipStatus,
             verifiedOnly,
         } = options;
 
@@ -221,7 +220,9 @@ export class UserService implements OnModuleInit {
 
         // Exclude current user if provided
         if (currentUserId) {
-            console.log(`Excluding current user ID: ${currentUserId} from results`);
+            console.log(
+                `Excluding current user ID: ${currentUserId} from results`,
+            );
             whereConditions.push("user.id != :currentUserId");
             whereParams.currentUserId = currentUserId;
         }
@@ -240,14 +241,15 @@ export class UserService implements OnModuleInit {
 
         // Apply filters
         switch (filter) {
-            case "online":
+            case "online": {
                 // Online: last seen within 5 minutes
                 const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
                 whereConditions.push("user.lastOnline >= :fiveMinutesAgo");
                 whereParams.fiveMinutesAgo = fiveMinutesAgo;
                 console.log(`Online filter: last seen after ${fiveMinutesAgo}`);
                 break;
-            case "new":
+            }
+            case "new": {
                 // New users: registered in last 7 days
                 const sevenDaysAgo = new Date(
                     Date.now() - 7 * 24 * 60 * 60 * 1000,
@@ -256,6 +258,7 @@ export class UserService implements OnModuleInit {
                 whereParams.sevenDaysAgo = sevenDaysAgo;
                 console.log(`New filter: created after ${sevenDaysAgo}`);
                 break;
+            }
             case "nearby":
                 // TODO: Implement geolocation-based filtering
                 // For now, just return normal results
@@ -326,11 +329,16 @@ export class UserService implements OnModuleInit {
             whereParams.verified = true;
         }
 
-        console.log(`verifiedOnly parameter: ${verifiedOnly}, type: ${typeof verifiedOnly}`);
+        console.log(
+            `verifiedOnly parameter: ${verifiedOnly}, type: ${typeof verifiedOnly}`,
+        );
 
         // Apply all where conditions at once
         if (whereConditions.length > 0) {
-            console.log(`Applying ${whereConditions.length} where conditions:`, whereConditions);
+            console.log(
+                `Applying ${whereConditions.length} where conditions:`,
+                whereConditions,
+            );
             query = query.where(whereConditions.join(" AND "), whereParams);
         } else {
             console.log(`No where conditions applied`);
@@ -364,11 +372,18 @@ export class UserService implements OnModuleInit {
         // Execute query
         const users = await query.getMany();
 
-        console.log(`Query result: Found ${users.length} users after filtering`);
-        console.log(`User IDs returned:`, users.map(u => u.id));
+        console.log(
+            `Query result: Found ${users.length} users after filtering`,
+        );
+        console.log(
+            `User IDs returned:`,
+            users.map((u) => u.id),
+        );
 
         // Get profile view counts for returned users
-        const userIds = users.map((u) => u.id).filter((id): id is number => id !== undefined && id !== null);
+        const userIds = users
+            .map((u) => u.id)
+            .filter((id): id is number => id !== undefined && id !== null);
         let viewCountMap = new Map<number, number>();
         let likesCountMap = new Map<number, number>();
 
@@ -390,7 +405,8 @@ export class UserService implements OnModuleInit {
 
             // Get super likes counts (count of super likes received by each user)
             try {
-                const superLikeRepo = this.entityManager.getRepository(SuperLike);
+                const superLikeRepo =
+                    this.entityManager.getRepository(SuperLike);
                 const superLikesCounts = await superLikeRepo
                     .createQueryBuilder("superLike")
                     .select("superLike.receiverId", "userId")
@@ -464,7 +480,7 @@ export class UserService implements OnModuleInit {
             viewCountMap = new Map(
                 viewCounts.map((v) => [v.userId, parseInt(v.viewCount)]),
             );
-        } catch (error) {
+        } catch (_error) {
             // Continue without profile view counts
         }
 
@@ -472,7 +488,8 @@ export class UserService implements OnModuleInit {
             // Get super likes counts (count of super likes received by each user)
             const userIds = users.map((u) => u.id);
             if (userIds.length > 0) {
-                const superLikeRepo = this.entityManager.getRepository(SuperLike);
+                const superLikeRepo =
+                    this.entityManager.getRepository(SuperLike);
                 const superLikesCounts = await superLikeRepo
                     .createQueryBuilder("superLike")
                     .select("superLike.receiverId", "userId")
@@ -489,7 +506,10 @@ export class UserService implements OnModuleInit {
                 );
             }
         } catch (error) {
-            console.error("Error counting super likes in mapUsersWithProfiles:", error);
+            console.error(
+                "Error counting super likes in mapUsersWithProfiles:",
+                error,
+            );
             // Continue without likes counts
             likesCountMap = new Map();
         }
@@ -662,8 +682,8 @@ export class UserService implements OnModuleInit {
         const profiles =
             profileIds.length > 0
                 ? await this.entityManager.find(UserProfile, {
-                    where: { id: In(profileIds) },
-                })
+                      where: { id: In(profileIds) },
+                  })
                 : [];
         const profileMap = new Map(profiles.map((p) => [p.id, p.userId]));
 
@@ -1258,13 +1278,17 @@ export class UserService implements OnModuleInit {
 
     async getAllVerificationRequests(status?: string): Promise<any[]> {
         try {
-            const whereCondition = status && status.trim() !== "" ? { status: status as any } : {};
+            const whereCondition =
+                status && status.trim() !== "" ? { status: status as any } : {};
 
-            const requests = await this.entityManager.find(VerificationRequest, {
-                where: whereCondition,
-                relations: ["user", "user.profile"],
-                order: { createdAt: "DESC" },
-            });
+            const requests = await this.entityManager.find(
+                VerificationRequest,
+                {
+                    where: whereCondition,
+                    relations: ["user", "user.profile"],
+                    order: { createdAt: "DESC" },
+                },
+            );
 
             const mappedRequests = requests.map((request) =>
                 this.mapperService.entityToDTO("VerificationRequest", request),
@@ -1283,7 +1307,6 @@ export class UserService implements OnModuleInit {
         rejectionReason: string | undefined,
         adminId: number,
     ): Promise<{ userId: number }> {
-
         const verificationRequest = await this.entityManager.findOne(
             VerificationRequest,
             {
@@ -1334,18 +1357,22 @@ export class UserService implements OnModuleInit {
         }
 
         // Read the photo file from the file system
-        const fs = require('fs');
-        const path = require('path');
+        const fs = require("fs");
+        const path = require("path");
 
         try {
-            const photoPath = path.join(process.cwd(), 'uploads', verificationRequest.verificationPhoto);
+            const photoPath = path.join(
+                process.cwd(),
+                "uploads",
+                verificationRequest.verificationPhoto,
+            );
             const photoData = fs.readFileSync(photoPath);
 
             return {
                 data: photoData,
                 name: verificationRequest.verificationPhoto,
             };
-        } catch (error) {
+        } catch (_error) {
             throw new NotFoundException("Verification photo file not found");
         }
     }

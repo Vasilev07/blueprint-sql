@@ -3,11 +3,12 @@ import { MulterModule } from "@nestjs/platform-express";
 import { ScheduleModule } from "@nestjs/schedule";
 import { StoryController } from "./story.controller";
 import { StoryService } from "../../services/story.service";
+import * as multer from "multer";
 
 @Module({
     imports: [
         MulterModule.register({
-            storage: require("multer").memoryStorage(),
+            storage: multer.memoryStorage(),
             limits: {
                 fileSize: 30 * 1024 * 1024,
             },
@@ -19,4 +20,3 @@ import { StoryService } from "../../services/story.service";
     exports: [StoryService],
 })
 export class StoryModule {}
-

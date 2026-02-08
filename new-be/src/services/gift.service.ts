@@ -9,7 +9,11 @@ import { Gift } from "@entities/gift.entity";
 import { User } from "@entities/user.entity";
 import { Wallet } from "@entities/wallet.entity";
 import { Transaction, TransactionType } from "@entities/transaction.entity";
-import { SendGiftRequestDTO, SendGiftResponseDTO, GiftDTO } from "../models/gift.dto";
+import {
+    SendGiftRequestDTO,
+    SendGiftResponseDTO,
+    GiftDTO,
+} from "../models/gift.dto";
 import { WalletService } from "./wallet.service";
 import { GiftGateway } from "../gateways/gift.gateway";
 import { ChatService } from "./chat.service";
@@ -62,18 +66,22 @@ export class GiftService {
         }
 
         // Use QueryRunner for transaction with row-level locks
-        const queryRunner: QueryRunner = this.entityManager.connection.createQueryRunner();
+        const queryRunner: QueryRunner =
+            this.entityManager.connection.createQueryRunner();
         await queryRunner.connect();
         await queryRunner.startTransaction();
 
         try {
             // Get sender wallet
-            const senderWallet = await this.walletService.getOrCreateWallet(senderId);
-            
+            const senderWallet =
+                await this.walletService.getOrCreateWallet(senderId);
+
             // Lock sender wallet
             const lockedSenderWallet = await queryRunner.manager
                 .createQueryBuilder(Wallet, "wallet")
-                .where('"wallet"."id" = :walletId', { walletId: senderWallet.id })
+                .where('"wallet"."id" = :walletId', {
+                    walletId: senderWallet.id,
+                })
                 .setLock("pessimistic_write")
                 .getOne();
 
@@ -82,18 +90,23 @@ export class GiftService {
             }
 
             // Validate sender has sufficient balance using decimal strings
-            const currentBalanceNum = this.parseDecimal(lockedSenderWallet.balance);
+            const currentBalanceNum = this.parseDecimal(
+                lockedSenderWallet.balance,
+            );
             if (currentBalanceNum < amountDecimal) {
                 throw new BadRequestException("Insufficient balance");
             }
 
             // Get receiver wallet (ensure it exists)
-            const receiverWallet = await this.walletService.getOrCreateWallet(receiverId);
-            
+            const receiverWallet =
+                await this.walletService.getOrCreateWallet(receiverId);
+
             // Lock receiver wallet
             const lockedReceiverWallet = await queryRunner.manager
                 .createQueryBuilder(Wallet, "wallet")
-                .where('"wallet"."id" = :walletId', { walletId: receiverWallet.id })
+                .where('"wallet"."id" = :walletId', {
+                    walletId: receiverWallet.id,
+                })
                 .setLock("pessimistic_write")
                 .getOne();
 
@@ -102,11 +115,20 @@ export class GiftService {
             }
 
             // Update balances using decimal arithmetic
-            lockedSenderWallet.balance = this.subtractDecimals(lockedSenderWallet.balance, amount);
-            lockedReceiverWallet.balance = this.addDecimals(lockedReceiverWallet.balance, amount);
+            lockedSenderWallet.balance = this.subtractDecimals(
+                lockedSenderWallet.balance,
+                amount,
+            );
+            lockedReceiverWallet.balance = this.addDecimals(
+                lockedReceiverWallet.balance,
+                amount,
+            );
 
             // Save wallets
-            await queryRunner.manager.save([lockedSenderWallet, lockedReceiverWallet]);
+            await queryRunner.manager.save([
+                lockedSenderWallet,
+                lockedReceiverWallet,
+            ]);
 
             // Get sender and receiver entities
             const sender = await queryRunner.manager.findOne(User, {
@@ -128,7 +150,8 @@ export class GiftService {
             transaction.feeAmount = "0";
             transaction.type = TransactionType.Transfer;
 
-            const savedTransaction = await queryRunner.manager.save(transaction);
+            const savedTransaction =
+                await queryRunner.manager.save(transaction);
 
             // Create gift record
             const gift = new Gift();
@@ -150,14 +173,15 @@ export class GiftService {
             // Create system message in chat after successful gift save
             try {
                 // Get or create conversation between sender and receiver
-                const conversation = await this.chatService.getOrCreateConversation(
-                    senderId,
-                    receiverId,
-                );
+                const conversation =
+                    await this.chatService.getOrCreateConversation(
+                        senderId,
+                        receiverId,
+                    );
 
                 // Create system message with gift information
                 const giftMessageContent = `🎁 Gift Sent: ${giftEmoji} (${amount} tokens)${message ? ` - "${message}"` : ""}`;
-                
+
                 const systemMessage = await this.chatService.sendMessage(
                     conversation.id,
                     senderId, // System message appears as from sender
@@ -166,7 +190,10 @@ export class GiftService {
                 );
 
                 // Emit the message via WebSocket so both users see it in real-time
-                this.chatGateway.server.emit(`chat:message:${conversation.id}`, systemMessage);
+                this.chatGateway.server.emit(
+                    `chat:message:${conversation.id}`,
+                    systemMessage,
+                );
                 this.chatGateway.server.emit("chat:message", {
                     conversationId: conversation.id,
                     message: systemMessage,
@@ -197,8 +224,14 @@ export class GiftService {
 
             // Emit balance updates via WebSocket
             try {
-                this.walletGateway.notifyBalanceUpdate(senderId, lockedSenderWallet.balance);
-                this.walletGateway.notifyBalanceUpdate(receiverId, lockedReceiverWallet.balance);
+                this.walletGateway.notifyBalanceUpdate(
+                    senderId,
+                    lockedSenderWallet.balance,
+                );
+                this.walletGateway.notifyBalanceUpdate(
+                    receiverId,
+                    lockedReceiverWallet.balance,
+                );
             } catch (error) {
                 console.error("Failed to emit balance update:", error);
             }
@@ -222,10 +255,7 @@ export class GiftService {
     /**
      * Get gifts received by authenticated user
      */
-    async getReceivedGifts(
-        req: any,
-        limit?: number,
-    ): Promise<GiftDTO[]> {
+    async getReceivedGifts(req: any, limit?: number): Promise<GiftDTO[]> {
         const userId = req.userData?.id;
         if (!userId) {
             throw new UnauthorizedException("User not authenticated");
@@ -249,10 +279,7 @@ export class GiftService {
     /**
      * Get gifts sent by authenticated user
      */
-    async getSentGifts(
-        req: any,
-        limit?: number,
-    ): Promise<GiftDTO[]> {
+    async getSentGifts(req: any, limit?: number): Promise<GiftDTO[]> {
         const userId = req.userData?.id;
         if (!userId) {
             throw new UnauthorizedException("User not authenticated");
@@ -311,7 +338,12 @@ export class GiftService {
         userId?: number,
         page: number = 1,
         limit: number = 20,
-    ): Promise<{ gifts: GiftDTO[]; total: number; page: number; limit: number }> {
+    ): Promise<{
+        gifts: GiftDTO[];
+        total: number;
+        page: number;
+        limit: number;
+    }> {
         const queryBuilder = this.entityManager
             .createQueryBuilder(Gift, "gift")
             .leftJoinAndSelect("gift.sender", "sender")
@@ -401,4 +433,3 @@ export class GiftService {
         return (numA - numB).toFixed(8);
     }
 }
-

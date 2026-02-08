@@ -47,7 +47,9 @@ export class ForumCommentService {
 
         // Verify post is not locked
         if (post.isLocked) {
-            throw new BadRequestException("Post is locked and cannot be commented on");
+            throw new BadRequestException(
+                "Post is locked and cannot be commented on",
+            );
         }
 
         // Verify user is room member
@@ -133,10 +135,10 @@ export class ForumCommentService {
             },
         );
 
-        const commentDto = this.mapperService.entityToDTO<ForumComment, ForumCommentDTO>(
-            "ForumComment",
-            comment,
-        );
+        const commentDto = this.mapperService.entityToDTO<
+            ForumComment,
+            ForumCommentDTO
+        >("ForumComment", comment);
         // New comments don't have user votes yet
         commentDto.userVote = null;
         return commentDto;
@@ -171,11 +173,12 @@ export class ForumCommentService {
 
         // Filter by status (hide deleted/hidden for non-admins)
         if (userId) {
-            const hasAdminPermission = await this.forumRoomService.hasPermission(
-                post.roomId,
-                userId,
-                "admin",
-            );
+            const hasAdminPermission =
+                await this.forumRoomService.hasPermission(
+                    post.roomId,
+                    userId,
+                    "admin",
+                );
             if (!hasAdminPermission) {
                 queryBuilder.andWhere("comment.status = :status", {
                     status: "active",
@@ -198,7 +201,9 @@ export class ForumCommentService {
         }
 
         // Order by depth first (to show top-level before replies), then by creation time
-        queryBuilder.orderBy("comment.depth", "ASC").addOrderBy("comment.createdAt", "ASC");
+        queryBuilder
+            .orderBy("comment.depth", "ASC")
+            .addOrderBy("comment.createdAt", "ASC");
 
         // Pagination (optional, usually load all comments)
         if (options?.limit) {
@@ -222,16 +227,19 @@ export class ForumCommentService {
             });
             userVotesMap = new Map();
             votes.forEach((vote) => {
-                userVotesMap!.set(vote.commentId, vote.voteType as "upvote" | "downvote");
+                userVotesMap!.set(
+                    vote.commentId,
+                    vote.voteType as "upvote" | "downvote",
+                );
             });
         }
 
         // Map to DTOs with user vote information
         return comments.map((comment) => {
-            const dto = this.mapperService.entityToDTO<ForumComment, ForumCommentDTO>(
-                "ForumComment",
-                comment,
-            );
+            const dto = this.mapperService.entityToDTO<
+                ForumComment,
+                ForumCommentDTO
+            >("ForumComment", comment);
             if (userId && userVotesMap) {
                 dto.userVote = userVotesMap.get(comment.id) ?? null;
             }
@@ -267,11 +275,12 @@ export class ForumCommentService {
 
         // Filter by status
         if (userId) {
-            const hasAdminPermission = await this.forumRoomService.hasPermission(
-                parentComment.post.roomId,
-                userId,
-                "admin",
-            );
+            const hasAdminPermission =
+                await this.forumRoomService.hasPermission(
+                    parentComment.post.roomId,
+                    userId,
+                    "admin",
+                );
             if (!hasAdminPermission) {
                 queryBuilder.andWhere("comment.status = :status", {
                     status: "active",
@@ -299,16 +308,19 @@ export class ForumCommentService {
             });
             userVotesMap = new Map();
             votes.forEach((vote) => {
-                userVotesMap!.set(vote.commentId, vote.voteType as "upvote" | "downvote");
+                userVotesMap!.set(
+                    vote.commentId,
+                    vote.voteType as "upvote" | "downvote",
+                );
             });
         }
 
         // Map to DTOs with user vote information
         return replies.map((reply) => {
-            const dto = this.mapperService.entityToDTO<ForumComment, ForumCommentDTO>(
-                "ForumComment",
-                reply,
-            );
+            const dto = this.mapperService.entityToDTO<
+                ForumComment,
+                ForumCommentDTO
+            >("ForumComment", reply);
             if (userId && userVotesMap) {
                 dto.userVote = userVotesMap.get(reply.id) ?? null;
             }
@@ -332,11 +344,12 @@ export class ForumCommentService {
 
         // Check permissions: author only, or moderator/admin
         const isAuthor = comment.authorId === userId;
-        const hasModeratorPermission = await this.forumRoomService.hasPermission(
-            comment.post.roomId,
-            userId,
-            "moderator",
-        );
+        const hasModeratorPermission =
+            await this.forumRoomService.hasPermission(
+                comment.post.roomId,
+                userId,
+                "moderator",
+            );
 
         if (!isAuthor && !hasModeratorPermission) {
             throw new ForbiddenException(
@@ -357,13 +370,13 @@ export class ForumCommentService {
                     userId: userId,
                 },
             });
-            userVote = vote?.voteType as "upvote" | "downvote" | null ?? null;
+            userVote = (vote?.voteType as "upvote" | "downvote" | null) ?? null;
         }
 
-        const commentDto = this.mapperService.entityToDTO<ForumComment, ForumCommentDTO>(
-            "ForumComment",
-            updated,
-        );
+        const commentDto = this.mapperService.entityToDTO<
+            ForumComment,
+            ForumCommentDTO
+        >("ForumComment", updated);
         commentDto.userVote = userId ? userVote : undefined;
         return commentDto;
     }
@@ -380,11 +393,12 @@ export class ForumCommentService {
 
         // Check permissions: author, moderator, or admin
         const isAuthor = comment.authorId === userId;
-        const hasModeratorPermission = await this.forumRoomService.hasPermission(
-            comment.post.roomId,
-            userId,
-            "moderator",
-        );
+        const hasModeratorPermission =
+            await this.forumRoomService.hasPermission(
+                comment.post.roomId,
+                userId,
+                "moderator",
+            );
 
         if (!isAuthor && !hasModeratorPermission) {
             throw new ForbiddenException(
@@ -458,8 +472,10 @@ export class ForumCommentService {
                 // User already voted - handle vote change or removal
                 if (existingVote.voteType === dto.voteType) {
                     // Same vote type - remove vote (toggle off)
-                    await trx.getRepository(ForumCommentVote).remove(existingVote);
-                    
+                    await trx
+                        .getRepository(ForumCommentVote)
+                        .remove(existingVote);
+
                     // Update counts
                     if (dto.voteType === "upvote") {
                         await trx
@@ -474,8 +490,10 @@ export class ForumCommentService {
                     // Different vote type - change vote
                     const oldVoteType = existingVote.voteType;
                     existingVote.voteType = dto.voteType;
-                    await trx.getRepository(ForumCommentVote).save(existingVote);
-                    
+                    await trx
+                        .getRepository(ForumCommentVote)
+                        .save(existingVote);
+
                     // Update counts: decrement old, increment new
                     if (oldVoteType === "upvote") {
                         await trx
@@ -501,7 +519,7 @@ export class ForumCommentService {
                     voteType: dto.voteType,
                 });
                 await trx.getRepository(ForumCommentVote).save(vote);
-                
+
                 // Update counts
                 if (dto.voteType === "upvote") {
                     await trx
@@ -515,9 +533,11 @@ export class ForumCommentService {
             }
 
             // Reload comment with updated counts
-            const updatedComment = await trx.getRepository(ForumComment).findOne({
-                where: { id: commentId },
-            });
+            const updatedComment = await trx
+                .getRepository(ForumComment)
+                .findOne({
+                    where: { id: commentId },
+                });
 
             // Get user's vote status
             const userVote = await trx.getRepository(ForumCommentVote).findOne({
@@ -527,13 +547,13 @@ export class ForumCommentService {
                 },
             });
 
-            const commentDto = this.mapperService.entityToDTO<ForumComment, ForumCommentDTO>(
-                "ForumComment",
-                updatedComment!,
-            );
-            commentDto.userVote = userVote?.voteType as "upvote" | "downvote" | null ?? null;
+            const commentDto = this.mapperService.entityToDTO<
+                ForumComment,
+                ForumCommentDTO
+            >("ForumComment", updatedComment!);
+            commentDto.userVote =
+                (userVote?.voteType as "upvote" | "downvote" | null) ?? null;
             return commentDto;
         });
     }
 }
-

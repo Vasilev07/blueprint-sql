@@ -10,11 +10,10 @@ export class SendMessageDTO {
     @ApiProperty({ description: "Message content" })
     content: string;
 
-    @ApiProperty({ 
+    @ApiProperty({
         description: "Message type",
-        enum: ['text', 'image', 'file'],
-        default: 'text'
+        enum: ["text", "image", "file"],
+        default: "text",
     })
-    type?: 'text' | 'image' | 'file';
+    type?: "text" | "image" | "file";
 }
-

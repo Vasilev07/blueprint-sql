@@ -19,4 +19,3 @@ export class CreateForumRoomDTO {
     })
     maxMembers?: number;
 }
-

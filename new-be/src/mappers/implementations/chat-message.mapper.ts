@@ -4,7 +4,10 @@ import { ChatMessageDTO } from "../../models/chat-message.dto";
 import { Injectable } from "@nestjs/common";
 
 @Injectable()
-export class ChatMessageMapper implements BaseMapper<ChatMessage, ChatMessageDTO> {
+export class ChatMessageMapper implements BaseMapper<
+    ChatMessage,
+    ChatMessageDTO
+> {
     entityToDTO(entity: ChatMessage): ChatMessageDTO {
         return {
             id: entity.id,
@@ -28,4 +31,3 @@ export class ChatMessageMapper implements BaseMapper<ChatMessage, ChatMessageDTO
         return message;
     }
 }
-

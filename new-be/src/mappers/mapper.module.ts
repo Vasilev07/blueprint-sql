@@ -85,12 +85,24 @@ export class MapperModule {
             this.userProfileMapper,
         );
         this.mapperService.registerMapper("Gift", this.giftMapper);
-        this.mapperService.registerMapper("LiveStreamSession", this.liveStreamSessionMapper);
+        this.mapperService.registerMapper(
+            "LiveStreamSession",
+            this.liveStreamSessionMapper,
+        );
         this.mapperService.registerMapper("Story", this.storyMapper);
         this.mapperService.registerMapper("ForumRoom", this.forumRoomMapper);
-        this.mapperService.registerMapper("ForumRoomMember", this.forumRoomMemberMapper);
+        this.mapperService.registerMapper(
+            "ForumRoomMember",
+            this.forumRoomMemberMapper,
+        );
         this.mapperService.registerMapper("ForumPost", this.forumPostMapper);
-        this.mapperService.registerMapper("ForumComment", this.forumCommentMapper);
-        this.mapperService.registerMapper("VerificationRequest", this.verificationRequestMapper);
+        this.mapperService.registerMapper(
+            "ForumComment",
+            this.forumCommentMapper,
+        );
+        this.mapperService.registerMapper(
+            "VerificationRequest",
+            this.verificationRequestMapper,
+        );
     }
 }

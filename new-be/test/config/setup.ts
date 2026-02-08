@@ -10,7 +10,9 @@ const init = async () => {
 const initPostgres = async () => {
     console.log("Starting Postgres".repeat(10));
 
-    const postgres: StartedPostgreSqlContainer = await new PostgreSqlContainer("postgres:15")
+    const postgres: StartedPostgreSqlContainer = await new PostgreSqlContainer(
+        "postgres:15",
+    )
         .withDatabase("blueprint-sql-test")
         .withUser("root")
         .withPassword("root")

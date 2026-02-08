@@ -25,7 +25,7 @@ export class JsonToDtoInterceptor<T> implements NestInterceptor {
                         this.dto,
                         JSON.parse(request.body[field]),
                     );
-                } catch (error) {
+                } catch (_error) {
                     throw new Error(
                         `Failed to parse and transform field '${field}'`,
                     );

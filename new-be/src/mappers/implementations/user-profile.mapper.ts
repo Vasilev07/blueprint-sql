@@ -4,7 +4,10 @@ import { UserProfileDTO } from "../../models/user-profile.dto";
 import { Injectable } from "@nestjs/common";
 
 @Injectable()
-export class UserProfileMapper implements BaseMapper<UserProfile, UserProfileDTO> {
+export class UserProfileMapper implements BaseMapper<
+    UserProfile,
+    UserProfileDTO
+> {
     entityToDTO(entity: UserProfile): UserProfileDTO {
         return {
             id: entity.id,

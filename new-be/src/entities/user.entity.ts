@@ -1,4 +1,11 @@
-import { Column, Entity, PrimaryGeneratedColumn, OneToOne, OneToMany, CreateDateColumn } from "typeorm";
+import {
+    Column,
+    Entity,
+    PrimaryGeneratedColumn,
+    OneToOne,
+    OneToMany,
+    CreateDateColumn,
+} from "typeorm";
 import { Role } from "../enums/role.enum";
 import { Gender } from "../enums/gender.enum";
 import { UserProfile } from "./user-profile.entity";

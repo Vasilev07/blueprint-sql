@@ -5,8 +5,11 @@ import { Injectable } from "@nestjs/common";
 import { UserMapper } from "./user.mapper";
 
 @Injectable()
-export class VerificationRequestMapper implements BaseMapper<VerificationRequest, VerificationRequestDTO> {
-    constructor(private readonly userMapper: UserMapper) { }
+export class VerificationRequestMapper implements BaseMapper<
+    VerificationRequest,
+    VerificationRequestDTO
+> {
+    constructor(private readonly userMapper: UserMapper) {}
 
     entityToDTO(entity: VerificationRequest): VerificationRequestDTO {
         if (!entity) {
@@ -15,7 +18,9 @@ export class VerificationRequestMapper implements BaseMapper<VerificationRequest
         return {
             id: entity.id,
             userId: entity.userId,
-            user: entity.user ? this.userMapper.entityToDTO(entity.user) : undefined,
+            user: entity.user
+                ? this.userMapper.entityToDTO(entity.user)
+                : undefined,
             verificationPhoto: entity.verificationPhoto,
             status: entity.status,
             rejectionReason: entity.rejectionReason,
@@ -26,7 +31,7 @@ export class VerificationRequestMapper implements BaseMapper<VerificationRequest
         };
     }
 
-    dtoToEntity(dto: VerificationRequestDTO): VerificationRequest {
+    dtoToEntity(_dto: VerificationRequestDTO): VerificationRequest {
         throw new Error("Method not implemented.");
     }
 }

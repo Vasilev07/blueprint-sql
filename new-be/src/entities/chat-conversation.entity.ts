@@ -1,6 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
-import { ChatParticipant } from '@entities/chat-participant.entity';
-import { ChatMessage } from '@entities/chat-message.entity';
+import {
+    Entity,
+    PrimaryGeneratedColumn,
+    CreateDateColumn,
+    UpdateDateColumn,
+    OneToMany,
+} from "typeorm";
+import { ChatParticipant } from "@entities/chat-participant.entity";
+import { ChatMessage } from "@entities/chat-message.entity";
 
 @Entity()
 export class ChatConversation {
@@ -19,5 +25,3 @@ export class ChatConversation {
     @UpdateDateColumn()
     updatedAt: Date;
 }
-
-

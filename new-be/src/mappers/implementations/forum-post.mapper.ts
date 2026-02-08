@@ -39,4 +39,3 @@ export class ForumPostMapper implements BaseMapper<ForumPost, ForumPostDTO> {
         return post;
     }
 }
-

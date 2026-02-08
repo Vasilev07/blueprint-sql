@@ -26,7 +26,8 @@ describe("Statistics Service (e2e)", () => {
         }).compile();
 
         app = moduleFixture.createNestApplication();
-        statisticsService = moduleFixture.get<StatisticsService>(StatisticsService);
+        statisticsService =
+            moduleFixture.get<StatisticsService>(StatisticsService);
         giftRepo = moduleFixture.get("GiftRepository");
         chatMessageRepo = moduleFixture.get("ChatMessageRepository");
         conversationRepo = moduleFixture.get("ChatConversationRepository");
@@ -93,7 +94,9 @@ describe("Statistics Service (e2e)", () => {
         const conversation = await conversationRepo.save(
             conversationRepo.create({}),
         );
-        const conv = Array.isArray(conversation) ? conversation[0] : conversation;
+        const conv = Array.isArray(conversation)
+            ? conversation[0]
+            : conversation;
         await chatMessageRepo.save(
             chatMessageRepo.create({
                 sender: user1,
@@ -106,32 +109,38 @@ describe("Statistics Service (e2e)", () => {
         );
 
         // 3. Create Friend Requests
-        await friendRepo.save(friendRepo.create({
-            user: user1,
-            userId: user1.id,
-            friend: user2,
-            friendId: user2.id,
-            status: FriendshipStatus.PENDING,
-            createdAt: new Date(),
-        }));
+        await friendRepo.save(
+            friendRepo.create({
+                user: user1,
+                userId: user1.id,
+                friend: user2,
+                friendId: user2.id,
+                status: FriendshipStatus.PENDING,
+                createdAt: new Date(),
+            }),
+        );
 
-        await friendRepo.save(friendRepo.create({
-            user: user2,
-            userId: user2.id,
-            friend: user1,
-            friendId: user1.id,
-            status: FriendshipStatus.ACCEPTED,
-            createdAt: yesterday,
-        }));
+        await friendRepo.save(
+            friendRepo.create({
+                user: user2,
+                userId: user2.id,
+                friend: user1,
+                friendId: user1.id,
+                status: FriendshipStatus.ACCEPTED,
+                createdAt: yesterday,
+            }),
+        );
 
         // 4. Create Super Likes
-        await superLikeRepo.save(superLikeRepo.create({
-            sender: user1,
-            senderId: user1.id,
-            receiver: user2,
-            receiverId: user2.id,
-            createdAt: new Date(),
-        }));
+        await superLikeRepo.save(
+            superLikeRepo.create({
+                sender: user1,
+                senderId: user1.id,
+                receiver: user2,
+                receiverId: user2.id,
+                createdAt: new Date(),
+            }),
+        );
 
         // Validate Default (Gifts Today only)
         const stats = await statisticsService.getDashboardStatistics();
@@ -142,7 +151,8 @@ describe("Statistics Service (e2e)", () => {
         // Validate Filtered (Last 1 hour - should match today's items, exclude yesterday)
         const oneHourAgo = new Date();
         oneHourAgo.setHours(oneHourAgo.getHours() - 1);
-        const statsFiltered = await statisticsService.getDashboardStatistics(oneHourAgo);
+        const statsFiltered =
+            await statisticsService.getDashboardStatistics(oneHourAgo);
 
         // Should include giftToday, exclude giftYesterday
         // Should include friendRequest (today), exclude friendRequest (yesterday)
@@ -158,7 +168,8 @@ describe("Statistics Service (e2e)", () => {
         expect(statsFiltered).toBeDefined();
 
         // Validate String Input ("1h")
-        const statsString = await statisticsService.getDashboardStatistics("1h");
+        const statsString =
+            await statisticsService.getDashboardStatistics("1h");
         expect(statsString).toBeDefined();
         // Should be same as 1h ago approximately
         expect(statsString.giftsToday).toBeGreaterThanOrEqual(1);

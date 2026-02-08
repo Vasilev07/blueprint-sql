@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { ApiPropertyOptional } from "@nestjs/swagger";
 
 export class UserProfileDTO {
     @ApiPropertyOptional()
@@ -57,4 +57,3 @@ export class UpdateUserProfileDTO {
     @ApiPropertyOptional()
     dateOfBirth?: Date;
 }
-

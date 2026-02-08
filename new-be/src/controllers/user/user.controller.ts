@@ -36,7 +36,6 @@ import {
     UpdateUserProfileDTO,
 } from "../../models/user-profile.dto";
 import { VerificationRequestDTO } from "../../models/verification-request.dto";
-import { CreateVerificationRequestDTO } from "../../models/create-verification-request.dto";
 import { ReviewVerificationRequestDTO } from "../../models/review-verification-request.dto";
 import { Response } from "express";
 import { Public } from "../../decorators/public.decorator";
@@ -52,7 +51,7 @@ export class UserController {
         private cryptoService: CryptoService,
         private authMiddleware: AuthMiddleware,
         private chatGateway: ChatGateway,
-    ) { }
+    ) {}
 
     @Get("/all")
     @ApiOperation({ summary: "Get all users with pagination and filters" })
@@ -64,7 +63,7 @@ export class UserController {
             properties: {
                 users: {
                     type: "array",
-                    items: { $ref: "#/components/schemas/UserDTO" }
+                    items: { $ref: "#/components/schemas/UserDTO" },
                 },
                 page: { type: "number" },
                 limit: { type: "number" },
@@ -99,7 +98,7 @@ export class UserController {
         let currentUserId: number | undefined;
         try {
             currentUserId = req?.userData?.id;
-        } catch (error) {
+        } catch (_error) {
             currentUserId = undefined;
         }
 
@@ -197,7 +196,10 @@ export class UserController {
 
         console.log("User roles before token generation:", admin.roles);
         const token = this.authMiddleware.signForUser(admin);
-        console.log("Generated token payload:", JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString()));
+        console.log(
+            "Generated token payload:",
+            JSON.parse(Buffer.from(token.split(".")[1], "base64").toString()),
+        );
 
         return { token, expiresIn: 3600 };
     }
@@ -343,7 +345,7 @@ export class UserController {
 
             res.set("Content-Type", contentType);
             res.send(Buffer.from(photo.data));
-        } catch (error) {
+        } catch (_error) {
             // Return default image for missing photos
             const defaultAvatar = `<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
                     <rect fill="#ddd" width="100" height="100"/>
@@ -441,19 +443,30 @@ export class UserController {
 
         // Record profile view if viewer is authenticated
         if (viewerId && viewerId !== Number(userId)) {
-            console.log(`[ProfileView] Recording profile view: userId=${userId}, viewerId=${viewerId}`);
+            console.log(
+                `[ProfileView] Recording profile view: userId=${userId}, viewerId=${viewerId}`,
+            );
             // Don't await - record async to not slow down response
             this.profileViewService
                 .recordProfileView(Number(userId), viewerId)
                 .then(async (savedView) => {
                     if (!savedView) {
-                        console.log(`[ProfileView] Profile view was skipped (null returned)`);
+                        console.log(
+                            `[ProfileView] Profile view was skipped (null returned)`,
+                        );
                         return;
                     }
-                    console.log(`[ProfileView] Profile view recorded successfully, savedView id: ${savedView.id}`);
+                    console.log(
+                        `[ProfileView] Profile view recorded successfully, savedView id: ${savedView.id}`,
+                    );
                     // Get updated profile views count
-                    const profileViewsCount = await this.profileViewService.getUniqueViewerCount(Number(userId));
-                    console.log(`[ProfileView] Updated profile views count for user ${userId}: ${profileViewsCount}`);
+                    const profileViewsCount =
+                        await this.profileViewService.getUniqueViewerCount(
+                            Number(userId),
+                        );
+                    console.log(
+                        `[ProfileView] Updated profile views count for user ${userId}: ${profileViewsCount}`,
+                    );
 
                     // Get viewer information for the notification
                     try {
@@ -495,13 +508,21 @@ export class UserController {
                             userId: Number(userId), // The user whose profile was viewed
                             profileViewsCount: profileViewsCount, // Updated count for real-time UI update
                         };
-                        console.log(`[ProfileView] Emitting profile views count update to viewer ${viewerId} (room: user:${viewerId}):`, countUpdatePayload);
+                        console.log(
+                            `[ProfileView] Emitting profile views count update to viewer ${viewerId} (room: user:${viewerId}):`,
+                            countUpdatePayload,
+                        );
                         this.chatGateway.server
                             .to(`user:${viewerId}`)
                             .emit("profile:view", countUpdatePayload);
-                        console.log(`[ProfileView] Profile views count update emitted successfully`);
+                        console.log(
+                            `[ProfileView] Profile views count update emitted successfully`,
+                        );
                     } catch (error) {
-                        console.error("[ProfileView] Failed to emit profile views count update:", error);
+                        console.error(
+                            "[ProfileView] Failed to emit profile views count update:",
+                            error,
+                        );
                     }
                 })
                 .catch((err) =>
@@ -787,7 +808,8 @@ export class UserController {
                 verificationPhoto: {
                     type: "string",
                     format: "binary",
-                    description: "Verification photo (ID document, selfie, etc.)",
+                    description:
+                        "Verification photo (ID document, selfie, etc.)",
                 },
             },
         },
@@ -839,7 +861,9 @@ export class UserController {
         description: "Returns all verification requests with user data",
         type: [VerificationRequestDTO],
     })
-    async getAllVerificationRequests(@Query("status") status?: string): Promise<any[]> {
+    async getAllVerificationRequests(
+        @Query("status") status?: string,
+    ): Promise<any[]> {
         return await this.userService.getAllVerificationRequests(status);
     }
 
@@ -873,9 +897,10 @@ export class UserController {
                     status: reviewData.status,
                     rejectionReason: reviewData.rejectionReason,
                     reviewedAt: new Date().toISOString(),
-                    message: reviewData.status === 'verified'
-                        ? 'Your account has been verified! 🎉'
-                        : 'Your verification request was rejected. Please check the reason and try again.'
+                    message:
+                        reviewData.status === "verified"
+                            ? "Your account has been verified! 🎉"
+                            : "Your verification request was rejected. Please check the reason and try again.",
                 });
         }
 

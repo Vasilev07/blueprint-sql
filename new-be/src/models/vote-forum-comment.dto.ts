@@ -6,10 +6,10 @@ export enum VoteType {
 }
 
 export class VoteForumCommentDTO {
-    @ApiProperty({ 
-        enum: ["upvote", "downvote"], 
+    @ApiProperty({
+        enum: ["upvote", "downvote"],
         description: "Type of vote: upvote or downvote",
-        example: "upvote"
+        example: "upvote",
     })
     voteType: "upvote" | "downvote";
 }

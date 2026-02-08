@@ -16,7 +16,7 @@ export class ProductService implements OnModuleInit {
     constructor(
         private readonly entityManager: EntityManager,
         @Inject(MapperService) private readonly mapperService: MapperService,
-    ) { }
+    ) {}
 
     public onModuleInit(): void {
         this.productRepository = this.entityManager.getRepository(Product);
@@ -36,7 +36,7 @@ export class ProductService implements OnModuleInit {
             return products.map((product) => {
                 return this.productMapper.entityToDTO(product);
             });
-        } catch (e) {
+        } catch (_e) {
             throw new Error("Error fetching products");
         }
     }

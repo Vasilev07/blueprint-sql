@@ -187,7 +187,7 @@ async function seed() {
             profile.location = userData.location;
             profile.interests = userData.interests;
             await dataSource.getRepository(UserProfile).save(profile);
-            
+
             createdUsers.push(savedUser);
             console.log(`Created user: ${userData.email}`);
         }

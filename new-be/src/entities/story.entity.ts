@@ -44,7 +44,12 @@ export class Story {
     @Column({ name: "height", type: "int", nullable: true })
     height?: number;
 
-    @Column({ name: "thumbnail_path", type: "varchar", length: 500, nullable: true })
+    @Column({
+        name: "thumbnail_path",
+        type: "varchar",
+        length: 500,
+        nullable: true,
+    })
     thumbnailPath?: string;
 
     @Column({ name: "views", type: "int", default: 0 })
@@ -59,4 +64,3 @@ export class Story {
     @Column({ name: "is_processed", type: "boolean", default: false })
     isProcessed: boolean;
 }
-

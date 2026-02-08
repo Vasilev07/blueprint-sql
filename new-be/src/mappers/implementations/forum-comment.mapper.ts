@@ -4,10 +4,15 @@ import { ForumCommentDTO } from "../../models/forum-comment.dto";
 import { Injectable } from "@nestjs/common";
 
 @Injectable()
-export class ForumCommentMapper
-    implements BaseMapper<ForumComment, ForumCommentDTO>
-{
-    entityToDTO(entity: ForumComment, userId?: number, userVote?: "upvote" | "downvote" | null): ForumCommentDTO {
+export class ForumCommentMapper implements BaseMapper<
+    ForumComment,
+    ForumCommentDTO
+> {
+    entityToDTO(
+        entity: ForumComment,
+        userId?: number,
+        userVote?: "upvote" | "downvote" | null,
+    ): ForumCommentDTO {
         return {
             id: entity.id,
             postId: entity.postId,
@@ -44,4 +49,3 @@ export class ForumCommentMapper
         return comment;
     }
 }
-

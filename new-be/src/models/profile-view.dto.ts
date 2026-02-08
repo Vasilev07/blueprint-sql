@@ -45,4 +45,3 @@ export class ProfileViewNotificationDTO {
     @ApiProperty()
     viewedAt: Date;
 }
-

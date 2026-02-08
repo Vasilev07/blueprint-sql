@@ -64,7 +64,9 @@ export class LiveStreamSessionGateway
             client.email = decoded.email;
 
             this.userSockets.set(client.userId, client);
-            this.logger.log(`User ${client.userId} connected to live stream session`);
+            this.logger.log(
+                `User ${client.userId} connected to live stream session`,
+            );
 
             // Notify about connection
             client.emit("connected", { userId: client.userId });
@@ -108,10 +110,12 @@ export class LiveStreamSessionGateway
                     activeSession.id,
                     "User disconnected",
                 );
-                this.server.to(`session:${activeSession.id}`).emit("session-ended", {
-                    sessionId: activeSession.id,
-                    reason: "User disconnected",
-                });
+                this.server
+                    .to(`session:${activeSession.id}`)
+                    .emit("session-ended", {
+                        sessionId: activeSession.id,
+                        reason: "User disconnected",
+                    });
             }
         }
     }
@@ -123,7 +127,8 @@ export class LiveStreamSessionGateway
     ) {
         try {
             const { sessionId } = data;
-            const session = await this.liveStreamSessionService.getSessionById(sessionId);
+            const session =
+                await this.liveStreamSessionService.getSessionById(sessionId);
 
             // For 1-to-1 sessions, verify user is part of the session
             if (!session.isLiveStream) {
@@ -231,11 +236,10 @@ export class LiveStreamSessionGateway
             const { sessionId, direction } = data;
             const transportId = `${sessionId}-${client.userId}-${direction}-${Date.now()}`;
 
-            const transport =
-                await this.mediasoupService.createWebRtcTransport(
-                    sessionId,
-                    transportId,
-                );
+            const transport = await this.mediasoupService.createWebRtcTransport(
+                sessionId,
+                transportId,
+            );
 
             // Track transport for cleanup
             if (!this.userTransports.has(client.userId)) {
@@ -272,7 +276,7 @@ export class LiveStreamSessionGateway
             const { sessionId, transportId, kind, rtpParameters } = data;
             const producerId = `${sessionId}-${client.userId}-${kind}-${Date.now()}`;
 
-            const result = await this.mediasoupService.createProducer(
+            const _result = await this.mediasoupService.createProducer(
                 transportId,
                 producerId,
                 kind,
@@ -286,7 +290,8 @@ export class LiveStreamSessionGateway
             this.userProducers.get(client.userId)!.add(producerId);
 
             // Update session to active when first producer is created
-            const session = await this.liveStreamSessionService.getSessionById(sessionId);
+            const session =
+                await this.liveStreamSessionService.getSessionById(sessionId);
             if (
                 session.status === SessionStatus.RINGING ||
                 session.status === SessionStatus.PENDING
@@ -326,10 +331,11 @@ export class LiveStreamSessionGateway
             producerId: string;
             rtpCapabilities: any;
         },
-        @ConnectedSocket() client: AuthenticatedSocket,
+        @ConnectedSocket() _client: AuthenticatedSocket,
     ) {
         try {
-            const { sessionId, transportId, producerId, rtpCapabilities } = data;
+            const { sessionId, transportId, producerId, rtpCapabilities } =
+                data;
 
             const consumer = await this.mediasoupService.createConsumer(
                 sessionId,
@@ -362,7 +368,8 @@ export class LiveStreamSessionGateway
     ) {
         try {
             const { sessionId } = data;
-            const session = await this.liveStreamSessionService.getSessionById(sessionId);
+            const session =
+                await this.liveStreamSessionService.getSessionById(sessionId);
 
             // Verify recipient is answering
             if (session.recipientId !== client.userId) {
@@ -393,11 +400,12 @@ export class LiveStreamSessionGateway
     @SubscribeMessage("session-reject")
     async handleSessionReject(
         @MessageBody() data: { sessionId: string },
-        @ConnectedSocket() client: AuthenticatedSocket,
+        @ConnectedSocket() _client: AuthenticatedSocket,
     ) {
         try {
             const { sessionId } = data;
-            const session = await this.liveStreamSessionService.getSessionById(sessionId);
+            const _session =
+                await this.liveStreamSessionService.getSessionById(sessionId);
 
             // Update session status
             await this.liveStreamSessionService.updateSessionStatus(
@@ -407,7 +415,9 @@ export class LiveStreamSessionGateway
             );
 
             // Notify all participants
-            this.server.to(`session:${sessionId}`).emit("session-rejected", { sessionId });
+            this.server
+                .to(`session:${sessionId}`)
+                .emit("session-rejected", { sessionId });
 
             // Clean up
             await this.mediasoupService.cleanupCall(sessionId);
@@ -506,7 +516,9 @@ export class LiveStreamSessionGateway
                 .to(`session:${sessionId}`)
                 .emit("viewer-left", { userId: client.userId });
 
-            this.logger.log(`User ${client.userId} left live stream room ${sessionId}`);
+            this.logger.log(
+                `User ${client.userId} left live stream room ${sessionId}`,
+            );
 
             return { success: true };
         } catch (error) {

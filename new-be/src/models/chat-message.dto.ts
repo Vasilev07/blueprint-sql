@@ -13,8 +13,8 @@ export class ChatMessageDTO {
     @ApiProperty()
     content: string;
 
-    @ApiProperty({ enum: ['text', 'image', 'file'] })
-    type: 'text' | 'image' | 'file';
+    @ApiProperty({ enum: ["text", "image", "file"] })
+    type: "text" | "image" | "file";
 
     @ApiProperty()
     isRead: boolean;
@@ -25,4 +25,3 @@ export class ChatMessageDTO {
     @ApiProperty()
     updatedAt: Date;
 }
-

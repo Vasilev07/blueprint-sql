@@ -5,7 +5,10 @@ export class LiveStreamRoomParticipantsDTO {
     @ApiProperty({ description: "ID of the stream room/call" })
     callId: string;
 
-    @ApiProperty({ type: [UserDTO], description: "List of participants in the room" })
+    @ApiProperty({
+        type: [UserDTO],
+        description: "List of participants in the room",
+    })
     participants: UserDTO[];
 
     @ApiProperty({ description: "Current number of participants" })

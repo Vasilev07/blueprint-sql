@@ -102,10 +102,12 @@ export class ForumGateway {
             const post = await this.forumPostService.createPost(userId, dto);
 
             // Broadcast to room
-            this.server.to(`forum-room:${dto.roomId}`).emit("forum:post:created", {
-                roomId: dto.roomId,
-                post: post,
-            });
+            this.server
+                .to(`forum-room:${dto.roomId}`)
+                .emit("forum:post:created", {
+                    roomId: dto.roomId,
+                    post: post,
+                });
 
             return { success: true, post };
         } catch (err: any) {
@@ -196,7 +198,11 @@ export class ForumGateway {
         });
     }
 
-    emitCommentDeleted(roomId: number, commentId: number, postId: number): void {
+    emitCommentDeleted(
+        roomId: number,
+        commentId: number,
+        postId: number,
+    ): void {
         this.server.to(`forum-room:${roomId}`).emit("forum:comment:deleted", {
             roomId,
             postId,
@@ -225,4 +231,3 @@ export class ForumGateway {
         });
     }
 }
-

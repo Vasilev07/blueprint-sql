@@ -18,4 +18,3 @@ export class CreateForumPostDTO {
     })
     type?: "text" | "image" | "file" | "poll";
 }
-

@@ -85,7 +85,10 @@ export class ForumCommentController {
     }
 
     @Post(":id/vote")
-    @ApiOperation({ summary: "Vote on a comment (upvote or downvote). Toggle off if already voted." })
+    @ApiOperation({
+        summary:
+            "Vote on a comment (upvote or downvote). Toggle off if already voted.",
+    })
     @ApiResponse({
         status: 200,
         description: "Vote processed successfully",
@@ -139,7 +142,10 @@ export class ForumCommentController {
     })
     @ApiResponse({ status: 403, description: "No permission" })
     @ApiResponse({ status: 404, description: "Comment not found" })
-    async deleteComment(@Param("id") id: number, @Req() req: any): Promise<void> {
+    async deleteComment(
+        @Param("id") id: number,
+        @Req() req: any,
+    ): Promise<void> {
         const userId = req.userData?.id;
         if (!userId) {
             throw new Error("User not authenticated");
@@ -147,4 +153,3 @@ export class ForumCommentController {
         return this.forumCommentService.deleteComment(Number(id), userId);
     }
 }
-

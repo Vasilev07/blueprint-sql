@@ -36,7 +36,7 @@ export class CategoryService implements OnModuleInit {
                 await this.categoryRepository.save(categoryToSave);
 
             return this.categoryMapper.entityToDTO(savedCategory);
-        } catch (e) {
+        } catch (_e) {
             throw new Error("Error creating category");
         }
     }
@@ -50,7 +50,7 @@ export class CategoryService implements OnModuleInit {
             const savedCategory = await this.categoryRepository.save(category);
 
             return this.categoryMapper.entityToDTO(savedCategory);
-        } catch (e) {
+        } catch (_e) {
             throw new Error("Error updating category");
         }
     }
@@ -58,7 +58,7 @@ export class CategoryService implements OnModuleInit {
     async deleteCategory(id: string): Promise<void> {
         try {
             await this.categoryRepository.delete(id);
-        } catch (e) {
+        } catch (_e) {
             throw new Error("Error deleting category");
         }
     }

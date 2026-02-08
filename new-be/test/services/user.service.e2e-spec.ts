@@ -36,7 +36,9 @@ describe("Admin Service (e2e)", () => {
         const allUsers = await userService.getAll();
 
         expect(allUsers.users.length).toBeGreaterThanOrEqual(1);
-        const registered = allUsers.users.find((u) => u.email === userDto.email);
+        const registered = allUsers.users.find(
+            (u) => u.email === userDto.email,
+        );
         expect(registered).toBeDefined();
         expect(registered!.email).toBe(userDto.email);
     });

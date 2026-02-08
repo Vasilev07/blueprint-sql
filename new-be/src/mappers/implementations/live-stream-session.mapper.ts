@@ -5,7 +5,10 @@ import { Injectable, Inject } from "@nestjs/common";
 import { MapperService } from "@mappers/mapper.service";
 
 @Injectable()
-export class LiveStreamSessionMapper implements BaseMapper<LiveStreamSession, LiveStreamSessionDTO> {
+export class LiveStreamSessionMapper implements BaseMapper<
+    LiveStreamSession,
+    LiveStreamSessionDTO
+> {
     constructor(
         @Inject(MapperService)
         private readonly mapperService: MapperService,
@@ -45,7 +48,7 @@ export class LiveStreamSessionMapper implements BaseMapper<LiveStreamSession, Li
         return dto;
     }
 
-    dtoToEntity(dto: LiveStreamSessionDTO): LiveStreamSession {
+    dtoToEntity(_dto: LiveStreamSessionDTO): LiveStreamSession {
         throw new Error("Method not implemented.");
     }
 }

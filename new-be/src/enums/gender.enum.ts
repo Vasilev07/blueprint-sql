@@ -3,4 +3,3 @@ export enum Gender {
     Female = "female",
     Other = "other",
 }
-

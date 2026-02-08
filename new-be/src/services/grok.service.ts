@@ -29,18 +29,20 @@ export class GrokService {
 
     constructor(private configService: ConfigService) {
         this.apiKey = this.configService.get<string>("GROK_API_KEY");
-        this.apiUrl = this.configService.get<string>("GROK_API_URL") || "https://api.x.ai/v1/chat/completions";
-        
+        this.apiUrl =
+            this.configService.get<string>("GROK_API_URL") ||
+            "https://api.x.ai/v1/chat/completions";
+
         if (!this.apiKey) {
-            this.logger.warn("GROK_API_KEY is not configured. Grok integration will not work.");
+            this.logger.warn(
+                "GROK_API_KEY is not configured. Grok integration will not work.",
+            );
         }
     }
 
- 
     isConfigured(): boolean {
         return !!this.apiKey;
     }
-
 
     private getConversationContext(userId: number): GrokMessage[] {
         if (!this.conversations.has(userId)) {
@@ -48,13 +50,13 @@ export class GrokService {
             this.conversations.set(userId, [
                 {
                     role: "system",
-                    content: "You are Grok, a helpful and friendly AI assistant. Be concise, helpful, and engaging in your responses.",
+                    content:
+                        "You are Grok, a helpful and friendly AI assistant. Be concise, helpful, and engaging in your responses.",
                 },
             ]);
         }
         return this.conversations.get(userId)!;
     }
-
 
     async chat(userId: number, userMessage: string): Promise<string> {
         if (!this.isConfigured()) {
@@ -76,7 +78,7 @@ export class GrokService {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "Authorization": `Bearer ${this.apiKey}`,
+                    Authorization: `Bearer ${this.apiKey}`,
                 },
                 body: JSON.stringify({
                     model: this.model,
@@ -88,7 +90,10 @@ export class GrokService {
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
-                this.logger.error(`Grok API error: ${response.status} ${response.statusText}`, errorData);
+                this.logger.error(
+                    `Grok API error: ${response.status} ${response.statusText}`,
+                    errorData,
+                );
                 throw new Error(`Grok API error: ${response.status}`);
             }
 
@@ -100,7 +105,9 @@ export class GrokService {
             }
 
             // Extract assistant response
-            const assistantMessage = data.choices?.[0]?.message?.content || "Sorry, I couldn't generate a response.";
+            const assistantMessage =
+                data.choices?.[0]?.message?.content ||
+                "Sorry, I couldn't generate a response.";
 
             // Add assistant response to context
             messages.push({

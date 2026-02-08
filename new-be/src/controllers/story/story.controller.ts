@@ -6,11 +6,10 @@ import {
     Param,
     UploadedFile,
     UseInterceptors,
-    Req,
     Res,
     HttpCode,
     HttpStatus,
-    BadRequestException,
+    Req,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { FileInterceptor } from "@nestjs/platform-express";
@@ -25,7 +24,6 @@ import { StoryService } from "../../services/story.service";
 import { StoryDTO } from "../../models/story.dto";
 import { StoryUploadResponseDTO } from "../../models/story-upload-response.dto";
 import { Response } from "express";
-import { Public } from "../../decorators/public.decorator";
 import * as path from "path";
 import * as fs from "fs";
 

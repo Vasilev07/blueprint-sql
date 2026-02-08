@@ -14,7 +14,6 @@ import { ForumComment } from "@entities/forum-comment.entity";
 import { ForumCommentVote } from "@entities/forum-comment-vote.entity";
 import { ForumGateway } from "src/gateways/forum.gateway";
 
-
 @Module({
     imports: [
         TypeOrmModule.forFeature([
@@ -37,7 +36,11 @@ import { ForumGateway } from "src/gateways/forum.gateway";
         ForumCommentService,
         ForumGateway,
     ],
-    exports: [ForumRoomService, ForumPostService, ForumCommentService, ForumGateway],
+    exports: [
+        ForumRoomService,
+        ForumPostService,
+        ForumCommentService,
+        ForumGateway,
+    ],
 })
 export class ForumModule {}
-

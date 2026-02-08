@@ -31,4 +31,3 @@ export class ForumRoomDTO {
     @ApiProperty()
     updatedAt: Date;
 }
-

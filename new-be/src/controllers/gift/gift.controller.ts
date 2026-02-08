@@ -9,12 +9,7 @@ import {
     HttpCode,
     HttpStatus,
 } from "@nestjs/common";
-import {
-    ApiTags,
-    ApiOperation,
-    ApiResponse,
-    ApiBody,
-} from "@nestjs/swagger";
+import { ApiTags, ApiOperation, ApiResponse, ApiBody } from "@nestjs/swagger";
 import { GiftService } from "src/services/gift.service";
 import {
     SendGiftRequestDTO,
@@ -120,7 +115,10 @@ export class GiftController {
         schema: {
             type: "object",
             properties: {
-                gifts: { type: "array", items: { $ref: "#/components/schemas/GiftDTO" } },
+                gifts: {
+                    type: "array",
+                    items: { $ref: "#/components/schemas/GiftDTO" },
+                },
                 total: { type: "number" },
                 page: { type: "number" },
                 limit: { type: "number" },
@@ -131,9 +129,12 @@ export class GiftController {
         @Query("userId") userId?: number,
         @Query("page") page: number = 1,
         @Query("limit") limit: number = 20,
-    ): Promise<{ gifts: GiftDTO[]; total: number; page: number; limit: number }> {
+    ): Promise<{
+        gifts: GiftDTO[];
+        total: number;
+        page: number;
+        limit: number;
+    }> {
         return await this.giftService.getAllGifts(userId, page, limit);
     }
-
 }
-

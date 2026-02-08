@@ -12,7 +12,8 @@ export class UserMapper implements BaseMapper<User, UserDTO> {
         return {
             id: entity.id,
             email: entity.email,
-            fullName: `${entity.firstname || ""} ${entity.lastname || ""}`.trim(),
+            fullName:
+                `${entity.firstname || ""} ${entity.lastname || ""}`.trim(),
             password: "", // Don't send actual password
             confirmPassword: "", // Don't send actual password
             gender: entity.gender,

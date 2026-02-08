@@ -33,4 +33,3 @@ export class ForumRoomMapper implements BaseMapper<ForumRoom, ForumRoomDTO> {
         return room;
     }
 }
-

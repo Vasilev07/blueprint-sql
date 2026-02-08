@@ -15,7 +15,9 @@ import { Injectable } from "@nestjs/common";
     transports: ["websocket", "polling"],
 })
 @Injectable()
-export class SuperLikeGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class SuperLikeGateway
+    implements OnGatewayConnection, OnGatewayDisconnect
+{
     @WebSocketServer()
     server: Server;
 
@@ -35,7 +37,9 @@ export class SuperLikeGateway implements OnGatewayConnection, OnGatewayDisconnec
                 // Join user to their own room for targeted notifications
                 client.join(`user:${userIdNum}`);
 
-                console.log(`SuperLikeGateway: User ${userIdNum} (${email}) connected`);
+                console.log(
+                    `SuperLikeGateway: User ${userIdNum} (${email}) connected`,
+                );
             }
         }
     }
@@ -49,7 +53,7 @@ export class SuperLikeGateway implements OnGatewayConnection, OnGatewayDisconnec
             if (userId) {
                 const userIdNum = parseInt(userId);
                 this.userIdToEmail.delete(userIdNum);
-                
+
                 // Leave user room
                 client.leave(`user:${userIdNum}`);
             }
@@ -60,8 +64,12 @@ export class SuperLikeGateway implements OnGatewayConnection, OnGatewayDisconnec
      * Emit super like notification to a specific user (receiver)
      */
     notifySuperLikeReceived(userId: number, superLikeData: any) {
-        this.server.to(`user:${userId}`).emit("super-like:received", superLikeData);
-        console.log(`SuperLikeGateway: Emitted super like notification to user ${userId}`);
+        this.server
+            .to(`user:${userId}`)
+            .emit("super-like:received", superLikeData);
+        console.log(
+            `SuperLikeGateway: Emitted super like notification to user ${userId}`,
+        );
     }
 
     /**
@@ -69,7 +77,9 @@ export class SuperLikeGateway implements OnGatewayConnection, OnGatewayDisconnec
      */
     notifySuperLikeSent(userId: number, superLikeData: any) {
         this.server.to(`user:${userId}`).emit("super-like:sent", superLikeData);
-        console.log(`SuperLikeGateway: Emitted super like sent notification to user ${userId}`);
+        console.log(
+            `SuperLikeGateway: Emitted super like sent notification to user ${userId}`,
+        );
     }
 
     /**
@@ -79,4 +89,3 @@ export class SuperLikeGateway implements OnGatewayConnection, OnGatewayDisconnec
         return this.userIdToEmail.has(userId);
     }
 }
-

@@ -4,9 +4,10 @@ import { ForumRoomMemberDTO } from "../../models/forum-room-member.dto";
 import { Injectable } from "@nestjs/common";
 
 @Injectable()
-export class ForumRoomMemberMapper
-    implements BaseMapper<ForumRoomMember, ForumRoomMemberDTO>
-{
+export class ForumRoomMemberMapper implements BaseMapper<
+    ForumRoomMember,
+    ForumRoomMemberDTO
+> {
     entityToDTO(entity: ForumRoomMember): ForumRoomMemberDTO {
         return {
             id: entity.id,
@@ -31,4 +32,3 @@ export class ForumRoomMemberMapper
         return member;
     }
 }
-

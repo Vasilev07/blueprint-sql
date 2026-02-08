@@ -44,32 +44,34 @@ export class ForumRoomService {
         }
 
         // Create room and add creator as admin member in transaction
-        const room = await this.forumRoomRepo.manager.transaction(async (trx) => {
-            const room = await trx.getRepository(ForumRoom).save(
-                trx.getRepository(ForumRoom).create({
-                    name: dto.name,
-                    description: dto.description || null,
-                    visibility: dto.visibility,
-                    createdBy: userId,
-                    memberCount: 1, // Creator is first member
-                    maxMembers: dto.maxMembers || null,
-                    status: "active",
-                }),
-            );
+        const room = await this.forumRoomRepo.manager.transaction(
+            async (trx) => {
+                const room = await trx.getRepository(ForumRoom).save(
+                    trx.getRepository(ForumRoom).create({
+                        name: dto.name,
+                        description: dto.description || null,
+                        visibility: dto.visibility,
+                        createdBy: userId,
+                        memberCount: 1, // Creator is first member
+                        maxMembers: dto.maxMembers || null,
+                        status: "active",
+                    }),
+                );
 
-            // Add creator as admin member
-            await trx.getRepository(ForumRoomMember).save(
-                trx.getRepository(ForumRoomMember).create({
-                    roomId: room.id,
-                    userId: userId,
-                    role: "admin",
-                    status: "joined",
-                    unreadCount: 0,
-                }),
-            );
+                // Add creator as admin member
+                await trx.getRepository(ForumRoomMember).save(
+                    trx.getRepository(ForumRoomMember).create({
+                        roomId: room.id,
+                        userId: userId,
+                        role: "admin",
+                        status: "joined",
+                        unreadCount: 0,
+                    }),
+                );
 
-            return room;
-        });
+                return room;
+            },
+        );
 
         return this.mapperService.entityToDTO<ForumRoom, ForumRoomDTO>(
             "ForumRoom",
@@ -132,7 +134,9 @@ export class ForumRoomService {
             });
         } else {
             // Default: only show active rooms
-            queryBuilder.andWhere("room.status = :status", { status: "active" });
+            queryBuilder.andWhere("room.status = :status", {
+                status: "active",
+            });
         }
 
         // If user provided, show their rooms + public rooms
@@ -214,7 +218,9 @@ export class ForumRoomService {
         });
 
         if (existingMember) {
-            throw new BadRequestException("User is already a member of this room");
+            throw new BadRequestException(
+                "User is already a member of this room",
+            );
         }
 
         // Check if user was banned
@@ -310,10 +316,9 @@ export class ForumRoomService {
 
         // Update membership and decrement memberCount in transaction
         await this.forumRoomRepo.manager.transaction(async (trx) => {
-            await trx.getRepository(ForumRoomMember).update(
-                { id: member.id },
-                { status: "left" },
-            );
+            await trx
+                .getRepository(ForumRoomMember)
+                .update({ id: member.id }, { status: "left" });
 
             // Decrement memberCount
             await trx
@@ -339,9 +344,7 @@ export class ForumRoomService {
         });
 
         if (!adminMember) {
-            throw new ForbiddenException(
-                "Only admins can update member roles",
-            );
+            throw new ForbiddenException("Only admins can update member roles");
         }
 
         // Find target member
@@ -354,7 +357,9 @@ export class ForumRoomService {
         });
 
         if (!targetMember) {
-            throw new NotFoundException("Target user is not a member of this room");
+            throw new NotFoundException(
+                "Target user is not a member of this room",
+            );
         }
 
         // Prevent changing own role if last admin
@@ -403,10 +408,10 @@ export class ForumRoomService {
         });
 
         return members.map((member) =>
-            this.mapperService.entityToDTO<
-                ForumRoomMember,
-                ForumRoomMemberDTO
-            >("ForumRoomMember", member),
+            this.mapperService.entityToDTO<ForumRoomMember, ForumRoomMemberDTO>(
+                "ForumRoomMember",
+                member,
+            ),
         );
     }
 
@@ -469,4 +474,3 @@ export class ForumRoomService {
         );
     }
 }
-

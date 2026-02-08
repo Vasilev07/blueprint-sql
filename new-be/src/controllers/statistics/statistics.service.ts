@@ -17,7 +17,7 @@ export class StatisticsService {
         private readonly friendRepository: Repository<UserFriend>,
         @InjectRepository(SuperLike)
         private readonly superLikeRepository: Repository<SuperLike>,
-    ) { }
+    ) {}
 
     async getDashboardStatistics(timeRange?: string | Date) {
         const fromDate = this.parseTimeRange(timeRange);
@@ -30,7 +30,10 @@ export class StatisticsService {
         let giftCondition: any = whereCondition;
         let messageCondition: any = whereCondition;
         let friendRequestCondition: any = whereCondition;
-        let requestAcceptedCondition: any = { ...whereCondition, status: FriendshipStatus.ACCEPTED };
+        let requestAcceptedCondition: any = {
+            ...whereCondition,
+            status: FriendshipStatus.ACCEPTED,
+        };
         let superLikeCondition: any = whereCondition;
 
         // If NO fromDate provided (undefined), use default logic (Gifts Today, others All Time)
@@ -88,14 +91,16 @@ export class StatisticsService {
             return timeRange;
         }
 
-        if (typeof timeRange === 'string') {
+        if (typeof timeRange === "string") {
             const match = timeRange.match(/^(\d+)([hd])$/);
             if (!match) {
                 const potentialDate = new Date(timeRange);
                 if (!isNaN(potentialDate.getTime())) {
                     return potentialDate;
                 } else {
-                    throw new Error("Invalid time range format. Use '20h', '7d' or ISO date.");
+                    throw new Error(
+                        "Invalid time range format. Use '20h', '7d' or ISO date.",
+                    );
                 }
             } else {
                 const value = parseInt(match[1], 10);

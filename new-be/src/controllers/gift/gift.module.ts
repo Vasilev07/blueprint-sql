@@ -19,7 +19,12 @@ import { ChatModule } from "../chat/chat.module";
     ],
     exports: [TypeOrmModule, GiftService, GiftGateway],
     controllers: [GiftController],
-    providers: [GiftService, WalletService, PaymentProviderService, GiftGateway, WalletGateway],
+    providers: [
+        GiftService,
+        WalletService,
+        PaymentProviderService,
+        GiftGateway,
+        WalletGateway,
+    ],
 })
 export class GiftModule {}
-

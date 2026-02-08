@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class RenameGiftImageNameToEmoji1735000000000
-    implements MigrationInterface
-{
+export class RenameGiftImageNameToEmoji1735000000000 implements MigrationInterface {
     name = "RenameGiftImageNameToEmoji1735000000000";
 
     public async up(queryRunner: QueryRunner): Promise<void> {
@@ -21,4 +19,3 @@ export class RenameGiftImageNameToEmoji1735000000000
         `);
     }
 }
-

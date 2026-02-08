@@ -10,4 +10,3 @@ export class StoryUploadResponseDTO {
     @ApiProperty()
     message: string;
 }
-

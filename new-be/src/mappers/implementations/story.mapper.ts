@@ -30,14 +30,14 @@ export class StoryMapper implements BaseMapper<Story, StoryDTO> {
 
         // Map user entity to user name if available
         if (entity.user) {
-            dto.userName = `${entity.user.firstname} ${entity.user.lastname}`.trim();
+            dto.userName =
+                `${entity.user.firstname} ${entity.user.lastname}`.trim();
         }
 
         return dto;
     }
 
-    dtoToEntity(dto: StoryDTO): Story {
+    dtoToEntity(_dto: StoryDTO): Story {
         throw new Error("Method not implemented.");
     }
 }
-

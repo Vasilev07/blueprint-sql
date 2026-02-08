@@ -49,7 +49,9 @@ export class SendGiftRequestDTO {
     @ApiProperty({ description: "Gift emoji (e.g., '🍹', '🌹', '💎')" })
     giftEmoji: string;
 
-    @ApiProperty({ description: "Amount to pay for the gift (as decimal string)" })
+    @ApiProperty({
+        description: "Amount to pay for the gift (as decimal string)",
+    })
     amount: string;
 
     @ApiPropertyOptional({ description: "Optional message with the gift" })
@@ -66,4 +68,3 @@ export class SendGiftResponseDTO {
     @ApiProperty({ description: "Updated sender balance" })
     senderBalance: string;
 }
-

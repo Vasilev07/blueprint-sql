@@ -8,10 +8,16 @@ import { EntityManager, QueryRunner } from "typeorm";
 import { Wallet } from "@entities/wallet.entity";
 import { Transaction, TransactionType } from "@entities/transaction.entity";
 import { User } from "@entities/user.entity";
-import { TransferRequestDTO, TransferResponseDTO } from "../models/transfer.dto";
+import {
+    TransferRequestDTO,
+    TransferResponseDTO,
+} from "../models/transfer.dto";
 import { DepositRequestDTO, DepositResponseDTO } from "../models/deposit.dto";
 import { PaymentProviderService } from "./payment-provider.service";
-import { AdminDepositRequestDTO, AdminTransferRequestDTO } from "../models/admin-wallet.dto";
+import {
+    AdminDepositRequestDTO,
+    AdminTransferRequestDTO,
+} from "../models/admin-wallet.dto";
 import { WalletGateway } from "../gateways/wallet.gateway";
 
 @Injectable()
@@ -84,14 +90,15 @@ export class WalletService {
         }
 
         // Use QueryRunner for transaction with row-level locks
-        const queryRunner: QueryRunner = this.entityManager.connection.createQueryRunner();
+        const queryRunner: QueryRunner =
+            this.entityManager.connection.createQueryRunner();
         await queryRunner.connect();
         await queryRunner.startTransaction();
 
         try {
             // Process wallets in consistent order (by user id) to prevent deadlocks
             const userIds = [fromUserId, toUserId].sort((a, b) => a - b);
-            
+
             // Lock and get wallets with FOR UPDATE in consistent order (inside transaction)
             const wallets: Wallet[] = [];
             for (const userId of userIds) {
@@ -116,7 +123,7 @@ export class WalletService {
                     wallet.balance = "0";
                     wallet.withdrawFeePercentage = "0";
                     wallet = await queryRunner.manager.save(wallet);
-                    
+
                     // Reload with lock to ensure consistency (no relations loaded)
                     // Use repository findOne to avoid automatic relation loading
                     wallet = await queryRunner.manager
@@ -126,9 +133,11 @@ export class WalletService {
                             lock: { mode: "pessimistic_write" },
                         });
                 }
-                
+
                 if (!wallet) {
-                    throw new NotFoundException(`Wallet not found for user ${userId}`);
+                    throw new NotFoundException(
+                        `Wallet not found for user ${userId}`,
+                    );
                 }
                 wallets.push(wallet);
             }
@@ -145,8 +154,12 @@ export class WalletService {
             }
 
             // Get wallets by user ID
-            const fromWallet = wallets.find(w => (w.user?.id || (w as any).userId) === fromUserId);
-            const toWallet = wallets.find(w => (w.user?.id || (w as any).userId) === toUserId);
+            const fromWallet = wallets.find(
+                (w) => (w.user?.id || (w as any).userId) === fromUserId,
+            );
+            const toWallet = wallets.find(
+                (w) => (w.user?.id || (w as any).userId) === toUserId,
+            );
 
             if (!fromWallet || !toWallet) {
                 throw new NotFoundException("Wallet not found");
@@ -160,7 +173,10 @@ export class WalletService {
             }
 
             // Update balances using decimal arithmetic
-            fromWallet.balance = this.subtractDecimals(fromWallet.balance, amount);
+            fromWallet.balance = this.subtractDecimals(
+                fromWallet.balance,
+                amount,
+            );
             toWallet.balance = this.addDecimals(toWallet.balance, amount);
 
             // Save wallets
@@ -174,15 +190,22 @@ export class WalletService {
             transaction.feeAmount = "0";
             transaction.type = TransactionType.Transfer;
 
-            const savedTransaction = await queryRunner.manager.save(transaction);
+            const savedTransaction =
+                await queryRunner.manager.save(transaction);
 
             // Commit transaction
             await queryRunner.commitTransaction();
 
             // Emit balance updates via WebSocket
             try {
-                this.walletGateway.notifyBalanceUpdate(fromUserId, fromWallet.balance);
-                this.walletGateway.notifyBalanceUpdate(toUserId, toWallet.balance);
+                this.walletGateway.notifyBalanceUpdate(
+                    fromUserId,
+                    fromWallet.balance,
+                );
+                this.walletGateway.notifyBalanceUpdate(
+                    toUserId,
+                    toWallet.balance,
+                );
             } catch (error) {
                 console.error("Failed to emit balance update:", error);
             }
@@ -234,7 +257,8 @@ export class WalletService {
         }
 
         // Use QueryRunner for transaction with row-level lock
-        const queryRunner: QueryRunner = this.entityManager.connection.createQueryRunner();
+        const queryRunner: QueryRunner =
+            this.entityManager.connection.createQueryRunner();
         await queryRunner.connect();
         await queryRunner.startTransaction();
 
@@ -288,7 +312,8 @@ export class WalletService {
             transaction.feeAmount = "0";
             transaction.type = TransactionType.Deposit;
 
-            const savedTransaction = await queryRunner.manager.save(transaction);
+            const savedTransaction =
+                await queryRunner.manager.save(transaction);
 
             // Commit transaction
             await queryRunner.commitTransaction();
@@ -346,12 +371,13 @@ export class WalletService {
         return result.toFixed(8);
     }
 
-
     /**
      * Admin: deposit into a user's wallet (no payment provider)
      * Uses getOrCreateWallet to ensure wallet exists
      */
-    async adminDeposit(dto: AdminDepositRequestDTO): Promise<{ transactionId: number; balance: string }> {
+    async adminDeposit(
+        dto: AdminDepositRequestDTO,
+    ): Promise<{ transactionId: number; balance: string }> {
         const { userId, amount } = dto;
         const amountDecimal = this.parseDecimal(amount);
         if (amountDecimal <= 0) {
@@ -359,12 +385,15 @@ export class WalletService {
         }
 
         // Validate user exists
-        const user = await this.entityManager.findOne(User, { where: { id: userId } });
+        const user = await this.entityManager.findOne(User, {
+            where: { id: userId },
+        });
         if (!user) {
             throw new NotFoundException("User not found");
         }
 
-        const queryRunner: QueryRunner = this.entityManager.connection.createQueryRunner();
+        const queryRunner: QueryRunner =
+            this.entityManager.connection.createQueryRunner();
         await queryRunner.connect();
         await queryRunner.startTransaction();
 
@@ -423,7 +452,11 @@ export class WalletService {
      * Admin: transfer between users
      * Uses getOrCreateWallet logic to ensure wallets exist
      */
-    async adminTransfer(dto: AdminTransferRequestDTO): Promise<{ transactionId: number; fromBalance: string; toBalance: string }> {
+    async adminTransfer(dto: AdminTransferRequestDTO): Promise<{
+        transactionId: number;
+        fromBalance: string;
+        toBalance: string;
+    }> {
         const { fromUserId, toUserId, amount } = dto;
         if (fromUserId === toUserId) {
             throw new BadRequestException("Cannot transfer to the same user");
@@ -434,17 +467,24 @@ export class WalletService {
         }
 
         // Validate both users exist
-        const fromUser = await this.entityManager.findOne(User, { where: { id: fromUserId } });
-        const toUser = await this.entityManager.findOne(User, { where: { id: toUserId } });
-        
+        const fromUser = await this.entityManager.findOne(User, {
+            where: { id: fromUserId },
+        });
+        const toUser = await this.entityManager.findOne(User, {
+            where: { id: toUserId },
+        });
+
         if (!fromUser) {
             throw new NotFoundException(`Source user ${fromUserId} not found`);
         }
         if (!toUser) {
-            throw new NotFoundException(`Destination user ${toUserId} not found`);
+            throw new NotFoundException(
+                `Destination user ${toUserId} not found`,
+            );
         }
 
-        const queryRunner: QueryRunner = this.entityManager.connection.createQueryRunner();
+        const queryRunner: QueryRunner =
+            this.entityManager.connection.createQueryRunner();
         await queryRunner.connect();
         await queryRunner.startTransaction();
 
@@ -478,22 +518,24 @@ export class WalletService {
 
                     // Reload with lock to ensure consistency (no relations loaded)
                     wallet = await queryRunner.manager
-                    .getRepository(Wallet)
-                    .findOne({
-                        where: { id: wallet.id },
-                        lock: { mode: "pessimistic_write" },
-                    });
+                        .getRepository(Wallet)
+                        .findOne({
+                            where: { id: wallet.id },
+                            lock: { mode: "pessimistic_write" },
+                        });
                 }
 
                 if (!wallet) {
-                    throw new NotFoundException(`Wallet not found for user ${userId}`);
+                    throw new NotFoundException(
+                        `Wallet not found for user ${userId}`,
+                    );
                 }
                 wallets.push(wallet);
             }
 
             // Get wallets by user ID
-            const fromWallet = wallets.find(w => w.user.id === fromUserId);
-            const toWallet = wallets.find(w => w.user.id === toUserId);
+            const fromWallet = wallets.find((w) => w.user.id === fromUserId);
+            const toWallet = wallets.find((w) => w.user.id === toUserId);
 
             if (!fromWallet || !toWallet) {
                 throw new NotFoundException("Wallet not found");
@@ -507,7 +549,10 @@ export class WalletService {
             }
 
             // Update balances using decimal arithmetic
-            fromWallet.balance = this.subtractDecimals(fromWallet.balance, amount);
+            fromWallet.balance = this.subtractDecimals(
+                fromWallet.balance,
+                amount,
+            );
             toWallet.balance = this.addDecimals(toWallet.balance, amount);
             await queryRunner.manager.save([fromWallet, toWallet]);
 
@@ -518,7 +563,8 @@ export class WalletService {
             transaction.amount = amount;
             transaction.feeAmount = "0";
             transaction.type = TransactionType.Transfer;
-            const savedTransaction = await queryRunner.manager.save(transaction);
+            const savedTransaction =
+                await queryRunner.manager.save(transaction);
 
             // Commit transaction
             await queryRunner.commitTransaction();
@@ -544,4 +590,3 @@ export class WalletService {
         return wallet.balance;
     }
 }
-

@@ -113,7 +113,7 @@ export class ChatGateway {
             if (userId) {
                 const userIdNum = parseInt(userId);
                 this.userIdToEmail.delete(userIdNum);
-                
+
                 // Leave user room
                 client.leave(`user:${userIdNum}`);
             }
@@ -157,7 +157,7 @@ export class ChatGateway {
             recipientId: number;
             content: string;
         },
-        @ConnectedSocket() client: Socket,
+        @ConnectedSocket() _client: Socket,
     ) {
         try {
             // Update sender's lastOnline timestamp
@@ -211,7 +211,8 @@ export class ChatGateway {
                 if (this.grokUserId === null) {
                     return {
                         error: true,
-                        message: "Grok user not found. Please configure Grok user in the system.",
+                        message:
+                            "Grok user not found. Please configure Grok user in the system.",
                     };
                 }
             }
@@ -236,10 +237,17 @@ export class ChatGateway {
 
             // Emit user message immediately
             this.server.emit(`chat:message:${conversationId}`, userMessage);
-            this.server.emit("chat:message", { conversationId, message: userMessage });
+            this.server.emit("chat:message", {
+                conversationId,
+                message: userMessage,
+            });
 
             // Get Grok response (async, don't wait)
-            this.processGrokResponse(conversationId, payload.senderId, payload.content);
+            this.processGrokResponse(
+                conversationId,
+                payload.senderId,
+                payload.content,
+            );
 
             return userMessage;
         } catch (err: any) {
@@ -262,7 +270,10 @@ export class ChatGateway {
     ): Promise<void> {
         try {
             // Call Grok API
-            const grokResponse = await this.grokService.chat(senderId, userContent);
+            const grokResponse = await this.grokService.chat(
+                senderId,
+                userContent,
+            );
 
             // Send Grok's response as a message from Grok user
             const grokMessage = await this.chatService.sendMessage(
@@ -274,9 +285,14 @@ export class ChatGateway {
 
             // Emit Grok's response
             this.server.emit(`chat:message:${conversationId}`, grokMessage);
-            this.server.emit("chat:message", { conversationId, message: grokMessage });
+            this.server.emit("chat:message", {
+                conversationId,
+                message: grokMessage,
+            });
 
-            this.logger.log(`Grok response sent for conversation ${conversationId}`);
+            this.logger.log(
+                `Grok response sent for conversation ${conversationId}`,
+            );
         } catch (err: any) {
             this.logger.error("Error processing Grok response:", err);
             // Send error message as Grok's response
@@ -287,8 +303,14 @@ export class ChatGateway {
                     "Sorry, I encountered an error processing your message. Please try again.",
                     "text",
                 );
-                this.server.emit(`chat:message:${conversationId}`, errorMessage);
-                this.server.emit("chat:message", { conversationId, message: errorMessage });
+                this.server.emit(
+                    `chat:message:${conversationId}`,
+                    errorMessage,
+                );
+                this.server.emit("chat:message", {
+                    conversationId,
+                    message: errorMessage,
+                });
             } catch (sendErr) {
                 this.logger.error("Error sending error message:", sendErr);
             }
@@ -314,7 +336,7 @@ export class ChatGateway {
             // Get sender info for notification
             const sender = await this.entityManager.findOne(User, {
                 where: { id: senderId },
-                select: ['id', 'firstname', 'lastname', 'email']
+                select: ["id", "firstname", "lastname", "email"],
             });
 
             console.log("🎥 Sender found:", sender);
@@ -324,31 +346,39 @@ export class ChatGateway {
             }
 
             // Create the video call
-            console.log("🎥 Calling liveStreamSessionService.startSession with:", {
-                initiatorId: senderId,
-                recipientId: payload.recipientId,
-                isLiveStream: false,
-                maxParticipants: 2
-            });
+            console.log(
+                "🎥 Calling liveStreamSessionService.startSession with:",
+                {
+                    initiatorId: senderId,
+                    recipientId: payload.recipientId,
+                    isLiveStream: false,
+                    maxParticipants: 2,
+                },
+            );
 
             const videoCall = await this.liveStreamSessionService.startSession({
                 initiatorId: senderId,
                 recipientId: payload.recipientId,
                 isLiveStream: false,
-                maxParticipants: 2
+                maxParticipants: 2,
             });
 
             console.log("🎥 Video call created:", videoCall);
 
             // Notify the recipient
-            console.log("🎥 Notifying recipient:", `user:${payload.recipientId}`);
+            console.log(
+                "🎥 Notifying recipient:",
+                `user:${payload.recipientId}`,
+            );
             const fullName = `${sender.firstname} ${sender.lastname}`.trim();
-            this.server.to(`user:${payload.recipientId}`).emit("video-call:incoming", {
-                callId: videoCall.id,
-                initiatorId: senderId,
-                initiatorName: fullName || sender.email,
-                sessionId: videoCall.id
-            });
+            this.server
+                .to(`user:${payload.recipientId}`)
+                .emit("video-call:incoming", {
+                    callId: videoCall.id,
+                    initiatorId: senderId,
+                    initiatorName: fullName || sender.email,
+                    sessionId: videoCall.id,
+                });
 
             console.log("🎥 Notification sent successfully");
 
@@ -376,16 +406,20 @@ export class ChatGateway {
             }
 
             // Update call status to active
-            const videoCall = await this.liveStreamSessionService.updateSessionStatus(
-                payload.callId,
-                SessionStatus.ACTIVE
-            );
+            const videoCall =
+                await this.liveStreamSessionService.updateSessionStatus(
+                    payload.callId,
+                    SessionStatus.ACTIVE,
+                );
 
             // Notify the initiator
-            const initiatorId = videoCall.initiatorId === userId ? videoCall.recipientId : videoCall.initiatorId;
+            const initiatorId =
+                videoCall.initiatorId === userId
+                    ? videoCall.recipientId
+                    : videoCall.initiatorId;
             this.server.to(`user:${initiatorId}`).emit("video-call:accepted", {
                 callId: payload.callId,
-                sessionId: payload.callId
+                sessionId: payload.callId,
             });
 
             return { success: true };
@@ -415,11 +449,13 @@ export class ChatGateway {
             await this.liveStreamSessionService.updateSessionStatus(
                 payload.callId,
                 SessionStatus.REJECTED,
-                { endReason: "Call rejected by recipient" }
+                { endReason: "Call rejected by recipient" },
             );
 
             // Get call details to notify initiator
-            const call = await this.liveStreamSessionService.getSessionById(payload.callId);
+            const call = await this.liveStreamSessionService.getSessionById(
+                payload.callId,
+            );
             const initiatorId = call.initiatorId;
 
             // Notify the initiator
@@ -449,10 +485,15 @@ export class ChatGateway {
             }
 
             // End the call
-            const videoCall = await this.liveStreamSessionService.endSession(payload.callId);
+            const videoCall = await this.liveStreamSessionService.endSession(
+                payload.callId,
+            );
 
             // Notify the other participant
-            const otherUserId = videoCall.initiatorId === userId ? videoCall.recipientId : videoCall.initiatorId;
+            const otherUserId =
+                videoCall.initiatorId === userId
+                    ? videoCall.recipientId
+                    : videoCall.initiatorId;
             this.server.to(`user:${otherUserId}`).emit("video-call:ended");
 
             return { success: true };
@@ -480,14 +521,21 @@ export class ChatGateway {
             }
 
             // Get call details to find the other participant
-            const call = await this.liveStreamSessionService.getSessionById(payload.callId);
-            const otherUserId = call.initiatorId === userId ? call.recipientId : call.initiatorId;
+            const call = await this.liveStreamSessionService.getSessionById(
+                payload.callId,
+            );
+            const otherUserId =
+                call.initiatorId === userId
+                    ? call.recipientId
+                    : call.initiatorId;
 
             // Forward the offer to the other participant
-            this.server.to(`user:${otherUserId}`).emit("video-call:webrtc:offer", {
-                callId: payload.callId,
-                offer: payload.offer
-            });
+            this.server
+                .to(`user:${otherUserId}`)
+                .emit("video-call:webrtc:offer", {
+                    callId: payload.callId,
+                    offer: payload.offer,
+                });
 
             return { success: true };
         } catch (err: any) {
@@ -513,14 +561,21 @@ export class ChatGateway {
             }
 
             // Get call details to find the other participant
-            const call = await this.liveStreamSessionService.getSessionById(payload.callId);
-            const otherUserId = call.initiatorId === userId ? call.recipientId : call.initiatorId;
+            const call = await this.liveStreamSessionService.getSessionById(
+                payload.callId,
+            );
+            const otherUserId =
+                call.initiatorId === userId
+                    ? call.recipientId
+                    : call.initiatorId;
 
             // Forward the answer to the other participant
-            this.server.to(`user:${otherUserId}`).emit("video-call:webrtc:answer", {
-                callId: payload.callId,
-                answer: payload.answer
-            });
+            this.server
+                .to(`user:${otherUserId}`)
+                .emit("video-call:webrtc:answer", {
+                    callId: payload.callId,
+                    answer: payload.answer,
+                });
 
             return { success: true };
         } catch (err: any) {
@@ -546,14 +601,21 @@ export class ChatGateway {
             }
 
             // Get call details to find the other participant
-            const call = await this.liveStreamSessionService.getSessionById(payload.callId);
-            const otherUserId = call.initiatorId === userId ? call.recipientId : call.initiatorId;
+            const call = await this.liveStreamSessionService.getSessionById(
+                payload.callId,
+            );
+            const otherUserId =
+                call.initiatorId === userId
+                    ? call.recipientId
+                    : call.initiatorId;
 
             // Forward the ICE candidate to the other participant
-            this.server.to(`user:${otherUserId}`).emit("video-call:webrtc:ice-candidate", {
-                callId: payload.callId,
-                candidate: payload.candidate
-            });
+            this.server
+                .to(`user:${otherUserId}`)
+                .emit("video-call:webrtc:ice-candidate", {
+                    callId: payload.callId,
+                    candidate: payload.candidate,
+                });
 
             return { success: true };
         } catch (err: any) {

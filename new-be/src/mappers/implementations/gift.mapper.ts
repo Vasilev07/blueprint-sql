@@ -53,4 +53,3 @@ export class GiftMapper implements BaseMapper<Gift, GiftDTO> {
         return gift;
     }
 }
-

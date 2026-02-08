@@ -4,9 +4,10 @@ import { ProfileViewDTO } from "../../models/profile-view.dto";
 import { Injectable } from "@nestjs/common";
 
 @Injectable()
-export class ProfileViewMapper
-    implements BaseMapper<ProfileView, ProfileViewDTO>
-{
+export class ProfileViewMapper implements BaseMapper<
+    ProfileView,
+    ProfileViewDTO
+> {
     entityToDTO(entity: ProfileView): ProfileViewDTO {
         return {
             id: entity.id,

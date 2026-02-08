@@ -12,7 +12,8 @@ export class SendSuperLikeResponseDTO {
     @ApiProperty({ description: "Transaction ID" })
     transactionId: number;
 
-    @ApiProperty({ description: "Sender's remaining balance after sending super like" })
+    @ApiProperty({
+        description: "Sender's remaining balance after sending super like",
+    })
     senderBalance: string;
 }
-

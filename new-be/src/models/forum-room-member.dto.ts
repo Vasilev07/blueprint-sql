@@ -25,4 +25,3 @@ export class ForumRoomMemberDTO {
     @ApiProperty()
     updatedAt: Date;
 }
-

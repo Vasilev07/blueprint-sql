@@ -34,7 +34,7 @@ export class PaymentProviderService {
         // 4. Return actual transaction ID from payment provider
 
         const amount = parseFloat(request.amount);
-        
+
         // Simulate some validation
         if (amount <= 0) {
             return {
@@ -62,4 +62,3 @@ export class PaymentProviderService {
         };
     }
 }
-

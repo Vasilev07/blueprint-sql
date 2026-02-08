@@ -4,4 +4,3 @@ export class JoinForumRoomDTO {
     @ApiProperty({ description: "Room ID to join" })
     roomId: number;
 }
-

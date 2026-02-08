@@ -34,4 +34,3 @@ export class PhotoLike {
     @CreateDateColumn({ name: "created_at" })
     createdAt: Date;
 }
-

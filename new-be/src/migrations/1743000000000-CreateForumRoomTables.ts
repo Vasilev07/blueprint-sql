@@ -267,4 +267,3 @@ export class CreateForumRoomTables1743000000000 implements MigrationInterface {
         `);
     }
 }
-

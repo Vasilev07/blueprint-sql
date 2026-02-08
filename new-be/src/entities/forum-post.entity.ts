@@ -64,4 +64,3 @@ export class ForumPost {
     @UpdateDateColumn()
     updatedAt: Date;
 }
-

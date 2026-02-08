@@ -14,4 +14,3 @@ import { WalletGateway } from "src/gateways/wallet.gateway";
     providers: [WalletService, PaymentProviderService, WalletGateway],
 })
 export class WalletModule {}
-

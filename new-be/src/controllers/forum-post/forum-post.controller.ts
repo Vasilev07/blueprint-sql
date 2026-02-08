@@ -72,15 +72,11 @@ export class ForumPostController {
         @Req() req?: any,
     ): Promise<ForumPostDTO[]> {
         const userId = req?.userData?.id;
-        return this.forumPostService.getPostsByRoom(
-            Number(roomId),
-            userId,
-            {
-                limit: limit ? Number(limit) : undefined,
-                offset: offset ? Number(offset) : undefined,
-                sortBy: sortBy as "createdAt" | "commentCount" | undefined,
-            },
-        );
+        return this.forumPostService.getPostsByRoom(Number(roomId), userId, {
+            limit: limit ? Number(limit) : undefined,
+            offset: offset ? Number(offset) : undefined,
+            sortBy: sortBy as "createdAt" | "commentCount" | undefined,
+        });
     }
 
     @Put(":id")
@@ -129,7 +125,10 @@ export class ForumPostController {
     })
     @ApiResponse({ status: 403, description: "Not a moderator or admin" })
     @ApiResponse({ status: 404, description: "Post not found" })
-    async pinPost(@Param("id") id: number, @Req() req: any): Promise<ForumPostDTO> {
+    async pinPost(
+        @Param("id") id: number,
+        @Req() req: any,
+    ): Promise<ForumPostDTO> {
         const userId = req.userData?.id;
         if (!userId) {
             throw new Error("User not authenticated");
@@ -146,7 +145,10 @@ export class ForumPostController {
     })
     @ApiResponse({ status: 403, description: "Not a moderator or admin" })
     @ApiResponse({ status: 404, description: "Post not found" })
-    async lockPost(@Param("id") id: number, @Req() req: any): Promise<ForumPostDTO> {
+    async lockPost(
+        @Param("id") id: number,
+        @Req() req: any,
+    ): Promise<ForumPostDTO> {
         const userId = req.userData?.id;
         if (!userId) {
             throw new Error("User not authenticated");
@@ -154,4 +156,3 @@ export class ForumPostController {
         return this.forumPostService.lockPost(Number(id), userId);
     }
 }
-

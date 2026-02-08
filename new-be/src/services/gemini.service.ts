@@ -32,10 +32,14 @@ export class GeminiService {
 
     constructor(private configService: ConfigService) {
         this.apiKey = this.configService.get<string>("GEMINI_API_KEY");
-        this.apiUrl = this.configService.get<string>("GEMINI_API_URL") || "https://generativelanguage.googleapis.com/v1beta/models";
-        
+        this.apiUrl =
+            this.configService.get<string>("GEMINI_API_URL") ||
+            "https://generativelanguage.googleapis.com/v1beta/models";
+
         if (!this.apiKey) {
-            this.logger.warn("GEMINI_API_KEY is not configured. Gemini integration will not work.");
+            this.logger.warn(
+                "GEMINI_API_KEY is not configured. Gemini integration will not work.",
+            );
         }
     }
 
@@ -69,7 +73,7 @@ export class GeminiService {
             // Build the request payload for Gemini API
             // Gemini API expects a different format than OpenAI-compatible APIs
             const requestBody = {
-                contents: messages.map(msg => ({
+                contents: messages.map((msg) => ({
                     // Gemini API uses roles: "user", "model", "system"
                     // The type of msg.role does not include "assistant", so we don't need to check for it.
                     role: msg.role,
@@ -93,7 +97,10 @@ export class GeminiService {
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
-                this.logger.error(`Gemini API error: ${response.status} ${response.statusText}`, errorData);
+                this.logger.error(
+                    `Gemini API error: ${response.status} ${response.statusText}`,
+                    errorData,
+                );
                 throw new Error(`Gemini API error: ${response.status}`);
             }
 
@@ -101,11 +108,15 @@ export class GeminiService {
 
             if (data.error) {
                 this.logger.error("Gemini API error:", data.error);
-                throw new Error(data.error.message || "Unknown Gemini API error");
+                throw new Error(
+                    data.error.message || "Unknown Gemini API error",
+                );
             }
 
             // Extract assistant response
-            const assistantText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I couldn't generate a response.";
+            const assistantText =
+                data.candidates?.[0]?.content?.parts?.[0]?.text ||
+                "Sorry, I couldn't generate a response.";
 
             // Add assistant response to context
             messages.push({

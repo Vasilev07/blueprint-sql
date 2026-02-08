@@ -5,7 +5,8 @@ export class CreateForumCommentDTO {
     postId: number;
 
     @ApiProperty({
-        description: "Parent comment ID (for nested replies). Omit for top-level comment",
+        description:
+            "Parent comment ID (for nested replies). Omit for top-level comment",
         required: false,
     })
     parentCommentId?: number | null;
@@ -21,4 +22,3 @@ export class CreateForumCommentDTO {
     })
     type?: "text" | "image" | "file";
 }
-

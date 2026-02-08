@@ -4,7 +4,10 @@ export class DepositRequestDTO {
     @ApiProperty({ description: "Amount to deposit (as decimal string)" })
     amount: string;
 
-    @ApiProperty({ description: "Currency code (e.g., USD, EUR)", default: "USD" })
+    @ApiProperty({
+        description: "Currency code (e.g., USD, EUR)",
+        default: "USD",
+    })
     currency: string;
 
     @ApiProperty({ description: "Payment method identifier", default: "card" })
@@ -21,4 +24,3 @@ export class DepositResponseDTO {
     @ApiProperty({ description: "Updated wallet balance" })
     balance: string;
 }
-

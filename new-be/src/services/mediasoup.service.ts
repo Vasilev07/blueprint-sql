@@ -144,7 +144,8 @@ export class MediasoupService implements OnModuleInit {
         }
 
         const transport = await router.createWebRtcTransport({
-            listenInfos: this.webRtcServerOptions.listenInfos as TransportListenInfo[],
+            listenInfos: this.webRtcServerOptions
+                .listenInfos as TransportListenInfo[],
             enableUdp: true,
             enableTcp: true,
             preferUdp: true,
@@ -153,7 +154,9 @@ export class MediasoupService implements OnModuleInit {
         });
 
         this.transports.set(transportId, transport);
-        this.logger.log(`Transport created: ${transportId} for call: ${callId}`);
+        this.logger.log(
+            `Transport created: ${transportId} for call: ${callId}`,
+        );
 
         return {
             id: transport.id,
@@ -324,4 +327,3 @@ export class MediasoupService implements OnModuleInit {
         }
     }
 }
-

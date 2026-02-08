@@ -54,4 +54,3 @@ export class ForumRoom {
     @UpdateDateColumn()
     updatedAt: Date;
 }
-

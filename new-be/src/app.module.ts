@@ -62,4 +62,4 @@ import { StatisticsModule } from "./controllers/statistics/statistics.module";
         },
     ],
 })
-export class AppModule { }
+export class AppModule {}

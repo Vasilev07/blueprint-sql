@@ -17,7 +17,9 @@ export class ForumComment {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @ManyToOne(() => ForumPost, (post) => post.comments, { onDelete: "CASCADE" })
+    @ManyToOne(() => ForumPost, (post) => post.comments, {
+        onDelete: "CASCADE",
+    })
     @JoinColumn({ name: "postId" })
     post: ForumPost;
 
@@ -77,4 +79,3 @@ export class ForumComment {
     @UpdateDateColumn()
     updatedAt: Date;
 }
-

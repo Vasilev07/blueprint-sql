@@ -17,7 +17,10 @@ describe("Product Service (e2e)", () => {
 
     beforeAll(async () => {
         const moduleFixture: TestingModule = await Test.createTestingModule({
-            imports: [AppModule, TypeOrmModule.forFeature([Order, Product, User, ProductImage])],
+            imports: [
+                AppModule,
+                TypeOrmModule.forFeature([Order, Product, User, ProductImage]),
+            ],
         }).compile();
 
         app = moduleFixture.createNestApplication();
