@@ -175,7 +175,7 @@ export class StoryService implements OnModuleInit {
         inputPath: string,
         outputPath: string,
     ): Promise<void> {
-        return new Promise((resolve, _reject) => {
+        return new Promise((resolve, reject) => {
             try {
                 ffmpeg(inputPath)
                     .videoCodec("libx264")
