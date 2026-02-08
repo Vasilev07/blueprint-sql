@@ -330,6 +330,8 @@ export class VideoCallService {
                         },
                     });
                 } catch (_fallbackError) {
+                    console.log(_fallbackError);
+                    
                     throw new Error(
                         "Camera settings are not supported. Please try a different camera or check your device settings.",
                     );
