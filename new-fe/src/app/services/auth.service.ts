@@ -12,14 +12,16 @@ export class AuthService {
         private readonly http: HttpClient,
         private jwtHelper: JwtHelperService,
         private router: Router,
-        private userService: UserService
-    ) { }
+        private userService: UserService,
+    ) {}
 
     login(email: string, password: string): void {
-        this.userService.login({
-            email,
-            password
-        }).subscribe((res) => {
+        this.userService
+            .login({
+                email,
+                password,
+            })
+            .subscribe((res) => {
                 this.setSession(res);
                 this.router.navigate(["/"]);
             });
@@ -30,7 +32,7 @@ export class AuthService {
     }
 
     checkEmailExists(email: string): Observable<boolean> {
-        return new Observable(observer => {
+        return new Observable((observer) => {
             this.userService.checkEmail(email).subscribe(
                 (response) => {
                     // Return true if email EXISTS (i.e., NOT available)
@@ -39,7 +41,7 @@ export class AuthService {
                 },
                 (error) => {
                     observer.error(error);
-                }
+                },
             );
         });
     }
@@ -65,7 +67,7 @@ export class AuthService {
             const decodedToken = this.jwtHelper.decodeToken(token);
             return decodedToken.email;
         }
-        return '';
+        return "";
     }
 
     getUserId(): number | null {
@@ -79,22 +81,29 @@ export class AuthService {
 
     isAdmin(): boolean {
         const token = localStorage.getItem("id_token");
-        
+
         if (token && !this.jwtHelper.isTokenExpired(token)) {
             try {
                 const decodedToken = this.jwtHelper.decodeToken(token);
-                
+
                 // Handle both array format ["user", "admin"] and object format {admin}
                 let isAdmin = false;
                 if (Array.isArray(decodedToken.roles)) {
-                    isAdmin = decodedToken.roles.includes('admin');
-                } else if (typeof decodedToken.roles === 'object' && decodedToken.roles !== null) {
-                    isAdmin = decodedToken.roles.hasOwnProperty('admin') || decodedToken.roles.admin === true;
+                    isAdmin = decodedToken.roles.includes("admin");
+                } else if (
+                    typeof decodedToken.roles === "object" &&
+                    decodedToken.roles !== null
+                ) {
+                    isAdmin =
+                        Object.prototype.hasOwnProperty.call(
+                            decodedToken.roles,
+                            "admin",
+                        ) || decodedToken.roles.admin === true;
                 }
-                
+
                 return isAdmin;
             } catch (error) {
-                console.error('Error decoding token for admin check:', error);
+                console.error("Error decoding token for admin check:", error);
                 return false;
             }
         }

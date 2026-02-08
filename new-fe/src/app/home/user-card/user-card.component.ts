@@ -1,13 +1,22 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnDestroy } from "@angular/core";
+import {
+    Component,
+    Input,
+    Output,
+    EventEmitter,
+    OnInit,
+    OnDestroy,
+} from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { RouterModule } from "@angular/router";
 import { HomeUser } from "../home.service";
 import { Router } from "@angular/router";
 import { DomSanitizer, SafeUrl } from "@angular/platform-browser";
 import { Subject, takeUntil } from "rxjs";
-import { UserService, SuperLikeService } from "src/typescript-api-client/src/api/api";
+import {
+    UserService,
+    SuperLikeService,
+} from "src/typescript-api-client/src/api/api";
 import { MessageService } from "primeng/api";
-import { SendSuperLikeRequestDTO } from "src/typescript-api-client/src";
 import { WalletService } from "../../services/wallet.service";
 import { ButtonModule } from "primeng/button";
 import { TooltipModule } from "primeng/tooltip";
@@ -40,8 +49,8 @@ export class UserCardComponent implements OnInit, OnDestroy {
         private superLikeService: SuperLikeService,
         private sanitizer: DomSanitizer,
         private messageService: MessageService,
-        private walletService: WalletService
-    ) { }
+        private walletService: WalletService,
+    ) {}
 
     ngOnInit(): void {
         // Load profile picture with authentication
@@ -63,7 +72,7 @@ export class UserCardComponent implements OnInit, OnDestroy {
             .subscribe({
                 next: (canAfford) => {
                     this.canAffordSuperLike = canAfford;
-                }
+                },
             });
     }
 
@@ -72,9 +81,11 @@ export class UserCardComponent implements OnInit, OnDestroy {
         this.destroy$.complete();
 
         // Revoke blob URL to free memory
-        if (this.profilePictureBlobUrl !== this.defaultAvatar &&
-            typeof this.profilePictureBlobUrl === 'string' &&
-            this.profilePictureBlobUrl.startsWith('blob:')) {
+        if (
+            this.profilePictureBlobUrl !== this.defaultAvatar &&
+            typeof this.profilePictureBlobUrl === "string" &&
+            this.profilePictureBlobUrl.startsWith("blob:")
+        ) {
             URL.revokeObjectURL(this.profilePictureBlobUrl);
         }
     }
@@ -82,17 +93,19 @@ export class UserCardComponent implements OnInit, OnDestroy {
     private loadProfilePicture(): void {
         if (!this.user.id) return;
 
-        this.userService.getProfilePictureByUserId(this.user.id)
+        this.userService
+            .getProfilePictureByUserId(this.user.id)
             .pipe(takeUntil(this.destroy$))
             .subscribe({
                 next: (blob: Blob) => {
                     const objectURL = URL.createObjectURL(blob);
-                    this.profilePictureBlobUrl = this.sanitizer.bypassSecurityTrustUrl(objectURL);
+                    this.profilePictureBlobUrl =
+                        this.sanitizer.bypassSecurityTrustUrl(objectURL);
                 },
                 error: () => {
                     // On error, keep default avatar
                     this.profilePictureBlobUrl = this.defaultAvatar;
-                }
+                },
             });
     }
 
@@ -119,35 +132,37 @@ export class UserCardComponent implements OnInit, OnDestroy {
 
         // Frontend validation (first check) - using WalletService
         if (!this.walletService.canAffordSuperLike()) {
-            this.messageService.add({ 
-                severity: 'warn', 
-                summary: 'Insufficient Balance', 
-                detail: `Super Like costs ${this.superLikeCost} tokens. Please add more tokens to your account.` 
+            this.messageService.add({
+                severity: "warn",
+                summary: "Insufficient Balance",
+                detail: `Super Like costs ${this.superLikeCost} tokens. Please add more tokens to your account.`,
             });
             return;
         }
 
         // Backend will validate again (second check - defensive programming)
-        this.superLikeService.sendSuperLike({ receiverId: this.user.id })
+        this.superLikeService
+            .sendSuperLike({ receiverId: this.user.id })
             .pipe(takeUntil(this.destroy$))
             .subscribe({
-                next: (response: any) => {
-                    this.messageService.add({ 
-                        severity: 'success', 
-                        summary: 'Success', 
-                        detail: 'Super Like sent!' 
+                next: (_response: any) => {
+                    this.messageService.add({
+                        severity: "success",
+                        summary: "Success",
+                        detail: "Super Like sent!",
                     });
                     // Balance will be updated automatically via WebSocket from backend
                 },
                 error: (err: any) => {
-                    const errorMsg = err.error?.message || 'Failed to send Super Like';
-                    this.messageService.add({ 
-                        severity: 'error', 
-                        summary: 'Error', 
-                        detail: errorMsg 
+                    const errorMsg =
+                        err.error?.message || "Failed to send Super Like";
+                    this.messageService.add({
+                        severity: "error",
+                        summary: "Error",
+                        detail: errorMsg,
                     });
                     console.error(err);
-                }
+                },
             });
     }
 
@@ -165,7 +180,7 @@ export class UserCardComponent implements OnInit, OnDestroy {
         return this.profilePictureBlobUrl;
     }
 
-    onImageError(event: Event): void {
+    onImageError(_event: Event): void {
         this.profilePictureBlobUrl = this.defaultAvatar;
     }
 

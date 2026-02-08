@@ -26,7 +26,6 @@ import { StoryHomeComponent } from "./story-home.component";
 import { StoryViewerComponent } from "./story-viewer.component";
 import { StoryUploadComponent } from "./story-upload.component";
 import { StoryCardComponent } from "./story-card.component";
-import { StoryService } from "./story.service";
 
 const routes: Routes = [
     {
@@ -80,4 +79,3 @@ const routes: Routes = [
     providers: [MessageService, ConfirmationService],
 })
 export class StoryModule {}
-

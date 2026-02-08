@@ -96,7 +96,7 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.subscribeToUsers();
         this.subscribeToPaginationState();
         this.subscribeToOnlineCount();
-        
+
         // Load users immediately - subscriptions are already set up
         this.loadUsers();
 
@@ -120,7 +120,9 @@ export class HomeComponent implements OnInit, OnDestroy {
                 // Clear loading state when we receive users data
                 // This ensures loading is cleared even if pagination state hasn't updated yet
                 if (users && users.length > 0 && this.isLoading) {
-                    console.log("HomeComponent - Clearing loading state after receiving users");
+                    console.log(
+                        "HomeComponent - Clearing loading state after receiving users",
+                    );
                     this.isLoading = false;
                 }
                 // Mark for check to ensure change detection runs
@@ -167,7 +169,10 @@ export class HomeComponent implements OnInit, OnDestroy {
             .pipe(takeUntil(this.destroy$))
             .subscribe({
                 next: (users) => {
-                    console.log("HomeComponent - getFilteredAndSortedUsers returned:", users.length);
+                    console.log(
+                        "HomeComponent - getFilteredAndSortedUsers returned:",
+                        users.length,
+                    );
                     // Data will be updated via users$ subscription
                     // Loading state will be cleared in subscribeToUsers() when data arrives
                 },
@@ -264,7 +269,7 @@ export class HomeComponent implements OnInit, OnDestroy {
             });
             return;
         }
-        
+
         this.selectedUserForGift = {
             id: user.id,
             fullName: user.fullName,
@@ -272,7 +277,7 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.showSendGiftDialog = true;
     }
 
-    onGiftSent(response: any): void {
+    onGiftSent(_response: any): void {
         // Gift was sent successfully, dialog is already closed
         this.selectedUserForGift = null;
     }

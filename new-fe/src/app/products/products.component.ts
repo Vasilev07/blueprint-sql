@@ -1,6 +1,12 @@
 import { Component, OnDestroy, OnInit, ViewChild } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from "@angular/forms";
+import {
+    FormsModule,
+    ReactiveFormsModule,
+    FormBuilder,
+    FormGroup,
+    Validators,
+} from "@angular/forms";
 import { Subject, takeUntil } from "rxjs";
 import { ConfirmationService, MessageService } from "primeng/api";
 import { ProductService } from "../../typescript-api-client/src/api/api";
@@ -158,12 +164,14 @@ export class ProductsComponent implements OnInit, OnDestroy {
     }
 
     public saveProduct() {
-        this.isEdit
-            ? this.updateProduct({
-                  id: this.product?.id,
-                  ...this.productForm.getRawValue(),
-              })
-            : this.createProduct(this.productForm.getRawValue());
+        if (this.isEdit) {
+            this.updateProduct({
+                id: this.product?.id,
+                ...this.productForm.getRawValue(),
+            });
+        } else {
+            this.createProduct(this.productForm.getRawValue());
+        }
     }
 
     public createProduct(product: ProductDTO) {
@@ -217,26 +225,32 @@ export class ProductsComponent implements OnInit, OnDestroy {
         console.log("product before http call", product);
         const productData = {
             ...product,
-            id: undefined // Remove id from the data since it's in the path
+            id: undefined, // Remove id from the data since it's in the path
         };
         this.productService
-            .updateProduct(product.id!.toString(),
+            .updateProduct(
+                product.id!.toString(),
                 JSON.stringify(productData),
-                this.files
+                this.files,
             )
             .pipe(takeUntil(this.ngUnsubscribe))
             .subscribe({
                 next: (productFromDb) => {
                     this.product = productFromDb;
-                    const index = this.products.findIndex(p => p.id === productFromDb.id);
+                    const index = this.products.findIndex(
+                        (p) => p.id === productFromDb.id,
+                    );
                     if (index !== -1) {
                         this.products[index] = {
                             ...productFromDb,
-                            previewImage: productFromDb.images && productFromDb.images.length > 0
-                                ? this.sanitizer.bypassSecurityTrustResourceUrl(
-                                    "data:image/jpeg;base64," + productFromDb.images[0].data
-                                )
-                                : undefined
+                            previewImage:
+                                productFromDb.images &&
+                                productFromDb.images.length > 0
+                                    ? this.sanitizer.bypassSecurityTrustResourceUrl(
+                                          "data:image/jpeg;base64," +
+                                              productFromDb.images[0].data,
+                                      )
+                                    : undefined,
                         };
                         this.products = [...this.products];
                     }

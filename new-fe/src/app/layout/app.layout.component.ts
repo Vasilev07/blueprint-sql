@@ -12,7 +12,14 @@ import { AppConfigModule } from "./config/config.module";
 @Component({
     selector: "app-layout",
     standalone: true,
-    imports: [CommonModule, RouterModule, AppSidebarComponent, AppTopBarComponent, AppFooterComponent, AppConfigModule],
+    imports: [
+        CommonModule,
+        RouterModule,
+        AppSidebarComponent,
+        AppTopBarComponent,
+        AppFooterComponent,
+        AppConfigModule,
+    ],
     templateUrl: "./app.layout.component.html",
 })
 export class AppLayoutComponent implements OnDestroy {

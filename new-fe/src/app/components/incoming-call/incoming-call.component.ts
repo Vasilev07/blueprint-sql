@@ -1,36 +1,45 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
-import { Subject, takeUntil } from 'rxjs';
-import { trigger, state, style, transition, animate } from '@angular/animations';
-import { VideoCallService, CallState } from '../../services/video-call.service';
-import { MessageService } from 'primeng/api';
-import { ButtonModule } from 'primeng/button';
-import { RippleModule } from 'primeng/ripple';
-import { AvatarModule } from 'primeng/avatar';
-import { ToastModule } from 'primeng/toast';
+import { Component, OnInit, OnDestroy } from "@angular/core";
+import { CommonModule } from "@angular/common";
+import { Router } from "@angular/router";
+import { Subject, takeUntil } from "rxjs";
+import { trigger, style, transition, animate } from "@angular/animations";
+import { VideoCallService } from "../../services/video-call.service";
+import { MessageService } from "primeng/api";
+import { ButtonModule } from "primeng/button";
+import { RippleModule } from "primeng/ripple";
+import { AvatarModule } from "primeng/avatar";
+import { ToastModule } from "primeng/toast";
 
 @Component({
-    selector: 'app-incoming-call',
+    selector: "app-incoming-call",
     standalone: true,
-    imports: [CommonModule, ButtonModule, RippleModule, AvatarModule, ToastModule],
+    imports: [
+        CommonModule,
+        ButtonModule,
+        RippleModule,
+        AvatarModule,
+        ToastModule,
+    ],
     animations: [
-        trigger('slideInDown', [
-            transition(':enter', [
-                style({ transform: 'translateY(-50px)', opacity: 0 }),
-                animate('0.4s ease', style({ transform: 'translateY(0)', opacity: 1 })),
+        trigger("slideInDown", [
+            transition(":enter", [
+                style({ transform: "translateY(-50px)", opacity: 0 }),
+                animate(
+                    "0.4s ease",
+                    style({ transform: "translateY(0)", opacity: 1 }),
+                ),
             ]),
         ]),
     ],
-    templateUrl: './incoming-call.component.html',
-    styleUrls: ['./incoming-call.component.scss']
+    templateUrl: "./incoming-call.component.html",
+    styleUrls: ["./incoming-call.component.scss"],
 })
 export class IncomingCallComponent implements OnInit, OnDestroy {
     private destroy$ = new Subject<void>();
-    
+
     showIncomingCall = false;
-    callerName: string = '';
-    callId: string = '';
+    callerName: string = "";
+    callId: string = "";
 
     // Ring tone (you can add actual audio if you want)
     private ringInterval: any;
@@ -38,24 +47,36 @@ export class IncomingCallComponent implements OnInit, OnDestroy {
     constructor(
         private videoCallService: VideoCallService,
         private router: Router,
-        private messageService: MessageService
+        private messageService: MessageService,
     ) {}
 
     ngOnInit(): void {
         console.log("📞 IncomingCallComponent: Initialized");
         // Listen for incoming calls
-        this.videoCallService.getCallState()
+        this.videoCallService
+            .getCallState()
             .pipe(takeUntil(this.destroy$))
-            .subscribe(state => {
-                console.log("📞 IncomingCallComponent: Call state changed:", state);
-                if (state.isIncoming && state.status === 'ringing' && state.callId) {
-                    console.log("📞 IncomingCallComponent: Showing incoming call notification");
+            .subscribe((state) => {
+                console.log(
+                    "📞 IncomingCallComponent: Call state changed:",
+                    state,
+                );
+                if (
+                    state.isIncoming &&
+                    state.status === "ringing" &&
+                    state.callId
+                ) {
+                    console.log(
+                        "📞 IncomingCallComponent: Showing incoming call notification",
+                    );
                     this.showIncomingCall = true;
-                    this.callerName = state.participant?.name || 'Unknown User';
+                    this.callerName = state.participant?.name || "Unknown User";
                     this.callId = state.callId;
                     this.startRinging();
-                } else if (!state.isIncoming || state.status !== 'ringing') {
-                    console.log("📞 IncomingCallComponent: Hiding incoming call notification");
+                } else if (!state.isIncoming || state.status !== "ringing") {
+                    console.log(
+                        "📞 IncomingCallComponent: Hiding incoming call notification",
+                    );
                     this.showIncomingCall = false;
                     this.stopRinging();
                 }
@@ -72,15 +93,15 @@ export class IncomingCallComponent implements OnInit, OnDestroy {
         try {
             this.stopRinging();
             await this.videoCallService.acceptCall(this.callId);
-            
+
             // Navigate to video call page
-            this.router.navigate(['/video-call']);
+            this.router.navigate(["/video-call"]);
             this.showIncomingCall = false;
         } catch (error: any) {
             this.messageService.add({
-                severity: 'error',
-                summary: 'Call Failed',
-                detail: error.message || 'Could not accept call'
+                severity: "error",
+                summary: "Call Failed",
+                detail: error.message || "Could not accept call",
             });
             this.showIncomingCall = false;
         }
@@ -97,7 +118,7 @@ export class IncomingCallComponent implements OnInit, OnDestroy {
         // const audio = new Audio('/assets/sounds/ring.mp3');
         // audio.loop = true;
         // audio.play();
-        
+
         // Visual ring effect
         this.ringInterval = setInterval(() => {
             // You can add animation classes here if needed
@@ -112,4 +133,3 @@ export class IncomingCallComponent implements OnInit, OnDestroy {
         // Stop audio if you added it
     }
 }
-

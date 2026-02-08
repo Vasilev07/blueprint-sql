@@ -1,11 +1,6 @@
-import {
-    Component,
-    OnInit,
-    OnDestroy,
-    ChangeDetectorRef,
-} from "@angular/core";
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from "@angular/forms";
+import { FormsModule, ReactiveFormsModule, FormBuilder } from "@angular/forms";
 import { RouterModule } from "@angular/router";
 import { TabsModule } from "primeng/tabs";
 import { ButtonModule } from "primeng/button";
@@ -105,7 +100,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     verificationStatus: any = null;
     isVerificationUploading = false;
     verificationPhoto: File | null = null;
-    
+
     // Date properties
     maxDate = new Date();
 
@@ -127,10 +122,14 @@ export class ProfileComponent implements OnInit, OnDestroy {
     // Gift properties
     receivedGifts: GiftDTO[] = [];
     isLoadingGifts = false;
-    
+
     // Send Gift properties
     showSendGiftDialog = false;
-    recipientUserForGift: { id: number; fullName?: string; name?: string } | null = null;
+    recipientUserForGift: {
+        id: number;
+        fullName?: string;
+        name?: string;
+    } | null = null;
 
     // Tab navigation
     activeTabIndex = 0;
@@ -391,7 +390,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
             location: this.userProfile?.location || "",
             interests: [...(this.userProfile?.interests || [])],
             appearsInSearches: this.userProfile?.appearsInSearches !== false,
-            dateOfBirth: this.userProfile?.dateOfBirth ? new Date(this.userProfile.dateOfBirth) : null,
+            dateOfBirth: this.userProfile?.dateOfBirth
+                ? new Date(this.userProfile.dateOfBirth)
+                : null,
         };
         this.showEditDialog = true;
         this.loadVerificationStatus();
@@ -502,7 +503,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
 
     loadProfilePicture(): void {
-        // @ts-ignore - getProfilePicture will be available after regeneration
+        // @ts-expect-error - getProfilePicture will be available after regeneration
         this.userService
             .getProfilePicture("response")
             .pipe(takeUntil(this.destroy$))
@@ -539,7 +540,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
         this.isUploading = true;
 
-        // @ts-ignore - uploadProfilePicture will be available after regeneration
+        // @ts-expect-error - uploadProfilePicture will be available after regeneration
         this.userService
             .uploadProfilePicture(file)
             .pipe(takeUntil(this.destroy$))
@@ -576,7 +577,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
             return;
         }
 
-        // @ts-ignore - setProfilePicture will be available after regeneration
+        // @ts-expect-error - setProfilePicture will be available after regeneration
         this.userService
             .setProfilePicture(photoId)
             .pipe(takeUntil(this.destroy$))
@@ -621,7 +622,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
             this.profilePictureBlobUrl = null;
         }
 
-        // @ts-ignore - getUserById will return { user, profile }
+        // @ts-expect-error - getUserById will return { user, profile }
         this.userService
             .getUserById(userId)
             .pipe(takeUntil(this.destroy$))
@@ -650,7 +651,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
 
     loadOtherUserPhotos(userId: number): void {
-        // @ts-ignore - getUserPhotosByUserId will be available after regeneration
+        // @ts-expect-error - getUserPhotosByUserId will be available after regeneration
         this.userService
             .getUserPhotosByUserId(userId)
             .pipe(takeUntil(this.destroy$))
@@ -680,7 +681,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
 
     loadOtherUserProfilePicture(userId: number): void {
-        // @ts-ignore - getProfilePictureByUserId will be available after regeneration
+        // @ts-expect-error - getProfilePictureByUserId will be available after regeneration
         this.userService
             .getProfilePictureByUserId(userId, "response")
             .pipe(takeUntil(this.destroy$))
@@ -808,7 +809,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
         this.userService
             .uploadVerificationPhoto(this.verificationPhoto)
             .subscribe({
-                next: (response) => {
+                next: (_response) => {
                     this.messageService.add({
                         severity: "success",
                         summary: "Success",
@@ -848,7 +849,13 @@ export class ProfileComponent implements OnInit, OnDestroy {
         }
     }
 
-    getVerificationStatusSeverity(): "error" | "success" | "info" | "warn" | "secondary" | "contrast" {
+    getVerificationStatusSeverity():
+        | "error"
+        | "success"
+        | "info"
+        | "warn"
+        | "secondary"
+        | "contrast" {
         if (!this.verificationStatus) return "info" as const;
 
         switch (this.verificationStatus.verificationRequest?.status) {
@@ -866,36 +873,46 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
 
     isVerificationPending(): boolean {
-        return this.verificationStatus?.verificationRequest?.status === "pending" || 
-               this.verificationStatus?.verificationRequest?.status === "in_review";
+        return (
+            this.verificationStatus?.verificationRequest?.status ===
+                "pending" ||
+            this.verificationStatus?.verificationRequest?.status === "in_review"
+        );
     }
 
     private setupVerificationNotifications(): void {
-        this.websocketService.onVerificationStatusChange()
+        this.websocketService
+            .onVerificationStatusChange()
             .pipe(takeUntil(this.destroy$))
             .subscribe({
                 next: (notification) => {
-                    console.log('Verification status changed:', notification);
-                    
+                    console.log("Verification status changed:", notification);
+
                     // Show notification to user
                     this.messageService.add({
-                        severity: notification.status === 'verified' ? 'success' : 'warn',
-                        summary: 'Verification Update',
+                        severity:
+                            notification.status === "verified"
+                                ? "success"
+                                : "warn",
+                        summary: "Verification Update",
                         detail: notification.message,
-                        life: 8000
+                        life: 8000,
                     });
 
                     // Reload verification status to update UI
                     this.loadVerificationStatus();
                 },
                 error: (error) => {
-                    console.error('Error receiving verification notification:', error);
-                }
+                    console.error(
+                        "Error receiving verification notification:",
+                        error,
+                    );
+                },
             });
     }
 
     getBalanceAsInteger(): string {
-        const balanceValue = parseFloat(this.balance || '0');
+        const balanceValue = parseFloat(this.balance || "0");
         return Math.floor(balanceValue).toString();
     }
 
@@ -906,59 +923,79 @@ export class ProfileComponent implements OnInit, OnDestroy {
     closeDepositDialog(): void {
         this.showDepositDialog = false;
         this.isDepositing = false;
-        this.depositForm = { amount: null, cardNumber: '', cardHolder: '', expiryMonth: '', expiryYear: '', cvv: '' };
+        this.depositForm = {
+            amount: null,
+            cardNumber: "",
+            cardHolder: "",
+            expiryMonth: "",
+            expiryYear: "",
+            cvv: "",
+        };
     }
 
     formatCardNumber(event: any): void {
-        let value = event.target.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
-        const formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+        const value = event.target.value
+            .replace(/\s+/g, "")
+            .replace(/[^0-9]/gi, "");
+        const formattedValue = value.match(/.{1,4}/g)?.join(" ") || value;
         this.depositForm.cardNumber = formattedValue;
     }
 
     submitDeposit(): void {
-        if (this.depositForm.amount === null || this.depositForm.amount === undefined || this.depositForm.amount <= 0) {
-            this.messageService.add({ severity: 'warn', summary: 'Validation', detail: 'Enter a positive amount' });
+        if (
+            this.depositForm.amount === null ||
+            this.depositForm.amount === undefined ||
+            this.depositForm.amount <= 0
+        ) {
+            this.messageService.add({
+                severity: "warn",
+                summary: "Validation",
+                detail: "Enter a positive amount",
+            });
             return;
         }
 
         // Card details are mocked - they're only for UI display
         // The backend uses a mock payment provider that doesn't require actual card details
-        
+
         const amount = Math.floor(Number(this.depositForm.amount));
         this.isDepositing = true;
 
         // Send deposit request to backend
         // Currency and paymentMethod are mocked/static values
-        this.walletService.deposit({ 
-            amount: amount.toString(), 
-            currency: 'USD', 
-            paymentMethod: 'card' 
-        })
+        this.walletService
+            .deposit({
+                amount: amount.toString(),
+                currency: "USD",
+                paymentMethod: "card",
+            })
             .pipe(takeUntil(this.destroy$))
             .subscribe({
                 next: (response: any) => {
                     // Update balance from response
                     this.balance = response.balance || this.balance;
-                    
+
                     // Reload current user to ensure all data is in sync
                     if (this.isOwnProfile) {
                         this.loadCurrentUser();
                     }
-                    
-                    this.messageService.add({ 
-                        severity: 'success', 
-                        summary: 'Success', 
-                        detail: `Successfully added ${amount} tokens. New balance: ${this.getBalanceAsInteger()} tokens` 
+
+                    this.messageService.add({
+                        severity: "success",
+                        summary: "Success",
+                        detail: `Successfully added ${amount} tokens. New balance: ${this.getBalanceAsInteger()} tokens`,
                     });
                     this.isDepositing = false;
                     this.closeDepositDialog();
                 },
                 error: (error: any) => {
-                    console.error('Error depositing funds:', error);
-                    this.messageService.add({ 
-                        severity: 'error', 
-                        summary: 'Error', 
-                        detail: error.error?.message || 'Failed to add tokens. Please try again.' 
+                    console.error("Error depositing funds:", error);
+                    this.messageService.add({
+                        severity: "error",
+                        summary: "Error",
+                        detail:
+                            error.error?.message ||
+                            "Failed to add tokens. Please try again.",
                     });
                     this.isDepositing = false;
                 },
@@ -967,16 +1004,17 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
     loadReceivedGifts(): void {
         this.isLoadingGifts = true;
-        
+
         if (this.isOwnProfile) {
             // Load own received gifts
-            this.giftService.getReceivedGifts(100)
+            this.giftService
+                .getReceivedGifts(100)
                 .pipe(takeUntil(this.destroy$))
                 .subscribe({
                     next: (gifts) => {
                         this.receivedGifts = gifts;
                         this.isLoadingGifts = false;
-                        
+
                         // If no gifts, switch to the Received Gifts tab
                         if (gifts.length === 0) {
                             this.activeTabIndex = 6; // Received Gifts tab index
@@ -991,8 +1029,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
             // Load received gifts for the viewed user using the new endpoint
             const url = `${environment.apiUrl}/gifts/user/${this.viewingUserId}/received`;
             const params = { limit: 100 };
-            
-            this.http.get<GiftDTO[]>(url, { params })
+
+            this.http
+                .get<GiftDTO[]>(url, { params })
                 .pipe(takeUntil(this.destroy$))
                 .subscribe({
                     next: (gifts) => {
@@ -1000,7 +1039,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
                         this.isLoadingGifts = false;
                     },
                     error: (error) => {
-                        console.error("Error loading received gifts for user:", error);
+                        console.error(
+                            "Error loading received gifts for user:",
+                            error,
+                        );
                         // If error, show empty list
                         this.receivedGifts = [];
                         this.isLoadingGifts = false;
@@ -1015,10 +1057,12 @@ export class ProfileComponent implements OnInit, OnDestroy {
         if (!gift.sender) return "Unknown";
         const firstName = gift.sender.firstname || "";
         const lastName = gift.sender.lastname || "";
-        return `${firstName} ${lastName}`.trim() || gift.sender.email || "Unknown";
+        return (
+            `${firstName} ${lastName}`.trim() || gift.sender.email || "Unknown"
+        );
     }
 
-    getSenderNameFromSender(sender: GiftDTO['sender']): string {
+    getSenderNameFromSender(sender: GiftDTO["sender"]): string {
         if (!sender) return "Unknown";
         const firstName = sender.firstname || "";
         const lastName = sender.lastname || "";
@@ -1031,19 +1075,19 @@ export class ProfileComponent implements OnInit, OnDestroy {
     get groupedReceivedGifts(): Array<{
         giftEmoji: string;
         senderId: number;
-        sender: GiftDTO['sender'];
+        sender: GiftDTO["sender"];
         gifts: GiftDTO[];
         totalAmount: string;
         latestDate: Date;
         messages: string[];
     }> {
         const grouped = new Map<string, GiftDTO[]>();
-        
+
         // Group gifts by senderId and giftEmoji
-        this.receivedGifts.forEach(gift => {
+        this.receivedGifts.forEach((gift) => {
             const senderId = gift.senderId || gift.sender?.id || 0;
             const key = `${senderId}_${gift.giftEmoji}`;
-            
+
             if (!grouped.has(key)) {
                 grouped.set(key, []);
             }
@@ -1051,14 +1095,16 @@ export class ProfileComponent implements OnInit, OnDestroy {
         });
 
         // Convert map to array and calculate totals
-        return Array.from(grouped.entries()).map(([key, gifts]) => {
+        return Array.from(grouped.entries()).map(([_key, gifts]) => {
             const firstGift = gifts[0];
             const senderId = firstGift.senderId || firstGift.sender?.id || 0;
-            
+
             // Calculate total amount
-            const totalAmount = gifts.reduce((sum, gift) => {
-                return sum + parseFloat(gift.amount || '0');
-            }, 0).toFixed(8);
+            const totalAmount = gifts
+                .reduce((sum, gift) => {
+                    return sum + parseFloat(gift.amount || "0");
+                }, 0)
+                .toFixed(8);
 
             // Get latest date
             const latestDate = gifts.reduce((latest, gift) => {
@@ -1068,8 +1114,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
             // Collect all non-empty messages
             const messages = gifts
-                .map(g => g.message)
-                .filter((msg): msg is string => !!msg && msg.trim() !== '');
+                .map((g) => g.message)
+                .filter((msg): msg is string => !!msg && msg.trim() !== "");
 
             return {
                 giftEmoji: firstGift.giftEmoji,
@@ -1078,7 +1124,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
                 gifts,
                 totalAmount,
                 latestDate,
-                messages
+                messages,
             };
         });
     }
@@ -1093,7 +1139,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
             });
             return;
         }
-        
+
         this.recipientUserForGift = {
             id: this.viewingUserId,
             fullName: this.viewingUser?.fullName,
@@ -1102,7 +1148,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
         this.showSendGiftDialog = true;
     }
 
-    onGiftSent(response: any): void {
+    onGiftSent(_response: any): void {
         // Gift was sent successfully, dialog is already closed
         this.recipientUserForGift = null;
         // Reload received gifts for the viewed user
@@ -1124,14 +1170,14 @@ export class ProfileComponent implements OnInit, OnDestroy {
             return;
         }
 
-        const recipientName = this.viewingUser?.fullName || 'Unknown User';
+        const recipientName = this.viewingUser?.fullName || "Unknown User";
 
         // Navigate to video call page with recipient info
-        this.router.navigate(['/video-call'], {
+        this.router.navigate(["/video-call"], {
             queryParams: {
                 recipientId: this.viewingUserId,
-                recipientName: recipientName
-            }
+                recipientName: recipientName,
+            },
         });
     }
 }

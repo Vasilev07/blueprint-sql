@@ -20,7 +20,10 @@ export class ThemeService {
         if (typeof this.document.defaultView?.localStorage === "undefined") {
             return "dark-theme";
         }
-        return this.document.defaultView.localStorage.getItem(THEME_STORAGE_KEY) ?? "dark-theme";
+        return (
+            this.document.defaultView.localStorage.getItem(THEME_STORAGE_KEY) ??
+            "dark-theme"
+        );
     }
 
     switchTheme(theme: string): void {
@@ -35,7 +38,10 @@ export class ThemeService {
         }
 
         if (this.document.defaultView?.localStorage) {
-            this.document.defaultView.localStorage.setItem(THEME_STORAGE_KEY, theme);
+            this.document.defaultView.localStorage.setItem(
+                THEME_STORAGE_KEY,
+                theme,
+            );
         }
     }
 }

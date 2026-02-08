@@ -1,6 +1,11 @@
 import { Component, OnDestroy, OnInit } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
+import {
+    FormBuilder,
+    FormGroup,
+    ReactiveFormsModule,
+    Validators,
+} from "@angular/forms";
 import { ConfirmationService, MessageService } from "primeng/api";
 import { CategoryService } from "../../typescript-api-client/src/api/api";
 import { CategoryDTO } from "../../typescript-api-client/src/model/models";
@@ -107,21 +112,19 @@ export class CategoriesComponent implements OnInit, OnDestroy {
     }
 
     public saveCategory() {
-        this.isEdit
-            ? this.updateCategory({
-                  id: this.category?.id,
-                  ...this.categoryForm.getRawValue(),
-              })
-            : this.createCategory(this.categoryForm.getRawValue());
+        if (this.isEdit) {
+            this.updateCategory({
+                id: this.category?.id,
+                ...this.categoryForm.getRawValue(),
+            });
+        } else {
+            this.createCategory(this.categoryForm.getRawValue());
+        }
     }
 
     public createCategory(category: CategoryDTO) {
         this.categoryService
-            .createCategory(
-                category,
-                undefined,
-                undefined
-            )
+            .createCategory(category, undefined, undefined)
             .subscribe({
                 next: (category: CategoryDTO) => {
                     this.category = category;
@@ -156,7 +159,9 @@ export class CategoriesComponent implements OnInit, OnDestroy {
             .subscribe({
                 next: (categoryFromDb) => {
                     this.category = categoryFromDb;
-                    const index = this.categories.findIndex(c => c.id === categoryFromDb.id);
+                    const index = this.categories.findIndex(
+                        (c) => c.id === categoryFromDb.id,
+                    );
                     if (index !== -1) {
                         this.categories[index] = categoryFromDb;
                         this.categories = [...this.categories];

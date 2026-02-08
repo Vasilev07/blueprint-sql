@@ -305,7 +305,7 @@ export class ChatHomeComponent implements OnInit, OnDestroy {
     }
 
     @HostListener("window:resize", ["$event"])
-    onResize(event: any) {
+    onResize(_event: any) {
         this.checkScreenSize();
     }
 

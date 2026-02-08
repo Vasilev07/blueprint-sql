@@ -51,7 +51,8 @@ export class StoryHomeComponent implements OnInit, OnDestroy {
 
     ngOnInit(): void {
         // Load current user
-        this.userService.getUser()
+        this.userService
+            .getUser()
             .pipe(takeUntil(this.destroy$))
             .subscribe({
                 next: (user) => {
@@ -59,7 +60,7 @@ export class StoryHomeComponent implements OnInit, OnDestroy {
                 },
                 error: (error) => {
                     console.error("Error loading current user:", error);
-                }
+                },
             });
 
         this.loadStories();
@@ -76,9 +77,9 @@ export class StoryHomeComponent implements OnInit, OnDestroy {
     ngOnDestroy(): void {
         this.destroy$.next();
         this.destroy$.complete();
-        
+
         // Cleanup profile picture blob URLs
-        this.profilePictures.forEach(url => URL.revokeObjectURL(url));
+        this.profilePictures.forEach((url) => URL.revokeObjectURL(url));
         this.profilePictures.clear();
     }
 
@@ -92,30 +93,33 @@ export class StoryHomeComponent implements OnInit, OnDestroy {
                 this.stories = this.filterStories(stories);
                 this.groupedStories = this.groupStoriesByUser(this.stories);
                 console.log("Grouped stories:", this.groupedStories);
-                
+
                 // Load profile pictures for all users
                 this.loadProfilePictures();
-                
+
                 this.isLoading = false;
             });
     }
 
     loadProfilePictures(): void {
-        const uniqueUserIds = new Set(this.groupedStories.map(g => g.userId));
-        
-        uniqueUserIds.forEach(userIdStr => {
+        const uniqueUserIds = new Set(this.groupedStories.map((g) => g.userId));
+
+        uniqueUserIds.forEach((userIdStr) => {
             const userId = parseInt(userIdStr, 10);
-            
-            this.userService.getProfilePictureByUserId(userId, 'response')
+
+            this.userService
+                .getProfilePictureByUserId(userId, "response")
                 .pipe(takeUntil(this.destroy$))
                 .subscribe({
                     next: (response: any) => {
                         const blob = response.body as Blob;
                         const blobUrl = URL.createObjectURL(blob);
                         this.profilePictures.set(userIdStr, blobUrl);
-                        
+
                         // Update the group with the profile picture
-                        const group = this.groupedStories.find(g => g.userId === userIdStr);
+                        const group = this.groupedStories.find(
+                            (g) => g.userId === userIdStr,
+                        );
                         if (group) {
                             group.userAvatar = blobUrl;
                         }
@@ -123,9 +127,12 @@ export class StoryHomeComponent implements OnInit, OnDestroy {
                     error: (error) => {
                         // Profile picture not found is okay
                         if (error.status !== 404) {
-                            console.error(`Error loading profile picture for user ${userId}:`, error);
+                            console.error(
+                                `Error loading profile picture for user ${userId}:`,
+                                error,
+                            );
                         }
-                    }
+                    },
                 });
         });
     }
@@ -137,16 +144,21 @@ export class StoryHomeComponent implements OnInit, OnDestroy {
         switch (this.selectedCategory) {
             case "trending":
                 filtered = filtered.sort(
-                    (a, b) => (b.likes || 0) + b.views - ((a.likes || 0) + a.views),
+                    (a, b) =>
+                        (b.likes || 0) + b.views - ((a.likes || 0) + a.views),
                 );
                 break;
             case "recent":
                 filtered = filtered.sort(
-                    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+                    (a, b) =>
+                        new Date(b.createdAt).getTime() -
+                        new Date(a.createdAt).getTime(),
                 );
                 break;
             case "most-liked":
-                filtered = filtered.sort((a, b) => (b.likes || 0) - (a.likes || 0));
+                filtered = filtered.sort(
+                    (a, b) => (b.likes || 0) - (a.likes || 0),
+                );
                 break;
             case "most-viewed":
                 filtered = filtered.sort((a, b) => b.views - a.views);
@@ -158,9 +170,11 @@ export class StoryHomeComponent implements OnInit, OnDestroy {
             const query = this.searchQuery.toLowerCase();
             filtered = filtered.filter(
                 (story) =>
-                    (story.caption?.toLowerCase() || '').includes(query) ||
-                    (story.userName?.toLowerCase() || '').includes(query) ||
-                    (story.tags || []).some((tag) => tag.toLowerCase().includes(query)),
+                    (story.caption?.toLowerCase() || "").includes(query) ||
+                    (story.userName?.toLowerCase() || "").includes(query) ||
+                    (story.tags || []).some((tag) =>
+                        tag.toLowerCase().includes(query),
+                    ),
             );
         }
 
@@ -191,7 +205,7 @@ export class StoryHomeComponent implements OnInit, OnDestroy {
 
     onUserStoryGroupClick(group: UserStoryGroup): void {
         console.log("User story group clicked:", group);
-        
+
         // Navigate to the first story of this user's group (including own stories)
         const firstStory = group.stories[0];
         console.log("Navigating to first story:", firstStory.id);
@@ -209,13 +223,27 @@ export class StoryHomeComponent implements OnInit, OnDestroy {
     groupStoriesByUser(stories: Story[]): UserStoryGroup[] {
         const groupMap = new Map<string, UserStoryGroup>();
 
-        console.log('Grouping stories:', stories.map(s => ({ id: s.id, userId: s.userId, userName: s.userName })));
+        console.log(
+            "Grouping stories:",
+            stories.map((s) => ({
+                id: s.id,
+                userId: s.userId,
+                userName: s.userName,
+            })),
+        );
 
-        stories.forEach(story => {
-            console.log('Processing story:', story.id, 'userId:', story.userId, 'type:', typeof story.userId);
-            
+        stories.forEach((story) => {
+            console.log(
+                "Processing story:",
+                story.id,
+                "userId:",
+                story.userId,
+                "type:",
+                typeof story.userId,
+            );
+
             if (!groupMap.has(story.userId)) {
-                console.log('Creating new group for userId:', story.userId);
+                console.log("Creating new group for userId:", story.userId);
                 groupMap.set(story.userId, {
                     userId: story.userId,
                     userName: story.userName || "Unknown",
@@ -223,38 +251,57 @@ export class StoryHomeComponent implements OnInit, OnDestroy {
                     stories: [],
                     totalViews: 0,
                     hasUnviewed: false,
-                    latestStory: story
+                    latestStory: story,
                 });
             } else {
-                console.log('Adding to existing group for userId:', story.userId);
+                console.log(
+                    "Adding to existing group for userId:",
+                    story.userId,
+                );
             }
 
             const group = groupMap.get(story.userId)!;
             group.stories.push(story);
             group.totalViews += story.views;
-            
+
             if (!story.isViewed) {
                 group.hasUnviewed = true;
             }
 
             // Keep the latest story as the representative
-            if (new Date(story.createdAt) > new Date(group.latestStory?.createdAt || 0)) {
+            if (
+                new Date(story.createdAt) >
+                new Date(group.latestStory?.createdAt || 0)
+            ) {
                 group.latestStory = story;
             }
         });
 
         // Sort stories within each group by creation date (newest first)
-        groupMap.forEach(group => {
-            group.stories.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        groupMap.forEach((group) => {
+            group.stories.sort(
+                (a, b) =>
+                    new Date(b.createdAt).getTime() -
+                    new Date(a.createdAt).getTime(),
+            );
         });
 
         // Convert map to array and sort by latest story date
         const result = Array.from(groupMap.values()).sort(
-            (a, b) => new Date(b.latestStory.createdAt).getTime() - new Date(a.latestStory.createdAt).getTime()
+            (a, b) =>
+                new Date(b.latestStory.createdAt).getTime() -
+                new Date(a.latestStory.createdAt).getTime(),
         );
-        
-        console.log('Final groups:', result.map(g => ({ userId: g.userId, userName: g.userName, storyCount: g.stories.length })));
-        
+
+        console.log(
+            "Final groups:",
+            result.map((g) => ({
+                userId: g.userId,
+                userName: g.userName,
+                storyCount: g.stories.length,
+            })),
+        );
+
         return result;
     }
 
@@ -322,11 +369,10 @@ export class StoryHomeComponent implements OnInit, OnDestroy {
     navigateToUserProfile(group: UserStoryGroup, event: Event): void {
         // Prevent triggering the story card click
         event.stopPropagation();
-        
+
         if (group.userId) {
             console.log("Navigating to user profile:", group.userId);
-            this.router.navigate(['/profile', group.userId]);
+            this.router.navigate(["/profile", group.userId]);
         }
     }
 }
-

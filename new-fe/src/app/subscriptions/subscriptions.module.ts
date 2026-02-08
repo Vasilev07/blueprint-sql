@@ -17,5 +17,3 @@ import { CardModule } from "primeng/card";
     ],
 })
 export class SubscriptionsModule {}
-
-

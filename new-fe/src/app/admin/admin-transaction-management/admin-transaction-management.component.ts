@@ -90,10 +90,13 @@ export class AdminTransactionManagementComponent implements OnInit, OnDestroy {
             .pipe(takeUntil(this.destroy$))
             .subscribe({
                 next: (response: any) => {
-                    const withFullName = (response.users || []).map((u: any) => ({
-                        ...u,
-                        fullName: `${u.firstname || ""} ${u.lastname || ""}`.trim(),
-                    }));
+                    const withFullName = (response.users || []).map(
+                        (u: any) => ({
+                            ...u,
+                            fullName:
+                                `${u.firstname || ""} ${u.lastname || ""}`.trim(),
+                        }),
+                    );
                     this.users = withFullName;
                     this.applyFilters();
                     this.isLoading = false;
@@ -150,7 +153,11 @@ export class AdminTransactionManagementComponent implements OnInit, OnDestroy {
     }
 
     submitDeposit(): void {
-        if (!this.depositForm.userId || this.depositForm.amount === null || this.depositForm.amount === undefined) {
+        if (
+            !this.depositForm.userId ||
+            this.depositForm.amount === null ||
+            this.depositForm.amount === undefined
+        ) {
             this.messageService.add({
                 severity: "warn",
                 summary: "Validation",
@@ -190,14 +197,20 @@ export class AdminTransactionManagementComponent implements OnInit, OnDestroy {
                     this.messageService.add({
                         severity: "error",
                         summary: "Error",
-                        detail: error.error?.message || "Failed to deposit funds",
+                        detail:
+                            error.error?.message || "Failed to deposit funds",
                     });
                 },
             });
     }
 
     submitTransfer(): void {
-        if (!this.transferForm.fromUserId || !this.transferForm.toUserId || this.transferForm.amount === null || this.transferForm.amount === undefined) {
+        if (
+            !this.transferForm.fromUserId ||
+            !this.transferForm.toUserId ||
+            this.transferForm.amount === null ||
+            this.transferForm.amount === undefined
+        ) {
             this.messageService.add({
                 severity: "warn",
                 summary: "Validation",
@@ -247,7 +260,8 @@ export class AdminTransactionManagementComponent implements OnInit, OnDestroy {
                     this.messageService.add({
                         severity: "error",
                         summary: "Error",
-                        detail: error.error?.message || "Failed to transfer funds",
+                        detail:
+                            error.error?.message || "Failed to transfer funds",
                     });
                 },
             });
@@ -267,4 +281,3 @@ export class AdminTransactionManagementComponent implements OnInit, OnDestroy {
         }
     }
 }
-

@@ -36,10 +36,9 @@ import { IncomingCallComponent } from "../components/incoming-call/incoming-call
         IncomingCallComponent,
     ],
     exports: [
-        UserCardComponent, 
-        SendGiftDialogComponent, 
-        IncomingCallComponent
+        UserCardComponent,
+        SendGiftDialogComponent,
+        IncomingCallComponent,
     ],
 })
 export class SharedComponentsModule {}
-

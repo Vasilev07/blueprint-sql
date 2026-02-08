@@ -99,9 +99,7 @@ const routes: Routes = [
             {
                 path: "admin",
                 loadChildren: () =>
-                    import("./admin/admin.module").then(
-                        (m) => m.AdminModule,
-                    ),
+                    import("./admin/admin.module").then((m) => m.AdminModule),
             },
             {
                 path: "gift-shop",
@@ -126,7 +124,9 @@ const routes: Routes = [
     {
         path: "video-call",
         loadChildren: () =>
-            import("./video-call/video-call.module").then((m) => m.VideoCallModule),
+            import("./video-call/video-call.module").then(
+                (m) => m.VideoCallModule,
+            ),
         canActivate: [AuthGuard],
     },
 ];

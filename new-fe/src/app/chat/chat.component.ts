@@ -1,4 +1,12 @@
-import { Component, OnInit, OnDestroy, Input, OnChanges, SimpleChanges, ChangeDetectorRef } from "@angular/core";
+import {
+    Component,
+    OnInit,
+    OnDestroy,
+    Input,
+    OnChanges,
+    SimpleChanges,
+    ChangeDetectorRef,
+} from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { ReactiveFormsModule } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
@@ -113,35 +121,45 @@ export class ChatComponent implements OnInit, OnDestroy, OnChanges {
 
         // Use Input userId if provided (when embedded), otherwise get from route params
         const userIdToUse = this.userId || this.route.snapshot.params["userId"];
-        if (userIdToUse && userIdToUse !== "" && userIdToUse !== this.currentUserId) {
+        if (
+            userIdToUse &&
+            userIdToUse !== "" &&
+            userIdToUse !== this.currentUserId
+        ) {
             this.currentUserId = userIdToUse;
             this.loadConversation(userIdToUse);
             this.loadUserData(userIdToUse);
         } else if (!this.userId) {
             // Get from route params when accessed directly via route
-            this.route.params.pipe(takeUntil(this.destroy$)).subscribe((params) => {
-                const userId = params["userId"];
-                if (userId && userId !== this.currentUserId) {
-                    this.currentUserId = userId;
-                    this.loadConversation(userId);
-                    this.loadUserData(userId);
-                }
-            });
+            this.route.params
+                .pipe(takeUntil(this.destroy$))
+                .subscribe((params) => {
+                    const userId = params["userId"];
+                    if (userId && userId !== this.currentUserId) {
+                        this.currentUserId = userId;
+                        this.loadConversation(userId);
+                        this.loadUserData(userId);
+                    }
+                });
         }
     }
 
     ngOnChanges(changes: SimpleChanges): void {
         // If userId input changes, reload the conversation (for backward compatibility)
-        if (changes['userId']) {
-            const newUserId = this.userId || '';
-            if (newUserId && newUserId !== '' && newUserId !== this.currentUserId) {
+        if (changes["userId"]) {
+            const newUserId = this.userId || "";
+            if (
+                newUserId &&
+                newUserId !== "" &&
+                newUserId !== this.currentUserId
+            ) {
                 this.currentUserId = newUserId;
                 this.messages = []; // Clear previous messages
                 this.loadConversation(newUserId);
                 this.loadUserData(newUserId);
-            } else if (!newUserId || newUserId === '') {
+            } else if (!newUserId || newUserId === "") {
                 // Clear if userId becomes empty
-                this.currentUserId = '';
+                this.currentUserId = "";
                 this.messages = [];
                 this.currentUser = null;
             }
@@ -153,11 +171,14 @@ export class ChatComponent implements OnInit, OnDestroy, OnChanges {
         this.destroy$.complete();
 
         // Revoke blob URLs to free memory
-        if (this.headerProfilePictureUrl !== this.defaultAvatar && this.headerProfilePictureUrl.startsWith('blob:')) {
+        if (
+            this.headerProfilePictureUrl !== this.defaultAvatar &&
+            this.headerProfilePictureUrl.startsWith("blob:")
+        ) {
             URL.revokeObjectURL(this.headerProfilePictureUrl);
         }
         this.senderProfilePictures.forEach((url) => {
-            if (url && url !== this.defaultAvatar && url.startsWith('blob:')) {
+            if (url && url !== this.defaultAvatar && url.startsWith("blob:")) {
                 URL.revokeObjectURL(url);
             }
         });
@@ -346,7 +367,10 @@ export class ChatComponent implements OnInit, OnDestroy, OnChanges {
         this.headerProfilePictureUrl = this.defaultAvatar;
 
         // Revoke old blob URL if exists
-        if (this.headerProfilePictureUrl !== this.defaultAvatar && this.headerProfilePictureUrl.startsWith('blob:')) {
+        if (
+            this.headerProfilePictureUrl !== this.defaultAvatar &&
+            this.headerProfilePictureUrl.startsWith("blob:")
+        ) {
             URL.revokeObjectURL(this.headerProfilePictureUrl);
         }
 
@@ -364,7 +388,8 @@ export class ChatComponent implements OnInit, OnDestroy, OnChanges {
                     console.error(
                         `Error loading profile picture for user ${userId}:`,
                         error,
-                        'status:', error.status
+                        "status:",
+                        error.status,
                     );
                     // Keep default avatar on error
                     this.headerProfilePictureUrl = this.defaultAvatar;
@@ -389,20 +414,23 @@ export class ChatComponent implements OnInit, OnDestroy, OnChanges {
     }
 
     private scrollToBottom(): void {
-        setTimeout(() => {
-            const chatContainer = document.querySelector(".chat-messages");
-            if (chatContainer) {
-                // Smooth scroll on desktop, instant on mobile for better performance
-                if (this.isMobile) {
-                    chatContainer.scrollTop = chatContainer.scrollHeight;
-                } else {
-                    chatContainer.scrollTo({
-                        top: chatContainer.scrollHeight,
-                        behavior: 'smooth'
-                    });
+        setTimeout(
+            () => {
+                const chatContainer = document.querySelector(".chat-messages");
+                if (chatContainer) {
+                    // Smooth scroll on desktop, instant on mobile for better performance
+                    if (this.isMobile) {
+                        chatContainer.scrollTop = chatContainer.scrollHeight;
+                    } else {
+                        chatContainer.scrollTo({
+                            top: chatContainer.scrollHeight,
+                            behavior: "smooth",
+                        });
+                    }
                 }
-            }
-        }, this.isMobile ? 50 : 100);
+            },
+            this.isMobile ? 50 : 100,
+        );
     }
 
     private setupMobileOptimizations(): void {
@@ -411,29 +439,33 @@ export class ChatComponent implements OnInit, OnDestroy, OnChanges {
         // Handle viewport height changes (iOS Safari, etc.)
         const setVH = () => {
             const vh = window.innerHeight * 0.01;
-            document.documentElement.style.setProperty('--vh', `${vh}px`);
+            document.documentElement.style.setProperty("--vh", `${vh}px`);
         };
 
         setVH();
-        window.addEventListener('resize', setVH);
-        window.addEventListener('orientationchange', () => {
+        window.addEventListener("resize", setVH);
+        window.addEventListener("orientationchange", () => {
             setTimeout(setVH, 100);
         });
 
         // Prevent zoom on double tap
         let lastTouchEnd = 0;
-        document.addEventListener('touchend', (event) => {
-            const now = Date.now();
-            if (now - lastTouchEnd <= 300) {
-                event.preventDefault();
-            }
-            lastTouchEnd = now;
-        }, false);
+        document.addEventListener(
+            "touchend",
+            (event) => {
+                const now = Date.now();
+                if (now - lastTouchEnd <= 300) {
+                    event.preventDefault();
+                }
+                lastTouchEnd = now;
+            },
+            false,
+        );
 
         // Cleanup on destroy
         this.destroy$.subscribe(() => {
-            window.removeEventListener('resize', setVH);
-            window.removeEventListener('orientationchange', setVH);
+            window.removeEventListener("resize", setVH);
+            window.removeEventListener("orientationchange", setVH);
         });
     }
 
@@ -504,7 +536,10 @@ export class ChatComponent implements OnInit, OnDestroy, OnChanges {
                         );
                     }
                     // Set default avatar on error
-                    this.senderProfilePictures.set(senderId, this.defaultAvatar);
+                    this.senderProfilePictures.set(
+                        senderId,
+                        this.defaultAvatar,
+                    );
                     this.cdr.detectChanges();
                 },
             });
@@ -563,30 +598,34 @@ export class ChatComponent implements OnInit, OnDestroy, OnChanges {
         this.showSendGiftDialog = true;
     }
 
-    onGiftSent(response: any): void {
+    onGiftSent(_response: any): void {
         // Gift was sent successfully, dialog is already closed
         this.recipientUserForGift = null;
     }
 
     // Gift Message Detection and Parsing
     isGiftMessage(message: Message): boolean {
-        return message.content?.includes('🎁 Gift Sent:') || false;
+        return message.content?.includes("🎁 Gift Sent:") || false;
     }
 
-    parseGiftMessage(message: Message): { emoji: string; amount: string; giftMessage: string } | null {
+    parseGiftMessage(
+        message: Message,
+    ): { emoji: string; amount: string; giftMessage: string } | null {
         if (!this.isGiftMessage(message)) {
             return null;
         }
 
-        const content = message.content || '';
+        const content = message.content || "";
         // Format: "🎁 Gift Sent: {emoji} ({amount} tokens) - "{message}""
-        const giftMatch = content.match(/🎁 Gift Sent:\s*([^\s]+)\s*\(([^)]+)\s*tokens\)(?:\s*-\s*"([^"]*)")?/);
+        const giftMatch = content.match(
+            /🎁 Gift Sent:\s*([^\s]+)\s*\(([^)]+)\s*tokens\)(?:\s*-\s*"([^"]*)")?/,
+        );
 
         if (giftMatch) {
             return {
-                emoji: giftMatch[1] || '🎁',
-                amount: giftMatch[2] || '0',
-                giftMessage: giftMatch[3] || '',
+                emoji: giftMatch[1] || "🎁",
+                amount: giftMatch[2] || "0",
+                giftMessage: giftMatch[3] || "",
             };
         }
 
@@ -596,9 +635,9 @@ export class ChatComponent implements OnInit, OnDestroy, OnChanges {
         const messageMatch = content.match(/-\s*"([^"]*)"/);
 
         return {
-            emoji: emojiMatch?.[1] || '🎁',
-            amount: amountMatch?.[1] || '0',
-            giftMessage: messageMatch?.[1] || '',
+            emoji: emojiMatch?.[1] || "🎁",
+            amount: amountMatch?.[1] || "0",
+            giftMessage: messageMatch?.[1] || "",
         };
     }
 
@@ -614,14 +653,14 @@ export class ChatComponent implements OnInit, OnDestroy, OnChanges {
         }
 
         const recipientId = Number(this.currentUserId);
-        const recipientName = this.currentUser?.name || 'Unknown User';
+        const recipientName = this.currentUser?.name || "Unknown User";
 
         // Navigate to video call page with recipient info
-        this.router.navigate(['/video-call'], {
+        this.router.navigate(["/video-call"], {
             queryParams: {
                 recipientId: recipientId,
-                recipientName: recipientName
-            }
+                recipientName: recipientName,
+            },
         });
     }
 }

@@ -148,13 +148,23 @@ export class ForumHomeComponent implements OnInit, OnDestroy {
                     this.messageService.add({
                         severity: "error",
                         summary: "Error",
-                        detail: error?.error?.message || "Failed to create room",
+                        detail:
+                            error?.error?.message || "Failed to create room",
                     });
                 },
             });
     }
 
-    getVisibilityBadge(visibility: string): "success" | "secondary" | "info" | "warn" | "danger" | "contrast" | undefined {
+    getVisibilityBadge(
+        visibility: string,
+    ):
+        | "success"
+        | "secondary"
+        | "info"
+        | "warn"
+        | "danger"
+        | "contrast"
+        | undefined {
         switch (visibility) {
             case "public":
                 return "success";
@@ -167,4 +177,3 @@ export class ForumHomeComponent implements OnInit, OnDestroy {
         }
     }
 }
-

@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from "@angular/core";
 import { JwtHelperService } from "@auth0/angular-jwt";
-import { Subject, takeUntil } from "rxjs";
+import { Subject } from "rxjs";
 import { CommonModule } from "@angular/common";
 import { RouterModule } from "@angular/router";
 import { AuthService } from "../services/auth.service";
@@ -21,7 +21,7 @@ export class AppMenuComponent implements OnInit, OnDestroy {
     constructor(
         public layoutService: LayoutService,
         private jwtHelper: JwtHelperService,
-        private authService: AuthService
+        private authService: AuthService,
     ) {}
 
     ngOnInit(): void {
@@ -142,10 +142,11 @@ export class AppMenuComponent implements OnInit, OnDestroy {
                 items: menuItems,
             },
         ];
-        
+
         // Debug: Log menu items to verify "Who Visited Me" is included
-        console.log("Menu items:", menuItems.map(item => item.label));
+        console.log(
+            "Menu items:",
+            menuItems.map((item) => item.label),
+        );
     }
-
-
 }

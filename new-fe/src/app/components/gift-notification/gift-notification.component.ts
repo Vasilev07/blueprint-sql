@@ -1,15 +1,21 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { GiftNotificationService, GiftNotification } from '../../services/gift-notification.service';
-import { UserService, WalletService } from 'src/typescript-api-client/src/api/api';
-import { Subject, takeUntil } from 'rxjs';
+import { Component, OnInit, OnDestroy } from "@angular/core";
+import { CommonModule } from "@angular/common";
+import {
+    GiftNotificationService,
+    GiftNotification,
+} from "../../services/gift-notification.service";
+import {
+    UserService,
+    WalletService,
+} from "src/typescript-api-client/src/api/api";
+import { Subject, takeUntil } from "rxjs";
 
 @Component({
-    selector: 'app-gift-notification',
+    selector: "app-gift-notification",
     standalone: true,
     imports: [CommonModule],
-    templateUrl: './gift-notification.component.html',
-    styleUrls: ['./gift-notification.component.scss']
+    templateUrl: "./gift-notification.component.html",
+    styleUrls: ["./gift-notification.component.scss"],
 })
 export class GiftNotificationComponent implements OnInit, OnDestroy {
     private destroy$ = new Subject<void>();
@@ -19,7 +25,7 @@ export class GiftNotificationComponent implements OnInit, OnDestroy {
     constructor(
         private giftNotificationService: GiftNotificationService,
         private userService: UserService,
-        private walletService: WalletService
+        private walletService: WalletService,
     ) {}
 
     ngOnInit(): void {
@@ -31,13 +37,13 @@ export class GiftNotificationComponent implements OnInit, OnDestroy {
                         this.receivedGift = notification;
                         this.showGiftAnimation = true;
                         this.loadBalance(); // Reload balance since it changed
-                        
+
                         // Auto-hide animation after 5 seconds
                         setTimeout(() => {
                             this.closeAnimation();
                         }, 5000);
                     }
-                }
+                },
             });
     }
 
@@ -58,13 +64,12 @@ export class GiftNotificationComponent implements OnInit, OnDestroy {
     loadBalance(): void {
         // Reload balance to reflect the new gift received
         this.userService.getUser().subscribe({
-            next: (user: any) => {
+            next: (_user: any) => {
                 // Balance updated
             },
             error: (error) => {
-                console.error('Error loading balance:', error);
-            }
+                console.error("Error loading balance:", error);
+            },
         });
     }
 }
-

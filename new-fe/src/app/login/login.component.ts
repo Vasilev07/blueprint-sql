@@ -12,7 +12,15 @@ import { AuthService } from "../services/auth.service";
 @Component({
     selector: "app-login",
     standalone: true,
-    imports: [CommonModule, FormsModule, RouterModule, ButtonModule, CheckboxModule, InputTextModule, PasswordModule],
+    imports: [
+        CommonModule,
+        FormsModule,
+        RouterModule,
+        ButtonModule,
+        CheckboxModule,
+        InputTextModule,
+        PasswordModule,
+    ],
     templateUrl: "./login.component.html",
     styles: [
         `

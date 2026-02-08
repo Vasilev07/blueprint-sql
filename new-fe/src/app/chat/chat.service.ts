@@ -14,10 +14,12 @@ import { CreateConversationDTO } from "src/typescript-api-client/src/model/creat
 import { FriendsService } from "src/typescript-api-client/src/api/friends.service";
 import { ChatService as ChatApiService } from "src/typescript-api-client/src/api/chat.service";
 import { WebsocketService } from "../services/websocket.service";
-import { environment } from "../../environments/environment";
 
 // UI Extensions - extend backend DTOs with UI-specific fields only
-export interface User extends Omit<UserDTO, 'id' | 'password' | 'confirmPassword'> {
+export interface User extends Omit<
+    UserDTO,
+    "id" | "password" | "confirmPassword"
+> {
     id: string; // Convert number to string for UI routing
     name?: string; // Computed from fullName for display
     avatar?: string; // Blob URL for profile picture
@@ -25,7 +27,7 @@ export interface User extends Omit<UserDTO, 'id' | 'password' | 'confirmPassword
     lastSeen?: Date; // Parsed date for UI
 }
 
-export interface Message extends Omit<ChatMessageDTO, 'id' | 'senderId'> {
+export interface Message extends Omit<ChatMessageDTO, "id" | "senderId"> {
     id: string; // Convert number to string for UI
     senderId: string; // Convert number to string for UI
     receiverId?: string; // Computed for bilateral conversations
@@ -37,7 +39,10 @@ export interface Message extends Omit<ChatMessageDTO, 'id' | 'senderId'> {
     giftMessage?: string;
 }
 
-export interface Conversation extends Omit<ChatConversationDTO, 'id' | 'participants'> {
+export interface Conversation extends Omit<
+    ChatConversationDTO,
+    "id" | "participants"
+> {
     id: string; // Convert number to string for UI
     participants: string[]; // Convert number[] to string[] for UI
     lastMessage?: string; // Computed from messages
@@ -77,13 +82,16 @@ export class ChatService {
             const currentUserId = this.getCurrentUserId();
             const otherUserId =
                 Number(message.senderId) === currentUserId
-                    ? this.getOtherUserIdFromConversation(conversationId, currentUserId)
+                    ? this.getOtherUserIdFromConversation(
+                          conversationId,
+                          currentUserId,
+                      )
                     : Number(message.senderId);
 
             // Append message to stream
             const nextMsg: Message = {
                 id: String(
-                    message.id ?? `${message.senderId}-${message.createdAt}`
+                    message.id ?? `${message.senderId}-${message.createdAt}`,
                 ),
                 senderId: String(message.senderId),
                 receiverId: String(otherUserId || ""),
@@ -202,34 +210,49 @@ export class ChatService {
         this.chatApi.getConversations(userId).subscribe({
             next: (convs: ChatConversationDTO[]) => {
                 const selfId = String(userId);
-                const mapped: Conversation[] = (convs || []).map((c: ChatConversationDTO) => {
-                    // Backend DTOs return participants as number[], map to string[] for FE
-                    const participantIds = (c.participants || []).map(p => String(p));
-                    
-                    const last = (c.messages && c.messages.length > 0)
-                        ? c.messages[c.messages.length - 1]
-                        : undefined;
-                    
-                    const other = c.otherUser;
-                    const otherId = participantIds.find(pid => pid !== selfId);
-                    const friend = this.friendsSubject.value.find(
-                        f => String(f.id) === String(otherId) || f.email === otherId
-                    );
-                    
-                    return {
-                        id: String(c.id),
-                        participants: participantIds,
-                        messages: c.messages, // Include messages from backend
-                        unreadCount: c.unreadCount ?? 0,
-                        otherUser: c.otherUser, // Include otherUser info
-                        lastMessage: last?.content,
-                        lastMessageTime: last?.createdAt ? new Date(last.createdAt) : undefined,
-                        name: friend?.name || 
-                              (other ? `${other.firstname ?? ""} ${other.lastname ?? ""}`.trim() || other.email : undefined),
-                        createdAt: c.createdAt,
-                        updatedAt: c.updatedAt,
-                    } as Conversation;
-                });
+                const mapped: Conversation[] = (convs || []).map(
+                    (c: ChatConversationDTO) => {
+                        // Backend DTOs return participants as number[], map to string[] for FE
+                        const participantIds = (c.participants || []).map((p) =>
+                            String(p),
+                        );
+
+                        const last =
+                            c.messages && c.messages.length > 0
+                                ? c.messages[c.messages.length - 1]
+                                : undefined;
+
+                        const other = c.otherUser;
+                        const otherId = participantIds.find(
+                            (pid) => pid !== selfId,
+                        );
+                        const friend = this.friendsSubject.value.find(
+                            (f) =>
+                                String(f.id) === String(otherId) ||
+                                f.email === otherId,
+                        );
+
+                        return {
+                            id: String(c.id),
+                            participants: participantIds,
+                            messages: c.messages, // Include messages from backend
+                            unreadCount: c.unreadCount ?? 0,
+                            otherUser: c.otherUser, // Include otherUser info
+                            lastMessage: last?.content,
+                            lastMessageTime: last?.createdAt
+                                ? new Date(last.createdAt)
+                                : undefined,
+                            name:
+                                friend?.name ||
+                                (other
+                                    ? `${other.firstname ?? ""} ${other.lastname ?? ""}`.trim() ||
+                                      other.email
+                                    : undefined),
+                            createdAt: c.createdAt,
+                            updatedAt: c.updatedAt,
+                        } as Conversation;
+                    },
+                );
                 this.conversationsSubject.next(mapped);
             },
             error: () => {
@@ -241,30 +264,35 @@ export class ChatService {
     private loadUsers() {
         this.applyAuthHeadersToApiServices();
         // Fetch all users with a large limit (no pagination for chat)
-        this.userService.getAll(1, 1000, 'all', 'recent', '', '', 0, 100, '', '', false).subscribe({
-            next: (response: any) => {
-                const users: any[] = response.users || [];
-                const mapped: User[] = (users || []).map((u) => {
-                    const fullName = `${u.firstname ?? ""} ${u.lastname ?? ""}`.trim() || u.fullName || u.email;
-                    return {
-                        id: String(u.id ?? u.email),
-                        name: fullName,
-                        fullName: fullName,
-                        email: u.email,
-                        avatar: undefined,
-                        isOnline: false,
-                        gender: u.gender,
-                        city: u.city,
-                        lastOnline: u.lastOnline,
-                        profilePictureId: u.profilePictureId,
-                    };
-                });
-                this.usersSubject.next(mapped);
-            },
-            error: () => {
-                this.usersSubject.next([]);
-            },
-        });
+        this.userService
+            .getAll(1, 1000, "all", "recent", "", "", 0, 100, "", "", false)
+            .subscribe({
+                next: (response: any) => {
+                    const users: any[] = response.users || [];
+                    const mapped: User[] = (users || []).map((u) => {
+                        const fullName =
+                            `${u.firstname ?? ""} ${u.lastname ?? ""}`.trim() ||
+                            u.fullName ||
+                            u.email;
+                        return {
+                            id: String(u.id ?? u.email),
+                            name: fullName,
+                            fullName: fullName,
+                            email: u.email,
+                            avatar: undefined,
+                            isOnline: false,
+                            gender: u.gender,
+                            city: u.city,
+                            lastOnline: u.lastOnline,
+                            profilePictureId: u.profilePictureId,
+                        };
+                    });
+                    this.usersSubject.next(mapped);
+                },
+                error: () => {
+                    this.usersSubject.next([]);
+                },
+            });
     }
 
     private loadFriends() {
@@ -274,8 +302,11 @@ export class ChatService {
                 const currentEmail = this.authService.getUserEmail();
                 const mapped: User[] = (friends || [])
                     .map((f: any) => {
-                        const other = f.user?.email === currentEmail ? f.friend : f.user;
-                        const fullName = `${other?.firstname ?? ""} ${other?.lastname ?? ""}`.trim() || other?.email;
+                        const other =
+                            f.user?.email === currentEmail ? f.friend : f.user;
+                        const fullName =
+                            `${other?.firstname ?? ""} ${other?.lastname ?? ""}`.trim() ||
+                            other?.email;
                         return {
                             id: String(other?.id ?? other?.email),
                             name: fullName,
@@ -300,16 +331,20 @@ export class ChatService {
     }
 
     // New chat-specific API using proper DTOs
-    getOrCreateConversation(otherUserId: number): Observable<ChatConversationDTO> {
+    getOrCreateConversation(
+        otherUserId: number,
+    ): Observable<ChatConversationDTO> {
         const currentUserId = this.getCurrentUserId();
-        const dto: CreateConversationDTO = { 
-            userId: currentUserId, 
-            otherUserId 
+        const dto: CreateConversationDTO = {
+            userId: currentUserId,
+            otherUserId,
         };
         return this.chatApi.getOrCreateConversation(dto);
     }
 
-    loadConversationMessages(conversationId: number): Observable<ChatMessageDTO[]> {
+    loadConversationMessages(
+        conversationId: number,
+    ): Observable<ChatMessageDTO[]> {
         return this.chatApi.getMessages(conversationId);
     }
 
@@ -351,11 +386,11 @@ export class ChatService {
         return this.conversations$.pipe(
             map((conversations) => {
                 const allMessages: Message[] = [];
-                
+
                 // Extract all messages from all conversations
-                conversations.forEach(conv => {
+                conversations.forEach((conv) => {
                     if (conv.messages && conv.messages.length > 0) {
-                        conv.messages.forEach(msg => {
+                        conv.messages.forEach((msg) => {
                             allMessages.push({
                                 id: String(msg.id),
                                 conversationId: msg.conversationId,
@@ -365,15 +400,19 @@ export class ChatService {
                                 isRead: msg.isRead,
                                 createdAt: msg.createdAt,
                                 updatedAt: msg.updatedAt,
-                                timestamp: new Date(msg.createdAt || Date.now()),
+                                timestamp: new Date(
+                                    msg.createdAt || Date.now(),
+                                ),
                             });
                         });
                     }
                 });
-                
+
                 // Sort by timestamp and return top N
                 const sorted = allMessages.sort(
-                    (a, b) => (b.timestamp?.getTime() || 0) - (a.timestamp?.getTime() || 0)
+                    (a, b) =>
+                        (b.timestamp?.getTime() || 0) -
+                        (a.timestamp?.getTime() || 0),
                 );
                 return sorted.slice(0, limit);
             }),

@@ -23,4 +23,3 @@ import { ToastModule } from "primeng/toast";
     ],
 })
 export class RegisterModule {}
-

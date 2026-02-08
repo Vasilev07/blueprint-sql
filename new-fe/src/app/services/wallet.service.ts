@@ -13,7 +13,8 @@ export class WalletService {
     public balance$: Observable<string> = this.balanceSubject.asObservable();
 
     private canAffordSuperLikeSubject = new BehaviorSubject<boolean>(false);
-    public canAffordSuperLike$: Observable<boolean> = this.canAffordSuperLikeSubject.asObservable();
+    public canAffordSuperLike$: Observable<boolean> =
+        this.canAffordSuperLikeSubject.asObservable();
 
     private destroy$ = new Subject<void>();
 
@@ -45,7 +46,8 @@ export class WalletService {
      * Set up WebSocket listeners for real-time balance updates
      */
     private setupWebSocketListeners(): void {
-        this.websocketService.onBalanceUpdate()
+        this.websocketService
+            .onBalanceUpdate()
             .pipe(takeUntil(this.destroy$))
             .subscribe({
                 next: (payload) => {
@@ -53,7 +55,9 @@ export class WalletService {
                     const token = localStorage.getItem("id_token");
                     if (token) {
                         try {
-                            const userPayload = JSON.parse(atob(token.split(".")[1]));
+                            const userPayload = JSON.parse(
+                                atob(token.split(".")[1]),
+                            );
                             if (payload.userId === userPayload.id) {
                                 this.balanceSubject.next(payload.balance);
                                 this.updateCanAffordSuperLike(payload.balance);
@@ -109,4 +113,3 @@ export class WalletService {
         this.destroy$.complete();
     }
 }
-

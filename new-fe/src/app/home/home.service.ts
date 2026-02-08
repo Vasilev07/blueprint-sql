@@ -1,5 +1,5 @@
 import { Injectable, OnDestroy } from "@angular/core";
-import { BehaviorSubject, Observable, combineLatest, Subject } from "rxjs";
+import { BehaviorSubject, Observable, Subject } from "rxjs";
 import { map, takeUntil } from "rxjs/operators";
 
 import { AuthService } from "../services/auth.service";
@@ -520,7 +520,6 @@ export class HomeService implements OnDestroy {
         return this.loadUsersPage(nextPage, true); // Append to existing users
     }
 
-   
     getFilteredAndSortedUsers(): Observable<HomeUser[]> {
         // Don't clear users immediately - let the new data replace them
         // This prevents the UI from flashing empty state

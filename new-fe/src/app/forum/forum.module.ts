@@ -78,7 +78,12 @@ const routes: Routes = [
         ProgressSpinnerModule,
         SharedComponentsModule,
     ],
-    providers: [MessageService, ForumRoomsService, ForumPostsService, ForumCommentsService, UserService],
+    providers: [
+        MessageService,
+        ForumRoomsService,
+        ForumPostsService,
+        ForumCommentsService,
+        UserService,
+    ],
 })
 export class ForumModule {}
-

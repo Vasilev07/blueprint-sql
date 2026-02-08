@@ -1,9 +1,24 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnDestroy } from "@angular/core";
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
+import {
+    Component,
+    Input,
+    Output,
+    EventEmitter,
+    OnInit,
+    OnDestroy,
+} from "@angular/core";
+import {
+    FormBuilder,
+    FormGroup,
+    ReactiveFormsModule,
+    Validators,
+} from "@angular/forms";
 import { CommonModule } from "@angular/common";
-import { Subject, takeUntil } from "rxjs";
+import { Subject } from "rxjs";
 import { MessageService } from "primeng/api";
-import { UserService, GiftService } from "src/typescript-api-client/src/api/api";
+import {
+    UserService,
+    GiftService,
+} from "src/typescript-api-client/src/api/api";
 import { ButtonModule } from "primeng/button";
 import { DialogModule } from "primeng/dialog";
 import { TextareaModule } from "primeng/textarea";
@@ -107,7 +122,11 @@ export class SendGiftDialogComponent implements OnInit, OnDestroy {
     }
 
     sendGift(): void {
-        if (this.giftForm.invalid || !this.selectedGift || !this.recipientUser) {
+        if (
+            this.giftForm.invalid ||
+            !this.selectedGift ||
+            !this.recipientUser
+        ) {
             this.messageService.add({
                 severity: "warn",
                 summary: "Validation Error",
@@ -133,7 +152,8 @@ export class SendGiftDialogComponent implements OnInit, OnDestroy {
 
         this.giftService.sendGift(giftData).subscribe({
             next: (response) => {
-                this.balance = response.senderBalance?.toString() || this.balance;
+                this.balance =
+                    response.senderBalance?.toString() || this.balance;
                 this.messageService.add({
                     severity: "success",
                     summary: "Success",
@@ -146,7 +166,8 @@ export class SendGiftDialogComponent implements OnInit, OnDestroy {
             error: (error) => {
                 console.error("Error sending gift:", error);
                 const errorMsg =
-                    error.error?.message || "Failed to send gift. Please try again.";
+                    error.error?.message ||
+                    "Failed to send gift. Please try again.";
                 this.messageService.add({
                     severity: "error",
                     summary: "Error",
@@ -181,4 +202,3 @@ export class SendGiftDialogComponent implements OnInit, OnDestroy {
         this.closeDialog();
     }
 }
-

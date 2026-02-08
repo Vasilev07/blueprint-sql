@@ -107,7 +107,7 @@ export class WebsocketService {
             // Socket connected
             this.setupSharedListeners();
         });
-        this.socket.on("disconnect", (reason) => {
+        this.socket.on("disconnect", (_reason) => {
             // Socket disconnected
         });
         this.socket.on("connect_error", (err: Error) => {
@@ -448,7 +448,7 @@ export class WebsocketService {
     }
 
     onForumPostCreated(
-        roomId: number,
+        _roomId: number,
     ): Observable<{ roomId: number; post: ForumPostDTO }> {
         return new Observable<{ roomId: number; post: ForumPostDTO }>(
             (observer) => {
@@ -463,7 +463,7 @@ export class WebsocketService {
     }
 
     onForumPostUpdated(
-        roomId: number,
+        _roomId: number,
     ): Observable<{ roomId: number; post: ForumPostDTO }> {
         return new Observable<{ roomId: number; post: ForumPostDTO }>(
             (observer) => {
@@ -478,7 +478,7 @@ export class WebsocketService {
     }
 
     onForumPostDeleted(
-        roomId: number,
+        _roomId: number,
     ): Observable<{ roomId: number; postId: number }> {
         return new Observable<{ roomId: number; postId: number }>(
             (observer) => {
@@ -491,7 +491,7 @@ export class WebsocketService {
     }
 
     onForumCommentCreated(
-        roomId: number,
+        _roomId: number,
     ): Observable<{ postId: number; comment: ForumCommentDTO }> {
         return new Observable<{ postId: number; comment: ForumCommentDTO }>(
             (observer) => {
@@ -506,7 +506,7 @@ export class WebsocketService {
     }
 
     onForumCommentUpdated(
-        roomId: number,
+        _roomId: number,
     ): Observable<{ postId: number; comment: ForumCommentDTO }> {
         return new Observable<{ postId: number; comment: ForumCommentDTO }>(
             (observer) => {
@@ -521,7 +521,7 @@ export class WebsocketService {
     }
 
     onForumCommentDeleted(
-        roomId: number,
+        _roomId: number,
     ): Observable<{ roomId: number; postId: number; commentId: number }> {
         return new Observable<{
             roomId: number;

@@ -1,10 +1,4 @@
-import {
-    Component,
-    OnInit,
-    OnDestroy,
-    ViewChild,
-    ElementRef,
-} from "@angular/core";
+import { Component, OnInit, OnDestroy, ViewChild } from "@angular/core";
 import { Subject, takeUntil } from "rxjs";
 import { NotificationService } from "../services/notification.service";
 import { CommonModule } from "@angular/common";
@@ -18,7 +12,14 @@ import { TooltipModule } from "primeng/tooltip";
 @Component({
     selector: "app-notification",
     standalone: true,
-    imports: [CommonModule, RouterModule, PopoverModule, ButtonModule, AvatarModule, TooltipModule],
+    imports: [
+        CommonModule,
+        RouterModule,
+        PopoverModule,
+        ButtonModule,
+        AvatarModule,
+        TooltipModule,
+    ],
     templateUrl: "./notification.component.html",
     styleUrls: ["./notification.component.scss"],
 })

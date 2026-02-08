@@ -6,7 +6,10 @@ import { UserService } from "../../typescript-api-client/src/api/api";
 import { ProfileViewDTO } from "../../typescript-api-client/src/model/profile-view-dto";
 import { MessageService } from "primeng/api";
 import { DomSanitizer, SafeUrl } from "@angular/platform-browser";
-import { GiftDialogUser, SendGiftDialogComponent } from "../shared/send-gift-dialog/send-gift-dialog.component";
+import {
+    GiftDialogUser,
+    SendGiftDialogComponent,
+} from "../shared/send-gift-dialog/send-gift-dialog.component";
 import { ButtonModule } from "primeng/button";
 import { TooltipModule } from "primeng/tooltip";
 import { ProgressSpinnerModule } from "primeng/progressspinner";
@@ -36,7 +39,8 @@ export class WhoVisitedMeComponent implements OnInit, OnDestroy {
     profileViews: ProfileViewDTO[] = [];
     loading = false;
     profilePictures = new Map<number, SafeUrl | string>();
-    defaultAvatar: string = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCBmaWxsPSIjZGRkIiB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIvPjxjaXJjbGUgY3g9IjUwIiBjeT0iMzUiIHI9IjE1IiBmaWxsPSIjOTk5Ii8+PHBhdGggZD0iTTI1IDcwIGMyMC0xMCAzMC0xMCA1MCAwIiBzdHJva2U9IiM5OTkiIHN0cm9rZS13aWR0aD0iMTAiIGZpbGw9Im5vbmUiLz48L3N2Zz4=";
+    defaultAvatar: string =
+        "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCBmaWxsPSIjZGRkIiB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIvPjxjaXJjbGUgY3g9IjUwIiBjeT0iMzUiIHI9IjE1IiBmaWxsPSIjOTk5Ii8+PHBhdGggZD0iTTI1IDcwIGMyMC0xMCAzMC0xMCA1MCAwIiBzdHJva2U9IiM5OTkiIHN0cm9rZS13aWR0aD0iMTAiIGZpbGw9Im5vbmUiLz48L3N2Zz4=";
     private loadingProfilePictures = new Set<number>();
     private destroy$ = new Subject<void>();
 
@@ -109,10 +113,14 @@ export class WhoVisitedMeComponent implements OnInit, OnDestroy {
     ngOnDestroy(): void {
         this.destroy$.next();
         this.destroy$.complete();
-        
+
         // Revoke blob URLs to free memory
         this.profilePictures.forEach((url) => {
-            if (url !== this.defaultAvatar && typeof url === 'string' && url.startsWith('blob:')) {
+            if (
+                url !== this.defaultAvatar &&
+                typeof url === "string" &&
+                url.startsWith("blob:")
+            ) {
                 URL.revokeObjectURL(url);
             }
         });
@@ -139,7 +147,10 @@ export class WhoVisitedMeComponent implements OnInit, OnDestroy {
                     // Load profile pictures for unique viewers only
                     const uniqueViewerIds = new Set<number>();
                     this.profileViews.forEach((view) => {
-                        if (view.viewerId && !uniqueViewerIds.has(view.viewerId)) {
+                        if (
+                            view.viewerId &&
+                            !uniqueViewerIds.has(view.viewerId)
+                        ) {
                             uniqueViewerIds.add(view.viewerId);
                             this.loadProfilePicture(view.viewerId);
                         }
@@ -159,7 +170,7 @@ export class WhoVisitedMeComponent implements OnInit, OnDestroy {
 
     formatTimeAgo(dateString: string): string {
         if (!dateString) return "Unknown";
-        
+
         const date = new Date(dateString);
         const now = new Date();
         const diffInSeconds = Math.floor(
@@ -210,7 +221,7 @@ export class WhoVisitedMeComponent implements OnInit, OnDestroy {
         this.showSendGiftDialog = true;
     }
 
-    onGiftSent(response: any): void {
+    onGiftSent(_response: any): void {
         // Gift was sent successfully, dialog is already closed
         this.recipientUserForGift = null;
     }
@@ -225,7 +236,10 @@ export class WhoVisitedMeComponent implements OnInit, OnDestroy {
 
     loadProfilePicture(userId: number): void {
         // Skip if already loaded or loading
-        if (this.profilePictures.has(userId) || this.loadingProfilePictures.has(userId)) {
+        if (
+            this.profilePictures.has(userId) ||
+            this.loadingProfilePictures.has(userId)
+        ) {
             return;
         }
 
@@ -251,7 +265,7 @@ export class WhoVisitedMeComponent implements OnInit, OnDestroy {
                         const objectURL = URL.createObjectURL(blob);
                         this.profilePictures.set(
                             userId,
-                            this.sanitizer.bypassSecurityTrustUrl(objectURL)
+                            this.sanitizer.bypassSecurityTrustUrl(objectURL),
                         );
                     } else {
                         this.profilePictures.set(userId, this.defaultAvatar);
@@ -264,7 +278,10 @@ export class WhoVisitedMeComponent implements OnInit, OnDestroy {
                 error: (error) => {
                     // Profile picture not found is okay
                     if (error.status !== 404) {
-                        console.error(`Error loading profile picture for user ${userId}:`, error);
+                        console.error(
+                            `Error loading profile picture for user ${userId}:`,
+                            error,
+                        );
                     }
                     this.profilePictures.set(userId, this.defaultAvatar);
                     this.loadingProfilePictures.delete(userId);
@@ -281,11 +298,14 @@ export class WhoVisitedMeComponent implements OnInit, OnDestroy {
 
     isDefaultAvatar(picture: SafeUrl | string | undefined): boolean {
         if (!picture) return true;
-        if (typeof picture === 'string') {
+        if (typeof picture === "string") {
             return picture === this.defaultAvatar;
         }
         // For SafeUrl, check by comparing the underlying value
-        return (picture as any).changingThisBreaksApplicationSecurity === this.defaultAvatar;
+        return (
+            (picture as any).changingThisBreaksApplicationSecurity ===
+            this.defaultAvatar
+        );
     }
 
     onImageError(event: Event): void {
@@ -303,4 +323,3 @@ export class WhoVisitedMeComponent implements OnInit, OnDestroy {
             .substring(0, 2);
     }
 }
-

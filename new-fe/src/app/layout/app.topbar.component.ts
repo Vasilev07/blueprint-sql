@@ -13,7 +13,13 @@ import { NotificationComponent } from "../notifications/notification.component";
 @Component({
     selector: "app-topbar",
     standalone: true,
-    imports: [CommonModule, RouterModule, MenuModule, ButtonModule, NotificationComponent],
+    imports: [
+        CommonModule,
+        RouterModule,
+        MenuModule,
+        ButtonModule,
+        NotificationComponent,
+    ],
     templateUrl: "./app.topbar.component.html",
 })
 export class AppTopBarComponent implements OnInit {

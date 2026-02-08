@@ -1,12 +1,22 @@
 import { Component, OnDestroy, OnInit } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from "@angular/forms";
+import {
+    FormsModule,
+    ReactiveFormsModule,
+    FormBuilder,
+    FormGroup,
+    Validators,
+} from "@angular/forms";
 import { HttpClient } from "@angular/common/http";
 import { Subject, takeUntil } from "rxjs";
 import { ConfirmationService, MessageService } from "primeng/api";
 import { LayoutService } from "../layout/service/app.layout.service";
 import { OrderService } from "../../typescript-api-client/src/api/api";
-import { OrderDTO, ProductDTO, ContactInformationDTO, AddressDTO } from "../../typescript-api-client/src/model/models";
+import {
+    OrderDTO,
+    ContactInformationDTO,
+    AddressDTO,
+} from "../../typescript-api-client/src/model/models";
 import { TableModule } from "primeng/table";
 import { ButtonModule } from "primeng/button";
 import { DialogModule } from "primeng/dialog";
@@ -77,8 +87,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
         private readonly orderService: OrderService,
     ) {}
 
-    ngOnInit(): void {
-    }
+    ngOnInit(): void {}
 
     ngOnDestroy() {
         this.ngUnsubscribe.next();
@@ -117,9 +126,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
             header: "Confirm",
             icon: "pi pi-exclamation-triangle",
             accept: () => {
-                this.orders = this.orders.filter(
-                    (val) => val.id !== order.id,
-                );
+                this.orders = this.orders.filter((val) => val.id !== order.id);
                 this.messageService.add({
                     severity: "success",
                     summary: "Successful",
@@ -137,7 +144,11 @@ export class OrdersComponent implements OnInit, OnDestroy {
     }
 
     saveOrder() {
-        this.isEdit ? this.updateOrder() : this.createOrder();
+        if (this.isEdit) {
+            this.updateOrder();
+        } else {
+            this.createOrder();
+        }
     }
 
     editOrder(order: any) {

@@ -11,7 +11,14 @@ import { MenuService } from "../app.menu.service";
 @Component({
     selector: "app-config",
     standalone: true,
-    imports: [CommonModule, FormsModule, DrawerModule, RadioButtonModule, ButtonModule, ToggleSwitchModule],
+    imports: [
+        CommonModule,
+        FormsModule,
+        DrawerModule,
+        RadioButtonModule,
+        ButtonModule,
+        ToggleSwitchModule,
+    ],
     templateUrl: "./app.config.component.html",
 })
 export class AppConfigComponent {

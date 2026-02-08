@@ -2,7 +2,7 @@ import { Component, OnInit } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { ActivatedRoute, Router, RouterModule } from "@angular/router";
 import { ButtonModule } from "primeng/button";
-import { MessagesService } from 'src/typescript-api-client/src/api/api';
+import { MessagesService } from "src/typescript-api-client/src/api/api";
 import { MessageDTO } from "src/typescript-api-client/src/model/models";
 import { MessageService } from "primeng/api";
 
@@ -11,7 +11,7 @@ import { MessageService } from "primeng/api";
     standalone: true,
     imports: [CommonModule, RouterModule, ButtonModule],
     templateUrl: "./message-view.component.html",
-    styleUrls: ['./message-view.component.scss'],
+    styleUrls: ["./message-view.component.scss"],
 })
 export class MessageViewComponent implements OnInit {
     message: MessageDTO | null = null;
@@ -22,8 +22,7 @@ export class MessageViewComponent implements OnInit {
         private router: Router,
         private messagesService: MessagesService,
         private messageService: MessageService,
-    ) {
-    }
+    ) {}
 
     ngOnInit(): void {
         const messageId = this.route.snapshot.paramMap.get("id");

@@ -10,7 +10,6 @@ import { AuthService } from "./services/auth.service";
 import { JwtModule } from "@auth0/angular-jwt";
 import { AuthGuard } from "./services/auth.guard";
 import { AuthInterceptor } from "./interceptors/auth.interceptor";
-import { BASE_PATH } from "src/typescript-api-client/src/variables";
 import { Configuration } from "src/typescript-api-client/src";
 import { ApiModule } from "src/typescript-api-client/src/api.module";
 import { environment } from "src/environments/environment";
@@ -57,11 +56,14 @@ export function tokenGetter() {
         BrowserAnimationsModule,
         AppLayoutModule,
         SharedComponentsModule,
-        ApiModule.forRoot(() => new Configuration({
-            basePath: environment.apiUrl,
-            withCredentials: true,
-            accessToken: () => localStorage.getItem("id_token") || ''
-        })),
+        ApiModule.forRoot(
+            () =>
+                new Configuration({
+                    basePath: environment.apiUrl,
+                    withCredentials: true,
+                    accessToken: () => localStorage.getItem("id_token") || "",
+                }),
+        ),
         JwtModule.forRoot({
             config: {
                 tokenGetter: tokenGetter,
@@ -85,11 +87,11 @@ export function tokenGetter() {
         {
             provide: HTTP_INTERCEPTORS,
             useClass: AuthInterceptor,
-            multi: true
+            multi: true,
         },
         AuthService,
         AuthGuard,
-        MessageService
+        MessageService,
     ],
     bootstrap: [AppComponent],
 })

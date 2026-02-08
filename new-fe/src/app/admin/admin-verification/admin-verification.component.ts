@@ -7,7 +7,6 @@ import { MessageService, ConfirmationService } from "primeng/api";
 import { UserService } from "src/typescript-api-client/src/api/api";
 
 import { VerificationRequestDTO } from "src/typescript-api-client/src/model/verification-request-dto";
-import { ReviewVerificationRequestDTO } from "src/typescript-api-client/src/model/review-verification-request-dto";
 
 import { TableModule } from "primeng/table";
 import { ButtonModule } from "primeng/button";
@@ -77,7 +76,7 @@ export class AdminVerificationComponent implements OnInit, OnDestroy {
         private messageService: MessageService,
         private confirmationService: ConfirmationService,
         private sanitizer: DomSanitizer,
-    ) { }
+    ) {}
 
     ngOnInit(): void {
         this.loadVerificationRequests();
@@ -133,13 +132,22 @@ export class AdminVerificationComponent implements OnInit, OnDestroy {
             const searchLower = this.searchTerm.toLowerCase();
             filtered = filtered.filter(
                 (request) =>
-                    (request.user?.fullName && request.user.fullName.toLowerCase().includes(searchLower)) ||
-                    (request.user?.email && request.user.email.toLowerCase().includes(searchLower)),
+                    (request.user?.fullName &&
+                        request.user.fullName
+                            .toLowerCase()
+                            .includes(searchLower)) ||
+                    (request.user?.email &&
+                        request.user.email.toLowerCase().includes(searchLower)),
             );
         }
 
         this.filteredRequests = filtered;
-        console.log("Filtered requests:", this.filteredRequests.length, "out of", this.verificationRequests.length);
+        console.log(
+            "Filtered requests:",
+            this.filteredRequests.length,
+            "out of",
+            this.verificationRequests.length,
+        );
     }
 
     onStatusFilterChange(): void {
@@ -192,7 +200,7 @@ export class AdminVerificationComponent implements OnInit, OnDestroy {
         if (!request || request.id === undefined) return;
 
         const reviewData = {
-            status: this.reviewForm.status as 'verified' | 'rejected',
+            status: this.reviewForm.status as "verified" | "rejected",
             rejectionReason: this.reviewForm.rejectionReason || undefined,
         };
 
@@ -238,7 +246,9 @@ export class AdminVerificationComponent implements OnInit, OnDestroy {
         this.selectedRequest = null;
     }
 
-    getStatusSeverity(status: string): "success" | "secondary" | "info" | "warn" | "danger" | "contrast" {
+    getStatusSeverity(
+        status: string,
+    ): "success" | "secondary" | "info" | "warn" | "danger" | "contrast" {
         switch (status) {
             case "pending":
                 return "warn";
@@ -279,20 +289,22 @@ export class AdminVerificationComponent implements OnInit, OnDestroy {
         }
 
         // Use the generated API service which handles authentication automatically
-        this.userService.getVerificationPhoto(requestId)
+        this.userService
+            .getVerificationPhoto(requestId)
             .pipe(takeUntil(this.destroy$))
             .subscribe({
                 next: (blob) => {
                     const objectUrl = URL.createObjectURL(blob);
-                    const safeUrl = this.sanitizer.bypassSecurityTrustUrl(objectUrl);
+                    const safeUrl =
+                        this.sanitizer.bypassSecurityTrustUrl(objectUrl);
                     this.photoUrlCache.set(requestId, safeUrl);
                 },
                 error: (error) => {
-                    console.error('Error loading verification photo:', error);
+                    console.error("Error loading verification photo:", error);
                     this.messageService.add({
-                        severity: 'error',
-                        summary: 'Error',
-                        detail: 'Failed to load verification photo',
+                        severity: "error",
+                        summary: "Error",
+                        detail: "Failed to load verification photo",
                     });
                 },
             });

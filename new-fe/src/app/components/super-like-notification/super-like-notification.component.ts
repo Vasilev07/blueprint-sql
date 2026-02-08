@@ -1,20 +1,24 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { SuperLikeNotificationService, SuperLikeReceivedNotification, SuperLikeSentNotification } from '../../services/super-like-notification.service';
-import { UserService } from 'src/typescript-api-client/src/api/api';
-import { Subject, takeUntil } from 'rxjs';
+import { Component, OnInit, OnDestroy } from "@angular/core";
+import { CommonModule } from "@angular/common";
+import {
+    SuperLikeNotificationService,
+    SuperLikeReceivedNotification,
+    SuperLikeSentNotification,
+} from "../../services/super-like-notification.service";
+import { UserService } from "src/typescript-api-client/src/api/api";
+import { Subject, takeUntil } from "rxjs";
 
 @Component({
-    selector: 'app-super-like-notification',
+    selector: "app-super-like-notification",
     standalone: true,
     imports: [CommonModule],
-    templateUrl: './super-like-notification.component.html',
-    styleUrls: ['./super-like-notification.component.scss']
+    templateUrl: "./super-like-notification.component.html",
+    styleUrls: ["./super-like-notification.component.scss"],
 })
 export class SuperLikeNotificationComponent implements OnInit, OnDestroy {
     private destroy$ = new Subject<void>();
     showSuperLikeAnimation = false;
-    notificationType: 'received' | 'sent' | null = null;
+    notificationType: "received" | "sent" | null = null;
     receivedSuperLike: SuperLikeReceivedNotification | null = null;
     sentSuperLike: SuperLikeSentNotification | null = null;
 
@@ -30,17 +34,17 @@ export class SuperLikeNotificationComponent implements OnInit, OnDestroy {
             .subscribe({
                 next: (notification) => {
                     if (notification) {
-                        this.notificationType = 'received';
+                        this.notificationType = "received";
                         this.receivedSuperLike = notification.data;
                         this.sentSuperLike = null;
                         this.showSuperLikeAnimation = true;
-                        
+
                         // Auto-hide animation after 5 seconds
                         setTimeout(() => {
                             this.closeAnimation();
                         }, 5000);
                     }
-                }
+                },
             });
 
         // Listen for sent super likes (for sender)
@@ -49,18 +53,21 @@ export class SuperLikeNotificationComponent implements OnInit, OnDestroy {
             .subscribe({
                 next: (notification) => {
                     if (notification) {
-                        console.log('✅ Super like sent notification in component:', notification);
-                        this.notificationType = 'sent';
+                        console.log(
+                            "✅ Super like sent notification in component:",
+                            notification,
+                        );
+                        this.notificationType = "sent";
                         this.sentSuperLike = notification.data;
                         this.receivedSuperLike = null;
                         this.showSuperLikeAnimation = true;
-                        
+
                         // Auto-hide animation after 5 seconds
                         setTimeout(() => {
                             this.closeAnimation();
                         }, 5000);
                     }
-                }
+                },
             });
     }
 
@@ -71,9 +78,9 @@ export class SuperLikeNotificationComponent implements OnInit, OnDestroy {
 
     closeAnimation(): void {
         this.showSuperLikeAnimation = false;
-        if (this.notificationType === 'received') {
+        if (this.notificationType === "received") {
             this.superLikeNotificationService.clearReceivedNotification();
-        } else if (this.notificationType === 'sent') {
+        } else if (this.notificationType === "sent") {
             this.superLikeNotificationService.clearSentNotification();
         }
         // Clear notifications after animation closes
@@ -84,4 +91,3 @@ export class SuperLikeNotificationComponent implements OnInit, OnDestroy {
         }, 300); // Small delay to allow fade out
     }
 }
-

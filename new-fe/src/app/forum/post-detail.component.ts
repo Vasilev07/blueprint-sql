@@ -168,7 +168,8 @@ export class PostDetailComponent implements OnInit, OnDestroy {
                     this.messageService.add({
                         severity: "error",
                         summary: "Error",
-                        detail: error?.error?.message || "Failed to create comment",
+                        detail:
+                            error?.error?.message || "Failed to create comment",
                     });
                 },
             });
@@ -194,4 +195,3 @@ export class PostDetailComponent implements OnInit, OnDestroy {
         this.router.navigate(["/forum/room", this.roomId]);
     }
 }
-

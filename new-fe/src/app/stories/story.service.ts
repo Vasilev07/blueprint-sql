@@ -28,12 +28,12 @@ export interface Story {
     createdAt: string;
     expiresAt: string;
     isProcessed: boolean;
-    
+
     // UI-specific fields
     userAvatar?: string;
     videoUrl: string;
     thumbnailUrl: string;
-    
+
     // Future features
     caption?: string;
     tags?: string[];
@@ -51,9 +51,7 @@ export class StoryService {
 
     public stories$ = this.storiesSubject.asObservable();
 
-    constructor(
-        private storiesApiService: StoriesService
-    ) {
+    constructor(private storiesApiService: StoriesService) {
         this.loadStories();
     }
 
@@ -64,24 +62,25 @@ export class StoryService {
                 const mappedStories = stories.map((dto) =>
                     this.mapDTOToStory(dto),
                 );
-                
+
                 // Load thumbnail blob URLs for all stories
                 const thumbnailRequests = mappedStories.map((story, index) => {
                     if (story.thumbnailUrl) {
                         const filename = story.thumbnailUrl;
                         return this.getThumbnailBlobUrl(filename).pipe(
-                            map(blobUrl => ({ index, blobUrl }))
+                            map((blobUrl) => ({ index, blobUrl })),
                         );
                     }
-                    return of({ index, blobUrl: '' });
+                    return of({ index, blobUrl: "" });
                 });
-                
+
                 // Load all thumbnails in parallel
                 if (thumbnailRequests.length > 0) {
-                    forkJoin(thumbnailRequests).subscribe(results => {
-                        results.forEach(result => {
+                    forkJoin(thumbnailRequests).subscribe((results) => {
+                        results.forEach((result) => {
                             if (result.blobUrl) {
-                                mappedStories[result.index].thumbnailUrl = result.blobUrl;
+                                mappedStories[result.index].thumbnailUrl =
+                                    result.blobUrl;
                             }
                         });
                         this.storiesSubject.next(mappedStories);
@@ -99,11 +98,16 @@ export class StoryService {
     getStoryById(storyId: string): Observable<Story | undefined> {
         const stories = this.storiesSubject.value;
         const story = stories.find((s) => s.id === storyId);
-        console.log('getStoryById:', { storyId, found: !!story, totalStories: stories.length, story });
+        console.log("getStoryById:", {
+            storyId,
+            found: !!story,
+            totalStories: stories.length,
+            story,
+        });
         return of(story);
     }
 
-    likeStory(storyId: string): Observable<boolean> {
+    likeStory(_storyId: string): Observable<boolean> {
         // TODO: Implement backend like endpoint
         return of(false);
     }
@@ -121,10 +125,9 @@ export class StoryService {
                     this.storiesSubject.next(updatedStories);
                 }
             }),
-            map(() => true)
+            map(() => true),
         );
     }
-
 
     uploadStory(videoFile: File): Observable<StoryUploadResponseDTO> {
         return this.storiesApiService
@@ -140,7 +143,7 @@ export class StoryService {
                 const updatedStories = stories.filter((s) => s.id !== storyId);
                 this.storiesSubject.next(updatedStories);
             }),
-            map(() => true)
+            map(() => true),
         );
     }
 
@@ -159,33 +162,33 @@ export class StoryService {
     }
 
     getVideoBlobUrl(filename: string): Observable<string> {
-        return this.storiesApiService.streamVideo(filename, 'response').pipe(
-            map(response => {
+        return this.storiesApiService.streamVideo(filename, "response").pipe(
+            map((response) => {
                 const blob = response.body as Blob;
                 return URL.createObjectURL(blob);
             }),
-            catchError(error => {
-                console.error('Error loading video:', error);
-                return of('');
-            })
+            catchError((error) => {
+                console.error("Error loading video:", error);
+                return of("");
+            }),
         );
     }
 
     getThumbnailBlobUrl(filename: string): Observable<string> {
-        return this.storiesApiService.getThumbnail(filename, 'response').pipe(
-            map(response => {
+        return this.storiesApiService.getThumbnail(filename, "response").pipe(
+            map((response) => {
                 const blob = response.body as Blob;
                 return URL.createObjectURL(blob);
             }),
-            catchError(error => {
-                console.error('Error loading thumbnail:', error);
-                return of('');
-            })
+            catchError((error) => {
+                console.error("Error loading thumbnail:", error);
+                return of("");
+            }),
         );
     }
 
     private mapDTOToStory(dto: StoryDTO): Story {
-        const videoFilename = dto.filePath.split("/").pop() || '';
+        const videoFilename = dto.filePath.split("/").pop() || "";
         const thumbnailFilename = dto.thumbnailPath?.split("/").pop();
 
         return {

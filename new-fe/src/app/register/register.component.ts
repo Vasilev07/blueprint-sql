@@ -15,7 +15,16 @@ import { MessageService } from "primeng/api";
 @Component({
     selector: "app-register",
     standalone: true,
-    imports: [CommonModule, FormsModule, RouterModule, ButtonModule, InputTextModule, PasswordModule, SelectModule, ToastModule],
+    imports: [
+        CommonModule,
+        FormsModule,
+        RouterModule,
+        ButtonModule,
+        InputTextModule,
+        PasswordModule,
+        SelectModule,
+        ToastModule,
+    ],
     templateUrl: "./register.component.html",
     providers: [MessageService],
     styles: [
@@ -36,7 +45,7 @@ export class RegisterComponent {
     fullName: string = "";
     gender: string = "";
     city: string = "";
-    
+
     emailExists: boolean = false;
     emailChecked: boolean = false;
 
@@ -50,7 +59,7 @@ export class RegisterComponent {
         public layoutService: LayoutService,
         private authService: AuthService,
         private router: Router,
-        private messageService: MessageService
+        private messageService: MessageService,
     ) {}
 
     public checkEmail(): void {
@@ -69,14 +78,19 @@ export class RegisterComponent {
                 },
                 (error) => {
                     console.error("Error checking email:", error);
-                }
+                },
             );
         }
     }
 
     public register(): void {
         // Validation
-        if (!this.email || !this.password || !this.confirmPassword || !this.fullName) {
+        if (
+            !this.email ||
+            !this.password ||
+            !this.confirmPassword ||
+            !this.fullName
+        ) {
             this.messageService.add({
                 severity: "error",
                 summary: "Error",
@@ -113,7 +127,7 @@ export class RegisterComponent {
         };
 
         this.authService.register(userDTO).subscribe(
-            (res) => {
+            (_res) => {
                 this.messageService.add({
                     severity: "success",
                     summary: "Success",
@@ -128,9 +142,11 @@ export class RegisterComponent {
                 this.messageService.add({
                     severity: "error",
                     summary: "Error",
-                    detail: error.error?.message || "Registration failed. Please try again.",
+                    detail:
+                        error.error?.message ||
+                        "Registration failed. Please try again.",
                 });
-            }
+            },
         );
     }
 
@@ -138,4 +154,3 @@ export class RegisterComponent {
         this.router.navigate(["/login"]);
     }
 }
-

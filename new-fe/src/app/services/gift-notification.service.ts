@@ -1,7 +1,7 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { WebsocketService } from './websocket.service';
-import { Subject, takeUntil } from 'rxjs';
+import { Injectable } from "@angular/core";
+import { BehaviorSubject, Observable } from "rxjs";
+import { WebsocketService } from "./websocket.service";
+import { Subject, takeUntil } from "rxjs";
 
 export interface GiftNotification {
     giftId: number;
@@ -15,12 +15,15 @@ export interface GiftNotification {
 }
 
 @Injectable({
-    providedIn: 'root'
+    providedIn: "root",
 })
 export class GiftNotificationService {
-    private giftReceivedSubject = new BehaviorSubject<GiftNotification | null>(null);
-    public giftReceived$: Observable<GiftNotification | null> = this.giftReceivedSubject.asObservable();
-    
+    private giftReceivedSubject = new BehaviorSubject<GiftNotification | null>(
+        null,
+    );
+    public giftReceived$: Observable<GiftNotification | null> =
+        this.giftReceivedSubject.asObservable();
+
     private destroy$ = new Subject<void>();
 
     constructor(private websocketService: WebsocketService) {
@@ -28,16 +31,17 @@ export class GiftNotificationService {
     }
 
     private setupGiftNotifications(): void {
-        this.websocketService.onGiftReceived()
+        this.websocketService
+            .onGiftReceived()
             .pipe(takeUntil(this.destroy$))
             .subscribe({
                 next: (notification) => {
-                    console.log('Gift received notification:', notification);
+                    console.log("Gift received notification:", notification);
                     this.giftReceivedSubject.next(notification);
                 },
                 error: (error) => {
-                    console.error('Error receiving gift notification:', error);
-                }
+                    console.error("Error receiving gift notification:", error);
+                },
             });
     }
 
@@ -50,4 +54,3 @@ export class GiftNotificationService {
         this.destroy$.complete();
     }
 }
-

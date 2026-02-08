@@ -44,4 +44,3 @@ const routes: Routes = [
     providers: [MessageService],
 })
 export class GiftShopModule {}
-

@@ -38,12 +38,12 @@ export class RecentMessagesComponent {
     }
 
     getUserName(userId: string): string {
-        const user = this.users.find(u => String(u.id) === String(userId));
+        const user = this.users.find((u) => String(u.id) === String(userId));
         return user?.name || user?.fullName || user?.email || "Unknown User";
     }
 
     getUserAvatar(userId: string): string | undefined {
-        const user = this.users.find(u => String(u.id) === String(userId));
+        const user = this.users.find((u) => String(u.id) === String(userId));
         return user?.avatar;
     }
 
@@ -53,7 +53,7 @@ export class RecentMessagesComponent {
     }
 
     isUserOnline(userId: string): boolean {
-        const user = this.users.find(u => String(u.id) === String(userId));
+        const user = this.users.find((u) => String(u.id) === String(userId));
         return user?.isOnline || false;
     }
 

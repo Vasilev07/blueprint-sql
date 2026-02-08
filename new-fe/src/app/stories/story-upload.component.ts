@@ -1,10 +1,15 @@
 import { Component, OnInit, OnDestroy } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import { FormBuilder, FormGroup, Validators, FormsModule, ReactiveFormsModule } from "@angular/forms";
+import {
+    FormBuilder,
+    FormGroup,
+    FormsModule,
+    ReactiveFormsModule,
+} from "@angular/forms";
 import { Router } from "@angular/router";
-import { Subject, takeUntil } from "rxjs";
+import { Subject } from "rxjs";
 import { MessageService, ConfirmationService } from "primeng/api";
-import { Story, StoryService } from "./story.service";
+import { StoryService } from "./story.service";
 import { ButtonModule } from "primeng/button";
 import { FileUploadModule } from "primeng/fileupload";
 import { ProgressBarModule } from "primeng/progressbar";

@@ -4,12 +4,12 @@ import { Router, RouterModule } from "@angular/router";
 import { ButtonModule } from "primeng/button";
 import { AvatarModule } from "primeng/avatar";
 import { HttpClient } from "@angular/common/http";
-import { MessagesService } from 'src/typescript-api-client/src/api/api';
+import { MessagesService } from "src/typescript-api-client/src/api/api";
 import { MessageDTO } from "../../typescript-api-client/src/model/models";
 import { AuthService } from "../services/auth.service";
 import { WebsocketService } from "../services/websocket.service";
 import { PresenceService } from "../services/presence.service";
-import { Subscription } from 'rxjs';
+import { Subscription } from "rxjs";
 
 @Component({
     selector: "app-messages",
@@ -21,16 +21,16 @@ import { Subscription } from 'rxjs';
 export class MessagesComponent implements OnInit, OnDestroy {
     messages: MessageDTO[] = [];
     loading = false;
-    currentUserEmail: string = '';
+    currentUserEmail: string = "";
     private messageSubscription?: Subscription;
     unreadCount: number = 0;
 
     // Tab functionality
-    activeTab: 'unread' | 'read' | 'vip' = 'unread';
+    activeTab: "unread" | "read" | "vip" = "unread";
     tabs = [
-        { key: 'unread', label: 'Unread', icon: 'pi pi-envelope' },
-        { key: 'read', label: 'Read', icon: 'pi pi-check-circle' },
-        { key: 'vip', label: 'VIP', icon: 'pi pi-star' }
+        { key: "unread", label: "Unread", icon: "pi pi-envelope" },
+        { key: "read", label: "Read", icon: "pi pi-check-circle" },
+        { key: "vip", label: "VIP", icon: "pi pi-star" },
     ];
 
     constructor(
@@ -39,9 +39,8 @@ export class MessagesComponent implements OnInit, OnDestroy {
         private authService: AuthService,
         private websocketService: WebsocketService,
         private httpClient: HttpClient,
-        public presenceService: PresenceService
-    ) {
-    }
+        public presenceService: PresenceService,
+    ) {}
 
     ngOnInit(): void {
         this.currentUserEmail = this.authService.getUserEmail();
@@ -79,20 +78,22 @@ export class MessagesComponent implements OnInit, OnDestroy {
         });
     }
 
-    loadMessagesByTab(tab: 'unread' | 'read' | 'vip'): void {
+    loadMessagesByTab(tab: "unread" | "read" | "vip"): void {
         this.loading = true;
 
         const body = {
             email: this.currentUserEmail,
-            tab: tab
+            tab: tab,
         };
 
         this.messagesService.findMessagesByTab(body).subscribe({
             next: (messages: any) => {
                 this.messages = messages;
                 this.loading = false;
-                if (tab === 'unread') {
-                    this.unreadCount = Array.isArray(messages) ? messages.length : 0;
+                if (tab === "unread") {
+                    this.unreadCount = Array.isArray(messages)
+                        ? messages.length
+                        : 0;
                 }
             },
             error: (error) => {
@@ -105,17 +106,19 @@ export class MessagesComponent implements OnInit, OnDestroy {
     private loadUnreadCount(): void {
         const body = {
             email: this.currentUserEmail,
-            tab: 'unread'
+            tab: "unread",
         } as const;
 
         this.messagesService.findMessagesByTab(body).subscribe({
             next: (messages: any) => {
-                this.unreadCount = Array.isArray(messages) ? messages.length : 0;
+                this.unreadCount = Array.isArray(messages)
+                    ? messages.length
+                    : 0;
             },
             error: (error) => {
-                console.error('Error loading unread count:', error);
+                console.error("Error loading unread count:", error);
                 this.unreadCount = 0;
-            }
+            },
         });
     }
 
@@ -141,7 +144,9 @@ export class MessagesComponent implements OnInit, OnDestroy {
     archiveMessage(message: MessageDTO): void {
         if (message.id) {
             this.messagesService.archive(message.id).subscribe(() => {
-                this.messages = this.messages.filter(m => m.id !== message.id);
+                this.messages = this.messages.filter(
+                    (m) => m.id !== message.id,
+                );
             });
         }
     }
@@ -149,7 +154,9 @@ export class MessagesComponent implements OnInit, OnDestroy {
     deleteMessage(message: MessageDTO): void {
         if (message.id) {
             this.messagesService._delete(message.id).subscribe(() => {
-                this.messages = this.messages.filter(m => m.id !== message.id);
+                this.messages = this.messages.filter(
+                    (m) => m.id !== message.id,
+                );
             });
         }
     }

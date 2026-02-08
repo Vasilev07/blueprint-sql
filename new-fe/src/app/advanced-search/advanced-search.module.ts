@@ -48,4 +48,3 @@ import { SharedComponentsModule } from "../shared/components.module";
     ],
 })
 export class AdvancedSearchModule {}
-

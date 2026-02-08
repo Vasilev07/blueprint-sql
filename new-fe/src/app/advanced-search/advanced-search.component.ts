@@ -5,7 +5,10 @@ import { Router } from "@angular/router";
 import { Subject, takeUntil } from "rxjs";
 import { HomeService, HomeUser } from "../home/home.service";
 import { MessageService } from "primeng/api";
-import { GiftDialogUser, SendGiftDialogComponent } from "../shared/send-gift-dialog/send-gift-dialog.component";
+import {
+    GiftDialogUser,
+    SendGiftDialogComponent,
+} from "../shared/send-gift-dialog/send-gift-dialog.component";
 import { UserCardComponent } from "../home/user-card/user-card.component";
 import { ButtonModule } from "primeng/button";
 import { SelectModule } from "primeng/select";
@@ -130,7 +133,7 @@ export class AdvancedSearchComponent implements OnInit, OnDestroy {
         // Set up subscriptions first
         this.subscribeToUsers();
         this.subscribeToPaginationState();
-        
+
         // Load users immediately - subscriptions are already set up
         this.loadUsers();
 
@@ -149,13 +152,18 @@ export class AdvancedSearchComponent implements OnInit, OnDestroy {
     private subscribeToUsers(): void {
         this.homeService.users$.pipe(takeUntil(this.destroy$)).subscribe({
             next: (users) => {
-                console.log("AdvancedSearchComponent - Users updated:", users.length);
+                console.log(
+                    "AdvancedSearchComponent - Users updated:",
+                    users.length,
+                );
                 // Backend handles all filtering, just display the results
                 this.users = users;
                 // Clear loading state when we receive users data
                 // This ensures loading is cleared even if pagination state hasn't updated yet
                 if (users && users.length > 0 && this.isLoading) {
-                    console.log("AdvancedSearchComponent - Clearing loading state after receiving users");
+                    console.log(
+                        "AdvancedSearchComponent - Clearing loading state after receiving users",
+                    );
                     this.isLoading = false;
                 }
                 // Mark for check to ensure change detection runs
@@ -199,7 +207,10 @@ export class AdvancedSearchComponent implements OnInit, OnDestroy {
             .pipe(takeUntil(this.destroy$))
             .subscribe({
                 next: (users) => {
-                    console.log("AdvancedSearchComponent - getFilteredAndSortedUsers returned:", users.length);
+                    console.log(
+                        "AdvancedSearchComponent - getFilteredAndSortedUsers returned:",
+                        users.length,
+                    );
                     // Data will be updated via users$ subscription
                     // But also set directly as fallback
                     this.users = users;
@@ -210,7 +221,10 @@ export class AdvancedSearchComponent implements OnInit, OnDestroy {
                     }
                 },
                 error: (error) => {
-                    console.error("AdvancedSearchComponent - Error in loadUsers:", error);
+                    console.error(
+                        "AdvancedSearchComponent - Error in loadUsers:",
+                        error,
+                    );
                     this.isLoading = false;
                     this.messageService.add({
                         severity: "error",
@@ -366,7 +380,7 @@ export class AdvancedSearchComponent implements OnInit, OnDestroy {
             });
             return;
         }
-        
+
         this.selectedUserForGift = {
             id: user.id,
             fullName: user.fullName,
@@ -374,7 +388,7 @@ export class AdvancedSearchComponent implements OnInit, OnDestroy {
         this.showSendGiftDialog = true;
     }
 
-    onGiftSent(response: any): void {
+    onGiftSent(_response: any): void {
         // Gift was sent successfully, dialog is already closed
         this.selectedUserForGift = null;
     }
