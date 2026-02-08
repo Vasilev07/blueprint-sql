@@ -5,6 +5,14 @@
  * - Reinforce table and button styles so theme cascades
  */
 
+/* --- Layout Topbar: ensure dark theme background --- */
+.layout-theme-dark {
+  .layout-topbar {
+    background-color: #1f2937 !important;
+    background: #1f2937 !important;
+  }
+}
+
 /* --- Host elements: must display so theme styles apply --- */
 p-table,
 p-table.p-datatable {
@@ -316,6 +324,87 @@ p-dialog .p-dialog {
       .balance-check {
         background: #374151 !important;
         background-color: #374151 !important;
+      }
+    }
+  }
+
+  /* Chat component input overrides */
+  app-chat {
+    .chat-input {
+      background: #1f2937 !important;
+      background-color: #1f2937 !important;
+
+      .input-container,
+      .message-form .input-container {
+        background: #374151 !important;
+        background-color: #374151 !important;
+        border-color: rgba(255, 255, 255, 0.1) !important;
+
+        .message-input,
+        input.message-input {
+          background: transparent !important;
+          background-color: transparent !important;
+          color: rgba(255, 255, 255, 0.87) !important;
+
+          &::placeholder {
+            color: rgba(255, 255, 255, 0.6) !important;
+          }
+        }
+      }
+    }
+  }
+
+  /* Chat home sidebar search input */
+  app-chat-home {
+    .sidebar-search {
+      .p-input-icon-left {
+        position: relative;
+        display: flex;
+        align-items: center;
+        width: 100%;
+
+        i {
+          position: absolute;
+          left: 0.75rem;
+          color: rgba(255, 255, 255, 0.6) !important;
+          z-index: 1;
+          pointer-events: none;
+        }
+
+        input.search-input,
+        input.p-inputtext,
+        input.p-inputtext.search-input,
+        input.search-input.p-inputtext {
+          width: 100% !important;
+          background: #374151 !important;
+          background-color: #374151 !important;
+          color: rgba(255, 255, 255, 0.87) !important;
+          border: 1px solid rgba(255, 255, 255, 0.1) !important;
+          border-radius: 12px !important;
+          padding: 0.75rem 0.75rem 0.75rem 2.5rem !important;
+          font-size: 0.9375rem !important;
+          height: auto !important;
+          min-height: 2.5rem !important;
+
+          &::placeholder {
+            color: rgba(255, 255, 255, 0.6) !important;
+          }
+
+          &:hover {
+            background: #4b5563 !important;
+            background-color: #4b5563 !important;
+            border-color: rgba(255, 255, 255, 0.2) !important;
+          }
+
+          &:focus,
+          &:focus-visible {
+            background: #4b5563 !important;
+            background-color: #4b5563 !important;
+            border-color: #818cf8 !important;
+            box-shadow: 0 0 0 0.2rem rgba(129, 140, 248, 0.2) !important;
+            outline: none !important;
+          }
+        }
       }
     }
   }

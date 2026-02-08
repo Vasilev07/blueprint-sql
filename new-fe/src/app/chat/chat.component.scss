@@ -1314,29 +1314,75 @@
             border-color: var(--surface-border, rgba(255, 255, 255, 0.1));
             color: var(--text-color, rgba(255, 255, 255, 0.87));
           }
+
+          .gift-message-bubble {
+            .gift-message-container {
+              .gift-message-header {
+                .gift-info {
+                  .gift-amount {
+                    color: rgba(255, 255, 255, 0.87);
+                    background: rgba(31, 41, 55, 0.8);
+                    border-color: rgba(255, 255, 255, 0.1);
+                  }
+                }
+              }
+
+              .gift-message-text {
+                background: rgba(31, 41, 55, 0.6);
+                color: rgba(255, 255, 255, 0.87);
+                border-left-color: rgba(236, 72, 153, 0.5);
+                border-right-color: rgba(168, 85, 247, 0.5);
+              }
+            }
+          }
         }
 
         &.own-message {
           .message-bubble {
             background: linear-gradient(135deg, var(--pink-600, #c93d82) 0%, var(--purple-600, #8f48d2) 100%);
           }
+
+          .gift-message-bubble {
+            .gift-message-container {
+              .gift-message-header {
+                .gift-info {
+                  .gift-amount {
+                    color: rgba(255, 255, 255, 0.87);
+                    background: rgba(31, 41, 55, 0.8);
+                    border-color: rgba(255, 255, 255, 0.1);
+                  }
+                }
+              }
+
+              .gift-message-text {
+                background: rgba(31, 41, 55, 0.6);
+                color: rgba(255, 255, 255, 0.87);
+                border-left-color: rgba(236, 72, 153, 0.5);
+                border-right-color: rgba(168, 85, 247, 0.5);
+              }
+            }
+          }
         }
       }
     }
 
     .chat-input {
-      background: var(--surface-card, #1f2937);
+      background: var(--surface-card, #1f2937) !important;
+      background-color: var(--surface-card, #1f2937) !important;
       border-top-color: var(--surface-border, rgba(255, 255, 255, 0.1));
 
       .message-form .input-container {
-        background: var(--surface-100, #374151);
-        border-color: var(--surface-border, rgba(255, 255, 255, 0.1));
+        background: #374151 !important;
+        background-color: #374151 !important;
+        border-color: var(--surface-border, rgba(255, 255, 255, 0.1)) !important;
 
         .message-input {
-          color: var(--text-color, rgba(255, 255, 255, 0.87));
+          background: transparent !important;
+          background-color: transparent !important;
+          color: rgba(255, 255, 255, 0.87) !important;
 
           &::placeholder {
-            color: var(--text-color-secondary, rgba(255, 255, 255, 0.6));
+            color: rgba(255, 255, 255, 0.6) !important;
           }
         }
 
