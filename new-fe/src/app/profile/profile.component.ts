@@ -503,7 +503,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
 
     loadProfilePicture(): void {
-        // @ts-expect-error - getProfilePicture will be available after regeneration
         this.userService
             .getProfilePicture("response")
             .pipe(takeUntil(this.destroy$))
@@ -540,7 +539,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
         this.isUploading = true;
 
-        // @ts-expect-error - uploadProfilePicture will be available after regeneration
         this.userService
             .uploadProfilePicture(file)
             .pipe(takeUntil(this.destroy$))
@@ -577,7 +575,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
             return;
         }
 
-        // @ts-expect-error - setProfilePicture will be available after regeneration
         this.userService
             .setProfilePicture(photoId)
             .pipe(takeUntil(this.destroy$))
@@ -622,7 +619,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
             this.profilePictureBlobUrl = null;
         }
 
-        // @ts-expect-error - getUserById will return { user, profile }
         this.userService
             .getUserById(userId)
             .pipe(takeUntil(this.destroy$))
@@ -651,7 +647,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
 
     loadOtherUserPhotos(userId: number): void {
-        // @ts-expect-error - getUserPhotosByUserId will be available after regeneration
         this.userService
             .getUserPhotosByUserId(userId)
             .pipe(takeUntil(this.destroy$))
@@ -681,7 +676,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
 
     loadOtherUserProfilePicture(userId: number): void {
-        // @ts-expect-error - getProfilePictureByUserId will be available after regeneration
         this.userService
             .getProfilePictureByUserId(userId, "response")
             .pipe(takeUntil(this.destroy$))
