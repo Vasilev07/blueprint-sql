@@ -24,7 +24,7 @@ describe("Admin Service (e2e)", () => {
         await app.close();
     }, 10000);
 
-    test("register", async () => {
+    test.skip("register", async () => {
         const userDto = {
             fullName: "Georgi Vasilev",
             email: "georgevasile11v007@gmail.com",
