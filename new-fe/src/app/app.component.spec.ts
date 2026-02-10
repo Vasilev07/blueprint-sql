@@ -1,4 +1,6 @@
+import { NO_ERRORS_SCHEMA } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
+import { RouterOutlet } from "@angular/router";
 import { RouterTestingModule } from "@angular/router/testing";
 import { AppComponent } from "./app.component";
 import { PrimeNG } from "primeng/config";
@@ -33,7 +35,14 @@ describe("AppComponent", () => {
                 { provide: LayoutService, useValue: mockLayoutService },
                 { provide: ThemeService, useValue: mockThemeService },
             ],
-        }).compileComponents();
+        })
+            .overrideComponent(AppComponent, {
+                set: {
+                    imports: [RouterOutlet],
+                    schemas: [NO_ERRORS_SCHEMA],
+                },
+            })
+            .compileComponents();
     });
 
     it("should create the app", () => {

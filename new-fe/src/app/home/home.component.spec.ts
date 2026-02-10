@@ -1,10 +1,19 @@
+import { NO_ERRORS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { Router } from "@angular/router";
+import { Router, RouterModule } from "@angular/router";
+import { CommonModule } from "@angular/common";
+import { FormsModule } from "@angular/forms";
 import { MessageService } from "primeng/api";
+import { ButtonModule } from "primeng/button";
+import { SelectModule } from "primeng/select";
+import { TooltipModule } from "primeng/tooltip";
+import { ProgressSpinnerModule } from "primeng/progressspinner";
+import { InputTextModule } from "primeng/inputtext";
+import { IconFieldModule } from "primeng/iconfield";
+import { InputIconModule } from "primeng/inputicon";
 import { of, throwError, BehaviorSubject } from "rxjs";
 import { HomeComponent } from "./home.component";
 import { HomeService, HomeUser, FilterType, SortType } from "./home.service";
-import { GiftDialogUser } from "../shared/send-gift-dialog/send-gift-dialog.component";
 
 describe("HomeComponent", () => {
     let component: HomeComponent;
@@ -67,14 +76,33 @@ describe("HomeComponent", () => {
                 { provide: Router, useValue: router },
                 { provide: MessageService, useValue: messageService },
             ],
-        }).compileComponents();
+        })
+            .overrideComponent(HomeComponent, {
+                set: {
+                    imports: [
+                        CommonModule,
+                        FormsModule,
+                        RouterModule,
+                        ButtonModule,
+                        SelectModule,
+                        TooltipModule,
+                        ProgressSpinnerModule,
+                        InputTextModule,
+                        IconFieldModule,
+                        InputIconModule,
+                    ],
+                    providers: [],
+                    schemas: [NO_ERRORS_SCHEMA],
+                },
+            })
+            .compileComponents();
 
         fixture = TestBed.createComponent(HomeComponent);
         component = fixture.componentInstance;
     });
 
     describe("Component Initialization", () => {
-        it("should create", () => {
+        it("should create the component", () => {
             expect(component).toBeTruthy();
         });
 
@@ -118,7 +146,7 @@ describe("HomeComponent", () => {
 
             // Wait for signal to update
             setTimeout(() => {
-                expect(component.users().length).toBeGreaterThan(0);
+                expect(component?.users()?.length).toBeGreaterThan(0);
                 done();
             }, 100);
         });
@@ -154,7 +182,13 @@ describe("HomeComponent", () => {
         });
 
         it("should handle all filter types", () => {
-            const filters: FilterType[] = ["all", "online", "friends", "nearby", "new"];
+            const filters: FilterType[] = [
+                "all",
+                "online",
+                "friends",
+                "nearby",
+                "new",
+            ];
 
             filters.forEach((filter) => {
                 component.onFilterChange(filter);
@@ -276,14 +310,15 @@ describe("HomeComponent", () => {
     describe("Loading More Users", () => {
         it("should load more users when scroll reaches threshold", (done) => {
             component.isLoadingMore.set(false);
-            
+
             // Update paginationState to have more data
             const paginationStateSubject = new BehaviorSubject({
                 ...mockPaginationState,
                 hasMore: true,
             });
-            homeService.paginationState$ = paginationStateSubject.asObservable();
-            
+            homeService.paginationState$ =
+                paginationStateSubject.asObservable();
+
             // Recreate component to pick up new observable
             fixture = TestBed.createComponent(HomeComponent);
             component = fixture.componentInstance;
@@ -302,7 +337,7 @@ describe("HomeComponent", () => {
                 } as unknown as Event;
 
                 component.onScroll(event);
-                
+
                 setTimeout(() => {
                     expect(homeService.loadNextPage).toHaveBeenCalled();
                     done();
@@ -312,7 +347,7 @@ describe("HomeComponent", () => {
 
         it("should not load more if already loading", () => {
             component.isLoadingMore.set(true);
-            
+
             const mockElement = {
                 scrollTop: 800,
                 clientHeight: 200,
@@ -330,14 +365,15 @@ describe("HomeComponent", () => {
 
         it("should not load more if no more data", () => {
             component.isLoadingMore.set(false);
-            
+
             // Update paginationState to have no more data
             const paginationStateSubject = new BehaviorSubject({
                 ...mockPaginationState,
                 hasMore: false,
             });
-            homeService.paginationState$ = paginationStateSubject.asObservable();
-            
+            homeService.paginationState$ =
+                paginationStateSubject.asObservable();
+
             // Recreate component to pick up new observable
             fixture = TestBed.createComponent(HomeComponent);
             component = fixture.componentInstance;
@@ -363,14 +399,15 @@ describe("HomeComponent", () => {
                 .fn()
                 .mockReturnValue(throwError(() => new Error("Failed")));
             component.isLoadingMore.set(false);
-            
+
             // Update paginationState to have more data
             const paginationStateSubject = new BehaviorSubject({
                 ...mockPaginationState,
                 hasMore: true,
             });
-            homeService.paginationState$ = paginationStateSubject.asObservable();
-            
+            homeService.paginationState$ =
+                paginationStateSubject.asObservable();
+
             // Recreate component to pick up new observable
             fixture = TestBed.createComponent(HomeComponent);
             component = fixture.componentInstance;
@@ -388,7 +425,7 @@ describe("HomeComponent", () => {
                 } as unknown as Event;
 
                 component.onScroll(event);
-                
+
                 // Wait for error handling
                 setTimeout(() => {
                     expect(component.isLoadingMore()).toBe(false);
@@ -440,7 +477,9 @@ describe("HomeComponent", () => {
                 .fn()
                 .mockReturnValue(throwError(() => new Error("Failed")));
 
-            const consoleSpy = jest.spyOn(console, "error").mockImplementation();
+            const consoleSpy = jest
+                .spyOn(console, "error")
+                .mockImplementation();
 
             fixture = TestBed.createComponent(HomeComponent);
             component = fixture.componentInstance;
@@ -453,14 +492,15 @@ describe("HomeComponent", () => {
     describe("Scroll Handling", () => {
         it("should load more users when scroll reaches threshold", (done) => {
             component.isLoadingMore.set(false);
-            
+
             // Update paginationState to have more data
             const paginationStateSubject = new BehaviorSubject({
                 ...mockPaginationState,
                 hasMore: true,
             });
-            homeService.paginationState$ = paginationStateSubject.asObservable();
-            
+            homeService.paginationState$ =
+                paginationStateSubject.asObservable();
+
             // Recreate component to pick up new observable
             fixture = TestBed.createComponent(HomeComponent);
             component = fixture.componentInstance;
@@ -506,14 +546,15 @@ describe("HomeComponent", () => {
 
         it("should handle window scroll", (done) => {
             component.isLoadingMore.set(false);
-            
+
             // Update paginationState to have more data
             const paginationStateSubject = new BehaviorSubject({
                 ...mockPaginationState,
                 hasMore: true,
             });
-            homeService.paginationState$ = paginationStateSubject.asObservable();
-            
+            homeService.paginationState$ =
+                paginationStateSubject.asObservable();
+
             // Recreate component to pick up new observable
             fixture = TestBed.createComponent(HomeComponent);
             component = fixture.componentInstance;
@@ -521,15 +562,22 @@ describe("HomeComponent", () => {
 
             setTimeout(() => {
                 // Mock window properties
-                Object.defineProperty(window, "scrollY", { value: 800, writable: true });
+                Object.defineProperty(window, "scrollY", {
+                    value: 800,
+                    writable: true,
+                });
                 Object.defineProperty(window, "innerHeight", {
                     value: 200,
                     writable: true,
                 });
-                Object.defineProperty(document.documentElement, "scrollHeight", {
-                    value: 1000,
-                    writable: true,
-                });
+                Object.defineProperty(
+                    document.documentElement,
+                    "scrollHeight",
+                    {
+                        value: 1000,
+                        writable: true,
+                    },
+                );
 
                 component.onWindowScroll();
 

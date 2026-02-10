@@ -30,7 +30,7 @@ jobs:
     services:
         postgres:
           image: postgres
-          env: 
+          env:
             POSTGRES_USER: postgres
             POSTGRES_PASSWORD: postgres
           options: >-
@@ -51,7 +51,7 @@ jobs:
         working-directory: ./new-be
       - run: npm run test:e2e
         working-directory: ./new-be
-        env: 
+        env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: blueprint-sql-test
@@ -74,4 +74,18 @@ jobs:
       - run: npm install
         working-directory: ./new-fe
       - run: npm run lint
+        working-directory: ./new-fe
+
+  test-new-fe:
+    needs: [ lint-new-fe ]
+    name: New FE tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '20.12.2'
+      - run: npm install
+        working-directory: ./new-fe
+      - run: npm run test -- --watch=false --browsers=ChromeHeadless
         working-directory: ./new-fe
