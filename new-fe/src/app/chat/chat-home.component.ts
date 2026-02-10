@@ -1,11 +1,4 @@
-import {
-    Component,
-    signal,
-    computed,
-    effect,
-    inject,
-    HostListener,
-} from "@angular/core";
+import { Component, signal, effect, inject, HostListener } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { Router, ActivatedRoute } from "@angular/router";
 import { toObservable, toSignal } from "@angular/core/rxjs-interop";
