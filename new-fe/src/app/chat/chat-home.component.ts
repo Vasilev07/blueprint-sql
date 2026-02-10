@@ -38,9 +38,12 @@ export class ChatHomeComponent {
     private sanitizer = inject(DomSanitizer);
 
     // Convert observables to signals
-    lastRegisteredUsers = toSignal(this.chatService.getLastRegisteredUsers(10), {
-        initialValue: [] as User[],
-    });
+    lastRegisteredUsers = toSignal(
+        this.chatService.getLastRegisteredUsers(10),
+        {
+            initialValue: [] as User[],
+        },
+    );
     topFriends = toSignal(this.chatService.getTopFriends(10), {
         initialValue: [] as User[],
     });
@@ -75,22 +78,18 @@ export class ChatHomeComponent {
     users$ = toObservable(this.users);
 
     constructor() {
-        // Check initial screen size
         this.checkScreenSize();
 
-        // Load profile pictures for conversations when they change
         effect(() => {
             const conversations = this.conversations();
-            this.loadConversationAvatars(conversations);
+            this.loadConversationAvatars(conversations ?? []);
         });
 
-        // Check if there's a userId in query params
         const initialParams = this.route.snapshot.queryParams;
         if (initialParams["userId"]) {
             this.selectedUserId.set(initialParams["userId"]);
         }
 
-        // Subscribe to route query params
         this.route.queryParams.subscribe((params) => {
             if (params["userId"]) {
                 this.selectedUserId.set(params["userId"]);
@@ -100,31 +99,13 @@ export class ChatHomeComponent {
         });
     }
 
-    // Cleanup effect for revoking blob URLs
-    private cleanupEffect = effect(() => {
-        const avatars = this.conversationAvatars();
-        // This effect runs when avatars change, but we'll handle cleanup in ngOnDestroy equivalent
-        // For now, we'll use a cleanup function that can be called
-    });
-
-    // Cleanup function to revoke blob URLs
-    private cleanupAvatars(): void {
-        const avatars = this.conversationAvatars();
-        avatars.forEach((url) => {
-            if (url && url !== this.defaultAvatar && url.startsWith("blob:")) {
-                URL.revokeObjectURL(url);
-            }
-        });
-        this.conversationAvatars.set(new Map());
-    }
-
     startChat(userId: any): void {
         const id = String(
             userId && typeof userId === "object" ? userId.id : userId,
         );
         if (!id || id === "undefined" || id === "null") return;
         this.selectedUserId.set(id);
-        // Update URL to reflect the selected conversation
+
         this.router.navigate(["/chat"], {
             queryParams: { userId: id },
             replaceUrl: true,
@@ -139,7 +120,6 @@ export class ChatHomeComponent {
 
         if (otherUserId) {
             this.selectedUserId.set(otherUserId);
-            // Update URL to reflect the selected conversation
             this.router.navigate(["/chat"], {
                 queryParams: { userId: otherUserId },
                 replaceUrl: true,
@@ -168,7 +148,7 @@ export class ChatHomeComponent {
 
     getUserName(userId: string): string {
         const friendsList = this.friends();
-        const friend = friendsList.find(
+        const friend = friendsList?.find(
             (u: User) => String(u.id) === String(userId),
         );
         return friend?.name || userId || "Unknown User";
@@ -197,7 +177,7 @@ export class ChatHomeComponent {
         const others = parts.filter((p) => p !== me);
         const otherId = others[0] || parts[0] || "";
         const friendsList = this.friends();
-        const friend = friendsList.find(
+        const friend = friendsList?.find(
             (f: User) => String(f.id) === otherId || f.email === otherId,
         );
         return friend?.name || otherId || "Unknown User";
@@ -219,12 +199,10 @@ export class ChatHomeComponent {
         const avatars = this.conversationAvatars();
         const loading = this.loadingAvatars();
 
-        // If avatar is not loaded yet and not currently loading, trigger loading
         if (!avatars.has(otherId) && !loading.has(otherId)) {
             this.loadProfilePictureForUser(otherId);
         }
 
-        // Return stored avatar (could be blob URL, regular URL, or default)
         return avatars.get(otherId) || this.defaultAvatar;
     }
 
@@ -240,13 +218,11 @@ export class ChatHomeComponent {
             const others = parts.filter((p) => p !== me);
             const otherId = others[0] || parts[0] || "";
             if (otherId) {
-                // Always try to load, even if already in map (to refresh)
                 uniqueUserIds.add(otherId);
             }
         });
 
         uniqueUserIds.forEach((userId) => {
-            // Only load if not already loaded or loading
             if (!avatars.has(userId)) {
                 this.loadProfilePictureForUser(userId);
             }
@@ -262,7 +238,6 @@ export class ChatHomeComponent {
             return;
         }
 
-        // Mark as loading to prevent duplicate requests
         const loading = this.loadingAvatars();
         loading.add(userId);
         this.loadingAvatars.set(new Set(loading));
@@ -270,12 +245,10 @@ export class ChatHomeComponent {
         this.userService.getProfilePictureByUserId(numericUserId).subscribe({
             next: (blob: Blob) => {
                 const avatars = this.conversationAvatars();
-                // Only create blob URL for non-empty images
                 if (blob.size > 0) {
                     const objectURL = URL.createObjectURL(blob);
                     avatars.set(userId, objectURL);
                 } else {
-                    // Empty blob, use default avatar
                     avatars.set(userId, this.defaultAvatar);
                 }
                 this.conversationAvatars.set(new Map(avatars));
@@ -285,14 +258,12 @@ export class ChatHomeComponent {
                 this.loadingAvatars.set(new Set(loadingSet));
             },
             error: (error) => {
-                // Profile picture not found is okay
                 if (error.status !== 404) {
                     console.error(
                         `Error loading profile picture for user ${userId}:`,
                         error,
                     );
                 }
-                // Set default avatar on error
                 const avatars = this.conversationAvatars();
                 avatars.set(userId, this.defaultAvatar);
                 this.conversationAvatars.set(new Map(avatars));
@@ -316,8 +287,6 @@ export class ChatHomeComponent {
     }
 
     createGroup(): void {
-        // TODO: Implement group creation functionality
-        // For now, navigate to friends page or show a dialog
         this.router.navigate(["/friends"]);
     }
 

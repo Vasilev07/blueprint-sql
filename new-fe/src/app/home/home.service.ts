@@ -321,7 +321,7 @@ export class HomeService implements OnDestroy {
 
     setSort(sort: SortType): void {
         this.sortSubject.next(sort);
-        
+
         this.paginationStateSubject.next({
             currentPage: 0,
             totalPages: 0,

@@ -34,24 +34,25 @@ import { TooltipModule } from "primeng/tooltip";
 })
 export class UserCardComponent implements AfterViewInit, OnDestroy {
     user = input.required<HomeUser>();
-    
+
     chatClick = output<HomeUser>();
     cardClick = output<HomeUser>();
     giftClick = output<HomeUser>();
 
-    @ViewChild('cardElement', { static: false }) cardElement!: ElementRef<HTMLElement>;
+    @ViewChild("cardElement", { static: false })
+    cardElement!: ElementRef<HTMLElement>;
 
     private readonly defaultAvatar =
         "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCBmaWxsPSIjZGRkIiB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIvPjxjaXJjbGUgY3g9IjUwIiBjeT0iMzUiIHI9IjE1IiBmaWxsPSIjOTk5Ii8+PHBhdGggZD0iTTI1IDcwIGMyMC0xMCAzMC0xMCA1MCAwIiBzdHJva2U9IiM5OTkiIHN0cm9rZS13aWR0aD0iMTAiIGZpbGw9Im5vbmUiLz48L3N2Zz4=";
 
     profilePictureBlobUrl = signal<SafeUrl | string>(this.defaultAvatar);
     private profilePictureLoaded = signal(false);
-    
+
     private walletService = inject(WalletService);
     canAffordSuperLike = toSignal(this.walletService.canAffordSuperLike$, {
         initialValue: this.walletService.canAffordSuperLike(),
     });
-    
+
     superLikeCost = computed(() => this.walletService.getSuperLikeCost());
 
     private router = inject(Router);
@@ -64,7 +65,7 @@ export class UserCardComponent implements AfterViewInit, OnDestroy {
     private intersectionObserver?: IntersectionObserver;
 
     profilePicture = computed(() => this.profilePictureBlobUrl());
-    
+
     superLikeTooltip = computed(() => {
         const canAfford = this.canAffordSuperLike() ?? false;
         const cost = this.superLikeCost();
@@ -105,15 +106,16 @@ export class UserCardComponent implements AfterViewInit, OnDestroy {
     }
 
     private setupIntersectionObserver(): void {
-        const cardElement = this.cardElement?.nativeElement || 
-            this.elementRef.nativeElement.querySelector('.user-card');
-        
+        const cardElement =
+            this.cardElement?.nativeElement ||
+            this.elementRef.nativeElement.querySelector(".user-card");
+
         if (!cardElement) {
             this.loadProfilePicture();
             return;
         }
 
-        if (typeof IntersectionObserver !== 'undefined') {
+        if (typeof IntersectionObserver !== "undefined") {
             this.createIntersectionObserver(cardElement);
         } else {
             this.loadProfilePicture();
@@ -129,10 +131,13 @@ export class UserCardComponent implements AfterViewInit, OnDestroy {
             }
         };
 
-        this.intersectionObserver = new IntersectionObserver(handleIntersection, {
-            rootMargin: '100px',
-            threshold: 0.01,
-        });
+        this.intersectionObserver = new IntersectionObserver(
+            handleIntersection,
+            {
+                rootMargin: "100px",
+                threshold: 0.01,
+            },
+        );
 
         this.intersectionObserver.observe(element);
     }
@@ -147,24 +152,22 @@ export class UserCardComponent implements AfterViewInit, OnDestroy {
     private loadProfilePicture(): void {
         const userId = this.user().id;
         if (!userId) return;
-        
+
         if (this.profilePictureLoaded()) return;
-        
+
         this.profilePictureLoaded.set(true);
 
-        this.userService
-            .getProfilePictureByUserId(userId)
-            .subscribe({
-                next: (blob: Blob) => {
-                    const objectURL = URL.createObjectURL(blob);
-                    this.profilePictureBlobUrl.set(
-                        this.sanitizer.bypassSecurityTrustUrl(objectURL)
-                    );
-                },
-                error: () => {
-                    this.profilePictureBlobUrl.set(this.defaultAvatar);
-                },
-            });
+        this.userService.getProfilePictureByUserId(userId).subscribe({
+            next: (blob: Blob) => {
+                const objectURL = URL.createObjectURL(blob);
+                this.profilePictureBlobUrl.set(
+                    this.sanitizer.bypassSecurityTrustUrl(objectURL),
+                );
+            },
+            error: () => {
+                this.profilePictureBlobUrl.set(this.defaultAvatar);
+            },
+        });
     }
 
     onCardClick(): void {

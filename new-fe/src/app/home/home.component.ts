@@ -18,7 +18,7 @@ import { InputTextModule } from "primeng/inputtext";
 import { IconFieldModule } from "primeng/iconfield";
 import { InputIconModule } from "primeng/inputicon";
 import { SharedComponentsModule } from "../shared/components.module";
-import { toObservable, toSignal } from "@angular/core/rxjs-interop";
+import { toSignal } from "@angular/core/rxjs-interop";
 import { HomeService, HomeUser, FilterType, SortType } from "./home.service";
 import { MessageService } from "primeng/api";
 import { GiftDialogUser } from "../shared/send-gift-dialog/send-gift-dialog.component";
@@ -119,7 +119,7 @@ export class HomeComponent {
             const users = this.users();
             const paginationState = this.paginationState();
 
-            console.log("HomeComponent - Users updated:", users.length);
+            console.log("HomeComponent - Users updated:", users?.length);
 
             // Clear loading state when we receive users data
             if (users && users.length > 0 && this.isLoading()) {
@@ -130,7 +130,7 @@ export class HomeComponent {
             }
 
             // Only set loading to false when we have actual data (currentPage > 0)
-            if (paginationState?.currentPage > 0) {
+            if (paginationState?.currentPage ?? 0 > 0) {
                 this.isLoading.set(false);
                 this.isLoadingMore.set(false);
             }
@@ -138,16 +138,14 @@ export class HomeComponent {
     }
 
     private subscribeToOnlineCount(): void {
-        this.homeService
-            .getOnlineCount()
-            .subscribe({
-                next: (count) => {
-                    this.onlineCount.set(count);
-                },
-                error: (error) => {
-                    console.error("Error loading online count:", error);
-                },
-            });
+        this.homeService.getOnlineCount().subscribe({
+            next: (count) => {
+                this.onlineCount.set(count);
+            },
+            error: (error) => {
+                console.error("Error loading online count:", error);
+            },
+        });
     }
 
     private loadUsers(): void {
@@ -300,11 +298,7 @@ export class HomeComponent {
             `Scroll Debug - Position: ${scrollPosition}, Height: ${scrollHeight}, Threshold: ${threshold}, HasMore: ${hasMoreData}, Loading: ${isLoadingMore}`,
         );
 
-        if (
-            scrollPosition >= threshold &&
-            hasMoreData &&
-            !isLoadingMore
-        ) {
+        if (scrollPosition >= threshold && hasMoreData && !isLoadingMore) {
             console.log("Scroll - Loading more users");
             this.loadMoreUsers();
         }
@@ -319,11 +313,7 @@ export class HomeComponent {
         const isLoadingMore = this.isLoadingMore();
 
         // Load more when user scrolls to 80% of the content
-        if (
-            scrollPosition >= threshold &&
-            hasMoreData &&
-            !isLoadingMore
-        ) {
+        if (scrollPosition >= threshold && hasMoreData && !isLoadingMore) {
             this.loadMoreUsers();
         }
     }
