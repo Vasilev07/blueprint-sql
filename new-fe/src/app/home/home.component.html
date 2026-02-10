@@ -8,8 +8,8 @@
         <input 
           type="text" 
           pInputText 
-          [(ngModel)]="searchTerm"
-          (input)="onSearchChange()"
+          [ngModel]="searchTerm()"
+          (ngModelChange)="searchTerm.set($event); onSearchChange()"
           placeholder="Search by location, age, interests..."
           class="search-input" />
       </p-iconField>
@@ -31,7 +31,7 @@
         type="button" 
         [label]="filter.label"
         class="filter-pill"
-        [class.active]="currentFilter === filter.value"
+        [class.active]="currentFilter() === filter.value"
         (click)="onFilterChange(filter.value)">
       </button>
     </div>
@@ -53,7 +53,8 @@
     <div class="sort-section">
       <p-select 
         [options]="sortOptions" 
-        [(ngModel)]="currentSort"
+        [ngModel]="currentSort()"
+        (ngModelChange)="currentSort.set($event); onSortChange({ value: $event })"
         (onChange)="onSortChange($event)"
         optionLabel="label" 
         optionValue="value"
@@ -63,7 +64,7 @@
   }
 
   <!-- Loading State -->
-  @if (isLoading) {
+  @if (isLoading()) {
     <div class="loading-container">
       <p-progressSpinner class="w-4rem h-4rem"></p-progressSpinner>
       <p>Loading users...</p>
@@ -71,7 +72,7 @@
   }
 
   <!-- Empty State -->
-  @if (!isLoading && users.length === 0) {
+  @if (!isLoading() && users().length === 0) {
     <div class="empty-state">
       <i class="pi pi-users empty-icon"></i>
       <h3>No Users Found</h3>
@@ -88,10 +89,10 @@
   }
 
   <!-- User Grid -->
-  @if (!isLoading && users.length > 0) {
+  @if (!isLoading() && users().length > 0) {
     <div class="users-grid" (scroll)="onScroll($event)">
       <app-user-card 
-        *ngFor="let user of users; trackBy: trackByUserId"
+        *ngFor="let user of users(); trackBy: trackByUserId"
         [user]="user"
         (chatClick)="onChatClick(user)"
         (cardClick)="onCardClick(user)"
@@ -101,7 +102,7 @@
   }
 
   <!-- Loading More Indicator -->
-  @if (isLoadingMore) {
+  @if (isLoadingMore()) {
     <div class="loading-more">
       <p-progressSpinner 
         class="w-3rem h-3rem" 
@@ -113,18 +114,19 @@
   }
 
   <!-- End of Results -->
-  @if (!isLoading && !hasMoreData && users.length > 0) {
+  @if (!isLoading() && !hasMoreData() && users().length > 0) {
     <div class="end-of-results">
       <i class="pi pi-check-circle"></i>
-      <p>You've reached the end! Showing all {{ totalUsers }} users.</p>
+      <p>You've reached the end! Showing all {{ totalUsers() }} users.</p>
     </div>
   }
 </div>
 
 <!-- Gift Send Dialog -->
 <app-send-gift-dialog
-  [(visible)]="showSendGiftDialog"
-  [recipientUser]="selectedUserForGift"
+  [visible]="showSendGiftDialog()"
+  (visibleChange)="showSendGiftDialog.set($event)"
+  [recipientUser]="selectedUserForGift()"
   (giftSent)="onGiftSent($event)">
 </app-send-gift-dialog>
 

@@ -11,7 +11,6 @@ import {
 import { UserDTO } from "src/typescript-api-client/src/model/models";
 
 export interface HomeUser extends UserDTO {
-    // Computed/UI fields only
     age?: number; // Mocked for now (will need birthDate field)
     distance?: string; // Mocked for now (needs geolocation calculation)
     isOnline?: boolean;
@@ -137,9 +136,6 @@ export class HomeService implements OnDestroy {
         );
     }
 
-    /**
-     * Update a user's profile views count in the current users list
-     */
     private updateUserProfileViewsCount(
         userId: number,
         newCount: number,
@@ -175,18 +171,12 @@ export class HomeService implements OnDestroy {
         );
     }
 
-    /**
-     * Listen for real-time super likes count updates via WebSocket
-     * Listens to both received and sent events to update counts for both receiver and sender views
-     */
     private setupSuperLikesCountUpdates(): void {
-        // Listen for when current user receives a super like (receiver's view)
         this.websocketService
             .onSuperLikeReceived()
             .pipe(takeUntil(this.destroy$))
             .subscribe({
                 next: (notification) => {
-                    // Update count if included in the notification
                     if (
                         notification.superLikesCount !== undefined &&
                         notification.receiverId
@@ -205,13 +195,11 @@ export class HomeService implements OnDestroy {
                 },
             });
 
-        // Listen for when current user sends a super like (sender's view - update the user's count on sender's screen)
         this.websocketService
             .onSuperLikeSent()
             .pipe(takeUntil(this.destroy$))
             .subscribe({
                 next: (notification) => {
-                    // Update the user's count if included in the notification
                     if (
                         notification.superLikesCount !== undefined &&
                         notification.receiverId
@@ -231,9 +219,6 @@ export class HomeService implements OnDestroy {
             });
     }
 
-    /**
-     * Update a user's super likes count in the current users list
-     */
     private updateUserSuperLikesCount(userId: number, newCount: number): void {
         const currentUsers = this.usersSubject.value;
         const updatedUsers = currentUsers.map((user) => {
@@ -248,10 +233,6 @@ export class HomeService implements OnDestroy {
         this.usersSubject.next(updatedUsers);
     }
 
-    /**
-     * Check if user is online based on lastOnline timestamp
-     * Consider online if last seen within 5 minutes
-     */
     private isUserOnline(lastOnline?: string): boolean {
         if (!lastOnline) return false;
 
@@ -260,7 +241,7 @@ export class HomeService implements OnDestroy {
         const diffInMinutes =
             (now.getTime() - lastOnlineDate.getTime()) / (1000 * 60);
 
-        return diffInMinutes <= 5; // Online if seen in last 5 minutes
+        return diffInMinutes <= 5;
     }
 
     private loadFriends(): void {
@@ -294,8 +275,6 @@ export class HomeService implements OnDestroy {
     }
 
     private updateUserFriendStatus(): void {
-        // Reload users to reflect friend status changes
-        // Reset pagination state but don't clear users until new data arrives
         this.paginationStateSubject.next({
             currentPage: 0,
             totalPages: 0,
@@ -309,12 +288,10 @@ export class HomeService implements OnDestroy {
     private enrichUserData(user: any, friendIds: number[]): HomeUser {
         return {
             ...user,
-            // Profile fields are now part of UserDTO from backend (bio, location, interests, isVerified, appearsInSearches, profileViewsCount, superLikesCount)
             age: this.mockAge(), // TODO: Calculate from birthDate when added
             distance: this.mockDistance(), // TODO: Calculate from location coordinates
             isOnline: this.isUserOnline(user.lastOnline),
             isFriend: friendIds.includes(user.id!),
-            // Explicitly preserve superLikesCount from backend response
             superLikesCount: user.superLikesCount ?? 0,
         };
     }
@@ -329,22 +306,9 @@ export class HomeService implements OnDestroy {
         return `${distance} mile${distance > 1 ? "s" : ""}`;
     }
 
-    private getCurrentUserId(): number {
-        const token = localStorage.getItem("id_token");
-        if (!token) return 0;
-
-        try {
-            const payload = JSON.parse(atob(token.split(".")[1]));
-            return payload.id || 0;
-        } catch {
-            return 0;
-        }
-    }
-
-    // Public methods for filtering and sorting
     setFilter(filter: FilterType): void {
         this.filterSubject.next(filter);
-        // Reset pagination state but don't clear users until new data arrives
+
         this.paginationStateSubject.next({
             currentPage: 0,
             totalPages: 0,
@@ -357,7 +321,7 @@ export class HomeService implements OnDestroy {
 
     setSort(sort: SortType): void {
         this.sortSubject.next(sort);
-        // Reset pagination state but don't clear users until new data arrives
+        
         this.paginationStateSubject.next({
             currentPage: 0,
             totalPages: 0,

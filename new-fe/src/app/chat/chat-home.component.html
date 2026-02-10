@@ -23,7 +23,7 @@
         <div 
           class="chat-item" 
           *ngFor="let conversation of conversations$ | async" 
-          [class.active]="selectedUserId && conversation.participants.includes(selectedUserId)"
+          [class.active]="selectedUserId() && conversation.participants.includes(selectedUserId()!)"
           (click)="startChatFromConversation(conversation)">
           <div class="chat-avatar">
             <img 
@@ -53,17 +53,17 @@
 
     <!-- Chat View Area -->
     <div class="chat-view-area">
-      <app-chat *ngIf="selectedUserId" [userId]="selectedUserId"></app-chat>
-      <div *ngIf="!selectedUserId" class="empty-chat-state">
+      <app-chat *ngIf="selectedUserId()" [userId]="selectedUserId()!"></app-chat>
+      <div *ngIf="!selectedUserId()" class="empty-chat-state">
         <!-- Desktop: Select conversation message -->
-        <div *ngIf="!isMobile" class="empty-chat-content">
+        <div *ngIf="!isMobile()" class="empty-chat-content">
           <i class="pi pi-comments"></i>
           <h2>Select a conversation</h2>
           <p>Choose a conversation from the sidebar to start messaging</p>
         </div>
 
         <!-- Mobile: Show chats and discover content -->
-        <div *ngIf="isMobile" class="mobile-chat-content">
+        <div *ngIf="isMobile()" class="mobile-chat-content">
           <!-- Recent Chats -->
           <div class="mobile-section">
             <div class="section-header">

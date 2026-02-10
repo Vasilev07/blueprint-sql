@@ -3,7 +3,7 @@ import { BehaviorSubject, Observable, Subject, takeUntil } from "rxjs";
 import { WebsocketService } from "./websocket.service";
 import { UserService } from "src/typescript-api-client/src/api/api";
 
-export const SUPER_LIKE_COST_FE = 200; // Cost in tokens for super like
+export const SUPER_LIKE_COST_FE = 200;
 
 @Injectable({
     providedIn: "root",
@@ -26,9 +26,6 @@ export class WalletService {
         this.setupWebSocketListeners();
     }
 
-    /**
-     * Initialize balance from user service
-     */
     private initializeBalance(): void {
         this.userService.getUser().subscribe({
             next: (user: any) => {
@@ -42,16 +39,12 @@ export class WalletService {
         });
     }
 
-    /**
-     * Set up WebSocket listeners for real-time balance updates
-     */
     private setupWebSocketListeners(): void {
         this.websocketService
             .onBalanceUpdate()
             .pipe(takeUntil(this.destroy$))
             .subscribe({
                 next: (payload) => {
-                    // Update balance if it's for the current user
                     const token = localStorage.getItem("id_token");
                     if (token) {
                         try {
@@ -70,39 +63,24 @@ export class WalletService {
             });
     }
 
-    /**
-     * Update can afford super like based on current balance
-     */
     private updateCanAffordSuperLike(balance: string): void {
         const balanceNum = parseFloat(balance || "0");
         const canAfford = balanceNum >= SUPER_LIKE_COST_FE;
         this.canAffordSuperLikeSubject.next(canAfford);
     }
 
-    /**
-     * Get super like cost
-     */
     getSuperLikeCost(): number {
         return SUPER_LIKE_COST_FE;
     }
 
-    /**
-     * Get current balance
-     */
     getBalance(): string {
         return this.balanceSubject.value;
     }
 
-    /**
-     * Check if user can afford super like
-     */
     canAffordSuperLike(): boolean {
         return this.canAffordSuperLikeSubject.value;
     }
 
-    /**
-     * Check if user can afford an amount
-     */
     canAfford(amount: number): boolean {
         const balanceNum = parseFloat(this.balanceSubject.value || "0");
         return balanceNum >= amount;
