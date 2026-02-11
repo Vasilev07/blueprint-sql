@@ -18,7 +18,7 @@ module.exports = {
     coverageReporters: ['html', 'text', 'text-summary', 'lcov'],
     coverageDirectory: 'coverage',
     moduleNameMapper: {
-        '.*typescript-api-client.*': '<rootDir>/src/__mocks__/typescript-api-client.ts',
+        '.*typescript-api-client.*': '<rootDir>/src/__mocks__/api-client.mock.ts',
         '^src/(.*)$': '<rootDir>/src/$1',
     },
     transformIgnorePatterns: [
