@@ -1,13 +1,7 @@
-import {
-    Component,
-    OnInit,
-    OnDestroy,
-    ChangeDetectorRef,
-    HostListener,
-} from "@angular/core";
+import { Component, signal, effect, inject, HostListener } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { Router, ActivatedRoute } from "@angular/router";
-import { Observable, Subject, takeUntil } from "rxjs";
+import { toObservable, toSignal } from "@angular/core/rxjs-interop";
 import { User, Message, ChatService, Conversation } from "./chat.service";
 import { UserService } from "src/typescript-api-client/src/api/api";
 import { DomSanitizer } from "@angular/platform-browser";
@@ -29,83 +23,73 @@ import { RecentMessagesComponent } from "./recent-messages.component";
     templateUrl: "./chat-home.component.html",
     styleUrls: ["./chat-home.component.scss"],
 })
-export class ChatHomeComponent implements OnInit, OnDestroy {
-    lastRegisteredUsers$: Observable<User[]>;
-    topFriends$: Observable<User[]>;
-    recentMessages$: Observable<Message[]>;
-    conversations$: Observable<Conversation[]>;
-    users$: Observable<User[]>; // All users for lookups
-    friends: User[] = [];
-    selectedUserId: string | null = null;
-    conversationAvatars: Map<string, string> = new Map();
-    private loadingAvatars: Set<string> = new Set(); // Track which avatars are currently loading
-    private avatarUpdateCounter = 0; // Force change detection
-    private destroy$ = new Subject<void>();
-    isMobile: boolean = false;
+export class ChatHomeComponent {
+    private router = inject(Router);
+    private route = inject(ActivatedRoute);
+    private chatService = inject(ChatService);
+    private userService = inject(UserService);
+    private sanitizer = inject(DomSanitizer);
+
+    // Convert observables to signals
+    lastRegisteredUsers = toSignal(
+        this.chatService.getLastRegisteredUsers(10),
+        {
+            initialValue: [] as User[],
+        },
+    );
+    topFriends = toSignal(this.chatService.getTopFriends(10), {
+        initialValue: [] as User[],
+    });
+    recentMessages = toSignal(this.chatService.getRecentMessages(5), {
+        initialValue: [] as Message[],
+    });
+    conversations = toSignal(this.chatService.conversations$, {
+        initialValue: [] as Conversation[],
+    });
+    users = toSignal(this.chatService.users$, {
+        initialValue: [] as User[],
+    });
+    friends = toSignal(this.chatService.friends$, {
+        initialValue: [] as User[],
+    });
+
+    // Local state signals
+    selectedUserId = signal<string | null>(null);
+    conversationAvatars = signal<Map<string, string>>(new Map());
+    private loadingAvatars = signal<Set<string>>(new Set());
+    isMobile = signal<boolean>(false);
 
     // SVG data URL for default avatar
     defaultAvatar =
         "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCBmaWxsPSIjZGRkIiB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIvPjxjaXJjbGUgY3g9IjUwIiBjeT0iMzUiIHI9IjE1IiBmaWxsPSIjOTk5Ii8+PHBhdGggZD0iTTI1IDcwIGMyMC0xMCAzMC0xMCA1MCAwIiBzdHJva2U9IiM5OTkiIHN0cm9rZS13aWR0aD0iMTAiIGZpbGw9Im5vbmUiLz48L3N2Zz4=";
 
-    constructor(
-        private router: Router,
-        private route: ActivatedRoute,
-        private chatService: ChatService,
-        private userService: UserService,
-        private cdr: ChangeDetectorRef,
-        private sanitizer: DomSanitizer,
-    ) {
-        this.lastRegisteredUsers$ = this.chatService.getLastRegisteredUsers(10);
-        this.topFriends$ = this.chatService.getTopFriends(10);
-        this.recentMessages$ = this.chatService.getRecentMessages(5);
-        this.conversations$ = this.chatService.conversations$;
-        this.users$ = this.chatService.users$; // For recent messages component
-    }
+    // Expose observables for child components that still use them
+    lastRegisteredUsers$ = toObservable(this.lastRegisteredUsers);
+    topFriends$ = toObservable(this.topFriends);
+    recentMessages$ = toObservable(this.recentMessages);
+    conversations$ = toObservable(this.conversations);
+    users$ = toObservable(this.users);
 
-    ngOnInit(): void {
-        // Check initial screen size
+    constructor() {
         this.checkScreenSize();
 
-        // Observables are already initialized in constructor
-        this.chatService.friends$
-            .pipe(takeUntil(this.destroy$))
-            .subscribe((f) => (this.friends = f || []));
+        effect(() => {
+            const conversations = this.conversations();
+            this.loadConversationAvatars(conversations ?? []);
+        });
 
-        // Load profile pictures for conversations
-        this.conversations$
-            .pipe(takeUntil(this.destroy$))
-            .subscribe((conversations) => {
-                this.loadConversationAvatars(conversations);
-            });
-
-        // Check if there's a userId in query params
         const initialParams = this.route.snapshot.queryParams;
         if (initialParams["userId"]) {
-            this.selectedUserId = initialParams["userId"];
+            this.selectedUserId.set(initialParams["userId"]);
         }
 
-        this.route.queryParams
-            .pipe(takeUntil(this.destroy$))
-            .subscribe((params) => {
-                if (params["userId"]) {
-                    this.selectedUserId = params["userId"];
-                } else {
-                    this.selectedUserId = null;
-                }
-            });
-    }
-
-    ngOnDestroy(): void {
-        this.destroy$.next();
-        this.destroy$.complete();
-
-        // Revoke blob URLs to free memory
-        this.conversationAvatars.forEach((url) => {
-            if (url && url !== this.defaultAvatar && url.startsWith("blob:")) {
-                URL.revokeObjectURL(url);
+        this.route.queryParams.subscribe((params) => {
+            if (params["userId"]) {
+                this.selectedUserId.set(params["userId"]);
+            } else {
+                this.selectedUserId.set(null);
             }
         });
-        this.conversationAvatars.clear();
     }
 
     startChat(userId: any): void {
@@ -113,8 +97,8 @@ export class ChatHomeComponent implements OnInit, OnDestroy {
             userId && typeof userId === "object" ? userId.id : userId,
         );
         if (!id || id === "undefined" || id === "null") return;
-        this.selectedUserId = id;
-        // Update URL to reflect the selected conversation
+        this.selectedUserId.set(id);
+
         this.router.navigate(["/chat"], {
             queryParams: { userId: id },
             replaceUrl: true,
@@ -128,8 +112,7 @@ export class ChatHomeComponent implements OnInit, OnDestroy {
             .find((p: string) => p !== me);
 
         if (otherUserId) {
-            this.selectedUserId = otherUserId;
-            // Update URL to reflect the selected conversation
+            this.selectedUserId.set(otherUserId);
             this.router.navigate(["/chat"], {
                 queryParams: { userId: otherUserId },
                 replaceUrl: true,
@@ -138,7 +121,7 @@ export class ChatHomeComponent implements OnInit, OnDestroy {
     }
 
     closeChat(): void {
-        this.selectedUserId = null;
+        this.selectedUserId.set(null);
         this.router.navigate(["/chat"], { replaceUrl: true });
     }
 
@@ -157,8 +140,9 @@ export class ChatHomeComponent implements OnInit, OnDestroy {
     }
 
     getUserName(userId: string): string {
-        const friend = this.friends.find(
-            (u) => String(u.id) === String(userId),
+        const friendsList = this.friends();
+        const friend = friendsList?.find(
+            (u: User) => String(u.id) === String(userId),
         );
         return friend?.name || userId || "Unknown User";
     }
@@ -185,8 +169,9 @@ export class ChatHomeComponent implements OnInit, OnDestroy {
         );
         const others = parts.filter((p) => p !== me);
         const otherId = others[0] || parts[0] || "";
-        const friend = this.friends.find(
-            (f) => String(f.id) === otherId || f.email === otherId,
+        const friendsList = this.friends();
+        const friend = friendsList?.find(
+            (f: User) => String(f.id) === otherId || f.email === otherId,
         );
         return friend?.name || otherId || "Unknown User";
     }
@@ -204,21 +189,20 @@ export class ChatHomeComponent implements OnInit, OnDestroy {
             return this.defaultAvatar;
         }
 
-        // If avatar is not loaded yet and not currently loading, trigger loading
-        if (
-            !this.conversationAvatars.has(otherId) &&
-            !this.loadingAvatars.has(otherId)
-        ) {
+        const avatars = this.conversationAvatars();
+        const loading = this.loadingAvatars();
+
+        if (!avatars.has(otherId) && !loading.has(otherId)) {
             this.loadProfilePictureForUser(otherId);
         }
 
-        // Return stored avatar (could be blob URL, regular URL, or default)
-        return this.conversationAvatars.get(otherId) || this.defaultAvatar;
+        return avatars.get(otherId) || this.defaultAvatar;
     }
 
     private loadConversationAvatars(conversations: Conversation[]): void {
         const me = this.getLoggedInUserId();
         const uniqueUserIds = new Set<string>();
+        const avatars = this.conversationAvatars();
 
         conversations.forEach((conversation) => {
             const parts = (conversation.participants || []).map((p: any) =>
@@ -227,14 +211,12 @@ export class ChatHomeComponent implements OnInit, OnDestroy {
             const others = parts.filter((p) => p !== me);
             const otherId = others[0] || parts[0] || "";
             if (otherId) {
-                // Always try to load, even if already in map (to refresh)
                 uniqueUserIds.add(otherId);
             }
         });
 
         uniqueUserIds.forEach((userId) => {
-            // Only load if not already loaded or loading
-            if (!this.conversationAvatars.has(userId)) {
+            if (!avatars.has(userId)) {
                 this.loadProfilePictureForUser(userId);
             }
         });
@@ -243,48 +225,47 @@ export class ChatHomeComponent implements OnInit, OnDestroy {
     private loadProfilePictureForUser(userId: string): void {
         const numericUserId = parseInt(userId, 10);
         if (!numericUserId) {
-            this.conversationAvatars.set(userId, this.defaultAvatar);
+            const avatars = this.conversationAvatars();
+            avatars.set(userId, this.defaultAvatar);
+            this.conversationAvatars.set(new Map(avatars));
             return;
         }
 
-        // Mark as loading to prevent duplicate requests
-        this.loadingAvatars.add(userId);
+        const loading = this.loadingAvatars();
+        loading.add(userId);
+        this.loadingAvatars.set(new Set(loading));
 
-        this.userService
-            .getProfilePictureByUserId(numericUserId)
-            .pipe(takeUntil(this.destroy$))
-            .subscribe({
-                next: (blob: Blob) => {
-                    // Only create blob URL for non-empty images
-                    if (blob.size > 0) {
-                        const objectURL = URL.createObjectURL(blob);
-                        this.conversationAvatars.set(userId, objectURL);
-                    } else {
-                        // Empty blob, use default avatar
-                        this.conversationAvatars.set(
-                            userId,
-                            this.defaultAvatar,
-                        );
-                    }
-                    this.loadingAvatars.delete(userId);
-                    this.avatarUpdateCounter++; // Force change detection
-                    this.cdr.markForCheck();
-                    this.cdr.detectChanges();
-                },
-                error: (error) => {
-                    // Profile picture not found is okay
-                    if (error.status !== 404) {
-                        console.error(
-                            `Error loading profile picture for user ${userId}:`,
-                            error,
-                        );
-                    }
-                    // Set default avatar on error
-                    this.conversationAvatars.set(userId, this.defaultAvatar);
-                    this.loadingAvatars.delete(userId);
-                    this.cdr.detectChanges();
-                },
-            });
+        this.userService.getProfilePictureByUserId(numericUserId).subscribe({
+            next: (blob: Blob) => {
+                const avatars = this.conversationAvatars();
+                if (blob.size > 0) {
+                    const objectURL = URL.createObjectURL(blob);
+                    avatars.set(userId, objectURL);
+                } else {
+                    avatars.set(userId, this.defaultAvatar);
+                }
+                this.conversationAvatars.set(new Map(avatars));
+
+                const loadingSet = this.loadingAvatars();
+                loadingSet.delete(userId);
+                this.loadingAvatars.set(new Set(loadingSet));
+            },
+            error: (error) => {
+                if (error.status !== 404) {
+                    console.error(
+                        `Error loading profile picture for user ${userId}:`,
+                        error,
+                    );
+                }
+                const avatars = this.conversationAvatars();
+                avatars.set(userId, this.defaultAvatar);
+                this.conversationAvatars.set(new Map(avatars));
+
+                const loadingSet = this.loadingAvatars();
+                loadingSet.delete(userId);
+                this.loadingAvatars.set(new Set(loadingSet));
+            },
+        });
     }
 
     onImageError(event: Event): void {
@@ -299,8 +280,6 @@ export class ChatHomeComponent implements OnInit, OnDestroy {
     }
 
     createGroup(): void {
-        // TODO: Implement group creation functionality
-        // For now, navigate to friends page or show a dialog
         this.router.navigate(["/friends"]);
     }
 
@@ -310,6 +289,6 @@ export class ChatHomeComponent implements OnInit, OnDestroy {
     }
 
     private checkScreenSize(): void {
-        this.isMobile = window.innerWidth <= 768;
+        this.isMobile.set(window.innerWidth <= 768);
     }
 }

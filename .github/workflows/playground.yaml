@@ -17,9 +17,9 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v3
         with:
-          node-version: '20.12.2'
+          node-version: '22'
       - run: echo ${GITHUB_WORKSPACE}
-      - run: npm install
+      - run: npm ci
         working-directory: ./new-be
       - run: npm run lint
         working-directory: ./new-be
@@ -30,7 +30,7 @@ jobs:
     services:
         postgres:
           image: postgres
-          env: 
+          env:
             POSTGRES_USER: postgres
             POSTGRES_PASSWORD: postgres
           options: >-
@@ -43,15 +43,15 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v2
-      - name: Setup Nodejs 16
+      - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: '20.12.2'
-      - run: npm install
+          node-version: '22'
+      - run: npm ci
         working-directory: ./new-be
       - run: npm run test:e2e
         working-directory: ./new-be
-        env: 
+        env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: blueprint-sql-test
@@ -69,9 +69,23 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v3
         with:
-          node-version: '20.12.2'
+          node-version: '22'
       - run: echo ${GITHUB_WORKSPACE}
-      - run: npm install
+      - run: npm ci
         working-directory: ./new-fe
       - run: npm run lint
+        working-directory: ./new-fe
+
+  test-new-fe:
+    needs: [ lint-new-fe ]
+    name: New FE tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '22'
+      - run: npm ci
+        working-directory: ./new-fe
+      - run: npm run test -- --watch=false --browsers=ChromeHeadless
         working-directory: ./new-fe

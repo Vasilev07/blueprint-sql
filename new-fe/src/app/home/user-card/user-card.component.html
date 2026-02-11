@@ -1,17 +1,17 @@
-<div class="user-card" (click)="onCardClick()">
+<div class="user-card" #cardElement (click)="onCardClick()">
   <div class="card-image">
-    <img [src]="getProfilePicture()" [alt]="user.fullName" (error)="onImageError($event)" class="profile-image">
+    <img [src]="profilePicture()" [alt]="user().fullName" (error)="onImageError($event)" class="profile-image">
 
-    <span *ngIf="user.isOnline" class="online-indicator">
+    <span *ngIf="user().isOnline" class="online-indicator">
       <i class="pi pi-circle-fill"></i>
       Online now
     </span>
 
     <div class="card-badges">
-      <span *ngIf="user.isFriend" class="badge friend-badge" pTooltip="Friend">
+      <span *ngIf="user().isFriend" class="badge friend-badge" pTooltip="Friend">
         <i class="pi pi-check-circle"></i>
       </span>
-      <span *ngIf="user.isVerified" class="badge verified-badge" pTooltip="Verified">
+      <span *ngIf="user().isVerified" class="badge verified-badge" pTooltip="Verified">
         <i class="pi pi-verified"></i>
       </span>
     </div>
@@ -21,27 +21,27 @@
   <div class="card-content">
     <div class="user-info">
       <h3 class="user-name">
-        {{ user.fullName }}
-        <span *ngIf="user.age" class="user-age">, {{ user.age }}</span>
+        {{ user().fullName }}
+        <span *ngIf="user().age" class="user-age">, {{ user().age }}</span>
       </h3>
 
-      <div class="user-location" [class.empty]="!user.location && !user.city && !user.distance">
+      <div class="user-location" [class.empty]="!user().location && !user().city && !user().distance">
         <i class="pi pi-map-marker"></i>
-        <span>{{ user.location || user.city || user.distance || ' ' }}</span>
+        <span>{{ user().location || user().city || user().distance || ' ' }}</span>
       </div>
     </div>
 
-    <p class="user-bio" [class.empty]="!user.bio">{{ user.bio || ' ' }}</p>
+    <p class="user-bio" [class.empty]="!user().bio">{{ user().bio || ' ' }}</p>
 
     <!-- Stats -->
     <div class="user-stats">
       <span class="stat" pTooltip="Super Likes">
         <i class="pi pi-heart"></i>
-        {{ user.superLikesCount || 0 }}
+        {{ user().superLikesCount || 0 }}
       </span>
       <span class="stat" pTooltip="Profile Views">
         <i class="pi pi-eye"></i>
-        {{ user.profileViewsCount || 0 }}
+        {{ user().profileViewsCount || 0 }}
       </span>
     </div>
   </div>
@@ -49,8 +49,8 @@
   <!-- Actions -->
   <div class="card-actions">
     <button pButton type="button" icon="pi pi-heart-fill" class="p-button-rounded p-button-text super-like-btn"
-      [disabled]="!canAffordSuperLike"
-      [pTooltip]="getSuperLikeTooltip()"
+      [disabled]="!canAffordSuperLike()"
+      [pTooltip]="superLikeTooltip()"
       (click)="onSuperLikeClick($event)">
     </button>
 

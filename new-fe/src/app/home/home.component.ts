@@ -1,4 +1,11 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from "@angular/core";
+import {
+    Component,
+    signal,
+    computed,
+    effect,
+    HostListener,
+    inject,
+} from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { Router, RouterModule } from "@angular/router";
@@ -11,7 +18,7 @@ import { InputTextModule } from "primeng/inputtext";
 import { IconFieldModule } from "primeng/iconfield";
 import { InputIconModule } from "primeng/inputicon";
 import { SharedComponentsModule } from "../shared/components.module";
-import { Subject, takeUntil } from "rxjs";
+import { toSignal } from "@angular/core/rxjs-interop";
 import { HomeService, HomeUser, FilterType, SortType } from "./home.service";
 import { MessageService } from "primeng/api";
 import { GiftDialogUser } from "../shared/send-gift-dialog/send-gift-dialog.component";
@@ -37,20 +44,38 @@ import { GiftDialogUser } from "../shared/send-gift-dialog/send-gift-dialog.comp
     styleUrls: ["./home.component.scss"],
     providers: [MessageService],
 })
-export class HomeComponent implements OnInit, OnDestroy {
-    users: HomeUser[] = [];
-    totalUsers: number = 0;
-    onlineCount: number = 0;
-    currentFilter: FilterType = "all";
-    currentSort: SortType = "recent";
-    searchTerm: string = "";
-    isLoading: boolean = true;
-    isLoadingMore: boolean = false;
-    hasMoreData: boolean = true;
+export class HomeComponent {
+    private homeService = inject(HomeService);
+    private router = inject(Router);
+    private messageService = inject(MessageService);
+
+    // Convert observables to signals
+    users = toSignal(this.homeService.users$, { initialValue: [] });
+    paginationState = toSignal(this.homeService.paginationState$, {
+        initialValue: {
+            currentPage: 0,
+            totalPages: 0,
+            totalUsers: 0,
+            hasMore: true,
+            limit: 12,
+        },
+    });
+
+    // Computed signals
+    totalUsers = computed(() => this.paginationState()?.totalUsers ?? 0);
+    hasMoreData = computed(() => this.paginationState()?.hasMore ?? true);
+
+    // Local state signals
+    currentFilter = signal<FilterType>("all");
+    currentSort = signal<SortType>("recent");
+    searchTerm = signal<string>("");
+    isLoading = signal<boolean>(true);
+    isLoadingMore = signal<boolean>(false);
+    onlineCount = signal<number>(0);
 
     // Gift dialog properties
-    showSendGiftDialog = false;
-    selectedUserForGift: GiftDialogUser | null = null;
+    showSendGiftDialog = signal<boolean>(false);
+    selectedUserForGift = signal<GiftDialogUser | null>(null);
 
     filterOptions = [
         { label: "All", value: "all" as FilterType, icon: "pi pi-users" },
@@ -82,118 +107,80 @@ export class HomeComponent implements OnInit, OnDestroy {
         { label: "By Distance", value: "distance" as SortType },
     ];
 
-    private destroy$ = new Subject<void>();
-
-    constructor(
-        private homeService: HomeService,
-        private router: Router,
-        private messageService: MessageService,
-        private cdr: ChangeDetectorRef,
-    ) {}
-
-    ngOnInit(): void {
-        // Set up subscriptions first
-        this.subscribeToUsers();
-        this.subscribeToPaginationState();
-        this.subscribeToOnlineCount();
-
-        // Load users immediately - subscriptions are already set up
+    constructor() {
+        // Load users on initialization
         this.loadUsers();
 
-        // Add scroll event listener
-        window.addEventListener("scroll", this.onWindowScroll.bind(this));
+        // Subscribe to online count
+        this.subscribeToOnlineCount();
+
+        // Effects for managing loading state
+        effect(() => {
+            const users = this.users();
+            const paginationState = this.paginationState();
+
+            console.log("HomeComponent - Users updated:", users?.length);
+
+            // Clear loading state when we receive users data
+            if (users && users.length > 0 && this.isLoading()) {
+                console.log(
+                    "HomeComponent - Clearing loading state after receiving users",
+                );
+                this.isLoading.set(false);
+            }
+
+            // Only set loading to false when we have actual data (currentPage > 0)
+            if (paginationState?.currentPage ?? 0 > 0) {
+                this.isLoading.set(false);
+                this.isLoadingMore.set(false);
+            }
+        });
     }
 
-    ngOnDestroy(): void {
-        this.destroy$.next();
-        this.destroy$.complete();
-
-        // Remove scroll event listener
-        window.removeEventListener("scroll", this.onWindowScroll.bind(this));
-    }
-
-    private subscribeToUsers(): void {
-        this.homeService.users$.pipe(takeUntil(this.destroy$)).subscribe({
-            next: (users) => {
-                console.log("HomeComponent - Users updated:", users.length);
-                this.users = users;
-                // Clear loading state when we receive users data
-                // This ensures loading is cleared even if pagination state hasn't updated yet
-                if (users && users.length > 0 && this.isLoading) {
-                    console.log(
-                        "HomeComponent - Clearing loading state after receiving users",
-                    );
-                    this.isLoading = false;
-                }
-                // Mark for check to ensure change detection runs
-                this.cdr.markForCheck();
+    private subscribeToOnlineCount(): void {
+        this.homeService.getOnlineCount().subscribe({
+            next: (count) => {
+                this.onlineCount.set(count);
             },
             error: (error) => {
-                console.error("Error loading users:", error);
-                this.isLoading = false;
+                console.error("Error loading online count:", error);
+            },
+        });
+    }
+
+    private loadUsers(): void {
+        this.isLoading.set(true);
+        console.log("HomeComponent - Loading users...");
+        this.homeService.getFilteredAndSortedUsers().subscribe({
+            next: (users) => {
+                console.log(
+                    "HomeComponent - getFilteredAndSortedUsers returned:",
+                    users.length,
+                );
+                // Data will be updated via users signal
+                // Loading state will be cleared in effect when data arrives
+            },
+            error: (error) => {
+                console.error("HomeComponent - Error in loadUsers:", error);
+                this.isLoading.set(false);
                 this.messageService.add({
                     severity: "error",
                     summary: "Error",
                     detail: "Failed to load users",
                 });
-                this.cdr.markForCheck();
             },
         });
     }
 
-    private subscribeToPaginationState(): void {
-        this.homeService.paginationState$
-            .pipe(takeUntil(this.destroy$))
-            .subscribe({
-                next: (state) => {
-                    console.log("Pagination state updated:", state);
-                    this.totalUsers = state.totalUsers;
-                    this.hasMoreData = state.hasMore;
-                    // Only set loading to false when we have actual data (currentPage > 0)
-                    // This prevents clearing loading state before data arrives
-                    if (state.currentPage > 0) {
-                        this.isLoading = false;
-                        this.isLoadingMore = false;
-                    }
-                    // Mark for check to ensure change detection runs
-                    this.cdr.markForCheck();
-                },
-            });
-    }
-
-    private loadUsers(): void {
-        this.isLoading = true;
-        console.log("HomeComponent - Loading users...");
-        this.homeService
-            .getFilteredAndSortedUsers()
-            .pipe(takeUntil(this.destroy$))
-            .subscribe({
-                next: (users) => {
-                    console.log(
-                        "HomeComponent - getFilteredAndSortedUsers returned:",
-                        users.length,
-                    );
-                    // Data will be updated via users$ subscription
-                    // Loading state will be cleared in subscribeToUsers() when data arrives
-                },
-                error: (error) => {
-                    console.error("HomeComponent - Error in loadUsers:", error);
-                    this.isLoading = false;
-                    this.messageService.add({
-                        severity: "error",
-                        summary: "Error",
-                        detail: "Failed to load users",
-                    });
-                },
-            });
-    }
-
     private loadMoreUsers(): void {
+        const isLoadingMore = this.isLoadingMore();
+        const hasMoreData = this.hasMoreData();
+
         console.log(
-            `loadMoreUsers called - isLoadingMore: ${this.isLoadingMore}, hasMoreData: ${this.hasMoreData}`,
+            `loadMoreUsers called - isLoadingMore: ${isLoadingMore}, hasMoreData: ${hasMoreData}`,
         );
 
-        if (this.isLoadingMore || !this.hasMoreData) {
+        if (isLoadingMore || !hasMoreData) {
             console.log(
                 "loadMoreUsers - Skipping because isLoadingMore or no more data",
             );
@@ -201,55 +188,41 @@ export class HomeComponent implements OnInit, OnDestroy {
         }
 
         console.log("loadMoreUsers - Starting to load next page");
-        this.isLoadingMore = true;
+        this.isLoadingMore.set(true);
 
-        this.homeService
-            .loadNextPage()
-            .pipe(takeUntil(this.destroy$))
-            .subscribe({
-                next: () => {
-                    console.log(
-                        "loadMoreUsers - Next page loaded successfully",
-                    );
-                    this.isLoadingMore = false;
-                },
-                error: (error) => {
-                    console.error("Error loading more users:", error);
-                    this.isLoadingMore = false;
-                    this.messageService.add({
-                        severity: "error",
-                        summary: "Error",
-                        detail: "Failed to load more users",
-                    });
-                },
-            });
-    }
-
-    private subscribeToOnlineCount(): void {
-        this.homeService
-            .getOnlineCount()
-            .pipe(takeUntil(this.destroy$))
-            .subscribe((count) => {
-                this.onlineCount = count;
-            });
+        this.homeService.loadNextPage().subscribe({
+            next: () => {
+                console.log("loadMoreUsers - Next page loaded successfully");
+                this.isLoadingMore.set(false);
+            },
+            error: (error) => {
+                console.error("Error loading more users:", error);
+                this.isLoadingMore.set(false);
+                this.messageService.add({
+                    severity: "error",
+                    summary: "Error",
+                    detail: "Failed to load more users",
+                });
+            },
+        });
     }
 
     onFilterChange(filter: FilterType): void {
-        this.currentFilter = filter;
+        this.currentFilter.set(filter);
         this.homeService.setFilter(filter);
     }
 
     onSortChange(event: any): void {
-        this.currentSort = event.value;
+        this.currentSort.set(event.value);
         this.homeService.setSort(event.value);
     }
 
     onSearchChange(): void {
-        this.homeService.setSearch(this.searchTerm);
+        this.homeService.setSearch(this.searchTerm());
     }
 
     clearSearch(): void {
-        this.searchTerm = "";
+        this.searchTerm.set("");
         this.homeService.setSearch("");
     }
 
@@ -270,16 +243,16 @@ export class HomeComponent implements OnInit, OnDestroy {
             return;
         }
 
-        this.selectedUserForGift = {
+        this.selectedUserForGift.set({
             id: user.id,
             fullName: user.fullName,
-        };
-        this.showSendGiftDialog = true;
+        });
+        this.showSendGiftDialog.set(true);
     }
 
     onGiftSent(_response: any): void {
         // Gift was sent successfully, dialog is already closed
-        this.selectedUserForGift = null;
+        this.selectedUserForGift.set(null);
     }
 
     onCardClick(user: HomeUser): void {
@@ -288,7 +261,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
 
     onRefresh(): void {
-        this.isLoading = true;
+        this.isLoading.set(true);
         this.homeService.refreshData();
 
         this.messageService.add({
@@ -300,7 +273,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     getFilterLabel(): string {
         const option = this.filterOptions.find(
-            (o) => o.value === this.currentFilter,
+            (o) => o.value === this.currentFilter(),
         );
         return option?.label || "All Users";
     }
@@ -318,33 +291,29 @@ export class HomeComponent implements OnInit, OnDestroy {
         const scrollPosition = element.scrollTop + element.clientHeight;
         const scrollHeight = element.scrollHeight;
         const threshold = scrollHeight * 0.8;
+        const hasMoreData = this.hasMoreData();
+        const isLoadingMore = this.isLoadingMore();
 
         console.log(
-            `Scroll Debug - Position: ${scrollPosition}, Height: ${scrollHeight}, Threshold: ${threshold}, HasMore: ${this.hasMoreData}, Loading: ${this.isLoadingMore}`,
+            `Scroll Debug - Position: ${scrollPosition}, Height: ${scrollHeight}, Threshold: ${threshold}, HasMore: ${hasMoreData}, Loading: ${isLoadingMore}`,
         );
 
-        // Load more when user scrolls to 80% of the content
-        if (
-            scrollPosition >= threshold &&
-            this.hasMoreData &&
-            !this.isLoadingMore
-        ) {
+        if (scrollPosition >= threshold && hasMoreData && !isLoadingMore) {
             console.log("Scroll - Loading more users");
             this.loadMoreUsers();
         }
     }
 
+    @HostListener("window:scroll", [])
     onWindowScroll(): void {
         const scrollPosition = window.scrollY + window.innerHeight;
         const scrollHeight = document.documentElement.scrollHeight;
         const threshold = scrollHeight * 0.8;
+        const hasMoreData = this.hasMoreData();
+        const isLoadingMore = this.isLoadingMore();
 
         // Load more when user scrolls to 80% of the content
-        if (
-            scrollPosition >= threshold &&
-            this.hasMoreData &&
-            !this.isLoadingMore
-        ) {
+        if (scrollPosition >= threshold && hasMoreData && !isLoadingMore) {
             this.loadMoreUsers();
         }
     }

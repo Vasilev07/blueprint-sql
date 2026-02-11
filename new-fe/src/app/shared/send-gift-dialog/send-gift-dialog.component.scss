@@ -74,8 +74,8 @@
 
       &.selected {
         border-color: var(--primary-color);
-        background: var(--primary-50);
-        box-shadow: 0 4px 12px rgba(var(--primary-color-rgb), 0.2);
+        background: var(--highlight-bg, rgba(129, 140, 248, 0.16));
+        box-shadow: 0 4px 12px rgba(129, 140, 248, 0.2);
       }
 
       .gift-image-wrapper-small {
@@ -130,7 +130,8 @@
 
   .selected-gift-summary {
     padding: 1rem;
-    background: var(--surface-50);
+    background: var(--surface-100, #374151) !important;
+    background-color: var(--surface-100, #374151) !important;
     border-radius: 8px;
     border: 1px solid var(--surface-border);
 
@@ -149,6 +150,7 @@
         h4 {
           margin: 0;
           font-weight: 600;
+          color: var(--text-color);
         }
 
         .gift-price {
@@ -168,7 +170,8 @@
     flex-direction: column;
     gap: 0.75rem;
     padding: 1rem;
-    background: var(--surface-50);
+    background: var(--surface-100, #374151) !important;
+    background-color: var(--surface-100, #374151) !important;
     border-radius: 8px;
     border: 1px solid var(--surface-border);
 
@@ -204,5 +207,39 @@
 
 .w-full {
   width: 100%;
+}
+
+// Dark theme specific overrides for gift summary and balance sections
+::ng-deep .layout-theme-dark {
+  app-send-gift-dialog {
+    .gift-form {
+      .selected-gift-summary,
+      div.selected-gift-summary {
+        background: #374151 !important;
+        background-color: #374151 !important;
+      }
+
+      .balance-check,
+      div.balance-check {
+        background: #374151 !important;
+        background-color: #374151 !important;
+      }
+    }
+
+    // More specific targeting
+    .p-dialog-content {
+      .gift-form {
+        .selected-gift-summary {
+          background: #374151 !important;
+          background-color: #374151 !important;
+        }
+
+        .balance-check {
+          background: #374151 !important;
+          background-color: #374151 !important;
+        }
+      }
+    }
+  }
 }
 
