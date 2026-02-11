@@ -18,6 +18,7 @@ module.exports = {
     coverageReporters: ['html', 'text', 'text-summary', 'lcov'],
     coverageDirectory: 'coverage',
     moduleNameMapper: {
+        '.*typescript-api-client.*': '<rootDir>/src/__mocks__/typescript-api-client.ts',
         '^src/(.*)$': '<rootDir>/src/$1',
     },
     transformIgnorePatterns: [
@@ -29,7 +30,6 @@ module.exports = {
             {
                 tsconfig: '<rootDir>/tsconfig.spec.json',
                 stringifyContentPathRegex: '\\.html$',
-                isolatedModules: true,
             },
         ],
     },
