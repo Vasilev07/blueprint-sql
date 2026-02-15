@@ -79,55 +79,61 @@ export class ChatService implements OnDestroy {
         this.applyAuthHeadersToApiServices();
         this.loadInitialData();
         // Live updates for any chat messages - store subscription for cleanup
-        this.globalChatSubscription = this.ws.onAnyChatMessage().subscribe(({ conversationId, message }) => {
-            const currentUserId = this.getCurrentUserId();
-            const otherUserId =
-                Number(message.senderId) === currentUserId
-                    ? this.getOtherUserIdFromConversation(
-                          conversationId,
-                          currentUserId,
-                      )
-                    : Number(message.senderId);
+        this.globalChatSubscription = this.ws
+            .onAnyChatMessage()
+            .subscribe(({ conversationId, message }) => {
+                const currentUserId = this.getCurrentUserId();
+                const otherUserId =
+                    Number(message.senderId) === currentUserId
+                        ? this.getOtherUserIdFromConversation(
+                              conversationId,
+                              currentUserId,
+                          )
+                        : Number(message.senderId);
 
-            // Append message to stream
-            // Don't accumulate messages in global state - they're managed per conversation
-            // Just update the conversation's last message
+                // Append message to stream
+                // Don't accumulate messages in global state - they're managed per conversation
+                // Just update the conversation's last message
 
-            // Normalize conversations using numeric user ids and conversation id
-            const convId = String(conversationId);
-            const existing = this.conversationsSubject.value.find(
-                (c) => c.id === convId,
-            );
-            const updated: Conversation = existing
-                ? {
-                      ...existing,
-                      lastMessage: message.content,
-                      lastMessageTime: new Date(
-                          message.createdAt ?? Date.now(),
-                      ),
-                      unreadCount:
-                          (existing.unreadCount ?? 0) +
-                          (Number(message.senderId) === currentUserId ? 0 : 1),
-                  }
-                : ({
-                      id: convId,
-                      participants: [
-                          String(currentUserId),
-                          String(otherUserId),
-                      ],
-                      unreadCount:
-                          Number(message.senderId) === currentUserId ? 0 : 1,
-                      lastMessage: message.content,
-                      lastMessageTime: new Date(
-                          message.createdAt ?? Date.now(),
-                      ),
-                  } as Conversation);
+                // Normalize conversations using numeric user ids and conversation id
+                const convId = String(conversationId);
+                const existing = this.conversationsSubject.value.find(
+                    (c) => c.id === convId,
+                );
+                const updated: Conversation = existing
+                    ? {
+                          ...existing,
+                          lastMessage: message.content,
+                          lastMessageTime: new Date(
+                              message.createdAt ?? Date.now(),
+                          ),
+                          unreadCount:
+                              (existing.unreadCount ?? 0) +
+                              (Number(message.senderId) === currentUserId
+                                  ? 0
+                                  : 1),
+                      }
+                    : ({
+                          id: convId,
+                          participants: [
+                              String(currentUserId),
+                              String(otherUserId),
+                          ],
+                          unreadCount:
+                              Number(message.senderId) === currentUserId
+                                  ? 0
+                                  : 1,
+                          lastMessage: message.content,
+                          lastMessageTime: new Date(
+                              message.createdAt ?? Date.now(),
+                          ),
+                      } as Conversation);
 
-            const convs = this.conversationsSubject.value.filter(
-                (c) => c.id !== updated.id,
-            );
-            this.conversationsSubject.next([updated, ...convs]);
-        });
+                const convs = this.conversationsSubject.value.filter(
+                    (c) => c.id !== updated.id,
+                );
+                this.conversationsSubject.next([updated, ...convs]);
+            });
     }
 
     private getOtherUserIdFromConversation(

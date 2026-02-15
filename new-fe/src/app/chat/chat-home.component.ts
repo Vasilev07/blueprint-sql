@@ -175,9 +175,6 @@ export class ChatHomeComponent {
         const friendsList = this.friends();
         const friend = friendsList?.find(
             (u: User) => String(u.id) === String(userId),
-        const friendsList = this.friends();
-        const friend = friendsList?.find(
-            (u: User) => String(u.id) === String(userId),
         );
         return friend?.name || userId || "Unknown User";
     }
@@ -204,9 +201,6 @@ export class ChatHomeComponent {
         );
         const others = parts.filter((p) => p !== me);
         const otherId = others[0] || parts[0] || "";
-        const friendsList = this.friends();
-        const friend = friendsList?.find(
-            (f: User) => String(f.id) === otherId || f.email === otherId,
         const friendsList = this.friends();
         const friend = friendsList?.find(
             (f: User) => String(f.id) === otherId || f.email === otherId,
