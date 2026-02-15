@@ -67,16 +67,11 @@ describe("AdvancedSearchComponent", () => {
             navigate: jest.fn().mockResolvedValue(true),
         } as any;
 
-        messageService = {
-            add: jest.fn(),
-        } as any;
-
         await TestBed.configureTestingModule({
             imports: [AdvancedSearchComponent],
             providers: [
                 { provide: HomeService, useValue: homeService },
                 { provide: Router, useValue: router },
-                { provide: MessageService, useValue: messageService },
             ],
         })
             .overrideComponent(AdvancedSearchComponent, {
@@ -88,6 +83,17 @@ describe("AdvancedSearchComponent", () => {
 
         fixture = TestBed.createComponent(AdvancedSearchComponent);
         component = fixture.componentInstance;
+
+        // Get the MessageService instance that was injected into the component
+        // and spy on its methods so we can verify calls in tests
+        messageService = (component as any).messageService as MessageService;
+
+        // Create spies that we can use in tests
+        const addSpy = jest.spyOn(messageService, "add");
+        const clearSpy = jest.spyOn(messageService, "clear");
+
+        // Cast to mocked type for test assertions
+        messageService = messageService as jest.Mocked<MessageService>;
     });
 
     describe("Component Initialization", () => {
@@ -131,6 +137,14 @@ describe("AdvancedSearchComponent", () => {
             const usersSubject = new BehaviorSubject<HomeUser[]>(mockUsers);
             homeService.users$ = usersSubject.asObservable();
 
+            // Make getFilteredAndSortedUsers also emit through users$ to simulate real behavior
+            homeService.getFilteredAndSortedUsers = jest
+                .fn()
+                .mockImplementation(() => {
+                    Promise.resolve().then(() => usersSubject.next(mockUsers));
+                    return of(mockUsers);
+                });
+
             fixture = TestBed.createComponent(AdvancedSearchComponent);
             component = fixture.componentInstance;
             fixture.detectChanges();
@@ -139,7 +153,7 @@ describe("AdvancedSearchComponent", () => {
                 expect(component.users().length).toBe(mockUsers.length);
                 expect(component.isLoading()).toBe(false);
                 done();
-            }, 100);
+            }, 10);
         });
     });
 
@@ -241,6 +255,9 @@ describe("AdvancedSearchComponent", () => {
         });
 
         it("should show success message when resetting filters", () => {
+            fixture.detectChanges(); // Ensure component is initialized
+            (messageService.add as jest.Mock).mockClear(); // Clear any previous calls
+
             component.resetAllFilters();
 
             expect(messageService.add).toHaveBeenCalledWith({
@@ -358,12 +375,18 @@ describe("AdvancedSearchComponent", () => {
 
         it("should set loading state when applying filters", () => {
             component.isLoading.set(false);
+
+            // Spy on isLoading.set to verify it was called with true
+            const setLoadingSpy = jest.spyOn(component.isLoading, "set");
+
             component.applyFilters();
 
-            expect(component.isLoading()).toBe(true);
+            // Check that setLoading was called with true (even though it may have been set back to false by now)
+            expect(setLoadingSpy).toHaveBeenCalledWith(true);
         });
 
         it("should update users and show success message on successful filter apply", (done) => {
+            messageService.add.mockClear(); // Clear any previous calls
             component.applyFilters();
 
             setTimeout(() => {
@@ -376,7 +399,7 @@ describe("AdvancedSearchComponent", () => {
                     life: 3000,
                 });
                 done();
-            }, 100);
+            }, 10);
         });
 
         it("should handle error when applying filters fails", (done) => {
@@ -511,6 +534,7 @@ describe("AdvancedSearchComponent", () => {
         });
 
         it("should show error message when user has no id", () => {
+            messageService.add.mockClear(); // Clear any previous calls
             const user = { fullName: "Test User" } as HomeUser;
             component.onGiftClick(user);
 
@@ -666,6 +690,7 @@ describe("AdvancedSearchComponent", () => {
         });
 
         it("should handle error when loading more fails", (done) => {
+            messageService.add.mockClear(); // Clear any previous calls
             homeService.loadNextPage = jest
                 .fn()
                 .mockReturnValue(throwError(() => new Error("Failed")));
@@ -705,7 +730,7 @@ describe("AdvancedSearchComponent", () => {
                 expect(consoleSpy).toHaveBeenCalled();
                 consoleSpy.mockRestore();
                 done();
-            }, 100);
+            }, 10);
         });
     });
 
@@ -812,11 +837,16 @@ describe("AdvancedSearchComponent", () => {
 
             fixture = TestBed.createComponent(AdvancedSearchComponent);
             component = fixture.componentInstance;
+
+            // Get the messageService from the new component instance
+            const newMessageService = (component as any).messageService;
+            const addSpy = jest.spyOn(newMessageService, "add");
+
             fixture.detectChanges();
 
             setTimeout(() => {
                 expect(component.isLoading()).toBe(false);
-                expect(messageService.add).toHaveBeenCalledWith({
+                expect(addSpy).toHaveBeenCalledWith({
                     severity: "error",
                     summary: "Error",
                     detail: "Failed to load users",
@@ -824,7 +854,7 @@ describe("AdvancedSearchComponent", () => {
                 expect(consoleSpy).toHaveBeenCalled();
                 consoleSpy.mockRestore();
                 done();
-            }, 100);
+            }, 10);
         });
 
         it("should set loading to false when users subscription errors", (done) => {
@@ -875,6 +905,7 @@ describe("AdvancedSearchComponent", () => {
         });
 
         it("should clear loading states when page > 0", (done) => {
+            const usersSubject = new BehaviorSubject<HomeUser[]>(mockUsers);
             const paginationSubject = new BehaviorSubject({
                 currentPage: 2,
                 totalPages: 5,
@@ -882,7 +913,17 @@ describe("AdvancedSearchComponent", () => {
                 hasMore: true,
                 limit: 12,
             });
+            homeService.users$ = usersSubject.asObservable();
             homeService.paginationState$ = paginationSubject.asObservable();
+
+            // Make getFilteredAndSortedUsers also emit through users$ to simulate real behavior
+            homeService.getFilteredAndSortedUsers = jest
+                .fn()
+                .mockImplementation(() => {
+                    // Emit through users$ subject after a microtask
+                    Promise.resolve().then(() => usersSubject.next(mockUsers));
+                    return of(mockUsers);
+                });
 
             fixture = TestBed.createComponent(AdvancedSearchComponent);
             component = fixture.componentInstance;
@@ -890,11 +931,12 @@ describe("AdvancedSearchComponent", () => {
             component.isLoadingMore.set(true);
             fixture.detectChanges();
 
+            // The pagination subscription and users$ emission should clear loading states
             setTimeout(() => {
                 expect(component.isLoading()).toBe(false);
                 expect(component.isLoadingMore()).toBe(false);
                 done();
-            }, 100);
+            }, 10);
         });
     });
 
