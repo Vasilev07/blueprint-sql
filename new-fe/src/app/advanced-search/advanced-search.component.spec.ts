@@ -86,14 +86,11 @@ describe("AdvancedSearchComponent", () => {
 
         // Get the MessageService instance that was injected into the component
         // and spy on its methods so we can verify calls in tests
-        messageService = (component as any).messageService as MessageService;
-
-        // Create spies that we can use in tests
-        const addSpy = jest.spyOn(messageService, "add");
-        const clearSpy = jest.spyOn(messageService, "clear");
-
-        // Cast to mocked type for test assertions
-        messageService = messageService as jest.Mocked<MessageService>;
+        const actualMessageService = (component as any)
+            .messageService as MessageService;
+        jest.spyOn(actualMessageService, "add");
+        jest.spyOn(actualMessageService, "clear");
+        messageService = actualMessageService as jest.Mocked<MessageService>;
     });
 
     describe("Component Initialization", () => {
