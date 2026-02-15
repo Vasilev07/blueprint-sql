@@ -10,30 +10,30 @@
             (click)="goBack()"></button>
 
     <div class="chat-user-info" (click)="openUserProfile()">
-      <img [src]="headerProfilePictureUrl"
-           [alt]="otherUserName"
+      <img [src]="headerProfilePictureUrl()"
+           [alt]="otherUserName()"
            (error)="onImageError($event)"
            class="chat-header-avatar">
       <div class="user-details">
-        <h3>{{ otherUserName }}</h3>
-        <div class="user-status" [ngClass]="{ 'online': isOtherUserOnline, 'offline': !isOtherUserOnline }">
-          {{ otherUserStatus }}
+        <h3>{{ otherUserName() }}</h3>
+        <div class="user-status" [ngClass]="{ 'online': isOtherUserOnline(), 'offline': !isOtherUserOnline() }">
+          {{ otherUserStatus() }}
         </div>
       </div>
     </div>
 
     <div class="chat-actions">
-      <button pButton 
-        type="button" 
-        icon="pi pi-phone" 
-        class="p-button-text video-call-btn" 
+      <button pButton
+        type="button"
+        icon="pi pi-phone"
+        class="p-button-text video-call-btn"
         pTooltip="Video Call"
         (click)="startVideoCall()">
       </button>
-      <button pButton 
-        type="button" 
-        icon="pi pi-gift" 
-        class="gift-btn" 
+      <button pButton
+        type="button"
+        icon="pi pi-gift"
+        class="gift-btn"
         pTooltip="Send Gift"
         (click)="openSendGiftDialog()">
       </button>
@@ -43,96 +43,122 @@
   </div>
 
   <!-- Chat Messages -->
-  <div class="chat-messages" [class.loading]="isLoading">
-    <div *ngIf="isLoading" class="loading-messages">
-      <i class="pi pi-spin pi-spinner"></i>
-      <p>Loading messages...</p>
-    </div>
-    
-    <div *ngIf="!isLoading && messages.length === 0" class="empty-messages">
-      <i class="pi pi-comments"></i>
-      <h3>No messages yet</h3>
-      <p>Start the conversation by sending a message!</p>
-    </div>
-    
-    <div *ngFor="let message of messages" 
-         class="message-wrapper" 
-         [class.own-message]="isOwnMessage(message)"
-         [class.gift-message]="isGiftMessage(message)">
-      
-      <!-- Gift Message Display -->
-      <div *ngIf="isGiftMessage(message)" class="gift-message-bubble" [ngClass]="{'own-gift': isOwnMessage(message)}">
-        <!-- Show sender avatar for gift messages from others -->
-        <div *ngIf="!isOwnMessage(message)" class="gift-message-avatar">
-          <img 
-            [src]="getSenderProfilePicture(message.senderId)" 
-            [alt]="getSenderInitials(message.senderId)"
-            (error)="onImageError($event)"
-            class="avatar-image">
-        </div>
-        
-        <div class="gift-message-container">
-          <div class="gift-sparkles">
-            <span class="sparkle sparkle-1">✨</span>
-            <span class="sparkle sparkle-2">✨</span>
-            <span class="sparkle sparkle-3">✨</span>
-            <span class="sparkle sparkle-4">✨</span>
-          </div>
-          
-          <div class="gift-message-header">
-            <div class="gift-emoji-large">{{ parseGiftMessage(message)?.emoji || '🎁' }}</div>
-            <div class="gift-info">
-              <div class="gift-label">
-                <i class="pi pi-gift"></i>
-                <span>{{ isOwnMessage(message) ? 'You sent a gift' : 'Gift Sent' }}</span>
-              </div>
-              <div class="gift-sender-name" *ngIf="!isOwnMessage(message)">
-                <i class="pi pi-user"></i>
-                <span>{{ getSenderName(message.senderId) }}</span>
-              </div>
-              <div class="gift-amount">
-                <i class="pi pi-wallet"></i>
-                <span>{{ parseGiftMessage(message)?.amount || '0' }} tokens</span>
-              </div>
-            </div>
-          </div>
-          
-          <div *ngIf="parseGiftMessage(message)?.giftMessage" class="gift-message-text">
-            <i class="pi pi-quote-left"></i>
-            <span>{{ parseGiftMessage(message)?.giftMessage }}</span>
-            <i class="pi pi-quote-right"></i>
-          </div>
-          
-          <div class="gift-message-footer">
-            <span class="message-time">{{ formatTime(message.timestamp) }}</span>
-            <div *ngIf="isOwnMessage(message)" class="message-status">
-              <i class="pi pi-check-double read"></i>
-            </div>
-          </div>
-        </div>
+  <div class="chat-messages" [class.loading]="isLoading()">
+    @if (isLoading()) {
+      <div class="loading-messages">
+        <i class="pi pi-spin pi-spinner"></i>
+        <p>Loading messages...</p>
       </div>
+    }
 
-      <!-- Regular Message Display -->
-      <div *ngIf="!isGiftMessage(message)">
-        <div *ngIf="!isOwnMessage(message)" class="message-avatar">
-          <img 
-            [src]="getSenderProfilePicture(message.senderId)" 
-            [alt]="getSenderInitials(message.senderId)"
-            (error)="onImageError($event)"
-            class="avatar-image">
-        </div>
-        <div class="message-bubble">
-          <div class="message-content">{{ message.content }}</div>
-          <div class="message-footer">
-            <span class="message-time">{{ formatTime(message.timestamp) }}</span>
-            <div *ngIf="isOwnMessage(message)" class="message-status">
-              <i *ngIf="message.isRead" class="pi pi-check-double read"></i>
-              <i *ngIf="!message.isRead" class="pi pi-check"></i>
+    @if (!isLoading() && messages().length === 0) {
+      <div class="empty-messages">
+        <i class="pi pi-comments"></i>
+        <h3>No messages yet</h3>
+        <p>Start the conversation by sending a message!</p>
+      </div>
+    }
+
+    @for (message of messages(); track trackByMessageId($index, message)) {
+      <div class="message-wrapper"
+           [class.own-message]="isOwnMessage(message)"
+           [class.gift-message]="isGiftMessage(message)">
+
+        <!-- Gift Message Display -->
+        @if (isGiftMessage(message)) {
+          <div class="gift-message-bubble" [ngClass]="{'own-gift': isOwnMessage(message)}">
+            <!-- Show sender avatar for gift messages from others -->
+            @if (!isOwnMessage(message)) {
+              <div class="gift-message-avatar">
+                <img
+                  [src]="getSenderProfilePicture(message.senderId)"
+                  [alt]="getSenderInitials(message.senderId)"
+                  (error)="onImageError($event)"
+                  class="avatar-image">
+              </div>
+            }
+
+            @if (message | parseGiftMessage; as parsedGift) {
+              <div class="gift-message-container">
+                <div class="gift-sparkles">
+                  <span class="sparkle sparkle-1">✨</span>
+                  <span class="sparkle sparkle-2">✨</span>
+                  <span class="sparkle sparkle-3">✨</span>
+                  <span class="sparkle sparkle-4">✨</span>
+                </div>
+
+                <div class="gift-message-header">
+                  <div class="gift-emoji-large">{{ parsedGift?.emoji || '🎁' }}</div>
+                  <div class="gift-info">
+                    <div class="gift-label">
+                      <i class="pi pi-gift"></i>
+                      <span>{{ isOwnMessage(message) ? 'You sent a gift' : 'Gift Sent' }}</span>
+                    </div>
+                    @if (!isOwnMessage(message)) {
+                      <div class="gift-sender-name">
+                        <i class="pi pi-user"></i>
+                        <span>{{ getSenderName(message.senderId) }}</span>
+                      </div>
+                    }
+                    <div class="gift-amount">
+                      <i class="pi pi-wallet"></i>
+                      <span>{{ parsedGift?.amount || '0' }} tokens</span>
+                    </div>
+                  </div>
+                </div>
+
+                @if (parsedGift?.giftMessage) {
+                  <div class="gift-message-text">
+                    <i class="pi pi-quote-left"></i>
+                    <span>{{ parsedGift.giftMessage }}</span>
+                    <i class="pi pi-quote-right"></i>
+                  </div>
+                }
+
+                <div class="gift-message-footer">
+                  <span class="message-time">{{ formatTime(message.timestamp) }}</span>
+                  @if (isOwnMessage(message)) {
+                    <div class="message-status">
+                      <i class="pi pi-check-double read"></i>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Regular Message Display -->
+        @if (!isGiftMessage(message)) {
+          <div>
+            @if (!isOwnMessage(message)) {
+              <div class="message-avatar">
+                <img
+                  [src]="getSenderProfilePicture(message.senderId)"
+                  [alt]="getSenderInitials(message.senderId)"
+                  (error)="onImageError($event)"
+                  class="avatar-image">
+              </div>
+            }
+            <div class="message-bubble">
+              <div class="message-content">{{ message.content }}</div>
+              <div class="message-footer">
+                <span class="message-time">{{ formatTime(message.timestamp) }}</span>
+                @if (isOwnMessage(message)) {
+                  <div class="message-status">
+                    @if (message.isRead) {
+                      <i class="pi pi-check-double read"></i>
+                    } @else {
+                      <i class="pi pi-check"></i>
+                    }
+                  </div>
+                }
+              </div>
             </div>
           </div>
-        </div>
+        }
       </div>
-    </div>
+    }
   </div>
 
   <!-- Chat Input -->
@@ -167,21 +193,27 @@
         </button>
       </div>
 
-      <div *ngIf="messageForm.get('content')?.invalid && messageForm.get('content')?.touched"
-           class="validation-error">
-        <small *ngIf="messageForm.get('content')?.errors?.['required']">Message is required</small>
-        <small *ngIf="messageForm.get('content')?.errors?.['maxlength']">Message too long (max 1000 chars)</small>
-      </div>
+      @if (messageForm.get('content')?.invalid && messageForm.get('content')?.touched) {
+        <div class="validation-error">
+          @if (messageForm.get('content')?.errors?.['required']) {
+            <small>Message is required</small>
+          }
+          @if (messageForm.get('content')?.errors?.['maxlength']) {
+            <small>Message too long (max 1000 chars)</small>
+          }
+        </div>
+      }
     </form>
   </div>
 </div>
 
 <!-- Send Gift Dialog -->
 <app-send-gift-dialog
-  [(visible)]="showSendGiftDialog"
-  [recipientUser]="recipientUserForGift"
+  [visible]="showSendGiftDialog()"
+  (visibleChange)="showSendGiftDialog.set($event)"
+  [recipientUser]="recipientUserForGift()"
   (giftSent)="onGiftSent($event)">
 </app-send-gift-dialog>
 
 <!-- Toast Messages -->
-<p-toast></p-toast> 
+<p-toast></p-toast>

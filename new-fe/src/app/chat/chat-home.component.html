@@ -10,99 +10,113 @@
       <div class="sidebar-search">
         <span class="p-input-icon-left">
           <i class="pi pi-search"></i>
-          <input 
-            type="text" 
-            pInputText 
-            placeholder="Search conversations..." 
+          <input
+            type="text"
+            pInputText
+            placeholder="Search conversations..."
             class="search-input"
           />
         </span>
       </div>
-      
+
       <div class="chat-list">
-        <div 
-          class="chat-item" 
-          *ngFor="let conversation of conversations$ | async" 
-          [class.active]="selectedUserId() && conversation.participants.includes(selectedUserId()!)"
-          (click)="startChatFromConversation(conversation)">
-          <div class="chat-avatar">
-            <img 
-              [src]="getConversationAvatar(conversation)" 
-              [alt]="getConversationDisplayName(conversation)"
-              (error)="onImageError($event)"
-              class="conversation-avatar">
-            <div class="online-indicator" [class]="conversation.isOnline ? 'online' : 'offline'"></div>
-          </div>
-          
-          <div class="chat-info">
-            <div class="chat-name-row">
-              <span class="chat-name">{{ getConversationDisplayName(conversation) }}</span>
-              <span *ngIf="conversation.unreadCount && conversation.unreadCount > 0" class="unread-badge">
-                {{ conversation.unreadCount }}
-              </span>
+        @for (conversation of conversations(); track conversation.id) {
+          <div
+            class="chat-item"
+            [class.active]="isConversationActive(conversation)"
+            (click)="startChatFromConversation(conversation)">
+            <div class="chat-avatar">
+              <img
+                [src]="getConversationAvatar(conversation)"
+                [alt]="getConversationDisplayName(conversation)"
+                (error)="onImageError($event)"
+                class="conversation-avatar">
+              <div class="online-indicator" [class]="conversation.isOnline ? 'online' : 'offline'"></div>
             </div>
-            <div class="last-message">{{ conversation.lastMessage || 'No messages yet' }}</div>
+
+            <div class="chat-info">
+              <div class="chat-name-row">
+                <span class="chat-name">{{ getConversationDisplayName(conversation) }}</span>
+                @if (conversation.unreadCount && conversation.unreadCount > 0) {
+                  <span class="unread-badge">
+                    {{ conversation.unreadCount }}
+                  </span>
+                }
+              </div>
+              <div class="last-message">{{ conversation.lastMessage || 'No messages yet' }}</div>
+            </div>
+
+            <div class="chat-meta">
+              <div class="chat-time">{{ formatTime(conversation.lastMessageTime) }}</div>
+            </div>
           </div>
-          
-          <div class="chat-meta">
-            <div class="chat-time">{{ formatTime(conversation.lastMessageTime) }}</div>
-          </div>
-        </div>
+        }
       </div>
     </div>
 
     <!-- Chat View Area -->
     <div class="chat-view-area">
-      <app-chat *ngIf="selectedUserId()" [userId]="selectedUserId()!"></app-chat>
-      <div *ngIf="!selectedUserId()" class="empty-chat-state">
-        <!-- Desktop: Select conversation message -->
-        <div *ngIf="!isMobile()" class="empty-chat-content">
-          <i class="pi pi-comments"></i>
-          <h2>Select a conversation</h2>
-          <p>Choose a conversation from the sidebar to start messaging</p>
-        </div>
+      @if (selectedUserId()) {
+        <app-chat [userId]="selectedUserId()!"></app-chat>
+      }
+      @if (!selectedUserId()) {
+        <div class="empty-chat-state">
+          <!-- Desktop: Select conversation message -->
+          @if (!isMobile()) {
+            <div class="empty-chat-content">
+              <i class="pi pi-comments"></i>
+              <h2>Select a conversation</h2>
+              <p>Choose a conversation from the sidebar to start messaging</p>
+            </div>
+          }
 
-        <!-- Mobile: Show chats and discover content -->
-        <div *ngIf="isMobile()" class="mobile-chat-content">
+          <!-- Mobile: Show chats and discover content -->
+          @if (isMobile()) {
+            <div class="mobile-chat-content">
           <!-- Recent Chats -->
           <div class="mobile-section">
             <div class="section-header">
               <h3>Recent Chats</h3>
-              <span class="section-count">{{ (conversations$ | async)?.length || 0 }}</span>
+              <span class="section-count">{{ conversations().length || 0 }}</span>
             </div>
             <div class="mobile-chat-list">
-              <div
-                class="mobile-chat-item"
-                *ngFor="let conversation of (conversations$ | async)?.slice(0, 10)"
-                (click)="startChatFromConversation(conversation)">
-                <div class="chat-avatar">
-                  <img
-                    [src]="getConversationAvatar(conversation)"
-                    [alt]="getConversationDisplayName(conversation)"
-                    (error)="onImageError($event)"
-                    class="conversation-avatar">
-                  <div class="online-indicator" [class]="conversation.isOnline ? 'online' : 'offline'"></div>
-                </div>
-
-                <div class="chat-info">
-                  <div class="chat-name-row">
-                    <span class="chat-name">{{ getConversationDisplayName(conversation) }}</span>
-                    <span *ngIf="conversation.unreadCount && conversation.unreadCount > 0" class="unread-badge">
-                      {{ conversation.unreadCount }}
-                    </span>
+              @for (conversation of conversations().slice(0, 10); track conversation.id) {
+                <div
+                  class="mobile-chat-item"
+                  (click)="startChatFromConversation(conversation)">
+                  <div class="chat-avatar">
+                    <img
+                      [src]="getConversationAvatar(conversation)"
+                      [alt]="getConversationDisplayName(conversation)"
+                      (error)="onImageError($event)"
+                      class="conversation-avatar">
+                    <div class="online-indicator" [class]="conversation.isOnline ? 'online' : 'offline'"></div>
                   </div>
-                  <div class="last-message">{{ conversation.lastMessage || 'No messages yet' }}</div>
-                </div>
 
-                <div class="chat-meta">
-                  <div class="chat-time">{{ formatTime(conversation.lastMessageTime) }}</div>
-                </div>
-              </div>
+                  <div class="chat-info">
+                    <div class="chat-name-row">
+                      <span class="chat-name">{{ getConversationDisplayName(conversation) }}</span>
+                      @if (conversation.unreadCount && conversation.unreadCount > 0) {
+                        <span class="unread-badge">
+                          {{ conversation.unreadCount }}
+                        </span>
+                      }
+                    </div>
+                    <div class="last-message">{{ conversation.lastMessage || 'No messages yet' }}</div>
+                  </div>
 
-              <div *ngIf="(conversations$ | async)?.length === 0" class="empty-chats">
-                <i class="pi pi-comments"></i>
-                <p>No conversations yet</p>
-              </div>
+                  <div class="chat-meta">
+                    <div class="chat-time">{{ formatTime(conversation.lastMessageTime) }}</div>
+                  </div>
+                </div>
+              }
+
+              @if (conversations().length === 0) {
+                <div class="empty-chats">
+                  <i class="pi pi-comments"></i>
+                  <p>No conversations yet</p>
+                </div>
+              }
             </div>
           </div>
 
@@ -117,11 +131,11 @@
               <div class="discover-card">
                 <div class="card-header">
                   <h4>New Users</h4>
-                  <span class="badge">{{ (lastRegisteredUsers$ | async)?.length || 0 }}</span>
+                  <span class="badge">{{ lastRegisteredUsers().length || 0 }}</span>
                 </div>
                 <div class="card-content">
                   <app-user-list
-                    [users]="(lastRegisteredUsers$ | async)?.slice(0, 5) ?? []"
+                    [users]="lastRegisteredUsers().slice(0, 5)"
                     (userClick)="startChat($event)"
                     [compact]="true">
                   </app-user-list>
@@ -132,11 +146,11 @@
               <div class="discover-card">
                 <div class="card-header">
                   <h4>Top Friends</h4>
-                  <span class="badge">{{ (topFriends$ | async)?.length || 0 }}</span>
+                  <span class="badge">{{ topFriends().length || 0 }}</span>
                 </div>
                 <div class="card-content">
                   <app-friends-list
-                    [friends]="(topFriends$ | async)?.slice(0, 5) ?? []"
+                    [friends]="topFriends().slice(0, 5)"
                     (friendClick)="startChat($event)"
                     [compact]="true">
                   </app-friends-list>
@@ -160,8 +174,10 @@
               </div>
             </div>
           </div>
+            </div>
+          }
         </div>
-      </div>
+      }
     </div>
   </div>
 
@@ -177,11 +193,11 @@
       <div class="dashboard-card">
         <div class="card-header">
           <h3>Recently Registered Users</h3>
-          <span class="badge">{{ (lastRegisteredUsers$ | async)?.length || 0 }}</span>
+          <span class="badge">{{ lastRegisteredUsers().length || 0 }}</span>
         </div>
         <div class="card-content">
-          <app-user-list 
-            [users]="(lastRegisteredUsers$ | async) ?? []"
+          <app-user-list
+            [users]="lastRegisteredUsers()"
             (userClick)="startChat($event)">
           </app-user-list>
         </div>
@@ -191,11 +207,11 @@
       <div class="dashboard-card">
         <div class="card-header">
           <h3>Your Top Friends</h3>
-          <span class="badge">{{ (topFriends$ | async)?.length || 0 }}</span>
+          <span class="badge">{{ topFriends().length || 0 }}</span>
         </div>
         <div class="card-content">
-          <app-friends-list 
-            [friends]="(topFriends$ | async) ?? []"
+          <app-friends-list
+            [friends]="topFriends()"
             (friendClick)="startChat($event)">
           </app-friends-list>
         </div>
@@ -205,12 +221,12 @@
       <div class="dashboard-card full-width">
         <div class="card-header">
           <h3>Recent Messages</h3>
-          <span class="badge">{{ (recentMessages$ | async)?.length || 0 }}</span>
+          <span class="badge">{{ recentMessages().length || 0 }}</span>
         </div>
         <div class="card-content">
-          <app-recent-messages 
-            [messages]="(recentMessages$ | async) ?? []"
-            [users]="(users$ | async) ?? []"
+          <app-recent-messages
+            [messages]="recentMessages()"
+            [users]="users()"
             (messageClick)="startChat($event)">
           </app-recent-messages>
         </div>
@@ -225,14 +241,14 @@
         <p>Search for new friends and start conversations</p>
         <button pButton label="Search Users" class="p-button-primary" icon="pi pi-search"></button>
       </div>
-      
+
       <div class="action-card">
         <i class="pi pi-users"></i>
         <h3>Group Chats</h3>
         <p>Create or join group conversations</p>
         <button pButton label="Create Group" class="p-button-secondary" icon="pi pi-plus"></button>
       </div>
-      
+
       <div class="action-card">
         <i class="pi pi-cog"></i>
         <h3>Settings</h3>
@@ -241,4 +257,4 @@
       </div>
     </div>
   </div>
-</div> 
+</div>

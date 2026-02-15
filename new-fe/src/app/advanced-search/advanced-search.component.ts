@@ -1,8 +1,16 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from "@angular/core";
+import {
+    Component,
+    OnInit,
+    OnDestroy,
+    inject,
+    signal,
+    computed,
+    DestroyRef,
+} from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { Router } from "@angular/router";
-import { Subject, takeUntil } from "rxjs";
 import { HomeService, HomeUser } from "../home/home.service";
 import { MessageService } from "primeng/api";
 import {
@@ -13,7 +21,7 @@ import { UserCardComponent } from "../home/user-card/user-card.component";
 import { ButtonModule } from "primeng/button";
 import { SelectModule } from "primeng/select";
 import { MultiSelectModule } from "primeng/multiselect";
-import { SliderModule } from "primeng/slider";
+import { SliderModule, SliderSlideEndEvent } from "primeng/slider";
 import { InputTextModule } from "primeng/inputtext";
 import { IconFieldModule } from "primeng/iconfield";
 import { InputIconModule } from "primeng/inputicon";
@@ -32,6 +40,17 @@ export interface AdvancedSearchFilters {
     location?: string;
     verifiedOnly: boolean;
 }
+
+const DEFAULT_FILTERS: AdvancedSearchFilters = {
+    gender: "all",
+    onlineStatus: "all",
+    relationshipStatus: "all",
+    interests: [],
+    ageRange: [18, 65],
+    distance: 100,
+    location: "",
+    verifiedOnly: false,
+};
 
 @Component({
     selector: "app-advanced-search",
@@ -58,31 +77,55 @@ export interface AdvancedSearchFilters {
     providers: [MessageService],
 })
 export class AdvancedSearchComponent implements OnInit, OnDestroy {
-    users: HomeUser[] = [];
-    totalUsers: number = 0;
-    isLoading: boolean = true;
-    isLoadingMore: boolean = false;
-    hasMoreData: boolean = true;
+    private readonly homeService = inject(HomeService);
+    private readonly router = inject(Router);
+    private readonly messageService = inject(MessageService);
+    private readonly destroyRef = inject(DestroyRef);
 
-    // Gift dialog properties
-    showSendGiftDialog = false;
-    selectedUserForGift: GiftDialogUser | null = null;
+    // State signals
+    readonly users = signal<HomeUser[]>([]);
+    readonly totalUsers = signal(0);
+    readonly isLoading = signal(true);
+    readonly isLoadingMore = signal(false);
+    readonly hasMoreData = signal(true);
+    readonly showSendGiftDialog = signal(false);
+    readonly selectedUserForGift = signal<GiftDialogUser | null>(null);
+    readonly filters = signal<AdvancedSearchFilters>({ ...DEFAULT_FILTERS });
+    readonly ageRangeLabel = signal("18 - 65 years");
+    readonly distanceLabel = signal("Up to 100 km");
 
-    // Filter options
-    genderOptions = [
+    // Computed
+    readonly userCountLabel = computed(() => {
+        const total = this.totalUsers();
+        return `${total} ${total === 1 ? "user" : "users"} found`;
+    });
+
+    readonly isEmptyState = computed(
+        () => !this.isLoading() && this.users().length === 0,
+    );
+    readonly hasUsers = computed(
+        () => !this.isLoading() && this.users().length > 0,
+    );
+    readonly showEndOfResults = computed(
+        () =>
+            !this.isLoading() && !this.hasMoreData() && this.users().length > 0,
+    );
+
+    // Filter options (static, no need for signals)
+    readonly genderOptions = [
         { label: "All Genders", value: "all" },
         { label: "Male", value: "male" },
         { label: "Female", value: "female" },
         { label: "Other", value: "other" },
     ];
 
-    onlineStatusOptions = [
+    readonly onlineStatusOptions = [
         { label: "All", value: "all" },
         { label: "Online", value: "online" },
         { label: "Offline", value: "offline" },
     ];
 
-    relationshipStatusOptions = [
+    readonly relationshipStatusOptions = [
         { label: "All", value: "all" },
         { label: "Single", value: "single" },
         { label: "In a relationship", value: "in_relationship" },
@@ -90,7 +133,7 @@ export class AdvancedSearchComponent implements OnInit, OnDestroy {
         { label: "It's complicated", value: "complicated" },
     ];
 
-    interestsOptions = [
+    readonly interestsOptions = [
         { label: "All interests", value: "all" },
         { label: "Sports", value: "sports" },
         { label: "Music", value: "music" },
@@ -104,128 +147,30 @@ export class AdvancedSearchComponent implements OnInit, OnDestroy {
         { label: "Fitness", value: "fitness" },
     ];
 
-    // Filter values
-    filters: AdvancedSearchFilters = {
-        gender: "all",
-        onlineStatus: "all",
-        relationshipStatus: "all",
-        interests: [],
-        ageRange: [18, 65],
-        distance: 100,
-        location: "",
-        verifiedOnly: false,
-    };
-
-    // Slider labels
-    ageRangeLabel: string = "18 - 65 years";
-    distanceLabel: string = "Up to 100 km";
-
-    private destroy$ = new Subject<void>();
-
-    constructor(
-        private homeService: HomeService,
-        private router: Router,
-        private messageService: MessageService,
-        private cdr: ChangeDetectorRef,
-    ) {}
-
     ngOnInit(): void {
-        // Set up subscriptions first
         this.subscribeToUsers();
         this.subscribeToPaginationState();
-
-        // Load users immediately - subscriptions are already set up
         this.loadUsers();
-
-        // Add scroll event listener
         window.addEventListener("scroll", this.onWindowScroll.bind(this));
     }
 
     ngOnDestroy(): void {
-        this.destroy$.next();
-        this.destroy$.complete();
-
-        // Remove scroll event listener
         window.removeEventListener("scroll", this.onWindowScroll.bind(this));
     }
 
     private subscribeToUsers(): void {
-        this.homeService.users$.pipe(takeUntil(this.destroy$)).subscribe({
-            next: (users) => {
-                console.log(
-                    "AdvancedSearchComponent - Users updated:",
-                    users.length,
-                );
-                // Backend handles all filtering, just display the results
-                this.users = users;
-                // Clear loading state when we receive users data
-                // This ensures loading is cleared even if pagination state hasn't updated yet
-                if (users && users.length > 0 && this.isLoading) {
-                    console.log(
-                        "AdvancedSearchComponent - Clearing loading state after receiving users",
-                    );
-                    this.isLoading = false;
-                }
-                // Mark for check to ensure change detection runs
-                this.cdr.markForCheck();
-            },
-            error: (error) => {
-                console.error("Error loading users:", error);
-                this.isLoading = false;
-                this.messageService.add({
-                    severity: "error",
-                    summary: "Error",
-                    detail: "Failed to load users",
-                });
-                this.cdr.markForCheck();
-            },
-        });
-    }
-
-    private subscribeToPaginationState(): void {
-        this.homeService.paginationState$
-            .pipe(takeUntil(this.destroy$))
-            .subscribe({
-                next: (state) => {
-                    this.totalUsers = state.totalUsers;
-                    this.hasMoreData = state.hasMore;
-                    if (state.currentPage > 0) {
-                        this.isLoading = false;
-                        this.isLoadingMore = false;
-                    }
-                    // Mark for check to ensure change detection runs
-                    this.cdr.markForCheck();
-                },
-            });
-    }
-
-    private loadUsers(): void {
-        this.isLoading = true;
-        console.log("AdvancedSearchComponent - Loading users...");
-        this.homeService
-            .getFilteredAndSortedUsers()
-            .pipe(takeUntil(this.destroy$))
+        this.homeService.users$
+            .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: (users) => {
-                    console.log(
-                        "AdvancedSearchComponent - getFilteredAndSortedUsers returned:",
-                        users.length,
-                    );
-                    // Data will be updated via users$ subscription
-                    // But also set directly as fallback
-                    this.users = users;
-                    // Loading state will be cleared in subscribeToUsers() when data arrives
-                    // But also clear here if no users (empty result)
-                    if (!users || users.length === 0) {
-                        this.isLoading = false;
+                    this.users.set(users);
+                    if (users?.length > 0 && this.isLoading()) {
+                        this.isLoading.set(false);
                     }
                 },
                 error: (error) => {
-                    console.error(
-                        "AdvancedSearchComponent - Error in loadUsers:",
-                        error,
-                    );
-                    this.isLoading = false;
+                    console.error("Error loading users:", error);
+                    this.isLoading.set(false);
                     this.messageService.add({
                         severity: "error",
                         summary: "Error",
@@ -235,54 +180,86 @@ export class AdvancedSearchComponent implements OnInit, OnDestroy {
             });
     }
 
+    private subscribeToPaginationState(): void {
+        this.homeService.paginationState$
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+                next: (state) => {
+                    this.totalUsers.set(state.totalUsers);
+                    this.hasMoreData.set(state.hasMore);
+                    if (state.currentPage > 0) {
+                        this.isLoading.set(false);
+                        this.isLoadingMore.set(false);
+                    }
+                },
+            });
+    }
+
+    private loadUsers(): void {
+        this.isLoading.set(true);
+        this.homeService
+            .getFilteredAndSortedUsers()
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+                next: (users) => {
+                    this.users.set(users);
+                    if (!users?.length) {
+                        this.isLoading.set(false);
+                    }
+                },
+                error: (error) => {
+                    console.error("AdvancedSearchComponent - Error:", error);
+                    this.isLoading.set(false);
+                    this.messageService.add({
+                        severity: "error",
+                        summary: "Error",
+                        detail: "Failed to load users",
+                    });
+                },
+            });
+    }
+
+    updateFilter<K extends keyof AdvancedSearchFilters>(
+        key: K,
+        value: AdvancedSearchFilters[K],
+    ): void {
+        this.filters.update((f) => ({ ...f, [key]: value }));
+    }
+
+    updateFilters(updates: Partial<AdvancedSearchFilters>): void {
+        this.filters.update((f) => ({ ...f, ...updates }));
+    }
+
     applyFilters(): void {
-        // Map advanced filters to backend filters
+        const f = this.filters();
         let backendFilter = "all";
-        if (this.filters.onlineStatus === "online") {
+        if (f.onlineStatus === "online") {
             backendFilter = "online";
-        } else if (this.filters.onlineStatus === "offline") {
-            // For offline, we'll get all users and filter client-side
+        } else if (f.onlineStatus === "offline") {
             backendFilter = "all";
         }
 
-        // Set the backend filter
-        this.homeService.setFilter(backendFilter as any);
-
-        // Set advanced filters in the service - backend will handle all filtering
+        this.homeService.setFilter(backendFilter as "all" | "online");
         this.homeService.setAdvancedFilters({
-            gender:
-                this.filters.gender !== "all" ? this.filters.gender : undefined,
-            ageMin:
-                this.filters.ageRange[0] !== 18
-                    ? this.filters.ageRange[0]
-                    : undefined,
-            ageMax:
-                this.filters.ageRange[1] !== 65
-                    ? this.filters.ageRange[1]
-                    : undefined,
-            interests:
-                this.filters.interests && this.filters.interests.length > 0
-                    ? this.filters.interests.join(",")
-                    : undefined,
+            gender: f.gender !== "all" ? f.gender : undefined,
+            ageMin: f.ageRange[0] !== 18 ? f.ageRange[0] : undefined,
+            ageMax: f.ageRange[1] !== 65 ? f.ageRange[1] : undefined,
+            interests: f.interests?.length ? f.interests.join(",") : undefined,
             relationshipStatus:
-                this.filters.relationshipStatus !== "all"
-                    ? this.filters.relationshipStatus
+                f.relationshipStatus !== "all"
+                    ? f.relationshipStatus
                     : undefined,
-            verifiedOnly: this.filters.verifiedOnly || undefined,
+            verifiedOnly: f.verifiedOnly || undefined,
         });
 
-        // Reset pagination and reload - backend handles all filtering
-        this.isLoading = true;
+        this.isLoading.set(true);
         this.homeService
             .getFilteredAndSortedUsers()
-            .pipe(takeUntil(this.destroy$))
+            .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: (users) => {
-                    // Backend has already filtered the users, just display them
-                    this.users = users;
-                    this.isLoading = false;
-
-                    // Show message about filters applied
+                    this.users.set(users);
+                    this.isLoading.set(false);
                     this.messageService.add({
                         severity: "info",
                         summary: "Filters Applied",
@@ -292,28 +269,23 @@ export class AdvancedSearchComponent implements OnInit, OnDestroy {
                 },
                 error: (error) => {
                     console.error("Error applying filters:", error);
-                    this.isLoading = false;
+                    this.isLoading.set(false);
                 },
             });
     }
 
     private loadMoreUsers(): void {
-        if (this.isLoadingMore || !this.hasMoreData) {
-            return;
-        }
+        if (this.isLoadingMore() || !this.hasMoreData()) return;
 
-        this.isLoadingMore = true;
-
+        this.isLoadingMore.set(true);
         this.homeService
             .loadNextPage()
-            .pipe(takeUntil(this.destroy$))
+            .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
-                next: () => {
-                    this.isLoadingMore = false;
-                },
+                next: () => this.isLoadingMore.set(false),
                 error: (error) => {
                     console.error("Error loading more users:", error);
-                    this.isLoadingMore = false;
+                    this.isLoadingMore.set(false);
                     this.messageService.add({
                         severity: "error",
                         summary: "Error",
@@ -323,15 +295,17 @@ export class AdvancedSearchComponent implements OnInit, OnDestroy {
             });
     }
 
-    onAgeRangeChange(event: any): void {
-        this.filters.ageRange = event.values;
-        this.ageRangeLabel = `${event.values[0]} - ${event.values[1]} years`;
+    onAgeRangeChange(event: SliderSlideEndEvent): void {
+        const values = event.values ?? this.filters().ageRange;
+        this.updateFilters({ ageRange: [values[0], values[1]] });
+        this.ageRangeLabel.set(`${values[0]} - ${values[1]} years`);
         this.applyFilters();
     }
 
-    onDistanceChange(event: any): void {
-        this.filters.distance = event.value;
-        this.distanceLabel = `Up to ${event.value} km`;
+    onDistanceChange(event: SliderSlideEndEvent): void {
+        const value = event.value ?? this.filters().distance;
+        this.updateFilter("distance", value);
+        this.distanceLabel.set(`Up to ${value} km`);
         this.applyFilters();
     }
 
@@ -340,20 +314,10 @@ export class AdvancedSearchComponent implements OnInit, OnDestroy {
     }
 
     resetAllFilters(): void {
-        this.filters = {
-            gender: "all",
-            onlineStatus: "all",
-            relationshipStatus: "all",
-            interests: [],
-            ageRange: [18, 65],
-            distance: 100,
-            location: "",
-            verifiedOnly: false,
-        };
-        this.ageRangeLabel = "18 - 65 years";
-        this.distanceLabel = "Up to 100 km";
+        this.filters.set({ ...DEFAULT_FILTERS });
+        this.ageRangeLabel.set("18 - 65 years");
+        this.distanceLabel.set("Up to 100 km");
         this.applyFilters();
-
         this.messageService.add({
             severity: "info",
             summary: "Filters Reset",
@@ -380,20 +344,18 @@ export class AdvancedSearchComponent implements OnInit, OnDestroy {
             });
             return;
         }
-
-        this.selectedUserForGift = {
+        this.selectedUserForGift.set({
             id: user.id,
             fullName: user.fullName,
-        };
-        this.showSendGiftDialog = true;
+        });
+        this.showSendGiftDialog.set(true);
     }
 
-    onGiftSent(_response: any): void {
-        // Gift was sent successfully, dialog is already closed
-        this.selectedUserForGift = null;
+    onGiftSent(_response: unknown): void {
+        this.selectedUserForGift.set(null);
     }
 
-    trackByUserId(index: number, user: HomeUser): number {
+    trackByUserId(_index: number, user: HomeUser): number {
         return user.id!;
     }
 
@@ -401,20 +363,15 @@ export class AdvancedSearchComponent implements OnInit, OnDestroy {
         this.router.navigate(["/home"]);
     }
 
-    onWindowScroll(): void {
+    private onWindowScroll(): void {
         const scrollPosition = window.scrollY + window.innerHeight;
         const scrollHeight = document.documentElement.scrollHeight;
 
-        // Load more when user scrolls to 80% of the content
-        // Note: For advanced search, we load all users first then filter client-side
-        // So we don't need infinite scroll for now
         if (
             scrollPosition >= scrollHeight * 0.8 &&
-            this.hasMoreData &&
-            !this.isLoadingMore
+            this.hasMoreData() &&
+            !this.isLoadingMore()
         ) {
-            // For advanced search, we might want to load more from backend if needed
-            // But for now, we'll load all users and filter them
             this.loadMoreUsers();
         }
     }

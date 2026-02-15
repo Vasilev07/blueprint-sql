@@ -5,7 +5,8 @@ import {
     Input,
     OnChanges,
     SimpleChanges,
-    ChangeDetectorRef,
+    signal,
+    computed,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { ReactiveFormsModule } from "@angular/forms";
@@ -21,6 +22,7 @@ import { ToastModule } from "primeng/toast";
 import { ButtonModule } from "primeng/button";
 import { InputTextModule } from "primeng/inputtext";
 import { TooltipModule } from "primeng/tooltip";
+import { ParseGiftMessagePipe } from "./parse-gift-message.pipe";
 
 @Component({
     selector: "app-chat",
@@ -33,59 +35,63 @@ import { TooltipModule } from "primeng/tooltip";
         ButtonModule,
         InputTextModule,
         TooltipModule,
+        ParseGiftMessagePipe,
     ],
     templateUrl: "./chat.component.html",
     styleUrls: ["./chat.component.scss"],
 })
 export class ChatComponent implements OnInit, OnDestroy, OnChanges {
     private destroy$ = new Subject<void>();
+    private conversationSubscription$ = new Subject<void>(); // For canceling conversation-specific subscriptions
 
     @Input() userId?: string | null; // Allow userId to be passed as input
 
-    currentUser: User | null = null;
-    messages: Message[] = [];
+    // Signals for reactive state
+    messages = signal<Message[]>([]);
     messageForm: FormGroup;
-    isLoading = false;
-    currentUserId: string = "";
-    conversationId?: string;
-    allUsers: User[] = [];
-    friends: User[] = [];
-    showFriendsPicker = false;
-    // SVG data URL for default avatar
-    defaultAvatar =
-        "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCBmaWxsPSIjZGRkIiB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIvPjxjaXJjbGUgY3g9IjUwIiBjeT0iMzUiIHI9IjE1IiBmaWxsPSIjOTk5Ii8+PHBhdGggZD0iTTI1IDcwIGMyMC0xMCAzMC0xMCA1MCAwIiBzdHJva2U9IiM5OTkiIHN0cm9rZS13aWR0aD0iMTAiIGZpbGw9Im5vbmUiLz48L3N2Zz4=";
-    headerProfilePictureUrl: string = this.defaultAvatar;
-    senderProfilePictures: Map<string, string> = new Map();
+    isLoading = signal(false);
+    currentUserId = signal<string>("");
+    conversationId = signal<string | undefined>(undefined);
+    allUsers = signal<User[]>([]);
+    friends = signal<User[]>([]);
+    showFriendsPicker = signal(false);
+    isMobile = signal(false);
+    loggedInUserId = signal<number>(0);
+    private _cachedLoggedInUserId: number | null = null;
 
     // Gift properties
-    showSendGiftDialog = false;
-    recipientUserForGift: {
+    showSendGiftDialog = signal(false);
+    recipientUserForGift = signal<{
         id: number;
         name?: string;
         fullName?: string;
-    } | null = null;
+    } | null>(null);
 
-    // Mobile detection
-    isMobile = false;
+    // SVG data URL for default avatar
+    defaultAvatar =
+        "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCBmaWxsPSIjZGRkIiB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIvPjxjaXJjbGUgY3g9IjUwIiBjeT0iMzUiIHI9IjE1IiBmaWxsPSIjOTk5Ii8+PHBhdGggZD0iTTI1IDcwIGMyMC0xMCAzMC0xMCA1MCAwIiBzdHJva2U9IiM5OTkiIHN0cm9rZS13aWR0aD0iMTAiIGZpbGw9Im5vbmUiLz48L3N2Zz4=";
+    headerProfilePictureUrl = signal<string>(this.defaultAvatar);
+    senderProfilePictures = signal<Map<string, string>>(new Map());
 
-    // Header computed properties
-    get otherUserName(): string {
-        return this.currentUser?.name || "Unknown User";
-    }
+    // Computed signal for current user - automatically updates when allUsers or currentUserId changes
+    currentUser = computed(() => {
+        const userId = this.currentUserId();
+        const users = this.allUsers();
+        return users.find((user) => user.id === userId) || null;
+    });
 
-    get isOtherUserOnline(): boolean {
-        return Boolean(this.currentUser?.isOnline);
-    }
-
-    get otherUserStatus(): string {
-        if (this.isOtherUserOnline) {
+    // Header computed properties using signals
+    otherUserName = computed(() => this.currentUser()?.name || "Unknown User");
+    isOtherUserOnline = computed(() => Boolean(this.currentUser()?.isOnline));
+    otherUserStatus = computed(() => {
+        if (this.isOtherUserOnline()) {
             return "Online";
         }
-        const lastSeen = this.currentUser?.lastSeen;
+        const lastSeen = this.currentUser()?.lastSeen;
         return lastSeen
             ? `Last seen ${new Date(lastSeen).toLocaleString()}`
             : "Offline";
-    }
+    });
 
     constructor(
         private route: ActivatedRoute,
@@ -94,7 +100,6 @@ export class ChatComponent implements OnInit, OnDestroy, OnChanges {
         private fb: FormBuilder,
         private userService: UserService,
         private messageService: MessageService,
-        private cdr: ChangeDetectorRef,
         private sanitizer: DomSanitizer,
     ) {
         this.messageForm = this.fb.group({
@@ -103,20 +108,21 @@ export class ChatComponent implements OnInit, OnDestroy, OnChanges {
     }
 
     ngOnInit(): void {
-        // Detect if we're on mobile
-        this.isMobile = window.innerWidth <= 768;
+        console.log("[ChatComponent] ngOnInit called - userId:", this.userId);
+        this.loggedInUserId.set(this.getLoggedInUserId());
+        this.isMobile.set(window.innerWidth <= 768);
         this.setupMobileOptimizations();
 
         // Cache users for display names/avatars
         this.chatService.users$
             .pipe(takeUntil(this.destroy$))
             .subscribe((users) => {
-                this.allUsers = users || [];
+                this.allUsers.set(users || []);
             });
         this.chatService.friends$
             .pipe(takeUntil(this.destroy$))
             .subscribe((friends) => {
-                this.friends = friends || [];
+                this.friends.set(friends || []);
             });
 
         // Use Input userId if provided (when embedded), otherwise get from route params
@@ -124,112 +130,148 @@ export class ChatComponent implements OnInit, OnDestroy, OnChanges {
         if (
             userIdToUse &&
             userIdToUse !== "" &&
-            userIdToUse !== this.currentUserId
+            userIdToUse !== this.currentUserId()
         ) {
-            this.currentUserId = userIdToUse;
+            this.currentUserId.set(userIdToUse);
             this.loadConversation(userIdToUse);
-            this.loadUserData(userIdToUse);
         } else if (!this.userId) {
             // Get from route params when accessed directly via route
             this.route.params
                 .pipe(takeUntil(this.destroy$))
                 .subscribe((params) => {
                     const userId = params["userId"];
-                    if (userId && userId !== this.currentUserId) {
-                        this.currentUserId = userId;
+                    if (userId && userId !== this.currentUserId()) {
+                        this.currentUserId.set(userId);
                         this.loadConversation(userId);
-                        this.loadUserData(userId);
                     }
                 });
         }
     }
 
     ngOnChanges(changes: SimpleChanges): void {
+        // Skip initial value - handled in ngOnInit; only react to subsequent changes
+        if (changes["userId"]?.firstChange) return;
         // If userId input changes, reload the conversation (for backward compatibility)
         if (changes["userId"]) {
             const newUserId = this.userId || "";
             if (
                 newUserId &&
                 newUserId !== "" &&
-                newUserId !== this.currentUserId
+                newUserId !== this.currentUserId()
             ) {
-                this.currentUserId = newUserId;
-                this.messages = []; // Clear previous messages
+                this.currentUserId.set(newUserId);
+                // loadConversation will clear messages, so no need to clear here
                 this.loadConversation(newUserId);
-                this.loadUserData(newUserId);
             } else if (!newUserId || newUserId === "") {
                 // Clear if userId becomes empty
-                this.currentUserId = "";
-                this.messages = [];
-                this.currentUser = null;
+                this.conversationSubscription$.next();
+                this.currentUserId.set("");
+                this.messages.set([]);
             }
         }
     }
 
     ngOnDestroy(): void {
+        console.log("[ChatComponent] ngOnDestroy called - cleaning up");
+
+        if (this.setVHRef) {
+            window.removeEventListener("resize", this.setVHRef);
+        }
+        if (this.orientationHandler) {
+            window.removeEventListener(
+                "orientationchange",
+                this.orientationHandler,
+            );
+        }
+        if (this.touchEndHandler) {
+            document.removeEventListener("touchend", this.touchEndHandler);
+        }
+
+        // Cancel conversation-specific subscriptions first
+        this.conversationSubscription$.next();
+        this.conversationSubscription$.complete();
+
+        // Then cancel global subscriptions
         this.destroy$.next();
         this.destroy$.complete();
 
         // Revoke blob URLs to free memory
-        if (
-            this.headerProfilePictureUrl !== this.defaultAvatar &&
-            this.headerProfilePictureUrl.startsWith("blob:")
-        ) {
-            URL.revokeObjectURL(this.headerProfilePictureUrl);
+        const headerUrl = this.headerProfilePictureUrl();
+        if (headerUrl !== this.defaultAvatar && headerUrl.startsWith("blob:")) {
+            URL.revokeObjectURL(headerUrl);
         }
-        this.senderProfilePictures.forEach((url) => {
+        this.senderProfilePictures().forEach((url) => {
             if (url && url !== this.defaultAvatar && url.startsWith("blob:")) {
                 URL.revokeObjectURL(url);
             }
         });
-        this.senderProfilePictures.clear();
+        this.senderProfilePictures().clear();
     }
 
     private loadConversation(userId: string): void {
-        this.isLoading = true;
+        console.log(
+            "[ChatComponent] loadConversation called for userId:",
+            userId,
+        );
+        console.log("[ChatComponent] Active subscriptions before cleanup");
+
+        // Cancel any existing conversation subscriptions to prevent memory leaks
+        this.conversationSubscription$.next();
+        this.conversationSubscription$.complete();
+        this.conversationSubscription$ = new Subject<void>();
+
+        // Clear previous messages
+        this.messages.set([]);
+        this.isLoading.set(true);
 
         const otherUserId = Number(userId);
         if (!Number.isFinite(otherUserId) || otherUserId <= 0) {
-            this.isLoading = false;
+            this.isLoading.set(false);
             return;
         }
 
         this.chatService
             .getOrCreateConversation(otherUserId)
-            .pipe(takeUntil(this.destroy$))
+            .pipe(takeUntil(this.conversationSubscription$))
             .subscribe({
                 next: (conv) => {
-                    this.conversationId = String(conv.id);
+                    this.conversationId.set(String(conv.id));
+
+                    // Load messages
                     this.chatService
                         .loadConversationMessages(conv.id)
-                        .pipe(takeUntil(this.destroy$))
+                        .pipe(takeUntil(this.conversationSubscription$))
                         .subscribe({
                             next: (messages) => {
                                 // Map ChatMessageDTO[] to Message[] for UI
-                                this.messages = (messages || []).map((m) => ({
-                                    id: String(m.id),
-                                    conversationId: m.conversationId,
-                                    senderId: String(m.senderId),
-                                    content: m.content,
-                                    type: m.type,
-                                    isRead: m.isRead,
-                                    createdAt: m.createdAt,
-                                    updatedAt: m.updatedAt,
-                                    timestamp: new Date(
-                                        m.createdAt || Date.now(),
-                                    ),
-                                }));
-                                this.isLoading = false;
+                                this.messages.set(
+                                    (messages || []).map((m) => ({
+                                        id: String(m.id),
+                                        conversationId: m.conversationId,
+                                        senderId: String(m.senderId),
+                                        content: m.content,
+                                        type: m.type,
+                                        isRead: m.isRead,
+                                        createdAt: m.createdAt,
+                                        updatedAt: m.updatedAt,
+                                        timestamp: new Date(
+                                            m.createdAt || Date.now(),
+                                        ),
+                                    })),
+                                );
+                                this.isLoading.set(false);
                                 this.loadSenderProfilePictures();
                                 this.scrollToBottom();
                             },
                             error: () => {
-                                this.isLoading = false;
+                                this.isLoading.set(false);
                             },
                         });
+
+                    // Subscribe to WebSocket updates
                     this.chatService
                         .subscribeToConversation(conv.id)
-                        .pipe(takeUntil(this.destroy$))
+                        .pipe(takeUntil(this.conversationSubscription$))
                         .subscribe((msg: any) => {
                             console.log(
                                 "Received chat message via WebSocket:",
@@ -243,17 +285,16 @@ export class ChatComponent implements OnInit, OnDestroy, OnChanges {
                                     ? new Date(msg.timestamp)
                                     : new Date(msg.createdAt || Date.now()),
                             };
-                            this.messages.push(mapped);
-                            console.log(
-                                "Messages array after push:",
-                                this.messages,
-                            );
+                            this.messages.update((current) => [
+                                ...current,
+                                mapped,
+                            ]);
                             this.loadProfilePictureForSender(mapped.senderId);
                             this.scrollToBottom();
                         });
                 },
                 error: () => {
-                    this.isLoading = false;
+                    this.isLoading.set(false);
                 },
             });
     }
@@ -266,13 +307,13 @@ export class ChatComponent implements OnInit, OnDestroy, OnChanges {
         const otherUserId =
             participants.find((p) => p !== loggedId) ||
             participants[0] ||
-            this.currentUserId;
+            this.currentUserId();
         // Normalize to numeric user id if an email sneaks in from legacy data
         const targetUserId = /^(\d+)$/.test(String(otherUserId))
             ? String(otherUserId)
-            : this.allUsers
+            : this.allUsers()
                   .find((u) => u.email === otherUserId)
-                  ?.id?.toString() || this.currentUserId;
+                  ?.id?.toString() || this.currentUserId();
         if (
             !targetUserId ||
             targetUserId === "undefined" ||
@@ -281,21 +322,28 @@ export class ChatComponent implements OnInit, OnDestroy, OnChanges {
             return;
         }
         // Preload immediately so the chat opens even if routing is delayed
-        this.currentUserId = targetUserId;
+        this.currentUserId.set(targetUserId);
         this.loadConversation(targetUserId);
-        this.loadUserData(targetUserId);
         this.router.navigate(["/chat/conversation", targetUserId]);
     }
 
     getLoggedInUserId(): number {
-        return Number(
-            JSON.parse(
-                atob(
-                    (localStorage.getItem("id_token") || "").split(".")[1] ||
-                        "e30=",
-                ),
-            )?.id || 0,
-        );
+        // Use cached value to avoid repeated JWT parsing
+        if (this._cachedLoggedInUserId !== null) {
+            return this._cachedLoggedInUserId;
+        }
+
+        try {
+            const token = localStorage.getItem("id_token") || "";
+            const payload = token.split(".")[1] || "e30=";
+            const decoded = JSON.parse(atob(payload));
+            this._cachedLoggedInUserId = Number(decoded?.id || 0);
+            return this._cachedLoggedInUserId;
+        } catch (error) {
+            console.error("Error parsing JWT token:", error);
+            this._cachedLoggedInUserId = 0;
+            return 0;
+        }
     }
 
     getConversationName(conv: any): string {
@@ -304,7 +352,7 @@ export class ChatComponent implements OnInit, OnDestroy, OnChanges {
             (conv?.participants || [])
                 .map((p: any) => String(p))
                 .find((p: string) => p !== loggedId) || "";
-        const user = this.allUsers.find(
+        const user = this.allUsers().find(
             (u) => String(u.id) === otherId || u.email === otherId,
         );
         return user?.name || otherId || "Unknown User";
@@ -322,36 +370,23 @@ export class ChatComponent implements OnInit, OnDestroy, OnChanges {
         const rawOther =
             parts.find((p: string) => p !== loggedId) ||
             parts[0] ||
-            this.currentUserId;
+            this.currentUserId();
         // If it's not numeric, try resolving from email to user id
         if (/^\d+$/.test(String(rawOther))) {
             return String(rawOther);
         }
-        const user = this.allUsers.find((u) => u.email === rawOther);
-        return user?.id?.toString() || this.currentUserId;
+        const user = this.allUsers().find((u) => u.email === rawOther);
+        return user?.id?.toString() || this.currentUserId();
     }
 
     toggleFriends(): void {
-        this.showFriendsPicker = !this.showFriendsPicker;
+        this.showFriendsPicker.update((val) => !val);
     }
 
     startNewChat(friend: User): void {
         if (!friend?.id) return;
-        this.showFriendsPicker = false;
+        this.showFriendsPicker.set(false);
         this.router.navigate(["/chat/conversation", String(friend.id)]);
-    }
-
-    private loadUserData(userId: string): void {
-        // Get user data from the service
-        this.chatService.users$
-            .pipe(takeUntil(this.destroy$))
-            .subscribe((users) => {
-                this.currentUser =
-                    users.find((user) => user.id === userId) || null;
-            });
-
-        // Load profile picture
-        this.loadProfilePicture(userId);
     }
 
     private loadProfilePicture(userId: string): void {
@@ -359,19 +394,20 @@ export class ChatComponent implements OnInit, OnDestroy, OnChanges {
 
         if (!numericUserId) {
             // Set default avatar if userId is invalid
-            this.headerProfilePictureUrl = this.defaultAvatar;
+            this.headerProfilePictureUrl.set(this.defaultAvatar);
             return;
         }
 
         // Set default avatar initially while loading
-        this.headerProfilePictureUrl = this.defaultAvatar;
+        this.headerProfilePictureUrl.set(this.defaultAvatar);
 
         // Revoke old blob URL if exists
+        const currentUrl = this.headerProfilePictureUrl();
         if (
-            this.headerProfilePictureUrl !== this.defaultAvatar &&
-            this.headerProfilePictureUrl.startsWith("blob:")
+            currentUrl !== this.defaultAvatar &&
+            currentUrl.startsWith("blob:")
         ) {
-            URL.revokeObjectURL(this.headerProfilePictureUrl);
+            URL.revokeObjectURL(currentUrl);
         }
 
         this.userService
@@ -380,46 +416,39 @@ export class ChatComponent implements OnInit, OnDestroy, OnChanges {
             .subscribe({
                 next: (blob: Blob) => {
                     const objectURL = URL.createObjectURL(blob);
-                    this.headerProfilePictureUrl = objectURL;
-                    this.cdr.detectChanges();
+                    this.headerProfilePictureUrl.set(objectURL);
                 },
                 error: (error) => {
-                    // Profile picture not found is okay - use default avatar
-                    console.error(
-                        `Error loading profile picture for user ${userId}:`,
-                        error,
-                        "status:",
-                        error.status,
-                    );
-                    // Keep default avatar on error
-                    this.headerProfilePictureUrl = this.defaultAvatar;
-                    this.cdr.detectChanges();
+                    if (error?.status !== 404) {
+                        console.error(
+                            `Error loading profile picture for user ${userId}:`,
+                            error,
+                        );
+                    }
+                    this.headerProfilePictureUrl.set(this.defaultAvatar);
                 },
             });
     }
 
     sendMessage(): void {
-        if (this.messageForm.valid && this.currentUserId) {
+        const userId = this.currentUserId();
+        if (this.messageForm.valid && userId) {
             const content = this.messageForm.get("content")?.value;
-            const convId = this.conversationId
-                ? Number(this.conversationId)
-                : undefined;
-            this.chatService.sendChatMessage(
-                convId,
-                Number(this.currentUserId),
-                content,
-            );
+            const convIdStr = this.conversationId();
+            const convId = convIdStr ? Number(convIdStr) : undefined;
+            this.chatService.sendChatMessage(convId, Number(userId), content);
             this.messageForm.reset();
         }
     }
 
     private scrollToBottom(): void {
+        const isMobile = this.isMobile();
         setTimeout(
             () => {
                 const chatContainer = document.querySelector(".chat-messages");
                 if (chatContainer) {
                     // Smooth scroll on desktop, instant on mobile for better performance
-                    if (this.isMobile) {
+                    if (isMobile) {
                         chatContainer.scrollTop = chatContainer.scrollHeight;
                     } else {
                         chatContainer.scrollTo({
@@ -429,43 +458,35 @@ export class ChatComponent implements OnInit, OnDestroy, OnChanges {
                     }
                 }
             },
-            this.isMobile ? 50 : 100,
+            isMobile ? 50 : 100,
         );
     }
 
-    private setupMobileOptimizations(): void {
-        if (!this.isMobile) return;
+    private setVHRef: (() => void) | null = null;
+    private orientationHandler: (() => void) | null = null;
+    private touchEndHandler: ((e: TouchEvent) => void) | null = null;
 
-        // Handle viewport height changes (iOS Safari, etc.)
-        const setVH = () => {
+    private setupMobileOptimizations(): void {
+        if (!this.isMobile()) return;
+
+        this.setVHRef = () => {
             const vh = window.innerHeight * 0.01;
             document.documentElement.style.setProperty("--vh", `${vh}px`);
         };
+        this.setVHRef();
+        window.addEventListener("resize", this.setVHRef);
 
-        setVH();
-        window.addEventListener("resize", setVH);
-        window.addEventListener("orientationchange", () => {
-            setTimeout(setVH, 100);
-        });
+        this.orientationHandler = () => setTimeout(this.setVHRef!, 100);
+        window.addEventListener("orientationchange", this.orientationHandler);
 
-        // Prevent zoom on double tap
         let lastTouchEnd = 0;
-        document.addEventListener(
-            "touchend",
-            (event) => {
-                const now = Date.now();
-                if (now - lastTouchEnd <= 300) {
-                    event.preventDefault();
-                }
-                lastTouchEnd = now;
-            },
-            false,
-        );
-
-        // Cleanup on destroy
-        this.destroy$.subscribe(() => {
-            window.removeEventListener("resize", setVH);
-            window.removeEventListener("orientationchange", setVH);
+        this.touchEndHandler = (event: TouchEvent) => {
+            const now = Date.now();
+            if (now - lastTouchEnd <= 300) event.preventDefault();
+            lastTouchEnd = now;
+        };
+        document.addEventListener("touchend", this.touchEndHandler, {
+            passive: false,
         });
     }
 
@@ -481,27 +502,23 @@ export class ChatComponent implements OnInit, OnDestroy, OnChanges {
     }
 
     isOwnMessage(message: any): boolean {
-        const currentUserId = Number(
-            JSON.parse(
-                atob(
-                    (localStorage.getItem("id_token") || "").split(".")[1] ||
-                        "e30=",
-                ),
-            )?.id || 0,
-        );
-        return Number(message.senderId) === currentUserId;
+        return Number(message.senderId) === this.loggedInUserId();
+    }
+
+    trackByMessageId(_index: number, message: Message): string {
+        return message.id;
     }
 
     private loadSenderProfilePictures(): void {
         const uniqueSenderIds = new Set<string>();
-        this.messages.forEach((message) => {
+        this.messages().forEach((message) => {
             if (!this.isOwnMessage(message)) {
                 uniqueSenderIds.add(String(message.senderId));
             }
         });
 
         uniqueSenderIds.forEach((senderId) => {
-            if (!this.senderProfilePictures.has(senderId)) {
+            if (!this.senderProfilePictures().has(senderId)) {
                 this.loadProfilePictureForSender(senderId);
             }
         });
@@ -509,7 +526,7 @@ export class ChatComponent implements OnInit, OnDestroy, OnChanges {
 
     private loadProfilePictureForSender(senderId: string): void {
         // Skip if already loaded
-        if (this.senderProfilePictures.has(senderId)) {
+        if (this.senderProfilePictures().has(senderId)) {
             return;
         }
 
@@ -524,33 +541,34 @@ export class ChatComponent implements OnInit, OnDestroy, OnChanges {
             .subscribe({
                 next: (blob: Blob) => {
                     const objectURL = URL.createObjectURL(blob);
-                    this.senderProfilePictures.set(senderId, objectURL);
-                    this.cdr.detectChanges();
+                    this.senderProfilePictures.update((map) => {
+                        const newMap = new Map(map);
+                        newMap.set(senderId, objectURL);
+                        return newMap;
+                    });
                 },
                 error: (error) => {
-                    // Profile picture not found is okay
-                    if (error.status !== 404) {
+                    if (error?.status !== 404) {
                         console.error(
                             `Error loading profile picture for sender ${senderId}:`,
                             error,
                         );
                     }
-                    // Set default avatar on error
-                    this.senderProfilePictures.set(
-                        senderId,
-                        this.defaultAvatar,
-                    );
-                    this.cdr.detectChanges();
+                    this.senderProfilePictures.update((map) => {
+                        const newMap = new Map(map);
+                        newMap.set(senderId, this.defaultAvatar);
+                        return newMap;
+                    });
                 },
             });
     }
 
     getSenderProfilePicture(senderId: string): string {
-        return this.senderProfilePictures.get(senderId) || this.defaultAvatar;
+        return this.senderProfilePictures().get(senderId) || this.defaultAvatar;
     }
 
     getSenderInitials(senderId: string): string {
-        const user = this.allUsers.find((u) => String(u.id) === senderId);
+        const user = this.allUsers().find((u) => String(u.id) === senderId);
         if (user?.name) {
             return (user.name.charAt(0) || "?").toUpperCase();
         }
@@ -558,7 +576,7 @@ export class ChatComponent implements OnInit, OnDestroy, OnChanges {
     }
 
     getSenderName(senderId: string): string {
-        const user = this.allUsers.find((u) => String(u.id) === senderId);
+        const user = this.allUsers().find((u) => String(u.id) === senderId);
         return user?.name || "Unknown User";
     }
 
@@ -574,14 +592,16 @@ export class ChatComponent implements OnInit, OnDestroy, OnChanges {
     }
 
     openUserProfile(): void {
-        if (this.currentUserId) {
-            this.router.navigate(["/profile", this.currentUserId]);
+        const userId = this.currentUserId();
+        if (userId) {
+            this.router.navigate(["/profile", userId]);
         }
     }
 
     // Send Gift methods
     openSendGiftDialog(): void {
-        if (!this.currentUserId) {
+        const userId = this.currentUserId();
+        if (!userId) {
             this.messageService.add({
                 severity: "error",
                 summary: "Error",
@@ -590,60 +610,28 @@ export class ChatComponent implements OnInit, OnDestroy, OnChanges {
             return;
         }
 
-        this.recipientUserForGift = {
-            id: Number(this.currentUserId),
-            name: this.currentUser?.name,
-            fullName: this.currentUser?.name,
-        };
-        this.showSendGiftDialog = true;
+        const user = this.currentUser();
+        this.recipientUserForGift.set({
+            id: Number(userId),
+            name: user?.name,
+            fullName: user?.name,
+        });
+        this.showSendGiftDialog.set(true);
     }
 
     onGiftSent(_response: any): void {
         // Gift was sent successfully, dialog is already closed
-        this.recipientUserForGift = null;
+        this.recipientUserForGift.set(null);
     }
 
-    // Gift Message Detection and Parsing
     isGiftMessage(message: Message): boolean {
         return message.content?.includes("🎁 Gift Sent:") || false;
     }
 
-    parseGiftMessage(
-        message: Message,
-    ): { emoji: string; amount: string; giftMessage: string } | null {
-        if (!this.isGiftMessage(message)) {
-            return null;
-        }
-
-        const content = message.content || "";
-        // Format: "🎁 Gift Sent: {emoji} ({amount} tokens) - "{message}""
-        const giftMatch = content.match(
-            /🎁 Gift Sent:\s*([^\s]+)\s*\(([^)]+)\s*tokens\)(?:\s*-\s*"([^"]*)")?/,
-        );
-
-        if (giftMatch) {
-            return {
-                emoji: giftMatch[1] || "🎁",
-                amount: giftMatch[2] || "0",
-                giftMessage: giftMatch[3] || "",
-            };
-        }
-
-        // Fallback parsing
-        const emojiMatch = content.match(/🎁 Gift Sent:\s*([^\s]+)/);
-        const amountMatch = content.match(/\(([^)]+)\s*tokens\)/);
-        const messageMatch = content.match(/-\s*"([^"]*)"/);
-
-        return {
-            emoji: emojiMatch?.[1] || "🎁",
-            amount: amountMatch?.[1] || "0",
-            giftMessage: messageMatch?.[1] || "",
-        };
-    }
-
     // Video Call Methods
     startVideoCall(): void {
-        if (!this.currentUserId) {
+        const userId = this.currentUserId();
+        if (!userId) {
             this.messageService.add({
                 severity: "error",
                 summary: "Error",
@@ -652,8 +640,8 @@ export class ChatComponent implements OnInit, OnDestroy, OnChanges {
             return;
         }
 
-        const recipientId = Number(this.currentUserId);
-        const recipientName = this.currentUser?.name || "Unknown User";
+        const recipientId = Number(userId);
+        const recipientName = this.currentUser()?.name || "Unknown User";
 
         // Navigate to video call page with recipient info
         this.router.navigate(["/video-call"], {

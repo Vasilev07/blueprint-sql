@@ -456,6 +456,10 @@ describe("HomeComponent", () => {
 
     describe("Error Handling", () => {
         it("should handle error when loading users fails", () => {
+            const consoleSpy = jest
+                .spyOn(console, "error")
+                .mockImplementation();
+
             homeService.getFilteredAndSortedUsers = jest
                 .fn()
                 .mockReturnValue(throwError(() => new Error("Failed")));
@@ -470,6 +474,8 @@ describe("HomeComponent", () => {
                 summary: "Error",
                 detail: "Failed to load users",
             });
+
+            consoleSpy.mockRestore();
         });
 
         it("should handle error when getting online count fails", () => {
