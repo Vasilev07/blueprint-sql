@@ -1,3 +1,13 @@
+/**
+ * Mock file for the generated API client
+ * 
+ * This file mirrors the structure of the generated API client at src/api/
+ * When you run `npm run generate:api`, the real services and DTOs will be generated.
+ * 
+ * For tests, Jest is configured to use this mock file instead of the real API client.
+ * Update this file to match the generated API structure as needed.
+ */
+
 import { Injectable, NgModule } from "@angular/core";
 import { of } from "rxjs";
 

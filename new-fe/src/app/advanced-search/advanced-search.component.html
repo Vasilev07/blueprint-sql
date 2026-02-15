@@ -30,12 +30,12 @@
         <label class="filter-label">Gender</label>
         <p-select
           [options]="genderOptions"
-          [(ngModel)]="filters.gender"
-          (onChange)="onFilterChange()"
+          [ngModel]="filters().gender"
+          (ngModelChange)="updateFilter('gender', $event); onFilterChange()"
           optionLabel="label"
           optionValue="value"
           [style]="{'width': '100%'}"
-          styleClass="custom-dropdown">
+          class="custom-dropdown">
         </p-select>
       </div>
 
@@ -44,12 +44,12 @@
         <label class="filter-label">Online Status</label>
         <p-select
           [options]="onlineStatusOptions"
-          [(ngModel)]="filters.onlineStatus"
-          (onChange)="onFilterChange()"
+          [ngModel]="filters().onlineStatus"
+          (ngModelChange)="updateFilter('onlineStatus', $event); onFilterChange()"
           optionLabel="label"
           optionValue="value"
           [style]="{'width': '100%'}"
-          styleClass="custom-dropdown">
+          class="custom-dropdown">
         </p-select>
       </div>
 
@@ -58,12 +58,12 @@
         <label class="filter-label">Relationship Status</label>
         <p-select
           [options]="relationshipStatusOptions"
-          [(ngModel)]="filters.relationshipStatus"
-          (onChange)="onFilterChange()"
+          [ngModel]="filters().relationshipStatus"
+          (ngModelChange)="updateFilter('relationshipStatus', $event); onFilterChange()"
           optionLabel="label"
           optionValue="value"
           [style]="{'width': '100%'}"
-          styleClass="custom-dropdown">
+          class="custom-dropdown">
         </p-select>
       </div>
 
@@ -72,13 +72,13 @@
         <label class="filter-label">Interests</label>
         <p-multiSelect
           [options]="interestsOptions"
-          [(ngModel)]="filters.interests"
-          (onChange)="onFilterChange()"
+          [ngModel]="filters().interests"
+          (ngModelChange)="updateFilter('interests', $event); onFilterChange()"
           optionLabel="label"
           optionValue="value"
           placeholder="All interests"
           [style]="{'width': '100%'}"
-          styleClass="custom-multiselect"
+          class="custom-multiselect"
           display="chip">
         </p-multiSelect>
       </div>
@@ -86,26 +86,28 @@
 
     <!-- Age Range Slider -->
     <div class="filter-group slider-group">
-      <label class="filter-label">Age Range: {{ ageRangeLabel }}</label>
+      <label class="filter-label">Age Range: {{ ageRangeLabel() }}</label>
       <p-slider
-        [(ngModel)]="filters.ageRange"
+        [ngModel]="filters().ageRange"
+        (ngModelChange)="updateFilters({ ageRange: $event })"
         (onSlideEnd)="onAgeRangeChange($event)"
         [range]="true"
         [min]="18"
         [max]="65"
-        styleClass="custom-slider">
+        class="custom-slider">
       </p-slider>
     </div>
 
     <!-- Distance Slider -->
     <div class="filter-group slider-group">
-      <label class="filter-label">Distance: {{ distanceLabel }}</label>
+      <label class="filter-label">Distance: {{ distanceLabel() }}</label>
       <p-slider
-        [(ngModel)]="filters.distance"
+        [ngModel]="filters().distance"
+        (ngModelChange)="updateFilter('distance', $event)"
         (onSlideEnd)="onDistanceChange($event)"
         [min]="1"
         [max]="500"
-        styleClass="custom-slider">
+        class="custom-slider">
       </p-slider>
     </div>
 
@@ -113,12 +115,12 @@
     <div class="filter-group">
       <label class="filter-label">Location</label>
       <p-iconField iconPosition="left">
-        <p-inputIcon styleClass="pi pi-map-marker"></p-inputIcon>
+        <p-inputIcon class="pi pi-map-marker"></p-inputIcon>
         <input 
           type="text" 
           pInputText 
-          [(ngModel)]="filters.location"
-          (input)="onFilterChange()"
+          [ngModel]="filters().location"
+          (ngModelChange)="updateFilter('location', $event); onFilterChange()"
           placeholder="Enter city or country..."
           class="location-input" />
       </p-iconField>
@@ -127,8 +129,8 @@
     <!-- Verified Only Checkbox -->
     <div class="filter-group checkbox-group">
       <p-checkbox
-        [(ngModel)]="filters.verifiedOnly"
-        (onChange)="onFilterChange()"
+        [ngModel]="filters().verifiedOnly"
+        (ngModelChange)="updateFilter('verifiedOnly', $event); onFilterChange()"
         [binary]="true"
         inputId="verifiedOnly">
       </p-checkbox>
@@ -143,18 +145,21 @@
     <div class="results-header">
       <h3>
         <i class="pi pi-users"></i>
-        {{ totalUsers }} {{ totalUsers === 1 ? 'user' : 'users' }} found
+        {{ userCountLabel() }}
       </h3>
     </div>
 
     <!-- Loading State -->
-    <div *ngIf="isLoading" class="loading-container">
-      <p-progressSpinner styleClass="w-4rem h-4rem"></p-progressSpinner>
+    @if (isLoading()) {
+    <div class="loading-container">
+      <p-progressSpinner class="w-4rem h-4rem"></p-progressSpinner>
       <p>Loading users...</p>
     </div>
+    }
 
     <!-- Empty State -->
-    <div *ngIf="!isLoading && users.length === 0" class="empty-state">
+    @if (isEmptyState()) {
+    <div class="empty-state">
       <i class="pi pi-search empty-icon"></i>
       <h3>No Users Found</h3>
       <p>Try adjusting your filters to see more results.</p>
@@ -167,43 +172,51 @@
         (click)="resetAllFilters()">
       </button>
     </div>
+    }
 
     <!-- User Grid -->
-    <div *ngIf="!isLoading && users.length > 0" class="users-grid">
-      <app-user-card 
-        *ngFor="let user of users; trackBy: trackByUserId"
+    @if (hasUsers()) {
+    <div class="users-grid">
+      @for (user of users(); track user.id) {
+      <app-user-card
         [user]="user"
         (chatClick)="onChatClick($event)"
         (cardClick)="onCardClick($event)"
         (giftClick)="onGiftClick($event)">
       </app-user-card>
+      }
     </div>
+    }
 
     <!-- Loading More Indicator -->
-    <div *ngIf="isLoadingMore" class="loading-more">
+    @if (isLoadingMore()) {
+    <div class="loading-more">
       <p-progressSpinner 
-        styleClass="w-3rem h-3rem" 
+        class="w-3rem h-3rem" 
         strokeWidth="4"
         animationDuration="1s">
       </p-progressSpinner>
       <p>Loading more users...</p>
     </div>
+    }
 
     <!-- End of Results -->
-    <div *ngIf="!isLoading && !hasMoreData && users.length > 0" class="end-of-results">
+    @if (showEndOfResults()) {
+    <div class="end-of-results">
       <i class="pi pi-check-circle"></i>
-      <p>You've reached the end! Showing all {{ totalUsers }} users.</p>
+      <p>You've reached the end! Showing all {{ totalUsers() }} users.</p>
     </div>
+    }
   </div>
 </div>
 
 <!-- Gift Send Dialog -->
 <app-send-gift-dialog
-  [(visible)]="showSendGiftDialog"
-  [recipientUser]="selectedUserForGift"
+  [visible]="showSendGiftDialog()"
+  (visibleChange)="showSendGiftDialog.set($event)"
+  [recipientUser]="selectedUserForGift()"
   (giftSent)="onGiftSent($event)">
 </app-send-gift-dialog>
 
 <!-- Toast Messages -->
 <p-toast></p-toast>
-

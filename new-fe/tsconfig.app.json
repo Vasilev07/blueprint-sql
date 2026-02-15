@@ -27,6 +27,7 @@
     "node_modules",
     "**/*.spec.ts",
     "**/*.test.ts",
-    "**/*.tsbuildinfo"
+    "**/*.tsbuildinfo",
+    "src/__mocks__/**"
   ]
 }

@@ -5,18 +5,18 @@
     <div class="search-bar-wrapper">
       <p-iconField iconPosition="left" class="search-field">
         <p-inputIcon class="pi pi-search"></p-inputIcon>
-        <input 
-          type="text" 
-          pInputText 
+        <input
+          type="text"
+          pInputText
           [ngModel]="searchTerm()"
           (ngModelChange)="searchTerm.set($event); onSearchChange()"
           placeholder="Search by location, age, interests..."
           class="search-input" />
       </p-iconField>
-      <button 
-        pButton 
-        type="button" 
-        icon="pi pi-refresh" 
+      <button
+        pButton
+        type="button"
+        icon="pi pi-refresh"
         class="p-button-text p-button-rounded refresh-btn"
         (click)="onRefresh()"
         pTooltip="Refresh">
@@ -25,15 +25,16 @@
 
     <!-- Filter Buttons -->
     <div class="filter-pills">
-      <button 
-        *ngFor="let filter of filterOptions"
-        pButton 
-        type="button" 
-        [label]="filter.label"
-        class="filter-pill"
-        [class.active]="currentFilter() === filter.value"
-        (click)="onFilterChange(filter.value)">
-      </button>
+      @for (filter of filterOptions; track filter.value) {
+        <button
+          pButton
+          type="button"
+          [label]="filter.label"
+          class="filter-pill"
+          [class.active]="currentFilter() === filter.value"
+          (click)="onFilterChange(filter.value)">
+        </button>
+      }
     </div>
 
     <!-- Advanced Filters Section -->
@@ -51,12 +52,12 @@
   <!-- Sort Dropdown (Hidden by default, can be toggled) -->
   @if (false) {
     <div class="sort-section">
-      <p-select 
-        [options]="sortOptions" 
+      <p-select
+        [options]="sortOptions"
         [ngModel]="currentSort()"
         (ngModelChange)="currentSort.set($event); onSortChange({ value: $event })"
         (onChange)="onSortChange($event)"
-        optionLabel="label" 
+        optionLabel="label"
         optionValue="value"
         placeholder="Sort by">
       </p-select>
@@ -77,10 +78,10 @@
       <i class="pi pi-users empty-icon"></i>
       <h3>No Users Found</h3>
       <p>Try changing your filters or check back later.</p>
-      <button 
-        pButton 
-        type="button" 
-        label="Reset Filters" 
+      <button
+        pButton
+        type="button"
+        label="Reset Filters"
         icon="pi pi-filter-slash"
         class="p-button-outlined"
         (click)="onFilterChange('all')">
@@ -91,21 +92,22 @@
   <!-- User Grid -->
   @if (!isLoading() && users().length > 0) {
     <div class="users-grid" (scroll)="onScroll($event)">
-      <app-user-card 
-        *ngFor="let user of users(); trackBy: trackByUserId"
-        [user]="user"
-        (chatClick)="onChatClick(user)"
-        (cardClick)="onCardClick(user)"
-        (giftClick)="onGiftClick(user)">
-      </app-user-card>
+      @for (user of users(); track trackByUserId($index, user)) {
+        <app-user-card
+          [user]="user"
+          (chatClick)="onChatClick(user)"
+          (cardClick)="onCardClick(user)"
+          (giftClick)="onGiftClick(user)">
+        </app-user-card>
+      }
     </div>
   }
 
   <!-- Loading More Indicator -->
   @if (isLoadingMore()) {
     <div class="loading-more">
-      <p-progressSpinner 
-        class="w-3rem h-3rem" 
+      <p-progressSpinner
+        class="w-3rem h-3rem"
         strokeWidth="4"
         animationDuration="1s">
       </p-progressSpinner>

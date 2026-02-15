@@ -1,7 +1,14 @@
-import { Component, signal, effect, inject, HostListener } from "@angular/core";
+import {
+    Component,
+    signal,
+    inject,
+    HostListener,
+    DestroyRef,
+} from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { CommonModule } from "@angular/common";
 import { Router, ActivatedRoute } from "@angular/router";
-import { toObservable, toSignal } from "@angular/core/rxjs-interop";
+import { toSignal } from "@angular/core/rxjs-interop";
 import { User, Message, ChatService, Conversation } from "./chat.service";
 import { UserService } from "src/typescript-api-client/src/api/api";
 import { DomSanitizer } from "@angular/platform-browser";
@@ -29,6 +36,7 @@ export class ChatHomeComponent {
     private chatService = inject(ChatService);
     private userService = inject(UserService);
     private sanitizer = inject(DomSanitizer);
+    private destroyRef = inject(DestroyRef);
 
     // Convert observables to signals
     lastRegisteredUsers = toSignal(
@@ -56,40 +64,53 @@ export class ChatHomeComponent {
     // Local state signals
     selectedUserId = signal<string | null>(null);
     conversationAvatars = signal<Map<string, string>>(new Map());
-    private loadingAvatars = signal<Set<string>>(new Set());
+    private loadingAvatars = new Set<string>(); // Don't use signal here to avoid loops
     isMobile = signal<boolean>(false);
 
     // SVG data URL for default avatar
     defaultAvatar =
         "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCBmaWxsPSIjZGRkIiB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIvPjxjaXJjbGUgY3g9IjUwIiBjeT0iMzUiIHI9IjE1IiBmaWxsPSIjOTk5Ii8+PHBhdGggZD0iTTI1IDcwIGMyMC0xMCAzMC0xMCA1MCAwIiBzdHJva2U9IiM5OTkiIHN0cm9rZS13aWR0aD0iMTAiIGZpbGw9Im5vbmUiLz48L3N2Zz4=";
 
-    // Expose observables for child components that still use them
-    lastRegisteredUsers$ = toObservable(this.lastRegisteredUsers);
-    topFriends$ = toObservable(this.topFriends);
-    recentMessages$ = toObservable(this.recentMessages);
-    conversations$ = toObservable(this.conversations);
-    users$ = toObservable(this.users);
-
     constructor() {
+        console.log("[ChatHomeComponent] Constructor called");
         this.checkScreenSize();
 
-        effect(() => {
-            const conversations = this.conversations();
-            this.loadConversationAvatars(conversations ?? []);
-        });
+        // Load avatars when conversations change - use subscription instead of effect to avoid loops
+        this.chatService.conversations$
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe((conversations) => {
+                console.log(
+                    "[ChatHomeComponent] Conversations updated, count:",
+                    conversations?.length || 0,
+                );
+                if (conversations && conversations.length > 0) {
+                    this.loadConversationAvatars(conversations);
+                }
+            });
 
         const initialParams = this.route.snapshot.queryParams;
         if (initialParams["userId"]) {
             this.selectedUserId.set(initialParams["userId"]);
         }
 
-        this.route.queryParams.subscribe((params) => {
-            if (params["userId"]) {
-                this.selectedUserId.set(params["userId"]);
-            } else {
-                this.selectedUserId.set(null);
-            }
-        });
+        this.route.queryParams
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe((params) => {
+                console.log(
+                    "[ChatHomeComponent] Query params changed:",
+                    params,
+                );
+                if (params["userId"]) {
+                    console.log(
+                        "[ChatHomeComponent] Setting selectedUserId to:",
+                        params["userId"],
+                    );
+                    this.selectedUserId.set(params["userId"]);
+                } else {
+                    console.log("[ChatHomeComponent] Clearing selectedUserId");
+                    this.selectedUserId.set(null);
+                }
+            });
     }
 
     startChat(userId: any): void {
@@ -97,6 +118,8 @@ export class ChatHomeComponent {
             userId && typeof userId === "object" ? userId.id : userId,
         );
         if (!id || id === "undefined" || id === "null") return;
+
+        console.log("[ChatHomeComponent] startChat called with userId:", id);
         this.selectedUserId.set(id);
 
         this.router.navigate(["/chat"], {
@@ -137,6 +160,12 @@ export class ChatHomeComponent {
         if (minutes < 60) return `${minutes}m ago`;
         if (hours < 24) return `${hours}h ago`;
         return `${days}d ago`;
+    }
+
+    isConversationActive(conversation: Conversation): boolean {
+        const sid = this.selectedUserId();
+        if (!sid) return false;
+        return (conversation.participants ?? []).some((p) => String(p) === sid);
     }
 
     getUserName(userId: string): string {
@@ -190,19 +219,16 @@ export class ChatHomeComponent {
         }
 
         const avatars = this.conversationAvatars();
-        const loading = this.loadingAvatars();
 
-        if (!avatars.has(otherId) && !loading.has(otherId)) {
-            this.loadProfilePictureForUser(otherId);
-        }
-
+        // Don't trigger loading from here - let the effect handle it
+        // This prevents excessive calls from change detection
         return avatars.get(otherId) || this.defaultAvatar;
     }
 
     private loadConversationAvatars(conversations: Conversation[]): void {
         const me = this.getLoggedInUserId();
         const uniqueUserIds = new Set<string>();
-        const avatars = this.conversationAvatars();
+        const currentAvatars = this.conversationAvatars();
 
         conversations.forEach((conversation) => {
             const parts = (conversation.participants || []).map((p: any) =>
@@ -216,7 +242,11 @@ export class ChatHomeComponent {
         });
 
         uniqueUserIds.forEach((userId) => {
-            if (!avatars.has(userId)) {
+            // Skip if already loaded or loading
+            if (
+                !currentAvatars.has(userId) &&
+                !this.loadingAvatars.has(userId)
+            ) {
                 this.loadProfilePictureForUser(userId);
             }
         });
@@ -225,47 +255,49 @@ export class ChatHomeComponent {
     private loadProfilePictureForUser(userId: string): void {
         const numericUserId = parseInt(userId, 10);
         if (!numericUserId) {
-            const avatars = this.conversationAvatars();
-            avatars.set(userId, this.defaultAvatar);
-            this.conversationAvatars.set(new Map(avatars));
+            this.conversationAvatars.update((avatars) => {
+                const newMap = new Map(avatars);
+                newMap.set(userId, this.defaultAvatar);
+                return newMap;
+            });
             return;
         }
 
-        const loading = this.loadingAvatars();
-        loading.add(userId);
-        this.loadingAvatars.set(new Set(loading));
+        // Mark as loading - use plain Set, not signal
+        this.loadingAvatars.add(userId);
 
-        this.userService.getProfilePictureByUserId(numericUserId).subscribe({
-            next: (blob: Blob) => {
-                const avatars = this.conversationAvatars();
-                if (blob.size > 0) {
-                    const objectURL = URL.createObjectURL(blob);
-                    avatars.set(userId, objectURL);
-                } else {
-                    avatars.set(userId, this.defaultAvatar);
-                }
-                this.conversationAvatars.set(new Map(avatars));
-
-                const loadingSet = this.loadingAvatars();
-                loadingSet.delete(userId);
-                this.loadingAvatars.set(new Set(loadingSet));
-            },
-            error: (error) => {
-                if (error.status !== 404) {
-                    console.error(
-                        `Error loading profile picture for user ${userId}:`,
-                        error,
-                    );
-                }
-                const avatars = this.conversationAvatars();
-                avatars.set(userId, this.defaultAvatar);
-                this.conversationAvatars.set(new Map(avatars));
-
-                const loadingSet = this.loadingAvatars();
-                loadingSet.delete(userId);
-                this.loadingAvatars.set(new Set(loadingSet));
-            },
-        });
+        this.userService
+            .getProfilePictureByUserId(numericUserId)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+                next: (blob: Blob) => {
+                    this.conversationAvatars.update((avatars) => {
+                        const newMap = new Map(avatars);
+                        if (blob.size > 0) {
+                            const objectURL = URL.createObjectURL(blob);
+                            newMap.set(userId, objectURL);
+                        } else {
+                            newMap.set(userId, this.defaultAvatar);
+                        }
+                        return newMap;
+                    });
+                    this.loadingAvatars.delete(userId);
+                },
+                error: (error) => {
+                    if (error.status !== 404) {
+                        console.error(
+                            `Error loading profile picture for user ${userId}:`,
+                            error,
+                        );
+                    }
+                    this.conversationAvatars.update((avatars) => {
+                        const newMap = new Map(avatars);
+                        newMap.set(userId, this.defaultAvatar);
+                        return newMap;
+                    });
+                    this.loadingAvatars.delete(userId);
+                },
+            });
     }
 
     onImageError(event: Event): void {
