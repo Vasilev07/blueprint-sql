@@ -71,6 +71,12 @@
       <p>Loading users...</p>
     </div>
   }
+  @if (isLoading()) {
+    <div class="loading-container">
+      <p-progressSpinner class="w-4rem h-4rem"></p-progressSpinner>
+      <p>Loading users...</p>
+    </div>
+  }
 
   <!-- Empty State -->
   @if (!isLoading() && users().length === 0) {
@@ -122,10 +128,19 @@
       <p>You've reached the end! Showing all {{ totalUsers() }} users.</p>
     </div>
   }
+  @if (!isLoading() && !hasMoreData() && users().length > 0) {
+    <div class="end-of-results">
+      <i class="pi pi-check-circle"></i>
+      <p>You've reached the end! Showing all {{ totalUsers() }} users.</p>
+    </div>
+  }
 </div>
 
 <!-- Gift Send Dialog -->
 <app-send-gift-dialog
+  [visible]="showSendGiftDialog()"
+  (visibleChange)="showSendGiftDialog.set($event)"
+  [recipientUser]="selectedUserForGift()"
   [visible]="showSendGiftDialog()"
   (visibleChange)="showSendGiftDialog.set($event)"
   [recipientUser]="selectedUserForGift()"

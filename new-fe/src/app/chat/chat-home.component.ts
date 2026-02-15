@@ -91,6 +91,7 @@ export class ChatHomeComponent {
         const initialParams = this.route.snapshot.queryParams;
         if (initialParams["userId"]) {
             this.selectedUserId.set(initialParams["userId"]);
+            this.selectedUserId.set(initialParams["userId"]);
         }
 
         this.route.queryParams
@@ -136,6 +137,7 @@ export class ChatHomeComponent {
 
         if (otherUserId) {
             this.selectedUserId.set(otherUserId);
+            this.selectedUserId.set(otherUserId);
             this.router.navigate(["/chat"], {
                 queryParams: { userId: otherUserId },
                 replaceUrl: true,
@@ -144,6 +146,7 @@ export class ChatHomeComponent {
     }
 
     closeChat(): void {
+        this.selectedUserId.set(null);
         this.selectedUserId.set(null);
         this.router.navigate(["/chat"], { replaceUrl: true });
     }
@@ -169,6 +172,9 @@ export class ChatHomeComponent {
     }
 
     getUserName(userId: string): string {
+        const friendsList = this.friends();
+        const friend = friendsList?.find(
+            (u: User) => String(u.id) === String(userId),
         const friendsList = this.friends();
         const friend = friendsList?.find(
             (u: User) => String(u.id) === String(userId),
@@ -198,6 +204,9 @@ export class ChatHomeComponent {
         );
         const others = parts.filter((p) => p !== me);
         const otherId = others[0] || parts[0] || "";
+        const friendsList = this.friends();
+        const friend = friendsList?.find(
+            (f: User) => String(f.id) === otherId || f.email === otherId,
         const friendsList = this.friends();
         const friend = friendsList?.find(
             (f: User) => String(f.id) === otherId || f.email === otherId,
@@ -321,6 +330,7 @@ export class ChatHomeComponent {
     }
 
     private checkScreenSize(): void {
+        this.isMobile.set(window.innerWidth <= 768);
         this.isMobile.set(window.innerWidth <= 768);
     }
 }

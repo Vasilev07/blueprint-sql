@@ -10,30 +10,30 @@
       <div class="sidebar-search">
         <span class="p-input-icon-left">
           <i class="pi pi-search"></i>
-          <input 
-            type="text" 
-            pInputText 
-            placeholder="Search conversations..." 
+          <input
+            type="text"
+            pInputText
+            placeholder="Search conversations..."
             class="search-input"
           />
         </span>
       </div>
-      
+
       <div class="chat-list">
         @for (conversation of conversations(); track conversation.id) {
-          <div 
-            class="chat-item" 
+          <div
+            class="chat-item"
             [class.active]="isConversationActive(conversation)"
             (click)="startChatFromConversation(conversation)">
             <div class="chat-avatar">
-              <img 
-                [src]="getConversationAvatar(conversation)" 
+              <img
+                [src]="getConversationAvatar(conversation)"
                 [alt]="getConversationDisplayName(conversation)"
                 (error)="onImageError($event)"
                 class="conversation-avatar">
               <div class="online-indicator" [class]="conversation.isOnline ? 'online' : 'offline'"></div>
             </div>
-            
+
             <div class="chat-info">
               <div class="chat-name-row">
                 <span class="chat-name">{{ getConversationDisplayName(conversation) }}</span>
@@ -45,7 +45,7 @@
               </div>
               <div class="last-message">{{ conversation.lastMessage || 'No messages yet' }}</div>
             </div>
-            
+
             <div class="chat-meta">
               <div class="chat-time">{{ formatTime(conversation.lastMessageTime) }}</div>
             </div>
@@ -196,7 +196,7 @@
           <span class="badge">{{ lastRegisteredUsers().length || 0 }}</span>
         </div>
         <div class="card-content">
-          <app-user-list 
+          <app-user-list
             [users]="lastRegisteredUsers()"
             (userClick)="startChat($event)">
           </app-user-list>
@@ -210,7 +210,7 @@
           <span class="badge">{{ topFriends().length || 0 }}</span>
         </div>
         <div class="card-content">
-          <app-friends-list 
+          <app-friends-list
             [friends]="topFriends()"
             (friendClick)="startChat($event)">
           </app-friends-list>
@@ -224,7 +224,7 @@
           <span class="badge">{{ recentMessages().length || 0 }}</span>
         </div>
         <div class="card-content">
-          <app-recent-messages 
+          <app-recent-messages
             [messages]="recentMessages()"
             [users]="users()"
             (messageClick)="startChat($event)">
@@ -241,14 +241,14 @@
         <p>Search for new friends and start conversations</p>
         <button pButton label="Search Users" class="p-button-primary" icon="pi pi-search"></button>
       </div>
-      
+
       <div class="action-card">
         <i class="pi pi-users"></i>
         <h3>Group Chats</h3>
         <p>Create or join group conversations</p>
         <button pButton label="Create Group" class="p-button-secondary" icon="pi pi-plus"></button>
       </div>
-      
+
       <div class="action-card">
         <i class="pi pi-cog"></i>
         <h3>Settings</h3>
@@ -257,4 +257,4 @@
       </div>
     </div>
   </div>
-</div> 
+</div>
