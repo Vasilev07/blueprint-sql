@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from "@angular/core";
+import { Component, input, output } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { User } from "./chat.service";
 import { AvatarModule } from "primeng/avatar";
@@ -12,9 +12,9 @@ import { ButtonModule } from "primeng/button";
     styleUrls: ["./user-list.component.scss"],
 })
 export class UserListComponent {
-    @Input() users: User[] = [];
-    @Input() compact: boolean = false;
-    @Output() userClick = new EventEmitter<string>();
+    users = input<User[]>([]);
+    compact = input<boolean>(false);
+    userClick = output<string>();
 
     onUserClick(userId: string): void {
         this.userClick.emit(userId);

@@ -1,31 +1,35 @@
-<div class="user-list" [class.compact]="compact">
-  <div class="user-item" *ngFor="let user of users" (click)="onUserClick(user.id)">
-    <div class="user-avatar">
-      <p-avatar 
-        [image]="user.avatar" 
-        [label]="user.name?.charAt(0)?.toUpperCase() || '?'"
-        size="large"
-        shape="circle">
-      </p-avatar>
-      <div class="online-indicator" [class]="user.isOnline ? 'online' : 'offline'"></div>
+<div class="user-list" [class.compact]="compact()">
+  @for (user of users(); track user.id) {
+    <div class="user-item" (click)="onUserClick(user.id)">
+      <div class="user-avatar">
+        <p-avatar 
+          [image]="user.avatar" 
+          [label]="user.name?.charAt(0)?.toUpperCase() || '?'"
+          size="large"
+          shape="circle">
+        </p-avatar>
+        <div class="online-indicator" [class]="user.isOnline ? 'online' : 'offline'"></div>
+      </div>
+      
+      <div class="user-info">
+        <div class="user-name">{{ user.name || 'Unknown User' }}</div>
+        <div class="user-email">{{ user.email || 'No email' }}</div>
+      </div>
+      
+      <div class="user-actions">
+        <button pButton 
+          label="Message" 
+          class="p-button-primary p-button-sm"
+          icon="pi pi-comments">
+        </button>
+      </div>
     </div>
-    
-    <div class="user-info">
-      <div class="user-name">{{ user.name || 'Unknown User' }}</div>
-      <div class="user-email">{{ user.email || 'No email' }}</div>
-    </div>
-    
-    <div class="user-actions">
-      <button pButton 
-        label="Message" 
-        class="p-button-primary p-button-sm"
-        icon="pi pi-comments">
-      </button>
-    </div>
-  </div>
+  }
   
-  <div *ngIf="users.length === 0" class="empty-state">
-    <i class="pi pi-users"></i>
-    <p>No users found</p>
-  </div>
+  @if (users().length === 0) {
+    <div class="empty-state">
+      <i class="pi pi-users"></i>
+      <p>No users found</p>
+    </div>
+  }
 </div> 

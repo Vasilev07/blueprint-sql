@@ -13,8 +13,8 @@
     gap: 0.75rem;
     padding: 0.75rem;
     border-radius: 8px;
-    background: white;
-    border: 1px solid #e9ecef;
+    background: var(--surface-card, #ffffff);
+    border: 1px solid var(--surface-border, #e9ecef);
     transition: all 0.2s ease;
     cursor: pointer;
 
@@ -24,7 +24,7 @@
     }
 
     &:hover {
-      border-color: #007bff;
+      border-color: var(--primary-color, #007bff);
       box-shadow: 0 2px 8px rgba(0, 123, 255, 0.15);
       transform: translateY(-1px);
     }
@@ -46,15 +46,15 @@
         width: 12px;
         height: 12px;
         border-radius: 50%;
-        border: 2px solid white;
+        border: 2px solid var(--surface-card, white);
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 
         &.online {
-          background: #28a745;
+          background: var(--green-500, #28a745);
         }
 
         &.offline {
-          background: #6c757d;
+          background: var(--surface-400, #6c757d);
         }
       }
     }
@@ -65,7 +65,7 @@
 
       .friend-name {
         font-weight: 600;
-        color: #212529;
+        color: var(--text-color, #212529);
         margin: 0 0 0.25rem 0;
         font-size: 0.95rem;
         white-space: nowrap;
@@ -79,7 +79,7 @@
       }
 
       .friend-email {
-        color: #6c757d;
+        color: var(--text-color-secondary, #6c757d);
         font-size: 0.8rem;
         margin: 0;
         white-space: nowrap;
@@ -142,15 +142,36 @@
 // Dark theme support
 :host-context(.layout-theme-dark) {
   .friends-list .friend-item {
-    background: #343a40;
-    border-color: #495057;
+    background: var(--surface-100, #374151);
+    border-color: var(--surface-border, rgba(255, 255, 255, 0.1));
+
+    &:hover {
+      background: var(--surface-200, #4b5563);
+      border-color: var(--primary-color, #818cf8);
+    }
 
     .friend-info .friend-name {
-      color: #f8f9fa;
+      color: var(--text-color, rgba(255, 255, 255, 0.87));
     }
 
     .friend-info .friend-email {
-      color: #adb5bd;
+      color: var(--text-color-secondary, rgba(255, 255, 255, 0.6));
+    }
+
+    .friend-avatar .online-indicator {
+      border-color: var(--surface-100, #374151);
     }
   }
-} 
+
+  .friends-list .empty-state {
+    color: var(--text-color-secondary, rgba(255, 255, 255, 0.6));
+
+    i {
+      color: var(--pink-400, #ec4899);
+    }
+
+    small {
+      color: var(--text-color-secondary, rgba(255, 255, 255, 0.6));
+    }
+  }
+}

@@ -10,8 +10,13 @@
     (function() {
       try {
         var theme = localStorage.getItem('app-theme');
-        if (theme === 'dark-theme' || theme === null) document.documentElement.classList.add('app-dark');
-        else document.documentElement.classList.remove('app-dark');
+        if (theme === 'dark-theme' || theme === null) {
+          document.documentElement.classList.add('app-dark');
+          document.documentElement.style.colorScheme = 'dark'; // Enable CSS light-dark() function
+        } else {
+          document.documentElement.classList.remove('app-dark');
+          document.documentElement.style.colorScheme = 'light'; // Enable CSS light-dark() function
+        }
       } catch (e) {}
     })();
   </script>

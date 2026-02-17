@@ -29,7 +29,7 @@
     .back-btn {
       color: var(--text-color-secondary, #6b7280);
       transition: all 0.2s ease;
-      
+
       &:hover {
         color: var(--primary-color, #6366f1);
         transform: scale(1.1);
@@ -79,7 +79,7 @@
 
           &.online {
             color: var(--green-500, #22c55e);
-            
+
             &::before {
               content: '';
               width: 8px;
@@ -340,6 +340,10 @@
           border: 1px solid var(--surface-200, #e5e7eb);
           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 
+          .message-content {
+            color: var(--text-color, #1f2937);
+          }
+
           .message-footer {
             .message-time {
               color: var(--text-color-secondary, #6b7280);
@@ -398,11 +402,11 @@
       // Gift Message Styling - Glamorous Design
       &.gift-message {
         margin: 1rem 0;
-        
+
         // Align gift messages from others to the left (like regular messages)
         &:not(.own-message) {
           justify-content: flex-start;
-          
+
           .gift-message-bubble {
             margin: 0;
             margin-right: auto;
@@ -412,17 +416,17 @@
             width: 100%;
           }
         }
-        
+
         // Align own gift messages to the right
         &.own-message {
           justify-content: flex-end;
-          
+
           .gift-message-bubble {
             margin: 0;
             margin-left: auto;
           }
         }
-        
+
         // Avatar for gift messages from others
         .gift-message-avatar {
           flex-shrink: 0;
@@ -440,20 +444,20 @@
             display: block;
           }
         }
-        
+
         .gift-message-bubble {
           position: relative;
           overflow: visible;
-          
+
           // Default max-width for own messages
           max-width: 60%;
           width: 100%;
-          
+
           // When it has avatar (messages from others), adjust max-width
           &:has(.gift-message-avatar) {
             max-width: 70%;
           }
-          
+
           .gift-message-container {
             flex: 1;
             background: linear-gradient(135deg, rgba(236, 72, 153, 0.08) 0%, rgba(168, 85, 247, 0.08) 100%);
@@ -461,7 +465,7 @@
             border-image: linear-gradient(135deg, rgba(236, 72, 153, 0.6) 0%, rgba(168, 85, 247, 0.6) 100%) 1;
             border-radius: 16px;
             padding: 1rem;
-            box-shadow: 
+            box-shadow:
               0 4px 16px rgba(236, 72, 153, 0.15),
               0 0 20px rgba(168, 85, 247, 0.1),
               inset 0 0 10px rgba(255, 255, 255, 0.1);
@@ -1270,134 +1274,6 @@
   }
 }
 
-// Dark theme support
-:host-context(.layout-theme-dark) {
-  .chat-container {
-    background: linear-gradient(135deg, #1a0d2e 0%, #2d1b42 50%, #1e1b3a 100%);
-
-    .chat-header {
-      background: var(--surface-card, #1f2937);
-      border-bottom-color: var(--surface-border, rgba(255, 255, 255, 0.1));
-
-      .chat-user-info .user-details h3 {
-        color: var(--text-color, rgba(255, 255, 255, 0.87));
-      }
-
-      .back-btn:hover {
-        color: var(--primary-color, #818cf8);
-      }
-
-      .chat-actions button:hover {
-        color: var(--primary-color, #818cf8);
-      }
-    }
-
-    .chat-messages {
-      background: var(--surface-card, #1f2937);
-
-      &::-webkit-scrollbar-track {
-        background: var(--surface-100, #374151);
-      }
-
-      &::-webkit-scrollbar-thumb {
-        background: var(--surface-300, #6b7280);
-
-        &:hover {
-          background: var(--surface-400, #9ca3af);
-        }
-      }
-
-      .message-wrapper {
-        &:not(.own-message) {
-          .message-bubble {
-            background: var(--surface-100, #374151);
-            border-color: var(--surface-border, rgba(255, 255, 255, 0.1));
-            color: var(--text-color, rgba(255, 255, 255, 0.87));
-          }
-
-          .gift-message-bubble {
-            .gift-message-container {
-              .gift-message-header {
-                .gift-info {
-                  .gift-amount {
-                    color: rgba(255, 255, 255, 0.87);
-                    background: rgba(31, 41, 55, 0.8);
-                    border-color: rgba(255, 255, 255, 0.1);
-                  }
-                }
-              }
-
-              .gift-message-text {
-                background: rgba(31, 41, 55, 0.6);
-                color: rgba(255, 255, 255, 0.87);
-                border-left-color: rgba(236, 72, 153, 0.5);
-                border-right-color: rgba(168, 85, 247, 0.5);
-              }
-            }
-          }
-        }
-
-        &.own-message {
-          .message-bubble {
-            background: linear-gradient(135deg, var(--pink-600, #c93d82) 0%, var(--purple-600, #8f48d2) 100%);
-          }
-
-          .gift-message-bubble {
-            .gift-message-container {
-              .gift-message-header {
-                .gift-info {
-                  .gift-amount {
-                    color: rgba(255, 255, 255, 0.87);
-                    background: rgba(31, 41, 55, 0.8);
-                    border-color: rgba(255, 255, 255, 0.1);
-                  }
-                }
-              }
-
-              .gift-message-text {
-                background: rgba(31, 41, 55, 0.6);
-                color: rgba(255, 255, 255, 0.87);
-                border-left-color: rgba(236, 72, 153, 0.5);
-                border-right-color: rgba(168, 85, 247, 0.5);
-              }
-            }
-          }
-        }
-      }
-    }
-
-    .chat-input {
-      background: var(--surface-card, #1f2937) !important;
-      background-color: var(--surface-card, #1f2937) !important;
-      border-top-color: var(--surface-border, rgba(255, 255, 255, 0.1));
-
-      .message-form .input-container {
-        background: #374151 !important;
-        background-color: #374151 !important;
-        border-color: var(--surface-border, rgba(255, 255, 255, 0.1)) !important;
-
-        .message-input {
-          background: transparent !important;
-          background-color: transparent !important;
-          color: rgba(255, 255, 255, 0.87) !important;
-
-          &::placeholder {
-            color: rgba(255, 255, 255, 0.6) !important;
-          }
-        }
-
-        .attachment-btn:hover {
-          color: var(--primary-color, #818cf8);
-        }
-
-        .send-btn {
-          background: linear-gradient(135deg, var(--pink-600, #c93d82) 0%, var(--purple-600, #8f48d2) 100%);
-        }
-      }
-    }
-  }
-}
-
 // Send Gift Dialog Styles
 .gift-form {
   .form-group {
@@ -1611,4 +1487,4 @@
       color: var(--primary-color);
     }
   }
-} 
+}

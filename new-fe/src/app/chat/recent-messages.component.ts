@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from "@angular/core";
+import { Component, input, output } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { Message, User } from "./chat.service";
 import { AvatarModule } from "primeng/avatar";
@@ -11,9 +11,9 @@ import { AvatarModule } from "primeng/avatar";
     styleUrls: ["./recent-messages.component.scss"],
 })
 export class RecentMessagesComponent {
-    @Input() messages: Message[] = [];
-    @Input() users: User[] = []; // Real user data from backend
-    @Output() messageClick = new EventEmitter<string>();
+    messages = input<Message[]>([]);
+    users = input<User[]>([]); // Real user data from backend
+    messageClick = output<string>();
 
     onMessageClick(userId: string): void {
         this.messageClick.emit(userId);
@@ -38,12 +38,12 @@ export class RecentMessagesComponent {
     }
 
     getUserName(userId: string): string {
-        const user = this.users.find((u) => String(u.id) === String(userId));
+        const user = this.users().find((u) => String(u.id) === String(userId));
         return user?.name || user?.fullName || user?.email || "Unknown User";
     }
 
     getUserAvatar(userId: string): string | undefined {
-        const user = this.users.find((u) => String(u.id) === String(userId));
+        const user = this.users().find((u) => String(u.id) === String(userId));
         return user?.avatar;
     }
 
@@ -53,7 +53,7 @@ export class RecentMessagesComponent {
     }
 
     isUserOnline(userId: string): boolean {
-        const user = this.users.find((u) => String(u.id) === String(userId));
+        const user = this.users().find((u) => String(u.id) === String(userId));
         return user?.isOnline || false;
     }
 

@@ -33,8 +33,10 @@ export class ThemeService {
 
         if (isDark) {
             root.classList.add(DARK_CLASS);
+            root.style.colorScheme = "dark"; // Enable CSS light-dark() function
         } else {
             root.classList.remove(DARK_CLASS);
+            root.style.colorScheme = "light"; // Enable CSS light-dark() function
         }
 
         if (this.document.defaultView?.localStorage) {

@@ -223,8 +223,6 @@ export class ChatHomeComponent {
 
         const avatars = this.conversationAvatars();
 
-        // Don't trigger loading from here - let the effect handle it
-        // This prevents excessive calls from change detection
         return avatars.get(otherId) || this.defaultAvatar;
     }
 

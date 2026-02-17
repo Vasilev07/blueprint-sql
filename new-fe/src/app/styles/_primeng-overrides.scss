@@ -407,5 +407,70 @@ p-dialog .p-dialog {
         }
       }
     }
+
+    /* Mobile chat items in dark theme */
+    .mobile-chat-item {
+      background: #374151 !important;
+      border-color: rgba(255, 255, 255, 0.1) !important;
+
+      &:hover {
+        background: #4b5563 !important;
+      }
+
+      &.active {
+        background: rgba(129, 140, 248, 0.15) !important;
+        border-color: var(--primary-color, #818cf8) !important;
+
+        .chat-name {
+          color: var(--primary-color, #818cf8) !important;
+        }
+      }
+
+      .chat-name {
+        color: rgba(255, 255, 255, 0.87) !important;
+      }
+
+      .last-message {
+        color: rgba(255, 255, 255, 0.6) !important;
+      }
+
+      .chat-time {
+        color: rgba(255, 255, 255, 0.6) !important;
+      }
+    }
+
+    /* Desktop chat items in dark theme */
+    .chat-item {
+      &.active {
+        background: rgba(129, 140, 248, 0.15) !important;
+        border-color: var(--primary-color, #818cf8) !important;
+
+        .chat-name {
+          color: var(--primary-color, #818cf8) !important;
+        }
+      }
+
+      .chat-name {
+        color: rgba(255, 255, 255, 0.87) !important;
+      }
+
+      .last-message {
+        color: rgba(255, 255, 255, 0.6) !important;
+      }
+
+      .chat-time {
+        color: rgba(255, 255, 255, 0.6) !important;
+      }
+    }
+
+    /* Section headers in dark theme */
+    .section-header h3 {
+      color: rgba(255, 255, 255, 0.87) !important;
+    }
+
+    /* Dashboard headers in dark theme */
+    .dashboard-header h2 {
+      color: rgba(255, 255, 255, 0.87) !important;
+    }
   }
 }

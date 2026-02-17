@@ -17,18 +17,19 @@
   /* Light mode: hover = slightly darker surface (surface-100). Dark mode: hover = surface-800 */
   --surface-hover: light-dark(var(--p-surface-100, #f3f4f6), var(--p-surface-800, rgba(255, 255, 255, 0.05)));
 
-  --surface-0: var(--p-surface-0, #ffffff);
-  --surface-50: var(--p-surface-50, #f9fafb);
-  --surface-100: var(--p-surface-100, #f3f4f6);
-  --surface-200: var(--p-surface-200, #e5e7eb);
-  --surface-300: var(--p-surface-300, #d1d5db);
-  --surface-400: var(--p-surface-400, #9ca3af);
-  --surface-500: var(--p-surface-500, #6b7280);
-  --surface-600: var(--p-surface-600, #4b5563);
-  --surface-700: var(--p-surface-700, #374151);
-  --surface-800: var(--p-surface-800, #1f2937);
-  --surface-900: var(--p-surface-900, #111827);
-  --surface-950: var(--p-surface-950, #030712);
+  /* Surface palette: theme-aware using light-dark() for proper dark mode support */
+  --surface-0: light-dark(var(--p-surface-0, #ffffff), var(--p-surface-900, #1f2937));
+  --surface-50: light-dark(var(--p-surface-50, #f9fafb), var(--p-surface-800, #1f2937));
+  --surface-100: light-dark(var(--p-surface-100, #f3f4f6), var(--p-surface-700, #374151));
+  --surface-200: light-dark(var(--p-surface-200, #e5e7eb), var(--p-surface-600, #4b5563));
+  --surface-300: light-dark(var(--p-surface-300, #d1d5db), var(--p-surface-500, #6b7280));
+  --surface-400: light-dark(var(--p-surface-400, #9ca3af), var(--p-surface-400, #9ca3af));
+  --surface-500: light-dark(var(--p-surface-500, #6b7280), var(--p-surface-300, #d1d5db));
+  --surface-600: light-dark(var(--p-surface-600, #4b5563), var(--p-surface-200, #e5e7eb));
+  --surface-700: light-dark(var(--p-surface-700, #374151), var(--p-surface-100, #f3f4f6));
+  --surface-800: light-dark(var(--p-surface-800, #1f2937), var(--p-surface-50, #f9fafb));
+  --surface-900: light-dark(var(--p-surface-900, #111827), var(--p-surface-0, #ffffff));
+  --surface-950: light-dark(var(--p-surface-950, #030712), var(--p-surface-0, #ffffff));
 
   /* Legacy semantic aliases (layout/search/components) */
   --surface-a: var(--surface-0);
@@ -41,8 +42,8 @@
   --primary-color: var(--p-primary-color, #6366f1);
   --primary-color-text: var(--p-primary-contrast-color, #ffffff);
   --primary-hover-color: var(--p-primary-hover-color, #4f46e5);
-  --text-color: var(--p-text-color, #4b5563);
-  --text-color-secondary: var(--p-text-muted-color, #6b7280);
+  --text-color: light-dark(var(--p-text-color, #4b5563), rgba(255, 255, 255, 0.87));
+  --text-color-secondary: light-dark(var(--p-text-muted-color, #6b7280), rgba(255, 255, 255, 0.6));
 
   --border-radius: var(--p-content-border-radius, 6px);
   --focus-ring: var(--p-focus-ring-shadow, 0 0 0 0.2rem rgba(99, 102, 241, 0.25));
@@ -61,4 +62,5 @@
   --red-600: var(--p-red-600, #dc2626);
   --red-700: var(--p-red-700, #b91c1c);
   --blue-500: var(--p-blue-500, #3b82f6);
+  --green-500: var(--p-green-500, #22c55e);
 }

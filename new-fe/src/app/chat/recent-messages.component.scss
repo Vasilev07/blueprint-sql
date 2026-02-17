@@ -9,13 +9,13 @@
     gap: 0.75rem;
     padding: 0.75rem;
     border-radius: 8px;
-    background: white;
-    border: 1px solid #e9ecef;
+    background: var(--surface-card, #ffffff);
+    border: 1px solid var(--surface-border, #e9ecef);
     transition: all 0.2s ease;
     cursor: pointer;
 
     &:hover {
-      border-color: #007bff;
+      border-color: var(--primary-color, #007bff);
       box-shadow: 0 2px 8px rgba(0, 123, 255, 0.15);
       transform: translateY(-1px);
     }
@@ -31,15 +31,15 @@
         width: 12px;
         height: 12px;
         border-radius: 50%;
-        border: 2px solid white;
+        border: 2px solid var(--surface-card, white);
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 
         &.online {
-          background: #28a745;
+          background: var(--green-500, #28a745);
         }
 
         &.offline {
-          background: #6c757d;
+          background: var(--surface-400, #6c757d);
         }
       }
     }
@@ -50,7 +50,7 @@
 
       .message-sender {
         font-weight: 600;
-        color: #212529;
+        color: var(--text-color, #212529);
         margin: 0 0 0.25rem 0;
         font-size: 0.95rem;
         white-space: nowrap;
@@ -59,7 +59,7 @@
       }
 
       .message-content {
-        color: #6c757d;
+        color: var(--text-color-secondary, #6c757d);
         font-size: 0.8rem;
         margin: 0 0 0.25rem 0;
         white-space: nowrap;
@@ -68,7 +68,7 @@
       }
 
       .message-time {
-        color: #adb5bd;
+        color: var(--surface-400, #adb5bd);
         font-size: 0.75rem;
         margin: 0;
       }
@@ -85,14 +85,14 @@
         align-items: center;
         gap: 0.25rem;
         font-size: 0.75rem;
-        color: #6c757d;
+        color: var(--text-color-secondary, #6c757d);
 
         .read {
-          color: #28a745;
+          color: var(--green-500, #28a745);
         }
 
         .unread {
-          color: #007bff;
+          color: var(--primary-color, #007bff);
         }
       }
     }
@@ -122,23 +122,3 @@
     }
   }
 }
-
-// Dark theme support
-:host-context(.layout-theme-dark) {
-  .recent-messages .message-item {
-    background: #343a40;
-    border-color: #495057;
-
-    .message-info .message-sender {
-      color: #f8f9fa;
-    }
-
-    .message-info .message-content {
-      color: #adb5bd;
-    }
-
-    .message-info .message-time {
-      color: #6c757d;
-    }
-  }
-} 
