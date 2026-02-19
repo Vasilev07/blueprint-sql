@@ -24,7 +24,7 @@ jobs:
       - run: npm run lint
         working-directory: ./new-be
   test-new-be:
-    needs: [ markdown-lint ]
+    needs: [ lint-new-be ]
     name: new-be tests
     runs-on: ubuntu-latest
     services:
@@ -89,5 +89,6 @@ jobs:
         working-directory: ./new-fe
       - run: npm run test:coverage -- --watch=false --browsers=ChromeHeadless
         working-directory: ./new-fe
+      - run: ls -la ./new-fe/coverage
       - name: Jest Coverage Comment
         uses: MishaKav/jest-coverage-comment@main
