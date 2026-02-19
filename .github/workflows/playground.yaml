@@ -89,7 +89,7 @@ jobs:
         working-directory: ./new-fe
       - run: npm run test:coverage -- --watch=false --browsers=ChromeHeadless
         working-directory: ./new-fe
-      - name: Jest Coverage Report
-        uses: step-security/jest-coverage-report-action@v2   # secure fork of popular action
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          files: coverage/lcov.info
