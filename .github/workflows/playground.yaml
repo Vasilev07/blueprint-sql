@@ -87,5 +87,5 @@ jobs:
           node-version: '22'
       - run: npm ci
         working-directory: ./new-fe
-      - run: npm run test -- --watch=false --browsers=ChromeHeadless
+      - run: npm run test:coverage -- --watch=false --browsers=ChromeHeadless
         working-directory: ./new-fe

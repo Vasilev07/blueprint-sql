@@ -6,124 +6,143 @@
 
   <!-- Hot Stories Section -->
   <div class="hot-stories-section">
-    <div *ngIf="isLoading" class="loading-container">
-      <i class="pi pi-spin pi-spinner"></i>
-      <p>Loading stories...</p>
-    </div>
+    @if (isLoading()) {
+      <div class="loading-container">
+        <i class="pi pi-spin pi-spinner"></i>
+        <p>Loading stories...</p>
+      </div>
+    }
 
-    <div *ngIf="!isLoading && stories.length === 0" class="empty-state">
-      <i class="pi pi-video"></i>
-      <h3>No stories yet</h3>
-      <p>Be the first to share a story</p>
-      <button pButton 
-        label="Create Story" 
-        icon="pi pi-plus" 
-        class="p-button-primary"
-        (click)="onUploadClick()">
-      </button>
-    </div>
+    @if (!isLoading() && filteredStories().length === 0) {
+      <div class="empty-state">
+        <i class="pi pi-video"></i>
+        <h3>No stories yet</h3>
+        <p>Be the first to share a story</p>
+        <button pButton 
+          label="Create Story" 
+          icon="pi pi-plus" 
+          class="p-button-primary"
+          (click)="onUploadClick()">
+        </button>
+      </div>
+    }
 
-    <div *ngIf="!isLoading" class="hot-stories-content">
-      <h2 class="section-title">HOT STORIES</h2>
-      
-      <div class="stories-cards-container">
-        <!-- Create Story Cards -->
-        <div class="create-story-card" (click)="onUploadClick()">
-          <div class="card-content">
-            <div class="create-icon">
-              <i class="pi pi-plus"></i>
+    @if (!isLoading()) {
+      <div class="hot-stories-content">
+        <h2 class="section-title">HOT STORIES</h2>
+        
+        <div class="stories-cards-container">
+          <!-- Create Story Cards -->
+          <div class="create-story-card" (click)="onUploadClick()">
+            <div class="card-content">
+              <div class="create-icon">
+                <i class="pi pi-plus"></i>
+              </div>
+              <span class="create-text">Create story</span>
             </div>
-            <span class="create-text">Create story</span>
-          </div>
-          <div class="shield-icon">
-            <i class="pi pi-shield"></i>
-          </div>
-        </div>
-
-        <!-- User Story Cards -->
-        <div class="story-card" 
-             *ngFor="let group of groupedStories" 
-             [class.viewed]="!group.hasUnviewed"
-             [style.--profile-bg]="group.userAvatar ? 'url(' + group.userAvatar + ')' : null">
-          <div class="card-content" (click)="onUserStoryGroupClick(group)">
-            <div class="story-avatar"
-                 [style.background-image]="group.userAvatar ? 'url(' + group.userAvatar + ')' : 'none'"
-                 [class.has-multiple]="group.stories.length > 1">
-              <span *ngIf="!group.userAvatar">{{ group.userName.charAt(0).toUpperCase() }}</span>
-              <span *ngIf="group.stories.length > 1" class="story-count">{{ group.stories.length }}</span>
-            </div>
-            <span class="username">{{ group.userName }}</span>
-            <div class="story-stats">
-              <span class="views">{{ group.totalViews | number }}</span>
+            <div class="shield-icon">
+              <i class="pi pi-shield"></i>
             </div>
           </div>
-          <button 
-            class="profile-icon-btn"
-            pButton
-            icon="pi pi-user"
-            [rounded]="true"
-            [text]="true"
-            (click)="navigateToUserProfile(group, $event)"
-            pTooltip="View Profile"
-            tooltipPosition="left">
-          </button>
+
+          <!-- User Story Cards -->
+          @for (group of groupedStories(); track group.userId) {
+            <div class="story-card" 
+                 [class.viewed]="!group.hasUnviewed"
+                 [style.--profile-bg]="group.userAvatar ? 'url(' + group.userAvatar + ')' : null">
+              <div class="card-content" (click)="onUserStoryGroupClick(group)">
+                <div class="story-avatar"
+                     [style.background-image]="group.userAvatar ? 'url(' + group.userAvatar + ')' : 'none'"
+                     [class.has-multiple]="group.stories.length > 1">
+                  @if (!group.userAvatar) {
+                    <span>{{ group.userName.charAt(0).toUpperCase() }}</span>
+                  }
+                  @if (group.stories.length > 1) {
+                    <span class="story-count">{{ group.stories.length }}</span>
+                  }
+                </div>
+                <span class="username">{{ group.userName }}</span>
+                <div class="story-stats">
+                  <span class="views">{{ group.totalViews | number }}</span>
+                </div>
+              </div>
+              <button 
+                class="profile-icon-btn"
+                pButton
+                icon="pi pi-user"
+                [rounded]="true"
+                [text]="true"
+                (click)="navigateToUserProfile(group, $event)"
+                pTooltip="View Profile"
+                tooltipPosition="left">
+              </button>
+            </div>
+          }
         </div>
       </div>
-    </div>
+    }
   </div>
 
   <!-- Stories Grid (Alternative View) -->
-  <div class="stories-grid-section" *ngIf="!isLoading && groupedStories.length > 0">
-    <div class="section-header">
-      <h2>All Stories</h2>
-      <div class="filter-buttons">
-        <button 
-          *ngFor="let category of categories"
-          class="filter-btn"
-          [class.active]="selectedCategory === category.value"
-          (click)="selectedCategory = category.value; onCategoryChange()">
-          {{ category.label }}
-        </button>
-      </div>
-    </div>
-
-    <div class="stories-grid">
-      <div class="story-grid-card" 
-           *ngFor="let group of groupedStories" 
-           (click)="onUserStoryGroupClick(group)">
-        
-        <div class="story-thumbnail">
-          <img [src]="group.latestStory.thumbnailUrl" [alt]="group.latestStory.caption">
-          
-          <div class="story-overlay">
-            <div class="user-badge">
-              <div class="user-avatar-small"
-                   [style.background-image]="group.userAvatar ? 'url(' + group.userAvatar + ')' : 'none'">
-                <span *ngIf="!group.userAvatar">{{ group.userName.charAt(0).toUpperCase() }}</span>
-              </div>
-              <span class="user-name">{{ group.userName }}</span>
-              <span *ngIf="group.stories.length > 1" class="story-count-badge">{{ group.stories.length }}</span>
-            </div>
-            
-            <div class="story-stats-overlay">
-              <div class="stat">
-                <i class="pi pi-eye"></i>
-                <span>{{ group.totalViews | number }}</span>
-              </div>
-              <div class="stat">
-                <i class="pi pi-heart"></i>
-                <span>{{ getTotalLikes(group) | number }}</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="time-badge">
-            {{ formatTime(group.latestStory.createdAt) }}
-          </div>
+  @if (!isLoading() && groupedStories().length > 0) {
+    <div class="stories-grid-section">
+      <div class="section-header">
+        <h2>All Stories</h2>
+        <div class="filter-buttons">
+          @for (category of categories; track category.value) {
+            <button 
+              class="filter-btn"
+              [class.active]="selectedCategory() === category.value"
+              (click)="selectedCategory.set(category.value)">
+              {{ category.label }}
+            </button>
+          }
         </div>
       </div>
+
+      <div class="stories-grid">
+        @for (group of groupedStories(); track group.userId) {
+          <div class="story-grid-card" 
+               (click)="onUserStoryGroupClick(group)">
+            
+            <div class="story-thumbnail">
+              <img [src]="group.latestStory.thumbnailUrl" [alt]="group.latestStory.caption">
+              
+              <div class="story-overlay">
+                <div class="user-badge">
+                  <div class="user-avatar-small"
+                       [style.background-image]="group.userAvatar ? 'url(' + group.userAvatar + ')' : 'none'">
+                    @if (!group.userAvatar) {
+                      <span>{{ group.userName.charAt(0).toUpperCase() }}</span>
+                    }
+                  </div>
+                  <span class="user-name">{{ group.userName }}</span>
+                  @if (group.stories.length > 1) {
+                    <span class="story-count-badge">{{ group.stories.length }}</span>
+                  }
+                </div>
+                
+                <div class="story-stats-overlay">
+                  <div class="stat">
+                    <i class="pi pi-eye"></i>
+                    <span>{{ group.totalViews | number }}</span>
+                  </div>
+                  <div class="stat">
+                    <i class="pi pi-heart"></i>
+                    <span>{{ getTotalLikes(group) | number }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="time-badge">
+                {{ formatTime(group.latestStory.createdAt) }}
+              </div>
+            </div>
+          </div>
+        }
+      </div>
     </div>
-  </div>
+  }
 
   <!-- Floating Upload Button (Mobile) -->
   <button 

@@ -1,7 +1,13 @@
-import { Component, OnInit, OnDestroy } from "@angular/core";
+import {
+    Component,
+    DestroyRef,
+    inject,
+    signal,
+    computed,
+} from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { CommonModule } from "@angular/common";
 import { Router, RouterModule } from "@angular/router";
-import { Subject, takeUntil } from "rxjs";
 import { Story, StoryService } from "./story.service";
 import { UserService } from "src/typescript-api-client/src/api/api";
 import { ButtonModule } from "primeng/button";
@@ -24,39 +30,46 @@ export interface UserStoryGroup {
     templateUrl: "./story-home.component.html",
     styleUrls: ["./story-home.component.scss"],
 })
-export class StoryHomeComponent implements OnInit, OnDestroy {
-    private destroy$ = new Subject<void>();
+export class StoryHomeComponent {
+    private readonly destroyRef = inject(DestroyRef);
+    private readonly router = inject(Router);
+    private readonly storyService = inject(StoryService);
+    private readonly userService = inject(UserService);
 
-    stories: Story[] = [];
-    groupedStories: UserStoryGroup[] = [];
-    isLoading = false;
-    selectedCategory = "all";
-    searchQuery = "";
-    currentUserId: number | null = null;
-    profilePictures: Map<string, string> = new Map(); // userId -> blob URL
+    readonly rawStories = signal<Story[]>([]);
+    readonly isLoading = signal(false);
+    readonly selectedCategory = signal("all");
+    readonly searchQuery = signal("");
+    readonly currentUserId = signal<number | null>(null);
+    readonly profilePictures = signal<Map<string, string>>(new Map());
 
-    categories = [
+    readonly filteredStories = computed(() =>
+        this.filterStories(this.rawStories()),
+    );
+    readonly groupedStories = computed(() => {
+        const groups = this.groupStoriesByUser(this.filteredStories());
+        const pics = this.profilePictures();
+        return groups.map((g) => ({
+            ...g,
+            userAvatar: pics.get(g.userId) ?? g.userAvatar,
+        }));
+    });
+
+    readonly categories = [
         { label: "All Stories", value: "all" },
         { label: "Trending", value: "trending" },
         { label: "Recent", value: "recent" },
         { label: "Most Liked", value: "most-liked" },
         { label: "Most Viewed", value: "most-viewed" },
-    ];
+    ] as const;
 
-    constructor(
-        private router: Router,
-        private storyService: StoryService,
-        private userService: UserService,
-    ) {}
-
-    ngOnInit(): void {
-        // Load current user
+    constructor() {
         this.userService
             .getUser()
-            .pipe(takeUntil(this.destroy$))
+            .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: (user) => {
-                    this.currentUserId = user.id ?? null;
+                    this.currentUserId.set(user.id ?? null);
                 },
                 error: (error) => {
                     console.error("Error loading current user:", error);
@@ -65,67 +78,54 @@ export class StoryHomeComponent implements OnInit, OnDestroy {
 
         this.loadStories();
 
-        // Cleanup expired stories every hour
-        setInterval(
-            () => {
-                this.storyService.cleanupExpiredStories();
-            },
+        const intervalId = setInterval(
+            () => this.storyService.cleanupExpiredStories(),
             1000 * 60 * 60,
         );
-    }
-
-    ngOnDestroy(): void {
-        this.destroy$.next();
-        this.destroy$.complete();
-
-        // Cleanup profile picture blob URLs
-        this.profilePictures.forEach((url) => URL.revokeObjectURL(url));
-        this.profilePictures.clear();
+        this.destroyRef.onDestroy(() => {
+            clearInterval(intervalId);
+            const map = this.profilePictures();
+            map.forEach((url) => URL.revokeObjectURL(url));
+            map.clear();
+        });
     }
 
     loadStories(): void {
-        this.isLoading = true;
+        this.isLoading.set(true);
         this.storyService
             .getStories()
-            .pipe(takeUntil(this.destroy$))
-            .subscribe((stories) => {
-                console.log("Stories loaded:", stories);
-                this.stories = this.filterStories(stories);
-                this.groupedStories = this.groupStoriesByUser(this.stories);
-                console.log("Grouped stories:", this.groupedStories);
-
-                // Load profile pictures for all users
-                this.loadProfilePictures();
-
-                this.isLoading = false;
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+                next: (stories) => {
+                    this.rawStories.set(stories);
+                    this.loadProfilePictures();
+                    this.isLoading.set(false);
+                },
+                error: () => this.isLoading.set(false),
             });
     }
 
     loadProfilePictures(): void {
-        const uniqueUserIds = new Set(this.groupedStories.map((g) => g.userId));
+        const groups = this.groupedStories();
+        const uniqueUserIds = new Set(groups.map((g) => g.userId));
 
         uniqueUserIds.forEach((userIdStr) => {
             const userId = parseInt(userIdStr, 10);
-
             this.userService
                 .getProfilePictureByUserId(userId, "response")
-                .pipe(takeUntil(this.destroy$))
+                .pipe(takeUntilDestroyed(this.destroyRef))
                 .subscribe({
-                    next: (response: any) => {
-                        const blob = response.body as Blob;
+                    next: (response) => {
+                        const blob = response.body;
+                        if (blob == null) return;
                         const blobUrl = URL.createObjectURL(blob);
-                        this.profilePictures.set(userIdStr, blobUrl);
-
-                        // Update the group with the profile picture
-                        const group = this.groupedStories.find(
-                            (g) => g.userId === userIdStr,
-                        );
-                        if (group) {
-                            group.userAvatar = blobUrl;
-                        }
+                        this.profilePictures.update((m) => {
+                            const next = new Map(m);
+                            next.set(userIdStr, blobUrl);
+                            return next;
+                        });
                     },
-                    error: (error) => {
-                        // Profile picture not found is okay
+                    error: (error: { status?: number }) => {
                         if (error.status !== 404) {
                             console.error(
                                 `Error loading profile picture for user ${userId}:`,
@@ -141,7 +141,7 @@ export class StoryHomeComponent implements OnInit, OnDestroy {
         let filtered = [...stories];
 
         // Apply category filter
-        switch (this.selectedCategory) {
+        switch (this.selectedCategory()) {
             case "trending":
                 filtered = filtered.sort(
                     (a, b) =>
@@ -166,8 +166,8 @@ export class StoryHomeComponent implements OnInit, OnDestroy {
         }
 
         // Apply search filter
-        if (this.searchQuery.trim()) {
-            const query = this.searchQuery.toLowerCase();
+        if (this.searchQuery().trim()) {
+            const query = this.searchQuery().toLowerCase();
             filtered = filtered.filter(
                 (story) =>
                     (story.caption?.toLowerCase() || "").includes(query) ||
@@ -179,14 +179,6 @@ export class StoryHomeComponent implements OnInit, OnDestroy {
         }
 
         return filtered;
-    }
-
-    onCategoryChange(): void {
-        this.loadStories();
-    }
-
-    onSearch(): void {
-        this.loadStories();
     }
 
     onStoryClick(story: Story): void {
@@ -223,25 +215,10 @@ export class StoryHomeComponent implements OnInit, OnDestroy {
     groupStoriesByUser(stories: Story[]): UserStoryGroup[] {
         const groupMap = new Map<string, UserStoryGroup>();
 
-        console.log(
-            "Grouping stories:",
-            stories.map((s) => ({
-                id: s.id,
-                userId: s.userId,
-                userName: s.userName,
-            })),
-        );
-
         stories.forEach((story) => {
-            console.log(
-                "Processing story:",
-                story.id,
-                "userId:",
-                story.userId,
-                "type:",
-                typeof story.userId,
-            );
-
+            if (story.userId == null || story.userId === "") {
+                return;
+            }
             if (!groupMap.has(story.userId)) {
                 console.log("Creating new group for userId:", story.userId);
                 groupMap.set(story.userId, {
@@ -291,15 +268,6 @@ export class StoryHomeComponent implements OnInit, OnDestroy {
             (a, b) =>
                 new Date(b.latestStory.createdAt).getTime() -
                 new Date(a.latestStory.createdAt).getTime(),
-        );
-
-        console.log(
-            "Final groups:",
-            result.map((g) => ({
-                userId: g.userId,
-                userName: g.userName,
-                storyCount: g.stories.length,
-            })),
         );
 
         return result;
