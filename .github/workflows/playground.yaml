@@ -91,5 +91,3 @@ jobs:
         working-directory: ./new-fe
       - name: Jest Coverage Comment
         uses: MishaKav/jest-coverage-comment@main
-        with:
-          coverage-summary-path: ./new-fe/coverage/coverage-summary.json
