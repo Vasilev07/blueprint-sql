@@ -15,7 +15,7 @@ module.exports = {
         '!src/**/*.enum.ts',
         '!src/**/*.type.ts',
     ],
-    coverageReporters: ['html', 'text', 'text-summary', 'lcov'],
+    coverageReporters: ['html', 'text', 'json-summary', 'lcov'],
     coverageDirectory: 'coverage',
     moduleNameMapper: {
         '.*typescript-api-client.*': '<rootDir>/src/__mocks__/api-client.mock.ts',

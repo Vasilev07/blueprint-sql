@@ -89,7 +89,7 @@ jobs:
         working-directory: ./new-fe
       - run: npm run test:coverage -- --watch=false --browsers=ChromeHeadless
         working-directory: ./new-fe
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
+      - name: Jest Coverage Comment
+        uses: MishaKav/jest-coverage-comment@main
         with:
-          files: coverage/lcov.info
+          coverage-summary-path: ./new-fe/coverage/coverage-summary.json
