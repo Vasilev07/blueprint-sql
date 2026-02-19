@@ -92,3 +92,5 @@ jobs:
       - run: ls -la ./new-fe/coverage
       - name: Jest Coverage Comment
         uses: MishaKav/jest-coverage-comment@main
+        with:
+          coverage-summary-path: ./new-fe/coverage/coverage-summary.json
