@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from "@angular/core";
+import { Component, OnInit, OnDestroy, signal } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { Router } from "@angular/router";
@@ -35,9 +35,9 @@ import { SelectModule } from "primeng/select";
     styleUrls: ["./forum-home.component.scss"],
 })
 export class ForumHomeComponent implements OnInit, OnDestroy {
-    rooms: ForumRoomDTO[] = [];
-    myRooms: ForumRoomDTO[] = [];
-    loading = false;
+    rooms = signal<ForumRoomDTO[]>([]);
+    myRooms = signal<ForumRoomDTO[]>([]);
+    loading = signal(false);
     showCreateDialog = false;
     newRoomName = "";
     newRoomDescription = "";
@@ -63,14 +63,14 @@ export class ForumHomeComponent implements OnInit, OnDestroy {
     }
 
     loadRooms(): void {
-        this.loading = true;
+        this.loading.set(true);
         this.forumRoomsService
             .getRooms("", "active")
             .pipe(takeUntil(this.destroy$))
             .subscribe({
                 next: (rooms) => {
-                    this.rooms = rooms || [];
-                    this.loading = false;
+                    this.rooms.set(rooms || []);
+                    this.loading.set(false);
                 },
                 error: (error) => {
                     console.error("Error loading rooms:", error);
@@ -79,7 +79,7 @@ export class ForumHomeComponent implements OnInit, OnDestroy {
                         summary: "Error",
                         detail: "Failed to load forum rooms",
                     });
-                    this.loading = false;
+                    this.loading.set(false);
                 },
             });
     }
@@ -90,7 +90,7 @@ export class ForumHomeComponent implements OnInit, OnDestroy {
             .pipe(takeUntil(this.destroy$))
             .subscribe({
                 next: (rooms) => {
-                    this.myRooms = rooms || [];
+                    this.myRooms.set(rooms || []);
                 },
                 error: (error) => {
                     console.error("Error loading my rooms:", error);
