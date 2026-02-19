@@ -1,6 +1,9 @@
 name: Integration (Automatic)
 
 on: [push]
+permissions:
+  contents: read         # can be read only now
+  pull-requests: write
 
 jobs:
   markdown-lint:
