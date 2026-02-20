@@ -1,120 +1,125 @@
-<div class="story-viewer-container" [class.fullscreen]="isFullscreen">
-  <!-- Loading State -->
-  <div *ngIf="isLoading" class="loading-overlay">
-    <div class="loading-content">
-      <i class="pi pi-spin pi-spinner"></i>
-      <p>Loading story...</p>
+<div class="story-viewer-container" [class.fullscreen]="isFullscreen()">
+  @if (isLoading()) {
+    <div class="loading-overlay">
+      <div class="loading-content">
+        <i class="pi pi-spin pi-spinner"></i>
+        <p>Loading story...</p>
+      </div>
     </div>
-  </div>
+  }
 
-  <!-- Story Content -->
-  <div *ngIf="!isLoading && story" class="story-content" 
-       (touchstart)="onTouchStart($event)" 
-       (touchmove)="onTouchMove($event)" 
-       (touchend)="onTouchEnd($event)">
-    
-    <!-- Progress Bars (Instagram Style) -->
-    <div class="story-progress-bars">
-      <div class="progress-bar-segment" *ngFor="let s of allStories; let i = index">
-        <div class="progress-fill" 
-             [class.active]="i === currentStoryIndex"
-             [class.completed]="i < currentStoryIndex"
-             [style.width.%]="getProgressWidth(i)">
+  @if (!isLoading() && story()) {
+    <div class="story-content"
+         (touchstart)="onTouchStart($event)"
+         (touchmove)="onTouchMove($event)"
+         (touchend)="onTouchEnd()">
+
+      <div class="story-progress-bars">
+        @for (s of allStories(); track s.id; let i = $index) {
+          <div class="progress-bar-segment">
+            <div class="progress-fill"
+                 [class.active]="i === currentStoryIndex()"
+                 [class.completed]="i < currentStoryIndex()"
+                 [style.width.%]="getProgressWidth(i)">
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="story-header">
+        <div class="user-section" (click)="navigateToProfile()">
+          <div class="user-avatar"
+               [style.background-image]="story()!.userAvatar ? 'url(' + story()!.userAvatar + ')' : 'none'">
+            @if (!story()!.userAvatar) {
+              <span>{{ story()!.userName?.charAt(0)?.toUpperCase() }}</span>
+            }
+          </div>
+          <div class="user-info">
+            <span class="user-name">{{ story()!.userName }}</span>
+            <span class="story-time">{{ story() ? formatTime(story()!.createdAt) : '' }}</span>
+          </div>
+        </div>
+
+        <button pButton
+          type="button"
+          icon="pi pi-times"
+          class="p-button-rounded p-button-text close-button"
+          (click)="onClose()">
+        </button>
+      </div>
+
+      <div class="video-container">
+        @if (isVideo()) {
+          <video #videoPlayer
+            [src]="videoBlobUrl()"
+            (timeupdate)="onVideoTimeUpdate()"
+            (ended)="onVideoEnded()"
+            (error)="onVideoError($event)"
+            (loadeddata)="onVideoLoaded()"
+            class="video-player"
+            preload="metadata"
+            playsinline
+            [muted]="isMuted()"
+            loop="false">
+            Your browser does not support the video tag.
+          </video>
+        }
+
+        @if (isImage()) {
+          <img [src]="videoBlobUrl()"
+            class="image-player"
+            alt="Story image"
+            (click)="togglePlayPause()">
+        }
+
+        <div class="tap-zone tap-zone-left" (click)="previousStory()"></div>
+        <div class="tap-zone tap-zone-right" (click)="nextStory()"></div>
+
+        @if (!isPlaying() && !isLoading()) {
+          <div class="pause-overlay">
+            <i class="pi pi-play"></i>
+          </div>
+        }
+      </div>
+
+      <div class="story-bottom">
+        @if (story()!.caption) {
+          <div class="story-caption">
+            <p>{{ story()!.caption }}</p>
+          </div>
+        }
+
+        <div class="story-actions">
+          <div class="action-buttons">
+            <button class="action-btn" (click)="onLikeStory()">
+              <i [class]="isLiked() ? 'pi pi-heart-fill liked' : 'pi pi-heart'"></i>
+              <span>{{ story()!.likes ?? 0 }}</span>
+            </button>
+
+            @if (isVideo()) {
+              <button class="action-btn" (click)="toggleMute()">
+                <i [class]="isMuted() ? 'pi pi-volume-off' : 'pi pi-volume-up'"></i>
+              </button>
+            }
+          </div>
         </div>
       </div>
     </div>
+  }
 
-    <!-- Top Header (User Info & Close) -->
-    <div class="story-header">
-      <div class="user-section" (click)="navigateToProfile()">
-        <div class="user-avatar" 
-             [style.background-image]="story.userAvatar ? 'url(' + story.userAvatar + ')' : 'none'">
-          <span *ngIf="!story.userAvatar">{{ story.userName?.charAt(0)?.toUpperCase() }}</span>
-        </div>
-        <div class="user-info">
-          <span class="user-name">{{ story.userName }}</span>
-          <span class="story-time">{{ story ? formatTime(story.createdAt) : '' }}</span>
-        </div>
-      </div>
-      
-      <button pButton 
-        type="button"
-        icon="pi pi-times" 
-        class="p-button-rounded p-button-text close-button"
-        (click)="onClose()">
+  @if (!isLoading() && !story()) {
+    <div class="error-state">
+      <i class="pi pi-exclamation-triangle"></i>
+      <h3>Story Not Found</h3>
+      <p>The story you're looking for doesn't exist or has been removed.</p>
+      <button pButton
+        label="Go Back"
+        icon="pi pi-arrow-left"
+        class="p-button-primary"
+        (click)="onGoBack()">
       </button>
     </div>
-    
-    <!-- Media Container (Image or Video) -->
-    <div class="video-container">
-      <!-- Video Player -->
-      <video #videoPlayer
-        *ngIf="isVideo"
-        [src]="videoBlobUrl"
-        (timeupdate)="onVideoTimeUpdate()"
-        (ended)="onVideoEnded()"
-        (error)="onVideoError($event)"
-        (loadeddata)="onVideoLoaded()"
-        class="video-player"
-        preload="metadata"
-        playsinline
-        [muted]="isMuted"
-        loop="false">
-        Your browser does not support the video tag.
-      </video>
-
-      <!-- Image Display -->
-      <img *ngIf="isImage"
-        [src]="videoBlobUrl"
-        class="image-player"
-        alt="Story image"
-        (click)="togglePlayPause()">
-
-      <!-- Tap Zones for Navigation (Instagram Style) -->
-      <div class="tap-zone tap-zone-left" (click)="previousStory()"></div>
-      <div class="tap-zone tap-zone-right" (click)="nextStory()"></div>
-      
-      <!-- Pause Overlay -->
-      <div class="pause-overlay" *ngIf="!isPlaying && !isLoading">
-        <i class="pi pi-play"></i>
-      </div>
-    </div>
-
-    <!-- Bottom Actions (Instagram Style) -->
-    <div class="story-bottom">
-      <!-- Caption & Tags -->
-      <div class="story-caption" *ngIf="story.caption">
-        <p>{{ story.caption }}</p>
-      </div>
-
-      <!-- Action Buttons -->
-      <div class="story-actions">
-        <div class="action-buttons">
-          <button class="action-btn" (click)="onLikeStory()">
-            <i [class]="isLiked ? 'pi pi-heart-fill liked' : 'pi pi-heart'"></i>
-            <span>{{ story.likes ?? 0 }}</span>
-          </button>
-          
-          <button class="action-btn" (click)="toggleMute()" *ngIf="isVideo">
-            <i [class]="isMuted ? 'pi pi-volume-off' : 'pi pi-volume-up'"></i>
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Error State -->
-  <div *ngIf="!isLoading && !story" class="error-state">
-    <i class="pi pi-exclamation-triangle"></i>
-    <h3>Story Not Found</h3>
-    <p>The story you're looking for doesn't exist or has been removed.</p>
-    <button pButton 
-      label="Go Back" 
-      icon="pi pi-arrow-left"
-      class="p-button-primary"
-      (click)="onGoBack()">
-    </button>
-  </div>
+  }
 </div>
 
-<p-toast></p-toast> 
+<p-toast></p-toast>

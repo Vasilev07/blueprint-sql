@@ -1,14 +1,14 @@
 import {
     Component,
-    OnInit,
-    OnDestroy,
-    ViewChild,
+    DestroyRef,
     ElementRef,
     HostListener,
+    inject,
+    signal,
+    viewChild,
 } from "@angular/core";
-import { CommonModule } from "@angular/common";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { ActivatedRoute, Router } from "@angular/router";
-import { Subject, takeUntil } from "rxjs";
 import { Story, StoryService } from "./story.service";
 import { ButtonModule } from "primeng/button";
 import { ToastModule } from "primeng/toast";
@@ -16,74 +16,73 @@ import { ToastModule } from "primeng/toast";
 @Component({
     selector: "app-story-viewer",
     standalone: true,
-    imports: [CommonModule, ButtonModule, ToastModule],
+    imports: [ButtonModule, ToastModule],
     templateUrl: "./story-viewer.component.html",
     styleUrls: ["./story-viewer.component.scss"],
 })
-export class StoryViewerComponent implements OnInit, OnDestroy {
-    @ViewChild("videoPlayer") videoPlayer!: ElementRef<HTMLVideoElement>;
+export class StoryViewerComponent {
+    private readonly destroyRef = inject(DestroyRef);
+    private readonly route = inject(ActivatedRoute);
+    private readonly router = inject(Router);
+    private readonly storyService = inject(StoryService);
 
-    private destroy$ = new Subject<void>();
+    readonly videoPlayer = viewChild<ElementRef<HTMLVideoElement>>("videoPlayer");
 
-    story: Story | null = null;
-    videoBlobUrl: string = "";
-    thumbnailBlobUrl: string = "";
-    isLoading = true;
-    isPlaying = false;
-    currentTime = 0;
-    duration = 0;
-    volume = 1;
-    isMuted = false;
-    isLiked = false;
-    isFullscreen = false;
-    autoPlay = true;
-    isImage = false; // Track if current story is an image
-    isVideo = false; // Track if current story is a video
-    private imageTimerInterval: any; // Timer for image stories
+    readonly story = signal<Story | null>(null);
+    readonly videoBlobUrl = signal("");
+    readonly thumbnailBlobUrl = signal("");
+    readonly isLoading = signal(true);
+    readonly isPlaying = signal(false);
+    readonly currentTime = signal(0);
+    readonly duration = signal(0);
+    readonly volume = signal(1);
+    readonly isMuted = signal(false);
+    readonly isLiked = signal(false);
+    readonly isFullscreen = signal(false);
+    readonly autoPlay = true;
+    readonly isImage = signal(false);
+    readonly isVideo = signal(false);
 
-    // Story navigation
-    allStories: Story[] = [];
-    allStoriesOriginal: Story[] = [];
-    currentStoryIndex = 0;
+    readonly allStories = signal<Story[]>([]);
+    readonly currentStoryIndex = signal(0);
+    readonly liveViewerCount = signal(0);
+    readonly storyProgress = signal(0);
 
-    // Live viewer simulation
-    liveViewerCount = 0;
-    private viewerInterval: any;
-
-    // Touch gesture handling
+    private allStoriesOriginal: Story[] = [];
+    private viewerInterval: ReturnType<typeof setInterval> | null = null;
+    private progressInterval: ReturnType<typeof setInterval> | null = null;
+    private imageTimerInterval: ReturnType<typeof setInterval> | null = null;
     private touchStartX = 0;
     private touchStartY = 0;
     private touchEndX = 0;
     private touchEndY = 0;
 
-    // Progress tracking
-    private progressInterval: any;
-    storyProgress = 0;
+    constructor() {
+        this.storyService
+            .getStories()
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe((stories) => {
+                this.allStoriesOriginal = stories;
+            });
 
-    constructor(
-        private route: ActivatedRoute,
-        private router: Router,
-        private storyService: StoryService,
-        // private messageService: MessageService
-    ) {}
+        this.route.params
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe((params) => {
+                const storyId = params["storyId"];
+                if (storyId) {
+                    this.loadStory(storyId);
+                }
+            });
 
-    ngOnInit(): void {
-        this.loadStories();
-
-        this.route.params.pipe(takeUntil(this.destroy$)).subscribe((params) => {
-            const storyId = params["storyId"];
-            if (storyId) {
-                this.loadStory(storyId);
-            }
+        this.destroyRef.onDestroy(() => {
+            this.stopLiveViewerSimulation();
+            this.stopProgressAnimation();
+            this.stopImageTimer();
         });
     }
 
-    ngOnDestroy(): void {
-        this.destroy$.next();
-        this.destroy$.complete();
-        this.stopLiveViewerSimulation();
-        this.stopProgressAnimation();
-        this.stopImageTimer();
+    private getVideoElement(): HTMLVideoElement | null {
+        return this.videoPlayer()?.nativeElement ?? null;
     }
 
     @HostListener("document:keydown.escape", ["$event"])
@@ -109,101 +108,79 @@ export class StoryViewerComponent implements OnInit, OnDestroy {
         this.togglePlayPause();
     }
 
-    private loadStories(): void {
-        this.storyService
-            .getStories()
-            .pipe(takeUntil(this.destroy$))
-            .subscribe((stories) => {
-                this.allStoriesOriginal = stories;
-            });
-    }
-
     private loadStory(storyId: string): void {
-        this.isLoading = true;
+        this.isLoading.set(true);
 
-        if (this.videoBlobUrl) {
-            URL.revokeObjectURL(this.videoBlobUrl);
-            this.videoBlobUrl = "";
+        const prevVideoUrl = this.videoBlobUrl();
+        if (prevVideoUrl) {
+            URL.revokeObjectURL(prevVideoUrl);
+            this.videoBlobUrl.set("");
         }
-        if (this.thumbnailBlobUrl) {
-            URL.revokeObjectURL(this.thumbnailBlobUrl);
-            this.thumbnailBlobUrl = "";
+        const prevThumbUrl = this.thumbnailBlobUrl();
+        if (prevThumbUrl) {
+            URL.revokeObjectURL(prevThumbUrl);
+            this.thumbnailBlobUrl.set("");
         }
 
         this.storyService
             .getStoryById(storyId)
-            .pipe(takeUntil(this.destroy$))
-            .subscribe((story) => {
-                if (story) {
-                    this.story = story;
-                    this.isLiked = story.isLiked || false;
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe((s) => {
+                if (s) {
+                    this.story.set(s);
+                    this.isLiked.set(s.isLiked ?? false);
+                    this.isImage.set(s.mimeType?.startsWith("image/") ?? false);
+                    this.isVideo.set(s.mimeType?.startsWith("video/") ?? false);
 
-                    // Determine if story is image or video based on mimeType
-                    this.isImage =
-                        story.mimeType?.startsWith("image/") || false;
-                    this.isVideo =
-                        story.mimeType?.startsWith("video/") || false;
-
-                    // Filter allStories to only include stories from the same user
-                    this.allStories = this.allStoriesOriginal
-                        .filter((s) => s.userId === story.userId)
+                    const userStories = this.allStoriesOriginal
+                        .filter((x) => x.userId === s.userId)
                         .sort(
                             (a, b) =>
                                 new Date(b.createdAt).getTime() -
                                 new Date(a.createdAt).getTime(),
                         );
-
-                    // Find the index of current story within this user's stories
-                    this.currentStoryIndex = this.allStories.findIndex(
-                        (s) => s.id === storyId,
-                    );
+                    this.allStories.set(userStories);
+                    const idx = userStories.findIndex((x) => x.id === storyId);
+                    this.currentStoryIndex.set(idx >= 0 ? idx : 0);
 
                     this.markAsViewed(storyId);
                     this.startLiveViewerSimulation();
 
-                    // Load media based on type
                     this.storyService
-                        .getVideoBlobUrl(story.videoUrl)
+                        .getVideoBlobUrl(s.videoUrl)
+                        .pipe(takeUntilDestroyed(this.destroyRef))
                         .subscribe((blobUrl) => {
-                            this.videoBlobUrl = blobUrl;
+                            this.videoBlobUrl.set(blobUrl);
 
-                            if (this.isVideo) {
+                            if (this.isVideo()) {
                                 setTimeout(() => {
-                                    console.log("Attempting to play video...");
                                     if (
                                         this.autoPlay &&
-                                        this.videoPlayer?.nativeElement
+                                        this.getVideoElement()
                                     ) {
-                                        console.log(
-                                            "Video element found, playing...",
-                                        );
                                         this.playVideo();
-                                    } else {
-                                        console.log(
-                                            "Video element not found or autoPlay disabled",
-                                        );
                                     }
                                 }, 500);
-                            } else if (this.isImage) {
-                                // For images, set duration and start auto-advance timer
-                                this.duration = story.duration || 30; // Default to 30 seconds
-                                this.isPlaying = true;
+                            } else if (this.isImage()) {
+                                this.duration.set(s.duration ?? 30);
+                                this.isPlaying.set(true);
                                 this.startImageTimer();
                                 this.startProgressAnimation();
                             }
                         });
 
-                    if (story.thumbnailUrl) {
+                    if (s.thumbnailUrl) {
                         this.storyService
-                            .getThumbnailBlobUrl(story.thumbnailUrl)
+                            .getThumbnailBlobUrl(s.thumbnailUrl)
+                            .pipe(takeUntilDestroyed(this.destroyRef))
                             .subscribe((blobUrl) => {
-                                this.thumbnailBlobUrl = blobUrl;
+                                this.thumbnailBlobUrl.set(blobUrl);
                             });
                     }
                 } else {
                     this.router.navigate(["/stories"]);
                 }
-                this.isLoading = false;
+                this.isLoading.set(false);
             });
     }
 
@@ -211,26 +188,27 @@ export class StoryViewerComponent implements OnInit, OnDestroy {
         this.storyService.viewStory(storyId).subscribe();
     }
 
-    // Video Controls
     playVideo(): void {
-        if (this.videoPlayer?.nativeElement) {
-            this.videoPlayer.nativeElement.play();
-            this.isPlaying = true;
+        const el = this.getVideoElement();
+        if (el) {
+            el.play();
+            this.isPlaying.set(true);
         }
     }
 
     pauseVideo(): void {
-        if (this.videoPlayer?.nativeElement) {
-            this.videoPlayer.nativeElement.pause();
-            this.isPlaying = false;
+        const el = this.getVideoElement();
+        if (el) {
+            el.pause();
+            this.isPlaying.set(false);
         }
     }
 
     togglePlayPause(): void {
-        if (this.isImage) {
+        if (this.isImage()) {
             this.toggleImagePlayPause();
-        } else if (this.isVideo) {
-            if (this.isPlaying) {
+        } else if (this.isVideo()) {
+            if (this.isPlaying()) {
                 this.pauseVideo();
             } else {
                 this.playVideo();
@@ -239,74 +217,67 @@ export class StoryViewerComponent implements OnInit, OnDestroy {
     }
 
     onVideoTimeUpdate(): void {
-        if (this.videoPlayer?.nativeElement) {
-            this.currentTime = this.videoPlayer.nativeElement.currentTime;
-            this.duration = this.videoPlayer.nativeElement.duration;
+        const el = this.getVideoElement();
+        if (el) {
+            this.currentTime.set(el.currentTime);
+            this.duration.set(el.duration);
         }
     }
 
     onVideoEnded(): void {
-        this.isPlaying = false;
-        this.currentTime = 0;
-
-        // Auto-advance to next story after a delay
-        setTimeout(() => {
-            this.nextStory();
-        }, 2000);
+        this.isPlaying.set(false);
+        this.currentTime.set(0);
+        setTimeout(() => this.nextStory(), 2000);
     }
 
-    onVideoError(event: any): void {
-        console.error("Video error:", event);
-        console.error("Video src:", this.story?.videoUrl);
-        console.error("Video element:", this.videoPlayer?.nativeElement);
-        if (this.videoPlayer?.nativeElement) {
-            console.error("Video error details:", {
-                error: this.videoPlayer.nativeElement.error,
-                networkState: this.videoPlayer.nativeElement.networkState,
-                readyState: this.videoPlayer.nativeElement.readyState,
+    onVideoError(_event: unknown): void {
+        const el = this.getVideoElement();
+        if (el) {
+            console.error("Video error:", {
+                error: el.error,
+                networkState: el.networkState,
+                readyState: el.readyState,
             });
         }
     }
 
     onVideoLoaded(): void {
-        console.log("Video loaded successfully");
-        if (this.videoPlayer?.nativeElement) {
-            this.duration = this.videoPlayer.nativeElement.duration;
-            console.log("Video duration:", this.duration);
+        const el = this.getVideoElement();
+        if (el) {
+            this.duration.set(el.duration);
             this.startProgressAnimation();
         }
     }
 
     seekTo(time: number): void {
-        if (this.videoPlayer?.nativeElement) {
-            this.videoPlayer.nativeElement.currentTime = time;
+        const el = this.getVideoElement();
+        if (el) {
+            el.currentTime = time;
         }
     }
 
     onProgressBarClick(event: MouseEvent): void {
         const target = event.target as HTMLElement;
-        if (target && this.duration > 0) {
+        const dur = this.duration();
+        if (target && dur > 0) {
             const rect = target.getBoundingClientRect();
-            const clickX = event.clientX - rect.left;
-            const percentage = clickX / rect.width;
-            this.seekTo(percentage * this.duration);
+            const percentage = (event.clientX - rect.left) / rect.width;
+            this.seekTo(percentage * dur);
         }
     }
 
     private startLiveViewerSimulation(): void {
-        if (this.story) {
-            this.liveViewerCount = this.story.views;
+        const s = this.story();
+        if (s) {
+            this.liveViewerCount.set(s.views);
             this.viewerInterval = setInterval(() => {
-                // Simulate viewer count changes
-                const change = Math.floor(Math.random() * 10) - 5; // -5 to +5
-                this.liveViewerCount = Math.max(
-                    0,
-                    this.liveViewerCount + change,
-                );
-                if (this.story) {
-                    this.story.views = this.liveViewerCount;
+                const change = Math.floor(Math.random() * 10) - 5;
+                this.liveViewerCount.update((c) => Math.max(0, c + change));
+                const current = this.story();
+                if (current) {
+                    current.views = this.liveViewerCount();
                 }
-            }, 3000); // Update every 3 seconds
+            }, 3000);
         }
     }
 
@@ -318,64 +289,65 @@ export class StoryViewerComponent implements OnInit, OnDestroy {
     }
 
     toggleMute(): void {
-        if (this.videoPlayer?.nativeElement) {
-            this.isMuted = !this.isMuted;
-            this.videoPlayer.nativeElement.muted = this.isMuted;
+        const el = this.getVideoElement();
+        if (el) {
+            const next = !this.isMuted();
+            this.isMuted.set(next);
+            el.muted = next;
         }
     }
 
-    onVolumeChange(event: any): void {
-        this.volume = event.value / 100;
-        if (this.videoPlayer?.nativeElement) {
-            this.videoPlayer.nativeElement.volume = this.volume;
+    onVolumeChange(event: { value: number }): void {
+        const v = event.value / 100;
+        this.volume.set(v);
+        const el = this.getVideoElement();
+        if (el) {
+            el.volume = v;
         }
     }
 
     toggleFullscreen(): void {
-        if (this.videoPlayer?.nativeElement) {
-            if (!this.isFullscreen) {
-                if (this.videoPlayer.nativeElement.requestFullscreen) {
-                    this.videoPlayer.nativeElement.requestFullscreen();
-                }
-            } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                }
-            }
-            this.isFullscreen = !this.isFullscreen;
+        const el = this.getVideoElement();
+        if (!el) return;
+        if (!this.isFullscreen()) {
+            el.requestFullscreen?.();
+        } else {
+            document.exitFullscreen?.();
         }
+        this.isFullscreen.update((v) => !v);
     }
 
-    // Story Navigation
     previousStory(): void {
-        if (this.currentStoryIndex > 0) {
-            this.currentStoryIndex--;
-            const story = this.allStories[this.currentStoryIndex];
+        const idx = this.currentStoryIndex();
+        const stories = this.allStories();
+        if (idx > 0) {
+            const story = stories[idx - 1];
             this.router.navigate(["/stories/view", story.id]);
         }
     }
 
     nextStory(): void {
-        if (this.currentStoryIndex < this.allStories.length - 1) {
-            this.currentStoryIndex++;
-            const story = this.allStories[this.currentStoryIndex];
+        const idx = this.currentStoryIndex();
+        const stories = this.allStories();
+        if (idx < stories.length - 1) {
+            const story = stories[idx + 1];
             this.router.navigate(["/stories/view", story.id]);
         } else {
-            // End of stories, go back to stories list
             this.router.navigate(["/stories"]);
         }
     }
 
-    // Story Actions
     onLikeStory(): void {
-        if (this.story) {
-            this.storyService.likeStory(this.story.id).subscribe((success) => {
+        const s = this.story();
+        if (s) {
+            this.storyService.likeStory(s.id).subscribe((success) => {
                 if (success) {
-                    this.isLiked = !this.isLiked;
-                    if (this.story) {
-                        this.story.isLiked = this.isLiked;
-                        this.story.likes =
-                            (this.story.likes || 0) + (this.isLiked ? 1 : -1);
+                    this.isLiked.update((v) => !v);
+                    const current = this.story();
+                    if (current) {
+                        current.isLiked = this.isLiked();
+                        current.likes =
+                            (current.likes ?? 0) + (this.isLiked() ? 1 : -1);
                     }
                 }
             });
@@ -383,42 +355,31 @@ export class StoryViewerComponent implements OnInit, OnDestroy {
     }
 
     onShareStory(): void {
-        if (this.story) {
-            // Implement share functionality
+        const s = this.story();
+        if (s) {
             if (navigator.share) {
                 navigator.share({
-                    title: this.story.caption,
-                    text: `Check out this story by ${this.story.userName}`,
+                    title: s.caption,
+                    text: `Check out this story by ${s.userName}`,
                     url: window.location.href,
                 });
             } else {
-                // Fallback: copy to clipboard
-                navigator.clipboard.writeText(window.location.href).then(() => {
-                    // this.messageService.add({
-                    //   severity: 'success',
-                    //   summary: 'Link Copied',
-                    //   detail: 'Story link copied to clipboard'
-                    // });
-                });
+                navigator.clipboard.writeText(window.location.href);
             }
         }
     }
 
     formatTime(date: string | Date | number): string {
-        // If it's a number, treat as seconds (duration)
         if (typeof date === "number") {
             const mins = Math.floor(date / 60);
             const secs = Math.floor(date % 60);
             return `${mins}:${secs.toString().padStart(2, "0")}`;
         }
-
-        // If it's a date, format as time ago
         const now = new Date();
         const diff = now.getTime() - new Date(date).getTime();
         const minutes = Math.floor(diff / (1000 * 60));
         const hours = Math.floor(diff / (1000 * 60 * 60));
         const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-
         if (minutes < 1) return "Just now";
         if (minutes < 60) return `${minutes}m ago`;
         if (hours < 24) return `${hours}h ago`;
@@ -430,10 +391,9 @@ export class StoryViewerComponent implements OnInit, OnDestroy {
     }
 
     navigateToProfile(): void {
-        if (this.story && this.story.userId) {
-            console.log("Navigating to profile:", this.story.userId);
-            // Navigate to the user's profile
-            this.router.navigate(["/profile", this.story.userId]);
+        const s = this.story();
+        if (s?.userId) {
+            this.router.navigate(["/profile", s.userId]);
         }
     }
 
@@ -441,7 +401,6 @@ export class StoryViewerComponent implements OnInit, OnDestroy {
         this.router.navigate(["/stories"]);
     }
 
-    // Touch gesture handlers for mobile
     onTouchStart(event: TouchEvent): void {
         this.touchStartX = event.changedTouches[0].screenX;
         this.touchStartY = event.changedTouches[0].screenY;
@@ -452,7 +411,7 @@ export class StoryViewerComponent implements OnInit, OnDestroy {
         this.touchEndY = event.changedTouches[0].screenY;
     }
 
-    onTouchEnd(_event: TouchEvent): void {
+    onTouchEnd(): void {
         this.handleSwipeGesture();
     }
 
@@ -461,21 +420,16 @@ export class StoryViewerComponent implements OnInit, OnDestroy {
         const deltaY = this.touchEndY - this.touchStartY;
         const minSwipeDistance = 50;
 
-        // Horizontal swipe (left/right navigation)
         if (
             Math.abs(deltaX) > Math.abs(deltaY) &&
             Math.abs(deltaX) > minSwipeDistance
         ) {
             if (deltaX > 0) {
-                // Swipe right - previous story
                 this.previousStory();
             } else {
-                // Swipe left - next story
                 this.nextStory();
             }
-        }
-        // Vertical swipe down (close)
-        else if (
+        } else if (
             deltaY > minSwipeDistance &&
             Math.abs(deltaY) > Math.abs(deltaX)
         ) {
@@ -483,32 +437,28 @@ export class StoryViewerComponent implements OnInit, OnDestroy {
         }
     }
 
-    // Progress bar calculation
     getProgressWidth(index: number): number {
-        if (index < this.currentStoryIndex) {
-            return 100; // Completed
-        } else if (index === this.currentStoryIndex) {
-            return this.storyProgress; // Active
-        }
-        return 0; // Not started
+        const idx = this.currentStoryIndex();
+        if (index < idx) return 100;
+        if (index === idx) return this.storyProgress();
+        return 0;
     }
 
     private startProgressAnimation(): void {
-        this.storyProgress = 0;
+        this.storyProgress.set(0);
         this.stopProgressAnimation();
-
-        if (this.duration > 0) {
-            const updateInterval = 100; // Update every 100ms
+        const dur = this.duration();
+        if (dur > 0) {
             this.progressInterval = setInterval(() => {
-                if (this.isPlaying && this.duration > 0) {
-                    this.storyProgress =
-                        (this.currentTime / this.duration) * 100;
-
-                    if (this.storyProgress >= 100) {
+                if (this.isPlaying() && this.duration() > 0) {
+                    const progress =
+                        (this.currentTime() / this.duration()) * 100;
+                    this.storyProgress.set(progress);
+                    if (progress >= 100) {
                         this.stopProgressAnimation();
                     }
                 }
-            }, updateInterval);
+            }, 100);
         }
     }
 
@@ -519,22 +469,18 @@ export class StoryViewerComponent implements OnInit, OnDestroy {
         }
     }
 
-    // Image story timer methods
     private startImageTimer(): void {
         this.stopImageTimer();
-        this.currentTime = 0;
-
-        const updateInterval = 100; // Update every 100ms
+        this.currentTime.set(0);
         this.imageTimerInterval = setInterval(() => {
-            if (this.isPlaying && this.isImage) {
-                this.currentTime += 0.1; // Add 100ms in seconds
-
-                if (this.currentTime >= this.duration) {
+            if (this.isPlaying() && this.isImage()) {
+                this.currentTime.update((t) => t + 0.1);
+                if (this.currentTime() >= this.duration()) {
                     this.stopImageTimer();
                     this.onImageTimerEnd();
                 }
             }
-        }, updateInterval);
+        }, 100);
     }
 
     private stopImageTimer(): void {
@@ -545,19 +491,14 @@ export class StoryViewerComponent implements OnInit, OnDestroy {
     }
 
     private onImageTimerEnd(): void {
-        this.isPlaying = false;
-        this.currentTime = 0;
-
-        // Auto-advance to next story
-        setTimeout(() => {
-            this.nextStory();
-        }, 500);
+        this.isPlaying.set(false);
+        this.currentTime.set(0);
+        setTimeout(() => this.nextStory(), 500);
     }
 
-    // Toggle play/pause for images
     toggleImagePlayPause(): void {
-        this.isPlaying = !this.isPlaying;
-        if (!this.isPlaying) {
+        this.isPlaying.update((v) => !v);
+        if (!this.isPlaying()) {
             this.stopImageTimer();
         } else {
             this.startImageTimer();
