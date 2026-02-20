@@ -1,10 +1,4 @@
-import {
-    Component,
-    DestroyRef,
-    inject,
-    signal,
-    computed,
-} from "@angular/core";
+import { Component, DestroyRef, inject, signal, computed } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { CommonModule } from "@angular/common";
 import { Router, RouterModule } from "@angular/router";
