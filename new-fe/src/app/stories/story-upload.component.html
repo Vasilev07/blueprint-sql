@@ -1,12 +1,12 @@
 <div class="story-upload-container">
   <div class="upload-header">
-    <button pButton 
-      icon="pi pi-arrow-left" 
+    <button pButton
+      icon="pi pi-arrow-left"
       class="p-button-text p-button-rounded back-btn"
       (click)="onCancel()"
       pTooltip="Go Back">
     </button>
-    
+
     <div class="header-content">
       <h1>Upload Your Story</h1>
       <p>Share your moments with the world</p>
@@ -16,90 +16,102 @@
   <div class="upload-content">
     <div class="upload-form-container">
       <form [formGroup]="uploadForm" (ngSubmit)="uploadStory()" class="upload-form">
-        
+
         <!-- Media Upload Section -->
         <div class="upload-section">
           <h3>Select Image or Video</h3>
           <p class="section-description">
             Choose an image or video file (max 60s for videos, 30MB)
           </p>
-          
-          <div class="video-upload-area" *ngIf="!selectedFile">
-            <p-fileUpload 
-              mode="basic" 
-              name="video" 
-              accept="image/*,video/*" 
-              maxFileSize="31457280"
-              (onSelect)="onFileSelect($event)"
-              chooseLabel="Choose File"
-              [auto]="true"
-              [showCancelButton]="false"
-              [showUploadButton]="false">
-            </p-fileUpload>
-            
-            <div class="upload-hint">
-              <i class="pi pi-images"></i>
-              <p>Drag and drop your image or video here or click to browse</p>
-              <small>Videos: MP4, MOV, AVI, WebM | Images: JPG, PNG, WebP (30s display)</small>
-            </div>
-          </div>
 
-          <!-- Media Preview -->
-          <div class="video-preview" *ngIf="selectedFile">
-            <div class="preview-container">
-              <img [src]="mediaPreview" [alt]="isImage ? 'Image preview' : 'Video thumbnail'" *ngIf="mediaPreview">
-              <div class="video-info">
-                <div class="file-details">
-                  <h4>{{ selectedFile.name }}</h4>
-                  <p>{{ formatDuration(mediaDuration) }} • {{ (selectedFile.size / (1024 * 1024)).toFixed(1) }} MB</p>
-                  <span class="media-type-badge" *ngIf="isImage">📷 Image Story (30s)</span>
-                  <span class="media-type-badge" *ngIf="isVideo">🎥 Video Story</span>
-                </div>
-                
-                <div class="duration-warning" *ngIf="isVideo && mediaDuration > maxVideoDuration">
-                  <i class="pi pi-exclamation-triangle"></i>
-                  <span>Video exceeds maximum duration ({{ maxVideoDuration }}s)</span>
-                </div>
-                
-                <button pButton 
-                  type="button"
-                  label="Remove" 
-                  icon="pi pi-trash" 
-                  class="p-button-danger p-button-outlined"
-                  (click)="onRemoveFile()">
-                </button>
+          @if (!selectedFile()) {
+            <div class="video-upload-area">
+              <p-fileUpload
+                mode="basic"
+                name="video"
+                accept="image/*,video/*"
+                maxFileSize="31457280"
+                (onSelect)="onFileSelect($event)"
+                chooseLabel="Choose File"
+                [auto]="true"
+                [showCancelButton]="false"
+                [showUploadButton]="false">
+              </p-fileUpload>
+
+              <div class="upload-hint">
+                <i class="pi pi-images"></i>
+                <p>Drag and drop your image or video here or click to browse</p>
+                <small>Videos: MP4, MOV, AVI, WebM | Images: JPG, PNG, WebP (30s display)</small>
               </div>
             </div>
-          </div>
+          }
+
+          @if (selectedFile()) {
+            <div class="video-preview">
+              <div class="preview-container">
+                @if (mediaPreview()) {
+                  <img [src]="mediaPreview()" [alt]="isImage() ? 'Image preview' : 'Video thumbnail'">
+                }
+                <div class="video-info">
+                  <div class="file-details">
+                    <h4>{{ selectedFile()!.name }}</h4>
+                    <p>{{ formatDuration(mediaDuration()) }} • {{ (selectedFile()!.size / (1024 * 1024)).toFixed(1) }} MB</p>
+                    @if (isImage()) {
+                      <span class="media-type-badge">📷 Image Story (30s)</span>
+                    }
+                    @if (isVideo()) {
+                      <span class="media-type-badge">🎥 Video Story</span>
+                    }
+                  </div>
+
+                  @if (isVideo() && mediaDuration() > maxVideoDuration) {
+                    <div class="duration-warning">
+                      <i class="pi pi-exclamation-triangle"></i>
+                      <span>Video exceeds maximum duration ({{ maxVideoDuration }}s)</span>
+                    </div>
+                  }
+
+                  <button pButton
+                    type="button"
+                    label="Remove"
+                    icon="pi pi-trash"
+                    class="p-button-danger p-button-outlined"
+                    (click)="onRemoveFile()">
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
         </div>
 
-        <!-- Upload Progress -->
-        <div class="upload-progress" *ngIf="isUploading">
-          <h3>Uploading Your Story</h3>
-          <p-progressBar 
-            [value]="uploadProgress" 
-            [showValue]="true"
-            class="progress-bar">
-          </p-progressBar>
-          <p class="progress-text">Please wait while we process your video...</p>
-        </div>
+        @if (isUploading()) {
+          <div class="upload-progress">
+            <h3>Uploading Your Story</h3>
+            <p-progressBar
+              [value]="uploadProgress()"
+              [showValue]="true"
+              class="progress-bar">
+            </p-progressBar>
+            <p class="progress-text">Please wait while we process your video...</p>
+          </div>
+        }
 
         <!-- Action Buttons -->
         <div class="form-actions">
-          <button pButton 
+          <button pButton
             type="button"
-            label="Cancel" 
+            label="Cancel"
             class="p-button-outlined cancel-btn"
             (click)="onCancel()"
-            [disabled]="isUploading">
+            [disabled]="isUploading()">
           </button>
-          
-          <button pButton 
+
+          <button pButton
             type="submit"
-            label="Upload Story" 
+            label="Upload Story"
             icon="pi pi-upload"
             class="p-button-primary upload-submit-btn"
-            [disabled]="!selectedFile || isUploading || (isVideo && mediaDuration > maxVideoDuration)">
+            [disabled]="!selectedFile() || isUploading() || (isVideo() && mediaDuration() > maxVideoDuration)">
           </button>
         </div>
       </form>
@@ -109,37 +121,15 @@
     <div class="upload-tips">
       <h3>Upload Tips</h3>
       <div class="tips-list">
-        <div class="tip-item">
-          <i class="pi pi-clock"></i>
-          <div>
-            <h4>Keep it Short</h4>
-            <p>Stories work best when they're 15-30 seconds long</p>
+        @for (tip of uploadTips; track tip.id) {
+          <div class="tip-item">
+            <i [class]="tip.icon"></i>
+            <div>
+              <h4>{{ tip.title }}</h4>
+              <p>{{ tip.description }}</p>
+            </div>
           </div>
-        </div>
-        
-        <div class="tip-item">
-          <i class="pi pi-eye"></i>
-          <div>
-            <h4>Start Strong</h4>
-            <p>Hook viewers in the first 3 seconds</p>
-          </div>
-        </div>
-        
-        <div class="tip-item">
-          <i class="pi pi-hashtag"></i>
-          <div>
-            <h4>Use Hashtags</h4>
-            <p>Add relevant hashtags to reach more people</p>
-          </div>
-        </div>
-        
-        <div class="tip-item">
-          <i class="pi pi-lightbulb"></i>
-          <div>
-            <h4>Be Creative</h4>
-            <p>Show your unique perspective and style</p>
-          </div>
-        </div>
+        }
       </div>
     </div>
   </div>
@@ -149,4 +139,4 @@
 <p-toast></p-toast>
 
 <!-- Confirmation Dialog -->
-<p-confirmDialog></p-confirmDialog> 
+<p-confirmDialog></p-confirmDialog>

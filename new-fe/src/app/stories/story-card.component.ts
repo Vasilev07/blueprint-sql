@@ -1,5 +1,4 @@
-import { Component, Input, Output, EventEmitter } from "@angular/core";
-import { CommonModule } from "@angular/common";
+import { Component, input, output } from "@angular/core";
 import { Story } from "./story.service";
 import { ButtonModule } from "primeng/button";
 import { TooltipModule } from "primeng/tooltip";
@@ -8,42 +7,43 @@ import { AvatarModule } from "primeng/avatar";
 @Component({
     selector: "app-story-card",
     standalone: true,
-    imports: [CommonModule, ButtonModule, TooltipModule, AvatarModule],
+    imports: [ButtonModule, TooltipModule, AvatarModule],
     templateUrl: "./story-card.component.html",
     styleUrls: ["./story-card.component.scss"],
 })
 export class StoryCardComponent {
-    @Input() story: Story | null = null;
-    @Input() showActions = true;
-    @Output() storyClick = new EventEmitter<Story>();
-    @Output() likeClick = new EventEmitter<Story>();
-    @Output() shareClick = new EventEmitter<Story>();
-    @Output() moreClick = new EventEmitter<Story>();
+    readonly story = input<Story | null>(null);
+    readonly showActions = input<boolean>(true);
+    readonly storyClick = output<Story>();
+    readonly likeClick = output<Story>();
+    readonly shareClick = output<Story>();
+    readonly moreClick = output<Story>();
 
     onStoryClick(): void {
-        if (this.story) {
-            this.storyClick.emit(this.story);
+        const story = this.story();
+        if (story) {
+            this.storyClick.emit(story);
         }
     }
 
     onLikeClick(event: Event): void {
         event.stopPropagation();
-        if (this.story) {
-            this.likeClick.emit(this.story);
+        if (this.story() != null) {
+            this.likeClick.emit(this.story()!);
         }
     }
 
     onShareClick(event: Event): void {
         event.stopPropagation();
-        if (this.story) {
-            this.shareClick.emit(this.story);
+        if (this.story() != null) {
+            this.shareClick.emit(this.story()!);
         }
     }
 
     onMoreClick(event: Event): void {
         event.stopPropagation();
-        if (this.story) {
-            this.moreClick.emit(this.story);
+        if (this.story() != null) {
+            this.moreClick.emit(this.story()!);
         }
     }
 
@@ -79,9 +79,5 @@ export class StoryCardComponent {
             return `${hours}h ${minutes}m left`;
         }
         return `${minutes}m left`;
-    }
-
-    getCurrentDate(): Date {
-        return new Date();
     }
 }
