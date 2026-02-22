@@ -1,70 +1,48 @@
-import { Component, OnInit, OnDestroy } from "@angular/core";
-import { CommonModule } from "@angular/common";
+import { Component, DestroyRef, inject, OnInit, signal } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { MessageService } from "primeng/api";
 import {
     UserService,
     FriendsService,
 } from "src/typescript-api-client/src/api/api";
 import { UserDTO } from "src/typescript-api-client/src/model/models";
-import { AuthService } from "../../services/auth.service";
 import { WebsocketService } from "../../services/websocket.service";
-import { Subject, takeUntil } from "rxjs";
-import { TableModule } from "primeng/table";
 import { ButtonModule } from "primeng/button";
 import { AvatarModule } from "primeng/avatar";
 
 @Component({
     selector: "app-all-users",
     standalone: true,
-    imports: [CommonModule, TableModule, ButtonModule, AvatarModule],
+    imports: [ButtonModule, AvatarModule],
     templateUrl: "./all-users.component.html",
     styleUrls: ["./all-users.component.scss"],
 })
-export class AllUsersComponent implements OnInit, OnDestroy {
-    private destroy$ = new Subject<void>();
-    users: UserDTO[] = [];
-    loading = true;
-    friendRequests: Map<number, string> = new Map();
-    currentUserId: number = 0;
+export class AllUsersComponent implements OnInit {
+    private readonly destroyRef = inject(DestroyRef);
+    private readonly userService = inject(UserService);
+    private readonly friendsService = inject(FriendsService);
+    private readonly messageService = inject(MessageService);
+    private readonly websocketService = inject(WebsocketService);
 
-    constructor(
-        private userService: UserService,
-        private friendsService: FriendsService,
-        private messageService: MessageService,
-        private authService: AuthService,
-        private websocketService: WebsocketService,
-    ) {}
+    readonly users = signal<UserDTO[]>([]);
+    readonly loading = signal(true);
+    readonly friendRequests = signal<Map<number, string>>(new Map());
+    readonly currentUserId = signal<number>(0);
 
     ngOnInit() {
         this.applyAuthHeadersToApiServices();
-        this.getCurrentUserId();
+        this.setCurrentUserIdFromToken();
         this.loadUsers();
 
-        // Listen for friendship changes and reload statuses
         this.websocketService
             .onFriendRequestUpdated()
-            .pipe(takeUntil(this.destroy$))
-            .subscribe(() => {
-                console.log(
-                    "Friend request updated event received - reloading statuses",
-                );
-                this.loadFriendshipStatuses();
-            });
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe(() => this.loadFriendshipStatuses());
 
         this.websocketService
             .onFriendListUpdated()
-            .pipe(takeUntil(this.destroy$))
-            .subscribe(() => {
-                console.log(
-                    "Friend list updated event received - reloading statuses",
-                );
-                this.loadFriendshipStatuses();
-            });
-    }
-
-    ngOnDestroy() {
-        this.destroy$.next();
-        this.destroy$.complete();
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe(() => this.loadFriendshipStatuses());
     }
 
     private applyAuthHeadersToApiServices() {
@@ -84,12 +62,12 @@ export class AllUsersComponent implements OnInit, OnDestroy {
         }
     }
 
-    getCurrentUserId() {
+    private setCurrentUserIdFromToken() {
         const token = localStorage.getItem("id_token");
         if (token) {
             try {
                 const decoded = JSON.parse(atob(token.split(".")[1]));
-                this.currentUserId = decoded.id;
+                this.currentUserId.set(decoded.id);
             } catch (error) {
                 console.error("Error decoding token:", error);
             }
@@ -97,15 +75,15 @@ export class AllUsersComponent implements OnInit, OnDestroy {
     }
 
     loadUsers() {
-        this.loading = true;
-        // Fetch all users with a large limit (no pagination for friends list)
+        this.loading.set(true);
         this.userService
             .getAll(1, 1000, "all", "recent", "", "", 0, 100, "", "", false)
             .subscribe({
                 next: async (response: any) => {
-                    this.users = response.users || [];
+                    const userList = response.users || [];
                     await this.loadFriendshipStatuses();
-                    this.loading = false;
+                    this.users.set(userList);
+                    this.loading.set(false);
                 },
                 error: () => {
                     this.messageService.add({
@@ -113,66 +91,53 @@ export class AllUsersComponent implements OnInit, OnDestroy {
                         summary: "Error",
                         detail: "Failed to load users",
                     });
-                    this.loading = false;
+                    this.loading.set(false);
                 },
             });
     }
 
     async loadFriendshipStatuses() {
-        console.log("Loading friendship statuses in batch");
         try {
             const statusMap = (await this.friendsService
                 .getBatchFriendshipStatuses()
-                .toPromise()) as any;
+                .toPromise()) as Record<string, string> | undefined;
 
-            console.log("Batch statuses received:", statusMap);
-
-            // Clear existing statuses
-            this.friendRequests.clear();
-
-            // Set statuses from the batch response
+            const next = new Map<number, string>();
             if (statusMap && typeof statusMap === "object") {
                 Object.entries(statusMap).forEach(
-                    ([userIdStr, status]: [string, any]) => {
-                        const userId = Number(userIdStr);
-                        this.friendRequests.set(userId, status ?? "none");
+                    ([userIdStr, status]: [string, string]) => {
+                        next.set(Number(userIdStr), status ?? "none");
                     },
                 );
             }
-
-            console.log(
-                "Friendship statuses map after batch load:",
-                this.friendRequests,
-            );
+            this.friendRequests.set(next);
         } catch (error) {
             console.error("Error loading batch friendship statuses:", error);
         }
     }
 
     getButtonClass(userId: number): string {
-        const status = this.friendRequests.get(userId);
+        const status = this.friendRequests().get(userId);
         if (status === "pending") return "p-button-warning";
         if (status === "accepted") return "p-button-success";
         if (status === "blocked") return "p-button-danger";
         if (status === null || status === undefined) return "p-button-primary";
-        console.warn(`Unknown friendship status: ${status} for user ${userId}`);
         return "p-button-primary";
     }
 
     getButtonLabel(userId: number): string {
-        const status = this.friendRequests.get(userId);
+        const status = this.friendRequests().get(userId);
         if (status === "pending") return "Request Sent";
         if (status === "accepted") return "Friends";
         if (status === "blocked") return "Blocked";
         if (status === null || status === undefined) return "Add Friend";
-        console.warn(`Unknown friendship status: ${status} for user ${userId}`);
         return "Add Friend";
     }
 
     sendFriendRequest(userId: number) {
         if (!userId) return;
 
-        if (userId === this.currentUserId) {
+        if (userId === this.currentUserId()) {
             this.messageService.add({
                 severity: "warn",
                 summary: "Invalid Action",
@@ -183,7 +148,11 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 
         this.friendsService.sendFriendRequest(userId).subscribe({
             next: () => {
-                this.friendRequests.set(userId, "pending");
+                this.friendRequests.update((m) => {
+                    const next = new Map(m);
+                    next.set(userId, "pending");
+                    return next;
+                });
                 this.messageService.add({
                     severity: "success",
                     summary: "Success",
@@ -192,13 +161,10 @@ export class AllUsersComponent implements OnInit, OnDestroy {
             },
             error: (error) => {
                 console.error("Error sending friend request:", error);
-                let errorMessage = "Failed to send friend request";
-                if (error.error && error.error.message) {
-                    errorMessage = error.error.message;
-                } else if (error.message) {
-                    errorMessage = error.message;
-                }
-
+                const errorMessage =
+                    error?.error?.message ||
+                    error?.message ||
+                    "Failed to send friend request";
                 this.messageService.add({
                     severity: "warn",
                     summary: "Cannot Send Request",

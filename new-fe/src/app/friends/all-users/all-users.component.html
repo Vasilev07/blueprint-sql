@@ -1,44 +1,56 @@
-<p-table [value]="users" [loading]="loading" [paginator]="true" [rows]="10"
-         styleClass="p-datatable-striped">
-  <ng-template pTemplate="header">
-    <tr>
-      <th>Avatar</th>
-      <th>Name</th>
-      <th>Email</th>
-      <th>Actions</th>
-    </tr>
-  </ng-template>
-  <ng-template pTemplate="body" let-user>
-    <tr>
-      <td>
-        <p-avatar [label]="user.fullName?.charAt(0)" styleClass="mr-2" size="large"
-                 [style]="{'background-color': '#2196F3', 'color': '#ffffff'}">
-        </p-avatar>
-      </td>
-      <td>{{user.fullName}}</td>
-      <td>{{user.email}}</td>
-      <td>
-        <button *ngIf="user.id !== currentUserId" 
-                pButton type="button" [label]="getButtonLabel(user.id)"
-                class="p-button-rounded" [class]="getButtonClass(user.id)"
-                (click)="sendFriendRequest(user.id)"
-                [disabled]="friendRequests.get(user.id) === 'pending' || friendRequests.get(user.id) === 'accepted'">
-        </button>
-        <button *ngIf="user.id === currentUserId"
-                pButton
-                type="button"
-                label="You"
-                icon="pi pi-user"
-                class="p-button-rounded you-button"
-                disabled>
-        </button>
-      </td>
-    </tr>
-  </ng-template>
-  <ng-template pTemplate="emptymessage">
-    <tr>
-      <td colspan="4" class="text-center">No users found.</td>
-    </tr>
-  </ng-template>
-</p-table>
-
+<div class="all-users-table-wrapper">
+  @if (loading()) {
+    <div class="p-datatable-loading-overlay">
+      <i class="p-datatable-loading-icon pi pi-spin pi-spinner" aria-hidden="true"></i>
+    </div>
+  }
+  <div class="p-datatable p-datatable-striped">
+    <table class="p-datatable-table">
+      <thead class="p-datatable-thead">
+        <tr>
+          <th>Avatar</th>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody class="p-datatable-tbody">
+      @for (user of users(); track user.id ?? 0) {
+        <tr>
+          <td>
+            <p-avatar [label]="user.fullName.charAt(0)" styleClass="mr-2" size="large"
+                      [style]="{'background-color': '#2196F3', 'color': '#ffffff'}">
+            </p-avatar>
+          </td>
+          <td>{{ user.fullName }}</td>
+          <td>{{ user.email }}</td>
+          <td>
+            @let userId = user.id;
+            @if (userId != null && userId !== currentUserId()) {
+              <button pButton type="button" [label]="getButtonLabel(userId)"
+                      class="p-button-rounded" [class]="getButtonClass(userId)"
+                      (click)="sendFriendRequest(userId)"
+                      [disabled]="friendRequests().get(userId) === 'pending' || friendRequests().get(userId) === 'accepted'">
+              </button>
+            }
+            @if (userId != null && userId === currentUserId()) {
+              <button pButton
+                      type="button"
+                      label="You"
+                      icon="pi pi-user"
+                      class="p-button-rounded you-button"
+                      disabled>
+              </button>
+            }
+          </td>
+        </tr>
+      }
+      @empty {
+        <tr>
+          <td colspan="4" class="text-center">No users found.</td>
+        </tr>
+      }
+      </tbody>
+    </table>
+  </div>
+</div>

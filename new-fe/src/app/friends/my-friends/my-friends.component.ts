@@ -1,94 +1,100 @@
-import { Component, OnInit, OnDestroy } from "@angular/core";
+import { Component, DestroyRef, inject, signal } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { CommonModule } from "@angular/common";
 import { FriendsService } from "src/typescript-api-client/src/api/api";
 import { FriendDTO } from "src/typescript-api-client/src/model/models";
 import { WebsocketService } from "../../services/websocket.service";
 import { PresenceService } from "../../services/presence.service";
-import { Subject, takeUntil } from "rxjs";
 import { AvatarModule } from "primeng/avatar";
+import { ProgressSpinnerModule } from "primeng/progressspinner";
 
 @Component({
     selector: "app-my-friends",
     standalone: true,
-    imports: [CommonModule, AvatarModule],
+    imports: [CommonModule, AvatarModule, ProgressSpinnerModule],
     templateUrl: "./my-friends.component.html",
     styleUrls: ["./my-friends.component.scss"],
 })
-export class MyFriendsComponent implements OnInit, OnDestroy {
-    private destroy$ = new Subject<void>();
-    myFriends: FriendDTO[] = [];
-    currentUserId: number = 0;
+export class MyFriendsComponent {
+    private readonly destroyRef = inject(DestroyRef);
+    private readonly friendsService = inject(FriendsService);
+    private readonly websocketService = inject(WebsocketService);
 
-    constructor(
-        private friendsService: FriendsService,
-        private websocketService: WebsocketService,
-        public presenceService: PresenceService,
-    ) {}
+    readonly myFriends = signal<FriendDTO[]>([]);
+    readonly loading = signal(true);
+    readonly currentUserId = signal(0);
 
-    ngOnInit() {
-        this.getCurrentUserId();
+    constructor(public presenceService: PresenceService) {
+        this.setCurrentUserIdFromToken();
         this.loadMyFriends();
 
-        // Listen for friend list updates
         this.websocketService
             .onFriendListUpdated()
-            .pipe(takeUntil(this.destroy$))
-            .subscribe(() => {
-                this.loadMyFriends();
-            });
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe(() => this.loadMyFriends());
     }
 
-    ngOnDestroy() {
-        this.destroy$.next();
-        this.destroy$.complete();
-    }
-
-    getCurrentUserId() {
+    private setCurrentUserIdFromToken(): void {
         const token = localStorage.getItem("id_token");
-        if (token) {
-            try {
-                const decoded = JSON.parse(atob(token.split(".")[1]));
-                this.currentUserId = decoded.id;
-            } catch (error) {
-                console.error("Error decoding token:", error);
+        if (!token) return;
+        try {
+            const decoded = JSON.parse(atob(token.split(".")[1])) as {
+                id?: number;
+            };
+            if (decoded?.id != null) {
+                this.currentUserId.set(decoded.id);
             }
+        } catch (error) {
+            console.error("Error decoding token:", error);
         }
     }
 
-    loadMyFriends() {
+    loadMyFriends(): void {
+        this.loading.set(true);
         this.friendsService.getAcceptedFriends().subscribe({
             next: (friends) => {
-                this.myFriends = friends;
+                this.myFriends.set(friends);
+                this.loading.set(false);
             },
             error: (error) => {
                 console.error("Error loading friends:", error);
+                this.loading.set(false);
             },
         });
     }
 
-    getFriendDisplayName(friend: any): string {
-        if (friend.user && friend.user.id !== this.currentUserId) {
+    getFriendDisplayName(friend: FriendDTO): string {
+        const id = this.currentUserId();
+        if (friend.user && friend.user.id !== id) {
             return `${friend.user.firstname} ${friend.user.lastname}`;
-        } else if (friend.friend && friend.friend.id !== this.currentUserId) {
+        }
+        if (friend.friend && friend.friend.id !== id) {
             return `${friend.friend.firstname} ${friend.friend.lastname}`;
         }
         return "Unknown Friend";
     }
 
-    getFriendInitials(friend: any): string {
-        if (friend.user && friend.user.id !== this.currentUserId) {
-            return `${friend.user.firstname?.charAt(0)}${friend.user.lastname?.charAt(0)}`;
-        } else if (friend.friend && friend.friend.id !== this.currentUserId) {
-            return `${friend.friend.firstname?.charAt(0)}${friend.friend.lastname?.charAt(0)}`;
+    getFriendInitials(friend: FriendDTO): string {
+        const id = this.currentUserId();
+        if (friend.user && friend.user.id !== id) {
+            const f = friend.user.firstname;
+            const l = friend.user.lastname;
+            return `${f?.charAt(0) ?? ""}${l?.charAt(0) ?? ""}` || "F";
+        }
+        if (friend.friend && friend.friend.id !== id) {
+            const f = friend.friend.firstname;
+            const l = friend.friend.lastname;
+            return `${f?.charAt(0) ?? ""}${l?.charAt(0) ?? ""}` || "F";
         }
         return "F";
     }
 
-    getFriendEmail(friend: any): string {
-        if (friend.user && friend.user.id !== this.currentUserId) {
-            return friend.user.email;
-        } else if (friend.friend && friend.friend.id !== this.currentUserId) {
-            return friend.friend.email;
+    getFriendEmail(friend: FriendDTO): string {
+        const id = this.currentUserId();
+        if (friend.user && friend.user.id !== id)
+            return friend.user.email ?? "";
+        if (friend.friend && friend.friend.id !== id) {
+            return friend.friend.email ?? "";
         }
         return "";
     }

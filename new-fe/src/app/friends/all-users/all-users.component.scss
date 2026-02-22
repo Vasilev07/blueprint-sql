@@ -1,2 +1,52 @@
-// Styles specific to all users list can go here
+.all-users-table-wrapper {
+  position: relative;
+
+  // Request already sent (pending)
+  .p-button-warning.p-button-rounded {
+    background: #ea580c;
+    border-color: #c2410c;
+    color: #fff;
+
+    &:disabled {
+      background: #f97316;
+      border-color: #ea580c;
+      opacity: 0.9;
+    }
+  }
+
+  // Already friends (accepted)
+  .p-button-success.p-button-rounded {
+    background: #059669;
+    border-color: #047857;
+    color: #fff;
+
+    &:disabled {
+      background: #10b981;
+      border-color: #059669;
+      opacity: 0.9;
+    }
+  }
+
+  .p-datatable {
+    .p-datatable-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+  }
+
+  .p-datatable-loading-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--p-overlay-modal-background, rgba(255, 255, 255, 0.9));
+    z-index: 1;
+
+    .p-datatable-loading-icon {
+      font-size: 2rem;
+      color: var(--p-primary-color, #2196f3);
+    }
+  }
+}
 
