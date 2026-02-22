@@ -1,57 +1,43 @@
-import {
-    Component,
-    OnInit,
-    OnDestroy,
-    Output,
-    EventEmitter,
-} from "@angular/core";
+import { Component, DestroyRef, inject, output, signal } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { CommonModule } from "@angular/common";
 import { MessageService } from "primeng/api";
 import { FriendsService } from "src/typescript-api-client/src/api/api";
 import { FriendDTO } from "src/typescript-api-client/src/model/models";
 import { WebsocketService } from "../../services/websocket.service";
 import { PresenceService } from "../../services/presence.service";
-import { Subject, takeUntil } from "rxjs";
 import { switchMap } from "rxjs/operators";
 import { AvatarModule } from "primeng/avatar";
 import { ButtonModule } from "primeng/button";
+import { ProgressSpinnerModule } from "primeng/progressspinner";
 
 @Component({
     selector: "app-friend-requests",
     standalone: true,
-    imports: [CommonModule, AvatarModule, ButtonModule],
+    imports: [CommonModule, AvatarModule, ButtonModule, ProgressSpinnerModule],
     templateUrl: "./friend-requests.component.html",
     styleUrls: ["./friend-requests.component.scss"],
 })
-export class FriendRequestsComponent implements OnInit, OnDestroy {
-    private destroy$ = new Subject<void>();
-    incomingRequests: FriendDTO[] = [];
+export class FriendRequestsComponent {
+    private readonly destroyRef = inject(DestroyRef);
+    private readonly friendsService = inject(FriendsService);
+    private readonly messageService = inject(MessageService);
+    private readonly websocketService = inject(WebsocketService);
 
-    @Output() requestCountChange = new EventEmitter<number>();
+    readonly incomingRequests = signal<FriendDTO[]>([]);
+    readonly loading = signal(true);
+    readonly requestCountChange = output<number>();
 
-    constructor(
-        private friendsService: FriendsService,
-        private messageService: MessageService,
-        private websocketService: WebsocketService,
-        public presenceService: PresenceService,
-    ) {}
-
-    ngOnInit() {
+    constructor(public presenceService: PresenceService) {
         this.applyAuthHeaders();
         this.loadIncomingRequests();
 
-        // Listen for new friend requests
         this.websocketService
             .onFriendRequestCreated()
-            .pipe(takeUntil(this.destroy$))
+            .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe(() => {
                 this.loadIncomingRequests();
             });
-    }
-
-    ngOnDestroy() {
-        this.destroy$.next();
-        this.destroy$.complete();
     }
 
     private applyAuthHeaders() {
@@ -67,14 +53,17 @@ export class FriendRequestsComponent implements OnInit, OnDestroy {
     }
 
     loadIncomingRequests() {
+        this.loading.set(true);
         this.friendsService.getIncomingRequests().subscribe({
             next: (requests) => {
-                this.incomingRequests = requests;
+                this.incomingRequests.set(requests);
                 this.requestCountChange.emit(requests.length);
+                this.loading.set(false);
             },
             error: (error) => {
                 console.error("Error loading incoming requests:", error);
                 this.requestCountChange.emit(0);
+                this.loading.set(false);
             },
         });
     }
@@ -85,7 +74,7 @@ export class FriendRequestsComponent implements OnInit, OnDestroy {
             .pipe(switchMap(() => this.friendsService.getIncomingRequests()))
             .subscribe({
                 next: (incoming) => {
-                    this.incomingRequests = incoming;
+                    this.incomingRequests.set(incoming);
                     this.requestCountChange.emit(incoming.length);
                     this.messageService.add({
                         severity: "success",
@@ -110,7 +99,7 @@ export class FriendRequestsComponent implements OnInit, OnDestroy {
             .pipe(switchMap(() => this.friendsService.getIncomingRequests()))
             .subscribe({
                 next: (incoming) => {
-                    this.incomingRequests = incoming;
+                    this.incomingRequests.set(incoming);
                     this.requestCountChange.emit(incoming.length);
                     this.messageService.add({
                         severity: "info",
@@ -129,15 +118,19 @@ export class FriendRequestsComponent implements OnInit, OnDestroy {
             });
     }
 
-    getUserFullName(user: any): string {
-        if (user && user.firstname && user.lastname) {
+    getUserFullName(
+        user: { firstname?: string; lastname?: string } | null | undefined,
+    ): string {
+        if (user?.firstname && user?.lastname) {
             return `${user.firstname} ${user.lastname}`;
         }
         return "Unknown User";
     }
 
-    getUserInitials(user: any): string {
-        if (user && user.firstname && user.lastname) {
+    getUserInitials(
+        user: { firstname?: string; lastname?: string } | null | undefined,
+    ): string {
+        if (user?.firstname && user?.lastname) {
             return `${user.firstname.charAt(0)}${user.lastname.charAt(0)}`;
         }
         return "U";

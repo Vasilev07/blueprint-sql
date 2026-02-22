@@ -4,17 +4,21 @@
 <div class="card">
   <div class="tabbar-header">
     <span class="tabbar-title">Friends</span>
-    <span class="tabbar-user" *ngIf="currentUserEmail">
-      <i class="pi pi-user"></i>
-      <span class="email">{{ currentUserEmail }}</span>
-    </span>
+    @if (currentUserEmail()) {
+      <span class="tabbar-user">
+        <i class="pi pi-user"></i>
+        <span class="email">{{ currentUserEmail() }}</span>
+      </span>
+    }
   </div>
-  <p-tabs [value]="activeTab" (valueChange)="onTabChange($event)">
+  <p-tabs [value]="activeTab()" (valueChange)="onTabChange($event)">
     <p-tablist>
       <p-tab value="all">All Users</p-tab>
       <p-tab value="requests">
         Friend Requests
-        <span *ngIf="incomingRequestsCount > 0" class="tab-badge">({{ incomingRequestsCount }})</span>
+        @if (incomingRequestsCount() > 0) {
+          <span class="tab-badge">({{ incomingRequestsCount() }})</span>
+        }
       </p-tab>
       <p-tab value="friends">My Friends</p-tab>
     </p-tablist>

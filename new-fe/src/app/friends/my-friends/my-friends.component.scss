@@ -1,3 +1,23 @@
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  min-height: 120px;
+  color: var(--text-color-secondary);
+
+  p {
+    color: var(--text-color-secondary);
+  }
+}
+
+.text-center.p-4 {
+  p {
+    color: var(--text-color-secondary);
+  }
+}
+
 .friends-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -9,9 +29,9 @@
   align-items: center;
   gap: 1rem;
   padding: 1rem;
-  background: white;
+  background: var(--surface-card);
   border-radius: 8px;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--surface-border);
   transition: box-shadow 0.2s, transform 0.2s;
 
   &:hover {
@@ -31,14 +51,14 @@
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  border: 2px solid white;
-  
+  border: 2px solid var(--surface-card);
+
   &.online {
-    background: #28a745;
+    background: var(--green-500, #28a745);
   }
-  
+
   &.offline {
-    background: #6c757d;
+    background: var(--surface-400, #6c757d);
   }
 }
 
@@ -47,18 +67,19 @@
     margin: 0 0 0.25rem 0;
     font-size: 1rem;
     font-weight: 600;
+    color: var(--text-color);
   }
 
   .friend-email {
     margin: 0 0 0.25rem 0;
     font-size: 0.875rem;
-    color: #6c757d;
+    color: var(--text-color-secondary);
   }
 
   .friend-status {
     margin: 0;
     font-size: 0.875rem;
-    color: #28a745;
+    color: var(--green-500, #28a745);
   }
 }
 
