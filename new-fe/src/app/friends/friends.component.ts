@@ -1,5 +1,4 @@
-import { Component, OnInit } from "@angular/core";
-import { CommonModule } from "@angular/common";
+import { Component, inject, OnInit, signal } from "@angular/core";
 import { AuthService } from "../services/auth.service";
 import { ToastModule } from "primeng/toast";
 import { ConfirmDialogModule } from "primeng/confirmdialog";
@@ -12,7 +11,6 @@ import { MyFriendsComponent } from "./my-friends/my-friends.component";
     selector: "app-friends",
     standalone: true,
     imports: [
-        CommonModule,
         ToastModule,
         ConfirmDialogModule,
         TabsModule,
@@ -24,21 +22,21 @@ import { MyFriendsComponent } from "./my-friends/my-friends.component";
     styleUrls: ["./friends.component.scss"],
 })
 export class FriendsComponent implements OnInit {
-    currentUserEmail: string = "";
-    incomingRequestsCount: number = 0;
-    activeTab: string = "all";
+    private readonly authService = inject(AuthService);
 
-    constructor(private authService: AuthService) {}
+    readonly currentUserEmail = signal("");
+    readonly incomingRequestsCount = signal(0);
+    readonly activeTab = signal("all");
 
     ngOnInit() {
-        this.currentUserEmail = this.authService.getUserEmail();
+        this.currentUserEmail.set(this.authService.getUserEmail());
     }
 
     onRequestCountChange(count: number) {
-        this.incomingRequestsCount = count;
+        this.incomingRequestsCount.set(count);
     }
 
     onTabChange(value: string | number | undefined) {
-        this.activeTab = typeof value === "string" ? value : "all";
+        this.activeTab.set(typeof value === "string" ? value : "all");
     }
 }
