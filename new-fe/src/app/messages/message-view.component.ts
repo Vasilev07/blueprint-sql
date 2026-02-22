@@ -1,7 +1,8 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, signal } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { ActivatedRoute, Router, RouterModule } from "@angular/router";
 import { ButtonModule } from "primeng/button";
+import { TooltipModule } from "primeng/tooltip";
 import { MessagesService } from "src/typescript-api-client/src/api/api";
 import { MessageDTO } from "src/typescript-api-client/src/model/models";
 import { MessageService } from "primeng/api";
@@ -9,13 +10,13 @@ import { MessageService } from "primeng/api";
 @Component({
     selector: "app-message-view",
     standalone: true,
-    imports: [CommonModule, RouterModule, ButtonModule],
+    imports: [CommonModule, RouterModule, ButtonModule, TooltipModule],
     templateUrl: "./message-view.component.html",
     styleUrls: ["./message-view.component.scss"],
 })
 export class MessageViewComponent implements OnInit {
-    message: MessageDTO | null = null;
-    loading = false;
+    readonly message = signal<MessageDTO | null>(null);
+    readonly loading = signal(false);
 
     constructor(
         private route: ActivatedRoute,
@@ -32,17 +33,16 @@ export class MessageViewComponent implements OnInit {
     }
 
     loadMessage(id: number): void {
-        this.loading = true;
+        this.loading.set(true);
         this.messagesService.findById(id).subscribe({
-            next: (message) => {
-                this.message = message;
-                this.loading = false;
-                // Mark as read
+            next: (msg) => {
+                this.message.set(msg);
+                this.loading.set(false);
                 this.messagesService.markAsRead(id).subscribe();
             },
             error: (error) => {
                 console.error("Error loading message:", error);
-                this.loading = false;
+                this.loading.set(false);
                 this.messageService.add({
                     severity: "error",
                     summary: "Error",
@@ -57,27 +57,31 @@ export class MessageViewComponent implements OnInit {
     }
 
     archiveMessage(): void {
-        if (this.message?.id) {
-            this.messagesService.archive(this.message.id).subscribe(() => {
+        const msg = this.message();
+        if (msg?.id != null) {
+            this.messagesService.archive(msg.id).subscribe(() => {
                 this.messageService.add({
                     severity: "success",
                     summary: "Success",
                     detail: "Message archived",
                 });
                 this.goBack();
+                this.message.set(null);
             });
         }
     }
 
     deleteMessage(): void {
-        if (this.message?.id) {
-            this.messagesService._delete(this.message.id).subscribe(() => {
+        const msg = this.message();
+        if (msg?.id != null) {
+            this.messagesService._delete(msg.id).subscribe(() => {
                 this.messageService.add({
                     severity: "success",
                     summary: "Success",
                     detail: "Message deleted",
                 });
                 this.goBack();
+                this.message.set(null);
             });
         }
     }

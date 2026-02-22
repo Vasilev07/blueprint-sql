@@ -1,38 +1,53 @@
+// Host fills the layout content area so we don't create extra page scroll (avoids empty space below footer)
+:host {
+  display: block;
+  height: 100%;
+  min-height: 0;
+}
+
 .compose-container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  background: var(--surface-card);
+  height: 100%;
+  min-height: 0;
+  max-height: 100vh; // fallback: never taller than viewport so no extra scroll
+  overflow: hidden;
+  background: var(--surface-ground);
+  color: var(--text-color);
 }
 
 .compose-header {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 1rem 1.5rem;
   border-bottom: 1px solid var(--surface-border);
-  background: var(--surface-ground);
-  
+  background: var(--surface-card);
+
   h2 {
     margin: 0;
     color: var(--text-color);
     font-size: 1.25rem;
     font-weight: 600;
   }
-  
+
   .header-actions {
     display: flex;
     gap: 0.5rem;
+    align-items: center;
   }
 }
 
 .compose-content {
   flex: 1;
+  min-height: 0;
   padding: 1.5rem;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  background: var(--surface-ground);
 }
 
 .recipients-section {
@@ -65,7 +80,7 @@
     .p-button {
       &.active {
         background: var(--primary-color);
-        color: white;
+        color: var(--primary-color-text, #ffffff);
       }
     }
   }
@@ -89,97 +104,120 @@
 }
 
 .subject-section {
+  flex-shrink: 0;
+
   .subject-input {
+    box-sizing: border-box;
     width: 100%;
-    padding: 0.75rem;
+    padding: 0.75rem 1rem;
     border: 1px solid var(--surface-border);
-    border-radius: 6px;
+    border-radius: var(--border-radius, 6px);
     font-size: 1rem;
-    background: var(--surface-ground);
+    background: var(--surface-card);
     color: var(--text-color);
-    
+    transition: border-color 0.2s, box-shadow 0.2s;
+
+    &::placeholder {
+      color: var(--text-color-secondary);
+    }
+
     &:focus {
       outline: none;
       border-color: var(--primary-color);
-      box-shadow: 0 0 0 2px var(--primary-color-text);
+      box-shadow: var(--focus-ring, 0 0 0 2px rgba(99, 102, 241, 0.25));
     }
   }
 }
 
 .message-body-section {
   flex: 1;
-  min-height: 400px;
-  
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+
   .message-textarea {
+    box-sizing: border-box;
     width: 100%;
-    min-height: 400px;
+    min-height: 280px;
     padding: 1rem;
     border: 1px solid var(--surface-border);
-    border-radius: 6px;
+    border-radius: var(--border-radius, 6px);
     font-size: 1rem;
     font-family: inherit;
-    background: var(--surface-ground);
+    background: var(--surface-card);
     color: var(--text-color);
     resize: vertical;
-    
+    transition: border-color 0.2s, box-shadow 0.2s;
+
+    &::placeholder {
+      color: var(--text-color-secondary);
+    }
+
     &:focus {
       outline: none;
       border-color: var(--primary-color);
-      box-shadow: 0 0 0 2px var(--primary-color-text);
+      box-shadow: var(--focus-ring, 0 0 0 2px rgba(99, 102, 241, 0.25));
     }
   }
 }
 
 .attachments-section {
+  flex-shrink: 0;
   border: 1px solid var(--surface-border);
-  border-radius: 6px;
+  border-radius: var(--border-radius, 6px);
   padding: 1rem;
-  background: var(--surface-ground);
-  
+  background: var(--surface-card);
+
   .attachments-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 1rem;
-    
+    margin-bottom: 0.75rem;
+
     .label {
       font-weight: 600;
       color: var(--text-color);
     }
   }
-  
+
   .attachments-list {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
-    
+    gap: 0.5rem;
+
     .attachment-item {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0.75rem;
-      background: var(--surface-card);
-      border-radius: 4px;
+      padding: 0.5rem 0.75rem;
+      background: var(--surface-ground);
+      border-radius: var(--border-radius, 6px);
       border: 1px solid var(--surface-border);
-      
+
       .attachment-info {
         display: flex;
         align-items: center;
         gap: 0.75rem;
-        
+        min-width: 0;
+
         i {
           color: var(--primary-color);
-          font-size: 1.1rem;
+          font-size: 1rem;
+          flex-shrink: 0;
         }
-        
+
         .file-name {
           font-weight: 500;
           color: var(--text-color);
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
-        
+
         .file-size {
           color: var(--text-color-secondary);
-          font-size: 0.9rem;
+          font-size: 0.875rem;
+          flex-shrink: 0;
         }
       }
     }
@@ -187,18 +225,19 @@
 }
 
 .compose-footer {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 1rem 1.5rem;
   border-top: 1px solid var(--surface-border);
-  background: var(--surface-ground);
-  
+  background: var(--surface-card);
+
   .footer-left {
     display: flex;
     gap: 0.5rem;
   }
-  
+
   .footer-right {
     display: flex;
     gap: 0.75rem;
@@ -209,7 +248,7 @@
 // Responsive design
 @media (max-width: 768px) {
   .compose-container {
-    height: 100vh;
+    height: 100%;
   }
   
   .compose-header {
@@ -255,34 +294,6 @@
     .footer-left, .footer-right {
       width: 100%;
       justify-content: center;
-    }
-  }
-}
-
-// Dark theme adjustments
-@media (prefers-color-scheme: dark) {
-  .compose-container {
-    background: var(--surface-900);
-  }
-  
-  .compose-header, .compose-footer {
-    background: var(--surface-800);
-    border-color: var(--surface-700);
-  }
-  
-  .subject-input {
-    background: var(--surface-800);
-    border-color: var(--surface-700);
-    color: var(--text-color);
-  }
-  
-  .attachments-section {
-    background: var(--surface-800);
-    border-color: var(--surface-700);
-    
-    .attachment-item {
-      background: var(--surface-900);
-      border-color: var(--surface-700);
     }
   }
 }

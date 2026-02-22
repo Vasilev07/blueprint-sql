@@ -1,12 +1,6 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, signal, computed, inject } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import {
-    FormBuilder,
-    FormGroup,
-    Validators,
-    FormsModule,
-    ReactiveFormsModule,
-} from "@angular/forms";
+import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { Router } from "@angular/router";
 import { MessagesService } from "src/typescript-api-client/src/api/api";
 import { UserService } from "src/typescript-api-client/src/api/api";
@@ -37,51 +31,43 @@ import { MultiSelectModule } from "primeng/multiselect";
     styleUrls: ["./message-compose.component.scss"],
 })
 export class MessageComposeComponent implements OnInit {
-    messageForm: FormGroup;
-    users: UserDTO[] = [];
-    loading = false;
-    attachments: File[] = [];
-    currentUserId: number | null = null;
+    private readonly messagesService = inject(MessagesService);
+    private readonly userService = inject(UserService);
+    private readonly router = inject(Router);
+    private readonly messageService = inject(MessageService);
+    private readonly authService = inject(AuthService);
 
-    // New properties for enhanced UI
-    selectedRecipients: string[] = [];
-    selectedCC: string[] = [];
-    selectedBCC: string[] = [];
-    showCC = false;
-    showBCC = false;
-    subject = "";
-    content = "";
+    readonly users = signal<UserDTO[]>([]);
+    readonly loading = signal(false);
+    readonly attachments = signal<File[]>([]);
+    readonly currentUserId = signal<number | null>(null);
 
-    constructor(
-        private fb: FormBuilder,
-        private messagesService: MessagesService,
-        private userService: UserService,
-        private router: Router,
-        private messageService: MessageService,
-        private authService: AuthService,
-    ) {
-        this.messageForm = this.fb.group({
-            to: ["", Validators.required],
-            cc: [""],
-            bcc: [""],
-            subject: ["", Validators.required],
-            content: ["", Validators.required],
-        });
-    }
+    readonly selectedRecipients = signal<string[]>([]);
+    readonly selectedCC = signal<string[]>([]);
+    readonly selectedBCC = signal<string[]>([]);
+    readonly showCC = signal(false);
+    readonly showBCC = signal(false);
+    readonly subject = signal("");
+    readonly content = signal("");
+
+    readonly isFormValid = computed(() => {
+        const to = this.selectedRecipients();
+        const subj = this.subject();
+        const cnt = this.content();
+        return to.length > 0 && !!subj?.trim() && !!cnt?.trim();
+    });
 
     ngOnInit(): void {
-        this.currentUserId = this.authService.getUserId();
+        this.currentUserId.set(this.authService.getUserId());
         this.loadUsers();
     }
 
     loadUsers(): void {
-        // Fetch all users with a large limit (no pagination for message compose)
         this.userService
             .getAll(1, 1000, "all", "recent", "", "", 0, 100, "", "", false)
             .subscribe({
-                next: (response: any) => {
-                    this.users = response.users || [];
-                    console.log("Loaded users:", this.users);
+                next: (response: { users?: UserDTO[] }) => {
+                    this.users.set(response.users ?? []);
                 },
                 error: (error) => {
                     console.error("Error loading users:", error);
@@ -89,21 +75,17 @@ export class MessageComposeComponent implements OnInit {
             });
     }
 
-    onFileSelect(event: any): void {
-        const files = event.files;
-        if (files) {
-            this.attachments.push(...files);
+    onFileSelect(event: Event): void {
+        const input = event.target as HTMLInputElement;
+        const files = input?.files;
+        if (files?.length) {
+            this.attachments.update((prev) => [...prev, ...Array.from(files)]);
         }
     }
 
     onSubmit(): void {
-        console.log("Form valid:", this.isFormValid());
-        console.log("Selected recipients:", this.selectedRecipients);
-        console.log("Subject:", this.subject);
-        console.log("Content:", this.content);
-
-        if (!this.currentUserId) {
-            console.error("No user ID available!");
+        const userId = this.currentUserId();
+        if (userId == null) {
             this.messageService.add({
                 severity: "error",
                 summary: "Error",
@@ -112,70 +94,66 @@ export class MessageComposeComponent implements OnInit {
             return;
         }
 
-        if (this.isFormValid()) {
-            this.loading = true;
+        if (!this.isFormValid()) return;
 
-            const message: CreateMessageDTO = {
-                to: this.selectedRecipients,
-                cc: this.selectedCC,
-                bcc: this.selectedBCC,
-                subject: this.subject,
-                content: this.content,
-                from: this.authService.getUserEmail(),
-                userId: this.currentUserId,
-                attachments: this.attachments.map((f) => f.name), // In real app, upload files first
-            };
+        this.loading.set(true);
 
-            console.log("Current user ID:", this.currentUserId);
-            console.log("Selected recipients:", this.selectedRecipients);
-            console.log("Sending message:", message);
-            this.messagesService.create(message).subscribe({
-                next: () => {
-                    this.messageService.add({
-                        severity: "success",
-                        summary: "Success",
-                        detail: "Message sent successfully!",
-                    });
-                    this.router.navigate(["/messages"]);
-                },
-                error: (error) => {
-                    console.error("Error sending message:", error);
-                    this.messageService.add({
-                        severity: "error",
-                        summary: "Error",
-                        detail: "Failed to send message. Please try again.",
-                    });
-                    this.loading = false;
-                },
-            });
-        }
+        const message: CreateMessageDTO = {
+            to: this.selectedRecipients(),
+            cc: this.selectedCC(),
+            bcc: this.selectedBCC(),
+            subject: this.subject(),
+            content: this.content(),
+            from: this.authService.getUserEmail(),
+            userId,
+            attachments: this.attachments().map((f) => f.name),
+        };
+
+        this.messagesService.create(message).subscribe({
+            next: () => {
+                this.messageService.add({
+                    severity: "success",
+                    summary: "Success",
+                    detail: "Message sent successfully!",
+                });
+                this.router.navigate(["/messages"]);
+            },
+            error: (error) => {
+                console.error("Error sending message:", error);
+                this.messageService.add({
+                    severity: "error",
+                    summary: "Error",
+                    detail: "Failed to send message. Please try again.",
+                });
+                this.loading.set(false);
+            },
+        });
     }
 
     onCancel(): void {
         this.router.navigate(["/messages"]);
     }
 
-    // New methods for enhanced functionality
     toggleCC(): void {
-        this.showCC = !this.showCC;
-        if (!this.showCC) {
-            this.selectedCC = [];
+        this.showCC.update((v) => !v);
+        if (!this.showCC()) {
+            this.selectedCC.set([]);
         }
     }
 
     toggleBCC(): void {
-        this.showBCC = !this.showBCC;
-        if (!this.showBCC) {
-            this.selectedBCC = [];
+        this.showBCC.update((v) => !v);
+        if (!this.showBCC()) {
+            this.selectedBCC.set([]);
         }
     }
 
     clearAttachments(): void {
-        this.attachments = [];
+        this.attachments.set([]);
     }
 
     removeAttachment(index: number): void {
-        this.attachments.splice(index, 1);
+        this.attachments.update((prev) => prev.filter((_, i) => i !== index));
     }
 
     formatFileSize(bytes: number): string {
@@ -187,10 +165,9 @@ export class MessageComposeComponent implements OnInit {
     }
 
     addImage(): void {
-        // For now, just trigger file input for images
         const fileInput = document.querySelector(
             'input[type="file"]',
-        ) as HTMLInputElement;
+        ) as HTMLInputElement | null;
         if (fileInput) {
             fileInput.accept = "image/*";
             fileInput.click();
@@ -198,19 +175,10 @@ export class MessageComposeComponent implements OnInit {
     }
 
     saveDraft(): void {
-        // TODO: Implement draft saving functionality
         this.messageService.add({
             severity: "info",
             summary: "Draft Saved",
             detail: "Your message has been saved as a draft",
         });
-    }
-
-    isFormValid(): boolean {
-        return (
-            this.selectedRecipients.length > 0 &&
-            !!this.subject?.trim() &&
-            !!this.content?.trim()
-        );
     }
 }
