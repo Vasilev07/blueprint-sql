@@ -4,7 +4,7 @@ import {
     fakeAsync,
     tick,
 } from "@angular/core/testing";
-import { of, throwError } from "rxjs";
+import { of, throwError, Subject } from "rxjs";
 import { MessageService } from "primeng/api";
 import { GiftShopComponent } from "./gift-shop.component";
 import {
@@ -55,6 +55,7 @@ describe("GiftShopComponent", () => {
     const currentUserId = 42;
 
     beforeEach(async () => {
+        jest.spyOn(console, "error").mockImplementation(() => {});
         userService = {
             getAll: jest
                 .fn()
@@ -88,7 +89,11 @@ describe("GiftShopComponent", () => {
                 new Map() as unknown as WalletService["defaultHeaders"],
         };
 
-        messageService = { add: jest.fn() };
+        messageService = {
+            add: jest.fn(),
+            messageObserver: new Subject(),
+            clearObserver: new Subject(),
+        } as unknown as jest.Mocked<Pick<MessageService, "add">>;
         authService = { getUserId: jest.fn().mockReturnValue(currentUserId) };
 
         await TestBed.configureTestingModule({
@@ -100,7 +105,15 @@ describe("GiftShopComponent", () => {
                 { provide: MessageService, useValue: messageService },
                 { provide: AuthService, useValue: authService },
             ],
-        }).compileComponents();
+        })
+            .overrideComponent(GiftShopComponent, {
+                set: {
+                    providers: [
+                        { provide: MessageService, useValue: messageService },
+                    ],
+                },
+            })
+            .compileComponents();
 
         fixture = TestBed.createComponent(GiftShopComponent);
         component = fixture.componentInstance;
