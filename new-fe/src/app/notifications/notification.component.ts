@@ -37,18 +37,22 @@ export class NotificationComponent implements OnInit, OnDestroy {
     ngOnInit(): void {
         this.loadNotifications();
 
-        // Subscribe to profile views updates
+        // Subscribe to profile views updates (defer to avoid ExpressionChangedAfterItHasBeenCheckedError)
         this.notificationService.profileViews$
             .pipe(takeUntil(this.destroy$))
             .subscribe((views) => {
-                this.profileViews = views;
+                setTimeout(() => {
+                    this.profileViews = views;
+                });
             });
 
-        // Subscribe to unread count updates
+        // Subscribe to unread count updates (defer to avoid ExpressionChangedAfterItHasBeenCheckedError)
         this.notificationService.unreadCount$
             .pipe(takeUntil(this.destroy$))
             .subscribe((count) => {
-                this.unreadCount = count;
+                setTimeout(() => {
+                    this.unreadCount = count;
+                });
             });
     }
 
