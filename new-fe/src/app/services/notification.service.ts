@@ -93,6 +93,12 @@ export class NotificationService implements OnDestroy {
         this.unreadCountSubject.next(0);
     }
 
+    /** Clear the profile views list and unread count (e.g. "Clear all" in UI) */
+    clearAll(): void {
+        this.profileViewsSubject.next([]);
+        this.unreadCountSubject.next(0);
+    }
+
     getUnreadCount(): number {
         return this.unreadCountSubject.value;
     }

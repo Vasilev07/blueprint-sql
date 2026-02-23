@@ -1,5 +1,5 @@
-import { Component, OnInit, OnDestroy, ViewChild } from "@angular/core";
-import { Subject, takeUntil } from "rxjs";
+import { Component, OnInit, ViewChild, signal, inject } from "@angular/core";
+import { toSignal } from "@angular/core/rxjs-interop";
 import { NotificationService } from "../services/notification.service";
 import { CommonModule } from "@angular/common";
 import { RouterModule } from "@angular/router";
@@ -23,61 +23,40 @@ import { TooltipModule } from "primeng/tooltip";
     templateUrl: "./notification.component.html",
     styleUrls: ["./notification.component.scss"],
 })
-export class NotificationComponent implements OnInit, OnDestroy {
+export class NotificationComponent implements OnInit {
     @ViewChild("notificationPanel") notificationPanel!: Popover;
 
-    profileViews: ProfileViewDTO[] = [];
-    unreadCount: number = 0;
-    isLoading: boolean = false;
+    private notificationService = inject(NotificationService);
 
-    private destroy$ = new Subject<void>();
-
-    constructor(private notificationService: NotificationService) {}
+    /** Use toSignal so updates are applied in a CD-safe way (avoids NG0100) */
+    readonly profileViews = toSignal(this.notificationService.profileViews$, {
+        initialValue: [] as ProfileViewDTO[],
+    });
+    readonly unreadCount = toSignal(this.notificationService.unreadCount$, {
+        initialValue: 0,
+    });
+    readonly isLoading = signal(false);
 
     ngOnInit(): void {
         this.loadNotifications();
-
-        // Subscribe to profile views updates (defer to avoid ExpressionChangedAfterItHasBeenCheckedError)
-        this.notificationService.profileViews$
-            .pipe(takeUntil(this.destroy$))
-            .subscribe((views) => {
-                setTimeout(() => {
-                    this.profileViews = views;
-                });
-            });
-
-        // Subscribe to unread count updates (defer to avoid ExpressionChangedAfterItHasBeenCheckedError)
-        this.notificationService.unreadCount$
-            .pipe(takeUntil(this.destroy$))
-            .subscribe((count) => {
-                setTimeout(() => {
-                    this.unreadCount = count;
-                });
-            });
-    }
-
-    ngOnDestroy(): void {
-        this.destroy$.next();
-        this.destroy$.complete();
     }
 
     /**
      * Load notifications from the backend
      */
     loadNotifications(): void {
-        this.isLoading = true;
+        this.isLoading.set(true);
         this.notificationService.loadProfileViews(20);
-        this.isLoading = false;
+        this.isLoading.set(false);
     }
 
     /**
      * Toggle notification panel
      */
     toggleNotificationPanel(event: Event): void {
-        this.notificationPanel.toggle(event);
+        this.notificationPanel?.toggle(event);
 
-        // Mark as read when opening
-        if (this.unreadCount > 0) {
+        if ((this.unreadCount() ?? 0) > 0) {
             this.notificationService.markAllAsRead();
         }
     }
@@ -143,8 +122,7 @@ export class NotificationComponent implements OnInit, OnDestroy {
      * Clear all notifications
      */
     clearAllNotifications(): void {
-        this.profileViews = [];
-        this.notificationService.markAllAsRead();
+        this.notificationService.clearAll();
     }
 
     /**
