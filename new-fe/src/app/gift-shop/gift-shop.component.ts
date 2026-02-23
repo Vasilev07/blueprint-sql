@@ -1,4 +1,4 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, signal, computed, inject } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import {
     FormsModule,
@@ -26,10 +26,10 @@ import { ToastModule } from "primeng/toast";
 import { DialogModule } from "primeng/dialog";
 
 interface GiftOption {
-    name: string; // human-readable label
-    emoji: string; // emoji character for UI display
-    value: string; // emoji value sent to backend
-    amount: number; // preset amount in tokens
+    name: string;
+    emoji: string;
+    value: string;
+    amount: number;
 }
 
 @Component({
@@ -55,21 +55,26 @@ interface GiftOption {
     providers: [MessageService],
 })
 export class GiftShopComponent implements OnInit {
-    giftForm: FormGroup;
-    availableGifts: GiftOption[] = [];
-    selectedGift: GiftOption | null = null;
-    users: any[] = [];
-    filteredUsers: any[] = [];
-    searchTerm: string = "";
-    isLoading: boolean = false;
-    isSending: boolean = false;
-    showSendGiftDialog: boolean = false;
+    private fb = inject(FormBuilder);
+    private giftService = inject(GiftService);
+    private userService = inject(UserService);
+    private walletService = inject(WalletService);
+    private messageService = inject(MessageService);
+    private authService = inject(AuthService);
 
-    // Balance and deposit
-    balance: string = "0";
-    showDepositDialog = false;
-    isDepositing = false;
-    depositForm: any = {
+    giftForm: FormGroup;
+
+    readonly availableGifts = signal<GiftOption[]>([]);
+    readonly selectedGift = signal<GiftOption | null>(null);
+    readonly users = signal<any[]>([]);
+    readonly filteredUsers = signal<any[]>([]);
+    readonly isLoading = signal(false);
+    readonly isSending = signal(false);
+    readonly showSendGiftDialog = signal(false);
+    readonly balance = signal("0");
+    readonly showDepositDialog = signal(false);
+    readonly isDepositing = signal(false);
+    depositForm = {
         amount: null as number | null,
         cardNumber: "",
         cardHolder: "",
@@ -78,14 +83,14 @@ export class GiftShopComponent implements OnInit {
         cvv: "",
     };
 
-    constructor(
-        private fb: FormBuilder,
-        private giftService: GiftService,
-        private userService: UserService,
-        private walletService: WalletService,
-        private messageService: MessageService,
-        private authService: AuthService,
-    ) {
+    readonly balanceAsInteger = computed(() =>
+        Math.floor(parseFloat(this.balance() || "0")).toString(),
+    );
+    readonly balanceAsNumber = computed(() =>
+        parseFloat(this.balance() || "0"),
+    );
+
+    constructor() {
         this.giftForm = this.fb.group({
             receiverId: [null, Validators.required],
             giftEmoji: [null, Validators.required],
@@ -101,9 +106,7 @@ export class GiftShopComponent implements OnInit {
     }
 
     loadAvailableGifts(): void {
-        // Backend now accepts emojis directly
-        // Each gift has a preset amount: 100, 200, 300, 400, etc.
-        this.availableGifts = [
+        this.availableGifts.set([
             { name: "Flirty Drink", emoji: "🍹", value: "🍹", amount: 100 },
             { name: "Red Rose", emoji: "🌹", value: "🌹", amount: 200 },
             { name: "Sexy Cocktail", emoji: "🍸", value: "🍸", amount: 300 },
@@ -112,8 +115,8 @@ export class GiftShopComponent implements OnInit {
             { name: "Diamond Ring", emoji: "💎", value: "💎", amount: 600 },
             { name: "Luxury Lingerie", emoji: "👙", value: "👙", amount: 700 },
             { name: "Champagne", emoji: "🍾", value: "🍾", amount: 800 },
-        ];
-        this.isLoading = false;
+        ]);
+        this.isLoading.set(false);
     }
 
     loadUsers(): void {
@@ -122,11 +125,11 @@ export class GiftShopComponent implements OnInit {
             .getAll(1, 1000, "all", "recent", "", "", 0, 100, "", "", false)
             .subscribe({
                 next: (response: any) => {
-                    // Filter out current user
-                    this.users = (response.users || []).filter(
+                    const list = (response.users || []).filter(
                         (u: any) => u.id !== currentUserId,
                     );
-                    this.filteredUsers = [...this.users];
+                    this.users.set(list);
+                    this.filteredUsers.set([...list]);
                 },
                 error: (error) => {
                     console.error("Error loading users:", error);
@@ -135,26 +138,25 @@ export class GiftShopComponent implements OnInit {
     }
 
     selectGift(gift: GiftOption): void {
-        this.selectedGift = gift;
-        // Set both emoji and preset amount
+        this.selectedGift.set(gift);
         this.giftForm.patchValue({
             giftEmoji: gift.value,
             amount: gift.amount,
             receiverId: null,
             message: "",
         });
-        // Open the send gift dialog
-        this.showSendGiftDialog = true;
+        this.showSendGiftDialog.set(true);
     }
 
     searchUsers(event: any): void {
         const query = event.query?.toLowerCase() || "";
-        this.filteredUsers = this.users.filter(
+        const list = this.users().filter(
             (user) =>
                 user.firstname?.toLowerCase().includes(query) ||
                 user.lastname?.toLowerCase().includes(query) ||
                 user.email?.toLowerCase().includes(query),
         );
+        this.filteredUsers.set(list);
     }
 
     getUserDisplay(user: any): string {
@@ -176,10 +178,9 @@ export class GiftShopComponent implements OnInit {
             return;
         }
 
-        this.isSending = true;
+        this.isSending.set(true);
         const formValue = this.giftForm.value;
 
-        // Ensure receiverId is a number
         if (
             typeof formValue.receiverId === "object" &&
             formValue.receiverId !== null
@@ -187,22 +188,22 @@ export class GiftShopComponent implements OnInit {
             formValue.receiverId = formValue.receiverId.id;
         }
 
-        // Convert amount to string as backend expects
         if (typeof formValue.amount === "number") {
             formValue.amount = formValue.amount.toString();
         }
 
         this.giftService.sendGift(formValue).subscribe({
             next: (response) => {
-                this.balance =
-                    response.senderBalance?.toString() || this.balance;
+                this.balance.set(
+                    response.senderBalance?.toString() || this.balance(),
+                );
                 this.messageService.add({
                     severity: "success",
                     summary: "Success",
-                    detail: `Gift sent successfully! Your new balance is ${this.getBalanceAsInteger()} tokens`,
+                    detail: `Gift sent successfully! Your new balance is ${this.balanceAsInteger()} tokens`,
                 });
                 this.closeSendGiftDialog();
-                this.isSending = false;
+                this.isSending.set(false);
             },
             error: (error) => {
                 console.error("Error sending gift:", error);
@@ -214,21 +215,21 @@ export class GiftShopComponent implements OnInit {
                     summary: "Error",
                     detail: errorMsg,
                 });
-                this.isSending = false;
+                this.isSending.set(false);
             },
         });
     }
 
     closeSendGiftDialog(): void {
-        this.showSendGiftDialog = false;
-        this.selectedGift = null;
+        this.showSendGiftDialog.set(false);
+        this.selectedGift.set(null);
         this.giftForm.reset();
     }
 
     loadBalance(): void {
         this.userService.getUser().subscribe({
             next: (user: any) => {
-                this.balance = user.balance || "0";
+                this.balance.set(user.balance || "0");
             },
             error: (error) => {
                 console.error("Error loading balance:", error);
@@ -237,29 +238,24 @@ export class GiftShopComponent implements OnInit {
     }
 
     getBalanceAsInteger(): string {
-        const balanceValue = parseFloat(this.balance || "0");
-        return Math.floor(balanceValue).toString();
-    }
-
-    getBalanceAsNumber(): number {
-        return parseFloat(this.balance || "0");
+        return this.balanceAsInteger();
     }
 
     hasSufficientBalance(amount: number): boolean {
-        return amount <= this.getBalanceAsNumber();
+        return amount <= this.balanceAsNumber();
     }
 
     getBalanceAfterSending(amount: number): number {
-        return Math.floor(this.getBalanceAsNumber()) - amount;
+        return Math.floor(this.balanceAsNumber()) - amount;
     }
 
     openDepositDialog(): void {
-        this.showDepositDialog = true;
+        this.showDepositDialog.set(true);
     }
 
     closeDepositDialog(): void {
-        this.showDepositDialog = false;
-        this.isDepositing = false;
+        this.showDepositDialog.set(false);
+        this.isDepositing.set(false);
         this.depositForm = {
             amount: null,
             cardNumber: "",
@@ -279,10 +275,11 @@ export class GiftShopComponent implements OnInit {
     }
 
     submitDeposit(): void {
+        const form = this.depositForm;
         if (
-            this.depositForm.amount === null ||
-            this.depositForm.amount === undefined ||
-            this.depositForm.amount <= 0
+            form.amount === null ||
+            form.amount === undefined ||
+            form.amount <= 0
         ) {
             this.messageService.add({
                 severity: "warn",
@@ -292,8 +289,8 @@ export class GiftShopComponent implements OnInit {
             return;
         }
 
-        const amount = Math.floor(Number(this.depositForm.amount));
-        this.isDepositing = true;
+        const amount = Math.floor(Number(form.amount));
+        this.isDepositing.set(true);
 
         this.walletService
             .deposit({
@@ -303,13 +300,13 @@ export class GiftShopComponent implements OnInit {
             })
             .subscribe({
                 next: (response: any) => {
-                    this.balance = response.balance || this.balance;
+                    this.balance.set(response.balance || this.balance());
                     this.messageService.add({
                         severity: "success",
                         summary: "Success",
-                        detail: `Successfully added ${amount} tokens. New balance: ${this.getBalanceAsInteger()} tokens`,
+                        detail: `Successfully added ${amount} tokens. New balance: ${this.balanceAsInteger()} tokens`,
                     });
-                    this.isDepositing = false;
+                    this.isDepositing.set(false);
                     this.closeDepositDialog();
                 },
                 error: (error: any) => {
@@ -321,7 +318,7 @@ export class GiftShopComponent implements OnInit {
                             error.error?.message ||
                             "Failed to add tokens. Please try again.",
                     });
-                    this.isDepositing = false;
+                    this.isDepositing.set(false);
                 },
             });
     }

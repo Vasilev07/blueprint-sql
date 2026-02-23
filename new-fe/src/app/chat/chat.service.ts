@@ -1,5 +1,8 @@
-import { Injectable, OnDestroy } from "@angular/core";
-import { BehaviorSubject, Observable, of } from "rxjs";
+import { Injectable, inject, Injector, DestroyRef } from "@angular/core";
+import { toObservable } from "@angular/core/rxjs-interop";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import { signal } from "@angular/core";
+import { Observable, of } from "rxjs";
 import { map } from "rxjs/operators";
 import { HttpClient, HttpHeaders } from "@angular/common/http";
 import { AuthService } from "../services/auth.service";
@@ -55,32 +58,52 @@ export interface Conversation extends Omit<
 @Injectable({
     providedIn: "root",
 })
-export class ChatService implements OnDestroy {
-    private usersSubject = new BehaviorSubject<User[]>([]);
-    private friendsSubject = new BehaviorSubject<User[]>([]);
-    private conversationsSubject = new BehaviorSubject<Conversation[]>([]);
-    private messagesSubject = new BehaviorSubject<Message[]>([]);
-    private globalChatSubscription: any; // Store subscription to clean up later
+export class ChatService {
+    private readonly destroyRef = inject(DestroyRef);
+    private readonly injector = inject(Injector);
+    private readonly httpClient = inject(HttpClient);
+    private readonly authService = inject(AuthService);
+    private readonly userService = inject(UserService);
+    private readonly friendsApi = inject(FriendsService);
+    private readonly chatApi = inject(ChatApiService);
+    private readonly ws = inject(WebsocketService);
+    private readonly messagesService = inject(MessagesService);
 
-    public users$ = this.usersSubject.asObservable();
-    public friends$ = this.friendsSubject.asObservable();
-    public conversations$ = this.conversationsSubject.asObservable();
-    public messages$ = this.messagesSubject.asObservable();
+    // Signals as single source of truth
+    private readonly usersSignal = signal<User[]>([]);
+    private readonly friendsSignal = signal<User[]>([]);
+    private readonly conversationsSignal = signal<Conversation[]>([]);
+    private readonly messagesSignal = signal<Message[]>([]);
 
-    constructor(
-        private httpClient: HttpClient,
-        private authService: AuthService,
-        private userService: UserService,
-        private friendsApi: FriendsService,
-        private chatApi: ChatApiService,
-        private ws: WebsocketService,
-        private messagesService: MessagesService,
-    ) {
+    readonly users = this.usersSignal.asReadonly();
+    readonly friends = this.friendsSignal.asReadonly();
+    readonly conversations = this.conversationsSignal.asReadonly();
+    readonly messages = this.messagesSignal.asReadonly();
+
+    // Expose as Observables for backward compatibility (e.g. toSignal, subscribe)
+    readonly users$ = toObservable(this.usersSignal, {
+        injector: this.injector,
+    });
+    readonly friends$ = toObservable(this.friendsSignal, {
+        injector: this.injector,
+    });
+    readonly conversations$ = toObservable(this.conversationsSignal, {
+        injector: this.injector,
+    });
+    readonly messages$ = toObservable(this.messagesSignal, {
+        injector: this.injector,
+    });
+
+    constructor() {
         this.applyAuthHeadersToApiServices();
         this.loadInitialData();
-        // Live updates for any chat messages - store subscription for cleanup
-        this.globalChatSubscription = this.ws
+        this.setupGlobalChatSubscription();
+    }
+
+    private setupGlobalChatSubscription(): void {
+        this.ws
             .onAnyChatMessage()
+            .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe(({ conversationId, message }) => {
                 const currentUserId = this.getCurrentUserId();
                 const otherUserId =
@@ -91,13 +114,8 @@ export class ChatService implements OnDestroy {
                           )
                         : Number(message.senderId);
 
-                // Append message to stream
-                // Don't accumulate messages in global state - they're managed per conversation
-                // Just update the conversation's last message
-
-                // Normalize conversations using numeric user ids and conversation id
                 const convId = String(conversationId);
-                const existing = this.conversationsSubject.value.find(
+                const existing = this.conversationsSignal().find(
                     (c) => c.id === convId,
                 );
                 const updated: Conversation = existing
@@ -129,10 +147,10 @@ export class ChatService implements OnDestroy {
                           ),
                       } as Conversation);
 
-                const convs = this.conversationsSubject.value.filter(
+                const convs = this.conversationsSignal().filter(
                     (c) => c.id !== updated.id,
                 );
-                this.conversationsSubject.next([updated, ...convs]);
+                this.conversationsSignal.set([updated, ...convs]);
             });
     }
 
@@ -140,7 +158,7 @@ export class ChatService implements OnDestroy {
         conversationId: number,
         currentUserId: number,
     ): number {
-        const conv = this.conversationsSubject.value.find(
+        const conv = this.conversationsSignal().find(
             (c) => c.id === String(conversationId),
         );
         if (!conv || !conv.participants || conv.participants.length === 0) {
@@ -152,17 +170,16 @@ export class ChatService implements OnDestroy {
         return other ?? 0;
     }
 
-    private loadInitialData() {
+    private loadInitialData(): void {
         this.loadUsers();
         this.loadFriends();
         this.loadBackendConversations();
     }
 
-    private applyAuthHeadersToApiServices() {
+    private applyAuthHeadersToApiServices(): void {
         const token = localStorage.getItem("id_token");
         if (token) {
             const authHeader = `Bearer ${token}`;
-            // Set default headers for generated clients before calling them
             this.userService.defaultHeaders =
                 this.userService.defaultHeaders.set(
                     "Authorization",
@@ -198,7 +215,7 @@ export class ChatService implements OnDestroy {
         );
     }
 
-    private loadBackendConversations() {
+    private loadBackendConversations(): void {
         const userId = this.getCurrentUserId();
         if (!userId) return;
         this.chatApi.getConversations(userId).subscribe({
@@ -206,7 +223,6 @@ export class ChatService implements OnDestroy {
                 const selfId = String(userId);
                 const mapped: Conversation[] = (convs || []).map(
                     (c: ChatConversationDTO) => {
-                        // Backend DTOs return participants as number[], map to string[] for FE
                         const participantIds = (c.participants || []).map((p) =>
                             String(p),
                         );
@@ -220,7 +236,7 @@ export class ChatService implements OnDestroy {
                         const otherId = participantIds.find(
                             (pid) => pid !== selfId,
                         );
-                        const friend = this.friendsSubject.value.find(
+                        const friend = this.friendsSignal().find(
                             (f) =>
                                 String(f.id) === String(otherId) ||
                                 f.email === otherId,
@@ -229,9 +245,9 @@ export class ChatService implements OnDestroy {
                         return {
                             id: String(c.id),
                             participants: participantIds,
-                            messages: c.messages, // Include messages from backend
+                            messages: c.messages,
                             unreadCount: c.unreadCount ?? 0,
-                            otherUser: c.otherUser, // Include otherUser info
+                            otherUser: c.otherUser,
                             lastMessage: last?.content,
                             lastMessageTime: last?.createdAt
                                 ? new Date(last.createdAt)
@@ -247,7 +263,7 @@ export class ChatService implements OnDestroy {
                         } as Conversation;
                     },
                 );
-                this.conversationsSubject.next(mapped);
+                this.conversationsSignal.set(mapped);
             },
             error: () => {
                 // Keep existing state
@@ -255,9 +271,8 @@ export class ChatService implements OnDestroy {
         });
     }
 
-    private loadUsers() {
+    private loadUsers(): void {
         this.applyAuthHeadersToApiServices();
-        // Fetch all users with a large limit (no pagination for chat)
         this.userService
             .getAll(1, 1000, "all", "recent", "", "", 0, 100, "", "", false)
             .subscribe({
@@ -281,15 +296,15 @@ export class ChatService implements OnDestroy {
                             profilePictureId: u.profilePictureId,
                         };
                     });
-                    this.usersSubject.next(mapped);
+                    this.usersSignal.set(mapped);
                 },
                 error: () => {
-                    this.usersSubject.next([]);
+                    this.usersSignal.set([]);
                 },
             });
     }
 
-    private loadFriends() {
+    private loadFriends(): void {
         this.applyAuthHeadersToApiServices();
         this.friendsApi.getAcceptedFriends().subscribe({
             next: (friends: any[]) => {
@@ -315,16 +330,15 @@ export class ChatService implements OnDestroy {
                         } as User;
                     })
                     .filter((u: User) => !!u.email);
-                this.friendsSubject.next(mapped);
+                this.friendsSignal.set(mapped);
             },
             error: (err) => {
                 console.error("Error loading friends:", err);
-                this.friendsSubject.next([]);
+                this.friendsSignal.set([]);
             },
         });
     }
 
-    // New chat-specific API using proper DTOs
     getOrCreateConversation(
         otherUserId: number,
     ): Observable<ChatConversationDTO> {
@@ -351,14 +365,7 @@ export class ChatService implements OnDestroy {
         recipientId: number,
         content: string,
     ): void {
-        const currentUserId = Number(
-            JSON.parse(
-                atob(
-                    (localStorage.getItem("id_token") || "").split(".")[1] ||
-                        "e30=",
-                ),
-            )?.id || 0,
-        );
+        const currentUserId = this.getCurrentUserId();
         this.ws.sendChat({
             conversationId,
             senderId: currentUserId,
@@ -376,12 +383,10 @@ export class ChatService implements OnDestroy {
     }
 
     getRecentMessages(limit: number = 5): Observable<Message[]> {
-        // Get recent messages from conversations (backend data)
         return this.conversations$.pipe(
             map((conversations) => {
                 const allMessages: Message[] = [];
 
-                // Extract all messages from all conversations
                 conversations.forEach((conv) => {
                     if (conv.messages && conv.messages.length > 0) {
                         conv.messages.forEach((msg) => {
@@ -402,7 +407,6 @@ export class ChatService implements OnDestroy {
                     }
                 });
 
-                // Sort by timestamp and return top N
                 const sorted = allMessages.sort(
                     (a, b) =>
                         (b.timestamp?.getTime() || 0) -
@@ -414,14 +418,14 @@ export class ChatService implements OnDestroy {
     }
 
     getConversation(userId: string): Observable<Conversation | null> {
-        const conversation = this.conversationsSubject.value.find((conv) =>
+        const conversation = this.conversationsSignal().find((conv) =>
             (conv.participants || []).includes(userId),
         );
         return of(conversation || null);
     }
 
     getMessages(userId: string): Observable<Message[]> {
-        const messages = this.messagesSubject.value
+        const messages = this.messagesSignal()
             .filter(
                 (msg) =>
                     (msg.senderId === userId && msg.receiverId === "1") ||
@@ -444,16 +448,15 @@ export class ChatService implements OnDestroy {
             timestamp: new Date(),
         };
 
-        const currentMessages = this.messagesSubject.value;
-        this.messagesSubject.next([...currentMessages, newMessage]);
+        const currentMessages = this.messagesSignal();
+        this.messagesSignal.set([...currentMessages, newMessage]);
 
-        // Update conversation
-        const conversation = this.conversationsSubject.value.find((conv) =>
+        const conversation = this.conversationsSignal().find((conv) =>
             (conv.participants || []).includes(message.receiverId || ""),
         );
 
         if (conversation) {
-            const updatedConversations = this.conversationsSubject.value.map(
+            const updatedConversations = this.conversationsSignal().map(
                 (conv) =>
                     conv.id === conversation.id
                         ? {
@@ -467,21 +470,21 @@ export class ChatService implements OnDestroy {
                           }
                         : conv,
             );
-            this.conversationsSubject.next(updatedConversations);
+            this.conversationsSignal.set(updatedConversations);
         }
 
         return of(newMessage);
     }
 
     markAsRead(messageId: string): void {
-        const messages = this.messagesSubject.value.map((msg) =>
+        const messages = this.messagesSignal().map((msg) =>
             msg.id === messageId ? { ...msg, isRead: true } : msg,
         );
-        this.messagesSubject.next(messages);
+        this.messagesSignal.set(messages);
     }
 
     searchUsers(query: string): Observable<User[]> {
-        const users = this.usersSubject.value.filter(
+        const users = this.usersSignal().filter(
             (user) =>
                 user?.name?.toLowerCase().includes(query.toLowerCase()) ||
                 user.email.toLowerCase().includes(query.toLowerCase()),
@@ -490,24 +493,17 @@ export class ChatService implements OnDestroy {
     }
 
     addFriend(userId: string): void {
-        const user = this.usersSubject.value.find((u) => u.id === userId);
-        if (user && !this.friendsSubject.value.find((f) => f.id === userId)) {
-            const currentFriends = this.friendsSubject.value;
-            this.friendsSubject.next([...currentFriends, user]);
+        const user = this.usersSignal().find((u) => u.id === userId);
+        if (user && !this.friendsSignal().find((f) => f.id === userId)) {
+            const currentFriends = this.friendsSignal();
+            this.friendsSignal.set([...currentFriends, user]);
         }
     }
 
     removeFriend(userId: string): void {
-        const currentFriends = this.friendsSubject.value.filter(
+        const currentFriends = this.friendsSignal().filter(
             (f) => f.id !== userId,
         );
-        this.friendsSubject.next(currentFriends);
-    }
-
-    ngOnDestroy(): void {
-        // Clean up the global chat message subscription
-        if (this.globalChatSubscription) {
-            this.globalChatSubscription.unsubscribe();
-        }
+        this.friendsSignal.set(currentFriends);
     }
 }

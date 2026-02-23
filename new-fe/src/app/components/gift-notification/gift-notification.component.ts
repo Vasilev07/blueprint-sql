@@ -1,14 +1,11 @@
-import { Component, OnInit, OnDestroy } from "@angular/core";
+import { Component, signal, DestroyRef, inject, OnInit } from "@angular/core";
 import { CommonModule } from "@angular/common";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import {
     GiftNotificationService,
     GiftNotification,
 } from "../../services/gift-notification.service";
-import {
-    UserService,
-    WalletService,
-} from "src/typescript-api-client/src/api/api";
-import { Subject, takeUntil } from "rxjs";
+import { UserService } from "src/typescript-api-client/src/api/api";
 
 @Component({
     selector: "app-gift-notification",
@@ -17,56 +14,41 @@ import { Subject, takeUntil } from "rxjs";
     templateUrl: "./gift-notification.component.html",
     styleUrls: ["./gift-notification.component.scss"],
 })
-export class GiftNotificationComponent implements OnInit, OnDestroy {
-    private destroy$ = new Subject<void>();
-    showGiftAnimation = false;
-    receivedGift: GiftNotification | null = null;
+export class GiftNotificationComponent implements OnInit {
+    private destroyRef = inject(DestroyRef);
+    private giftNotificationService = inject(GiftNotificationService);
+    private userService = inject(UserService);
 
-    constructor(
-        private giftNotificationService: GiftNotificationService,
-        private userService: UserService,
-        private walletService: WalletService,
-    ) {}
+    readonly showGiftAnimation = signal(false);
+    readonly receivedGift = signal<GiftNotification | null>(null);
 
     ngOnInit(): void {
         this.giftNotificationService.giftReceived$
-            .pipe(takeUntil(this.destroy$))
-            .subscribe({
-                next: (notification) => {
-                    if (notification) {
-                        this.receivedGift = notification;
-                        this.showGiftAnimation = true;
-                        this.loadBalance(); // Reload balance since it changed
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe((notification) => {
+                if (notification) {
+                    this.receivedGift.set(notification);
+                    this.showGiftAnimation.set(true);
+                    this.loadBalance();
 
-                        // Auto-hide animation after 5 seconds
-                        setTimeout(() => {
-                            this.closeAnimation();
-                        }, 5000);
-                    }
-                },
+                    setTimeout(() => {
+                        this.closeAnimation();
+                    }, 5000);
+                }
             });
     }
 
-    ngOnDestroy(): void {
-        this.destroy$.next();
-        this.destroy$.complete();
-    }
-
     closeAnimation(): void {
-        this.showGiftAnimation = false;
+        this.showGiftAnimation.set(false);
         this.giftNotificationService.clearNotification();
-        // Clear received gift after animation closes
         setTimeout(() => {
-            this.receivedGift = null;
-        }, 300); // Small delay to allow fade out
+            this.receivedGift.set(null);
+        }, 300);
     }
 
     loadBalance(): void {
-        // Reload balance to reflect the new gift received
         this.userService.getUser().subscribe({
-            next: (_user: any) => {
-                // Balance updated
-            },
+            next: () => {},
             error: (error) => {
                 console.error("Error loading balance:", error);
             },
