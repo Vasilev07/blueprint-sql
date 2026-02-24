@@ -1,4 +1,12 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from "@angular/core";
+import {
+    Component,
+    OnInit,
+    OnDestroy,
+    signal,
+    computed,
+    model,
+    inject,
+} from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule, ReactiveFormsModule, FormBuilder } from "@angular/forms";
 import { RouterModule } from "@angular/router";
@@ -79,39 +87,70 @@ import {
 export class ProfileComponent implements OnInit, OnDestroy {
     private destroy$ = new Subject<void>();
 
-    currentUser: UserDTO | null = null;
-    viewingUser: UserDTO | null = null;
-    userProfile: UserProfileDTO | null = null;
-    userPhotos: UserPhotoDTO[] = [];
-    photoBlobUrls: Map<number, string> = new Map();
-    profilePictureBlobUrl: string | null = null;
-    friends: FriendDTO[] = [];
-    isLoading = false;
-    isUploading = false;
-    showEditDialog = false;
-    showPhotoDialog = false;
-    selectedPhoto: UserPhotoDTO | null = null;
-    editForm: any = {};
-    isOwnProfile = true;
-    viewingUserId: number | null = null;
-    newInterest: string = "";
+    private messageService = inject(MessageService);
+    private confirmationService = inject(ConfirmationService);
+    private userService = inject(UserService);
+    private friendsService = inject(FriendsService);
+    private walletService = inject(WalletService);
+    private giftService = inject(GiftService);
+    private router = inject(Router);
+    private route = inject(ActivatedRoute);
+    private http = inject(HttpClient);
+    private fb = inject(FormBuilder);
 
-    // Verification properties
-    verificationStatus: any = null;
-    isVerificationUploading = false;
+    readonly onlineStatusService = inject(OnlineStatusService);
+    private websocketService = inject(WebsocketService);
+
+    // Signals – user & profile
+    currentUser = signal<UserDTO | null>(null);
+    viewingUser = signal<UserDTO | null>(null);
+    userProfile = signal<UserProfileDTO | null>(null);
+    userPhotos = signal<UserPhotoDTO[]>([]);
+    photoBlobUrls = signal<Map<number, string>>(new Map());
+    profilePictureBlobUrl = signal<string | null>(null);
+    friends = signal<FriendDTO[]>([]);
+
+    // Signals – loading & UI
+    isLoading = signal(false);
+    isUploading = signal(false);
+    showEditDialog = model(false);
+    showPhotoDialog = model(false);
+    selectedPhoto = signal<UserPhotoDTO | null>(null);
+    isOwnProfile = signal(true);
+    viewingUserId = signal<number | null>(null);
+
+    // Edit form state (kept as object for ngModel in dialog)
+    editForm: {
+        gender?: string | null;
+        city?: string;
+        bio?: string;
+        location?: string;
+        interests?: string[];
+        appearsInSearches?: boolean;
+        dateOfBirth?: Date | null;
+    } = {};
+    newInterest = "";
+
+    // Verification
+    verificationStatus = signal<unknown>(null);
+    isVerificationUploading = signal(false);
     verificationPhoto: File | null = null;
 
-    // Date properties
     maxDate = new Date();
 
-    // Wallet balance
-    balance: string = "0";
-
-    // Deposit dialog state
-    showDepositDialog = false;
-    isDepositing = false;
-    depositForm: any = {
-        amount: null as number | null,
+    // Wallet
+    balance = signal<string>("0");
+    showDepositDialog = model(false);
+    isDepositing = signal(false);
+    depositForm: {
+        amount: number | null;
+        cardNumber: string;
+        cardHolder: string;
+        expiryMonth: string;
+        expiryYear: string;
+        cvv: string;
+    } = {
+        amount: null,
         cardNumber: "",
         cardHolder: "",
         expiryMonth: "",
@@ -119,59 +158,75 @@ export class ProfileComponent implements OnInit, OnDestroy {
         cvv: "",
     };
 
-    // Gift properties
-    receivedGifts: GiftDTO[] = [];
-    isLoadingGifts = false;
-
-    // Send Gift properties
-    showSendGiftDialog = false;
-    recipientUserForGift: {
+    // Gifts
+    receivedGifts = signal<GiftDTO[]>([]);
+    isLoadingGifts = signal(false);
+    showSendGiftDialog = model(false);
+    recipientUserForGift = signal<{
         id: number;
         fullName?: string;
         name?: string;
-    } | null = null;
+    } | null>(null);
 
-    // Tab navigation
-    activeTabIndex = 0;
+    // Tabs
+    activeTabIndex = model(0);
 
-    genderOptions = [
+    readonly genderOptions = [
         { label: "Male", value: "male" },
         { label: "Female", value: "female" },
         { label: "Other", value: "other" },
     ];
 
-    constructor(
-        private messageService: MessageService,
-        private confirmationService: ConfirmationService,
-        private userService: UserService,
-        private friendsService: FriendsService,
-        private walletService: WalletService,
-        private giftService: GiftService,
-        private router: Router,
-        private route: ActivatedRoute,
-        public onlineStatusService: OnlineStatusService,
-        private websocketService: WebsocketService,
-        private http: HttpClient,
-        private fb: FormBuilder,
-        private cdr: ChangeDetectorRef,
-    ) {}
+    groupedReceivedGifts = computed(() => {
+        const gifts = this.receivedGifts();
+        const grouped = new Map<string, GiftDTO[]>();
+
+        gifts.forEach((gift) => {
+            const senderId = gift.senderId || gift.sender?.id || 0;
+            const key = `${senderId}_${gift.giftEmoji}`;
+            if (!grouped.has(key)) grouped.set(key, []);
+            grouped.get(key)!.push(gift);
+        });
+
+        return Array.from(grouped.entries()).map(([_key, g]) => {
+            const first = g[0];
+            const senderId = first.senderId || first.sender?.id || 0;
+            const totalAmount = g
+                .reduce((sum, gift) => sum + parseFloat(gift.amount || "0"), 0)
+                .toFixed(8);
+            const latestDate = g.reduce((latest, gift) => {
+                const d = new Date(gift.createdAt);
+                return d > latest ? d : latest;
+            }, new Date(g[0].createdAt));
+            const messages = g
+                .map((x) => x.message)
+                .filter((msg): msg is string => !!msg && msg.trim() !== "");
+
+            return {
+                giftEmoji: first.giftEmoji,
+                senderId,
+                sender: first.sender,
+                gifts: g,
+                totalAmount,
+                latestDate,
+                messages,
+            };
+        });
+    });
 
     ngOnInit(): void {
-        // Ensure auth token is set for UserService API calls (required for profile pictures and photos)
         this.ensureAuthHeaders();
-
-        // Check if viewing another user's profile or own profile
         this.route.paramMap
             .pipe(takeUntil(this.destroy$))
             .subscribe((params) => {
                 const userId = params.get("userId");
                 if (userId) {
-                    this.viewingUserId = parseInt(userId, 10);
-                    this.isOwnProfile = false;
-                    this.loadOtherUserProfile(this.viewingUserId);
+                    this.viewingUserId.set(parseInt(userId, 10));
+                    this.isOwnProfile.set(false);
+                    this.loadOtherUserProfile(this.viewingUserId()!);
                 } else {
-                    this.isOwnProfile = true;
-                    this.viewingUserId = null;
+                    this.isOwnProfile.set(true);
+                    this.viewingUserId.set(null);
                     this.loadCurrentUser();
                     this.loadUserProfile();
                     this.loadUserPhotos();
@@ -197,14 +252,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
     ngOnDestroy(): void {
         this.destroy$.next();
         this.destroy$.complete();
-
-        // Revoke all blob URLs to free memory
-        this.photoBlobUrls.forEach((url) => URL.revokeObjectURL(url));
-        this.photoBlobUrls.clear();
-
-        if (this.profilePictureBlobUrl) {
-            URL.revokeObjectURL(this.profilePictureBlobUrl);
-        }
+        this.photoBlobUrls().forEach((url) => URL.revokeObjectURL(url));
+        this.photoBlobUrls.set(new Map());
+        const pp = this.profilePictureBlobUrl();
+        if (pp) URL.revokeObjectURL(pp);
     }
 
     private loadCurrentUser(): void {
@@ -212,20 +263,19 @@ export class ProfileComponent implements OnInit, OnDestroy {
             .getUser()
             .pipe(takeUntil(this.destroy$))
             .subscribe({
-                next: (user: any) => {
-                    this.currentUser = user;
-                    this.balance = user.balance || "0";
+                next: (user: UserDTO & { balance?: string }) => {
+                    this.currentUser.set(user);
+                    this.balance.set(user.balance ?? "0");
                 },
-                error: (error: any) => {
+                error: (error: unknown) => {
                     console.error("Error loading user profile:", error);
-                    // Fallback to token parsing if API fails
                     const token = localStorage.getItem("id_token");
                     if (token) {
                         try {
                             const payload = JSON.parse(
                                 atob(token.split(".")[1]),
                             );
-                            this.currentUser = {
+                            this.currentUser.set({
                                 id: payload.id,
                                 email: payload.email,
                                 fullName: payload.name || "User",
@@ -233,9 +283,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
                                 confirmPassword: "",
                                 gender: payload.gender,
                                 city: payload.city,
-                            };
-                        } catch (error: any) {
-                            console.error("Error parsing token:", error);
+                            });
+                        } catch (e) {
+                            console.error("Error parsing token:", e);
                         }
                     }
                 },
@@ -243,27 +293,21 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
 
     loadUserPhotos(): void {
-        this.isLoading = true;
-
+        this.isLoading.set(true);
         this.userService
             .getUserPhotos()
             .pipe(takeUntil(this.destroy$))
             .subscribe({
                 next: (photos) => {
-                    this.userPhotos = photos;
-
-                    // Load blob URLs for all photos
+                    this.userPhotos.set(photos);
                     photos.forEach((photo) => {
-                        if (photo.id) {
-                            this.loadPhotoBlobUrl(photo.id);
-                        }
+                        if (photo.id) this.loadPhotoBlobUrl(photo.id);
                     });
-
-                    this.isLoading = false;
+                    this.isLoading.set(false);
                 },
                 error: (error) => {
                     console.error("Error loading photos:", error);
-                    this.isLoading = false;
+                    this.isLoading.set(false);
                     this.messageService.add({
                         severity: "error",
                         summary: "Error",
@@ -275,11 +319,15 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
     private loadPhotoBlobUrl(photoId: number): void {
         this.userService.getPhoto(photoId, "response").subscribe({
-            next: (response: any) => {
-                const blob = response.body as Blob;
+            next: (response) => {
+                const blob = response.body;
+                if (!blob) return;
                 const blobUrl = URL.createObjectURL(blob);
-                this.photoBlobUrls.set(photoId, blobUrl);
-                this.cdr.detectChanges();
+                this.photoBlobUrls.update((m) => {
+                    const next = new Map(m);
+                    next.set(photoId, blobUrl);
+                    return next;
+                });
             },
             error: (error) => {
                 console.error(`Error loading photo ${photoId}:`, error);
@@ -292,17 +340,14 @@ export class ProfileComponent implements OnInit, OnDestroy {
             .getAcceptedFriends()
             .pipe(takeUntil(this.destroy$))
             .subscribe({
-                next: (friends) => {
-                    this.friends = friends;
-                },
-                error: (error) => {
-                    console.error("Error loading friends:", error);
-                },
+                next: (list) => this.friends.set(list),
+                error: (error) =>
+                    console.error("Error loading friends:", error),
             });
     }
 
-    onPhotoUpload(event: any): void {
-        if (!this.isOwnProfile) {
+    onPhotoUpload(event: { files: File[] }): void {
+        if (!this.isOwnProfile()) {
             this.messageService.add({
                 severity: "error",
                 summary: "Error",
@@ -310,25 +355,17 @@ export class ProfileComponent implements OnInit, OnDestroy {
             });
             return;
         }
-
         const file = event.files[0];
         if (!file) return;
-
-        this.isUploading = true;
-
+        this.isUploading.set(true);
         this.userService
             .uploadPhoto(file)
             .pipe(takeUntil(this.destroy$))
             .subscribe({
                 next: (photo) => {
-                    this.userPhotos.unshift(photo);
-
-                    // Load blob URL for the newly uploaded photo
-                    if (photo.id) {
-                        this.loadPhotoBlobUrl(photo.id);
-                    }
-
-                    this.isUploading = false;
+                    this.userPhotos.update((p) => [photo, ...p]);
+                    if (photo.id) this.loadPhotoBlobUrl(photo.id);
+                    this.isUploading.set(false);
                     this.messageService.add({
                         severity: "success",
                         summary: "Success",
@@ -337,7 +374,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
                 },
                 error: (error) => {
                     console.error("Error uploading photo:", error);
-                    this.isUploading = false;
+                    this.isUploading.set(false);
                     this.messageService.add({
                         severity: "error",
                         summary: "Error",
@@ -348,14 +385,15 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
 
     getPhotoUrl(photoId: number): string {
-        return this.photoBlobUrls.get(photoId) || "";
+        return this.photoBlobUrls().get(photoId) ?? "";
     }
 
     getUserInitials(): string {
-        if (!this.currentUser) return "U";
-        const nameParts = this.currentUser.fullName?.split(" ") || [];
-        const first = nameParts[0]?.charAt(0) || "";
-        const last = nameParts[1]?.charAt(0) || "";
+        const user = this.currentUser();
+        if (!user) return "U";
+        const parts = user.fullName?.split(" ") ?? [];
+        const first = parts[0]?.charAt(0) ?? "";
+        const last = parts[1]?.charAt(0) ?? "";
         return (first + last).toUpperCase() || "U";
     }
 
@@ -364,17 +402,14 @@ export class ProfileComponent implements OnInit, OnDestroy {
             .getUserProfile()
             .pipe(takeUntil(this.destroy$))
             .subscribe({
-                next: (profile) => {
-                    this.userProfile = profile;
-                },
-                error: (error: any) => {
-                    console.error("Error loading user profile:", error);
-                },
+                next: (profile) => this.userProfile.set(profile),
+                error: (error: unknown) =>
+                    console.error("Error loading user profile:", error),
             });
     }
 
     openEditDialog(): void {
-        if (!this.isOwnProfile) {
+        if (!this.isOwnProfile()) {
             this.messageService.add({
                 severity: "error",
                 summary: "Error",
@@ -382,24 +417,25 @@ export class ProfileComponent implements OnInit, OnDestroy {
             });
             return;
         }
-
+        const profile = this.userProfile();
+        const user = this.currentUser();
         this.editForm = {
-            gender: this.currentUser?.gender || null,
-            city: this.userProfile?.city || "",
-            bio: this.userProfile?.bio || "",
-            location: this.userProfile?.location || "",
-            interests: [...(this.userProfile?.interests || [])],
-            appearsInSearches: this.userProfile?.appearsInSearches !== false,
-            dateOfBirth: this.userProfile?.dateOfBirth
-                ? new Date(this.userProfile.dateOfBirth)
+            gender: user?.gender ?? null,
+            city: profile?.city ?? "",
+            bio: profile?.bio ?? "",
+            location: profile?.location ?? "",
+            interests: [...(profile?.interests ?? [])],
+            appearsInSearches: profile?.appearsInSearches !== false,
+            dateOfBirth: profile?.dateOfBirth
+                ? new Date(profile.dateOfBirth)
                 : null,
         };
-        this.showEditDialog = true;
+        this.showEditDialog.set(true);
         this.loadVerificationStatus();
     }
 
     saveProfile(): void {
-        if (!this.isOwnProfile) {
+        if (!this.isOwnProfile()) {
             this.messageService.add({
                 severity: "error",
                 summary: "Error",
@@ -407,41 +443,38 @@ export class ProfileComponent implements OnInit, OnDestroy {
             });
             return;
         }
-
-        // Update basic user info (gender)
         this.userService
-            .updateProfile({
-                gender: this.editForm.gender,
-            } as any)
+            .updateProfile({ gender: this.editForm.gender } as {
+                gender?: string;
+            })
             .pipe(takeUntil(this.destroy$))
             .subscribe({
                 next: () => {
-                    // Update user profile (bio, interests, location, privacy)
-                    const profileUpdate: UpdateUserProfileDTO = {
+                    const update: UpdateUserProfileDTO = {
                         bio: this.editForm.bio,
                         city: this.editForm.city,
                         location: this.editForm.location,
                         interests: this.editForm.interests,
                         appearsInSearches: this.editForm.appearsInSearches,
-                        dateOfBirth: this.editForm.dateOfBirth,
+                        dateOfBirth: this.editForm.dateOfBirth
+                            ? this.editForm.dateOfBirth.toISOString()
+                            : undefined,
                     };
-
                     this.userService
-                        .updateUserProfile(profileUpdate)
+                        .updateUserProfile(update)
                         .pipe(takeUntil(this.destroy$))
                         .subscribe({
                             next: () => {
-                                // Reload data
                                 this.loadCurrentUser();
                                 this.loadUserProfile();
-                                this.showEditDialog = false;
+                                this.showEditDialog.set(false);
                                 this.messageService.add({
                                     severity: "success",
                                     summary: "Success",
                                     detail: "Profile updated successfully",
                                 });
                             },
-                            error: (error: any) => {
+                            error: (error: unknown) => {
                                 console.error(
                                     "Error updating user profile:",
                                     error,
@@ -454,7 +487,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
                             },
                         });
                 },
-                error: (error: any) => {
+                error: (error: unknown) => {
                     console.error("Error updating profile:", error);
                     this.messageService.add({
                         severity: "error",
@@ -466,12 +499,11 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
 
     addInterest(): void {
-        if (this.newInterest && this.newInterest.trim()) {
-            if (!this.editForm.interests) {
-                this.editForm.interests = [];
-            }
-            if (!this.editForm.interests.includes(this.newInterest.trim())) {
-                this.editForm.interests.push(this.newInterest.trim());
+        if (this.newInterest?.trim()) {
+            if (!this.editForm.interests) this.editForm.interests = [];
+            const trimmed = this.newInterest.trim();
+            if (!this.editForm.interests.includes(trimmed)) {
+                this.editForm.interests.push(trimmed);
             }
             this.newInterest = "";
         }
@@ -480,23 +512,18 @@ export class ProfileComponent implements OnInit, OnDestroy {
     removeInterest(interest: string): void {
         if (this.editForm.interests) {
             this.editForm.interests = this.editForm.interests.filter(
-                (i: string) => i !== interest,
+                (i) => i !== interest,
             );
         }
     }
 
     isOnline(userId: number | undefined): boolean {
         if (!userId) return false;
-
-        // Find the friend's lastOnline timestamp
-        const friend = this.friends.find((f) => f.friendId === userId);
-        const lastOnline = friend?.user?.lastOnline;
-
-        return this.onlineStatusService.isOnline(lastOnline);
+        const friend = this.friends().find((f) => f.friendId === userId);
+        return this.onlineStatusService.isOnline(friend?.user?.lastOnline);
     }
 
     startChat(friend: FriendDTO): void {
-        // Navigate to chat conversation with this friend
         if (friend.friendId) {
             this.router.navigate(["/chat/conversation", friend.friendId]);
         }
@@ -507,16 +534,14 @@ export class ProfileComponent implements OnInit, OnDestroy {
             .getProfilePicture("response")
             .pipe(takeUntil(this.destroy$))
             .subscribe({
-                next: (response: any) => {
-                    const blob = response.body as Blob;
-                    if (this.profilePictureBlobUrl) {
-                        URL.revokeObjectURL(this.profilePictureBlobUrl);
-                    }
-                    this.profilePictureBlobUrl = URL.createObjectURL(blob);
-                    this.cdr.detectChanges();
+                next: (response) => {
+                    const blob = response.body;
+                    if (!blob) return;
+                    const prev = this.profilePictureBlobUrl();
+                    if (prev) URL.revokeObjectURL(prev);
+                    this.profilePictureBlobUrl.set(URL.createObjectURL(blob));
                 },
-                error: (error: any) => {
-                    // Profile picture not found is okay, user might not have one
+                error: (error: { status?: number }) => {
                     if (error.status !== 404) {
                         console.error("Error loading profile picture:", error);
                     }
@@ -524,8 +549,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
             });
     }
 
-    onProfilePictureUpload(event: any): void {
-        if (!this.isOwnProfile) {
+    onProfilePictureUpload(event: { files: File[] }): void {
+        if (!this.isOwnProfile()) {
             this.messageService.add({
                 severity: "error",
                 summary: "Error",
@@ -533,29 +558,26 @@ export class ProfileComponent implements OnInit, OnDestroy {
             });
             return;
         }
-
         const file = event.files[0];
         if (!file) return;
-
-        this.isUploading = true;
-
+        this.isUploading.set(true);
         this.userService
             .uploadProfilePicture(file)
             .pipe(takeUntil(this.destroy$))
             .subscribe({
-                next: (user: UserDTO) => {
-                    this.currentUser = user;
-                    this.loadProfilePicture(); // Reload the profile picture
-                    this.isUploading = false;
+                next: (user) => {
+                    this.currentUser.set(user);
+                    this.loadProfilePicture();
+                    this.isUploading.set(false);
                     this.messageService.add({
                         severity: "success",
                         summary: "Success",
                         detail: "Profile picture uploaded successfully",
                     });
                 },
-                error: (error: any) => {
+                error: (error) => {
                     console.error("Error uploading profile picture:", error);
-                    this.isUploading = false;
+                    this.isUploading.set(false);
                     this.messageService.add({
                         severity: "error",
                         summary: "Error",
@@ -566,7 +588,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
 
     setPhotoAsProfilePicture(photoId: number): void {
-        if (!this.isOwnProfile) {
+        if (!this.isOwnProfile()) {
             this.messageService.add({
                 severity: "error",
                 summary: "Error",
@@ -574,21 +596,20 @@ export class ProfileComponent implements OnInit, OnDestroy {
             });
             return;
         }
-
         this.userService
             .setProfilePicture(photoId)
             .pipe(takeUntil(this.destroy$))
             .subscribe({
-                next: (user: UserDTO) => {
-                    this.currentUser = user;
-                    this.loadProfilePicture(); // Reload the profile picture
+                next: (user) => {
+                    this.currentUser.set(user);
+                    this.loadProfilePicture();
                     this.messageService.add({
                         severity: "success",
                         summary: "Success",
                         detail: "Profile picture updated successfully",
                     });
                 },
-                error: (error: any) => {
+                error: (error) => {
                     console.error("Error setting profile picture:", error);
                     this.messageService.add({
                         severity: "error",
@@ -600,47 +621,50 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
 
     getProfilePictureUrl(): string {
-        return this.profilePictureBlobUrl || "";
+        return this.profilePictureBlobUrl() ?? "";
     }
 
     hasProfilePicture(): boolean {
-        return !!this.profilePictureBlobUrl;
+        return !!this.profilePictureBlobUrl();
     }
 
     loadOtherUserProfile(userId: number): void {
-        this.isLoading = true;
-
-        // Clear previous user's photos and blob URLs to avoid stale/wrong images
-        this.userPhotos = [];
-        this.photoBlobUrls.forEach((url) => URL.revokeObjectURL(url));
-        this.photoBlobUrls.clear();
-        if (this.profilePictureBlobUrl) {
-            URL.revokeObjectURL(this.profilePictureBlobUrl);
-            this.profilePictureBlobUrl = null;
+        this.isLoading.set(true);
+        this.userPhotos.set([]);
+        this.photoBlobUrls().forEach((url) => URL.revokeObjectURL(url));
+        this.photoBlobUrls.set(new Map());
+        const pp = this.profilePictureBlobUrl();
+        if (pp) {
+            URL.revokeObjectURL(pp);
+            this.profilePictureBlobUrl.set(null);
         }
-
         this.userService
             .getUserById(userId)
             .pipe(takeUntil(this.destroy$))
             .subscribe({
-                next: (response: any) => {
-                    this.viewingUser = response.user;
-                    this.currentUser = response.user; // Also set currentUser for template compatibility
-                    this.userProfile = response.profile; // Set profile data
-                    this.balance = response.user.balance || "0";
+                next: (response) => {
+                    const user = response.user;
+                    const profile = response.profile;
+                    if (!user || !profile) return;
+                    const balance = (user as UserDTO & { balance?: string })
+                        .balance;
+                    this.viewingUser.set(user);
+                    this.currentUser.set(user);
+                    this.userProfile.set(profile);
+                    this.balance.set(balance ?? "0");
                     this.loadOtherUserPhotos(userId);
                     this.loadOtherUserProfilePicture(userId);
-                    this.loadReceivedGifts(); // Load gifts for the viewed user
-                    this.isLoading = false;
+                    this.loadReceivedGifts();
+                    this.isLoading.set(false);
                 },
-                error: (error: any) => {
+                error: (error: unknown) => {
                     console.error("Error loading user profile:", error);
                     this.messageService.add({
                         severity: "error",
                         summary: "Error",
                         detail: "Failed to load user profile",
                     });
-                    this.isLoading = false;
+                    this.isLoading.set(false);
                     this.router.navigate(["/profile"]);
                 },
             });
@@ -651,17 +675,13 @@ export class ProfileComponent implements OnInit, OnDestroy {
             .getUserPhotosByUserId(userId)
             .pipe(takeUntil(this.destroy$))
             .subscribe({
-                next: (photos: UserPhotoDTO[]) => {
-                    this.userPhotos = photos;
-
-                    // Load blob URLs for all photos
-                    photos.forEach((photo) => {
-                        if (photo.id) {
-                            this.loadPhotoBlobUrl(photo.id);
-                        }
+                next: (photos) => {
+                    this.userPhotos.set(photos);
+                    photos.forEach((p) => {
+                        if (p.id) this.loadPhotoBlobUrl(p.id);
                     });
                 },
-                error: (error: any) => {
+                error: (error: { status?: number }) => {
                     console.error("Error loading photos:", error);
                     if (error.status === 403) {
                         this.messageService.add({
@@ -680,16 +700,14 @@ export class ProfileComponent implements OnInit, OnDestroy {
             .getProfilePictureByUserId(userId, "response")
             .pipe(takeUntil(this.destroy$))
             .subscribe({
-                next: (response: any) => {
-                    const blob = response.body as Blob;
-                    if (this.profilePictureBlobUrl) {
-                        URL.revokeObjectURL(this.profilePictureBlobUrl);
-                    }
-                    this.profilePictureBlobUrl = URL.createObjectURL(blob);
-                    this.cdr.detectChanges();
+                next: (response) => {
+                    const blob = response.body;
+                    if (!blob) return;
+                    const prev = this.profilePictureBlobUrl();
+                    if (prev) URL.revokeObjectURL(prev);
+                    this.profilePictureBlobUrl.set(URL.createObjectURL(blob));
                 },
-                error: (error: any) => {
-                    // Profile picture not found is okay, user might not have one
+                error: (error: { status?: number }) => {
                     if (error.status !== 404) {
                         console.error("Error loading profile picture:", error);
                     }
@@ -698,13 +716,12 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
 
     openPhotoDialog(photo: UserPhotoDTO): void {
-        this.selectedPhoto = photo;
-        this.showPhotoDialog = true;
+        this.selectedPhoto.set(photo);
+        this.showPhotoDialog.set(true);
     }
 
     togglePhotoLike(photo: UserPhotoDTO): void {
         if (!photo.id) return;
-
         if (photo.isLikedByCurrentUser) {
             this.userService.unlikePhoto(photo.id).subscribe({
                 next: (response) => {
@@ -746,8 +763,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
             accept: () => {
                 this.userService.deletePhoto(photoId).subscribe({
                     next: () => {
-                        this.userPhotos = this.userPhotos.filter(
-                            (p) => p.id !== photoId,
+                        this.userPhotos.update((p) =>
+                            p.filter((x) => x.id !== photoId),
                         );
                         this.messageService.add({
                             severity: "success",
@@ -769,23 +786,17 @@ export class ProfileComponent implements OnInit, OnDestroy {
         });
     }
 
-    // Verification methods
     loadVerificationStatus(): void {
         this.userService.getVerificationStatus().subscribe({
-            next: (status) => {
-                this.verificationStatus = status;
-            },
-            error: (error) => {
-                console.error("Error loading verification status:", error);
-            },
+            next: (status) => this.verificationStatus.set(status),
+            error: (error) =>
+                console.error("Error loading verification status:", error),
         });
     }
 
-    onVerificationPhotoSelect(event: any): void {
+    onVerificationPhotoSelect(event: { files: File[] }): void {
         const file = event.files[0];
-        if (file) {
-            this.verificationPhoto = file;
-        }
+        if (file) this.verificationPhoto = file;
     }
 
     uploadVerificationPhoto(): void {
@@ -797,13 +808,11 @@ export class ProfileComponent implements OnInit, OnDestroy {
             });
             return;
         }
-
-        this.isVerificationUploading = true;
-
+        this.isVerificationUploading.set(true);
         this.userService
             .uploadVerificationPhoto(this.verificationPhoto)
             .subscribe({
-                next: (_response) => {
+                next: () => {
                     this.messageService.add({
                         severity: "success",
                         summary: "Success",
@@ -820,16 +829,16 @@ export class ProfileComponent implements OnInit, OnDestroy {
                         detail: "Failed to upload verification photo",
                     });
                 },
-                complete: () => {
-                    this.isVerificationUploading = false;
-                },
+                complete: () => this.isVerificationUploading.set(false),
             });
     }
 
     getVerificationStatusText(): string {
-        if (!this.verificationStatus) return "Not submitted";
-
-        switch (this.verificationStatus.verificationRequest?.status) {
+        const status = this.verificationStatus() as {
+            verificationRequest?: { status?: string };
+        } | null;
+        if (!status) return "Not submitted";
+        switch (status.verificationRequest?.status) {
             case "pending":
                 return "Pending Review";
             case "in_review":
@@ -850,28 +859,44 @@ export class ProfileComponent implements OnInit, OnDestroy {
         | "warn"
         | "secondary"
         | "contrast" {
-        if (!this.verificationStatus) return "info" as const;
-
-        switch (this.verificationStatus.verificationRequest?.status) {
+        const status = this.verificationStatus() as {
+            verificationRequest?: { status?: string };
+        } | null;
+        if (!status) return "info";
+        switch (status.verificationRequest?.status) {
             case "pending":
-                return "warn" as const;
+                return "warn";
             case "in_review":
-                return "info" as const;
+                return "info";
             case "verified":
-                return "success" as const;
+                return "success";
             case "rejected":
-                return "error" as const;
+                return "error";
             default:
-                return "info" as const;
+                return "info";
         }
     }
 
     isVerificationPending(): boolean {
-        return (
-            this.verificationStatus?.verificationRequest?.status ===
-                "pending" ||
-            this.verificationStatus?.verificationRequest?.status === "in_review"
-        );
+        const status = this.verificationStatus() as {
+            verificationRequest?: { status?: string };
+        } | null;
+        const s = status?.verificationRequest?.status;
+        return s === "pending" || s === "in_review";
+    }
+
+    getVerificationRejectionReason(): string | undefined {
+        const status = this.verificationStatus() as {
+            verificationRequest?: { rejectionReason?: string };
+        } | null;
+        return status?.verificationRequest?.rejectionReason;
+    }
+
+    isVerificationVerified(): boolean {
+        const status = this.verificationStatus() as {
+            isVerified?: boolean;
+        } | null;
+        return !!status?.isVerified;
     }
 
     private setupVerificationNotifications(): void {
@@ -880,9 +905,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
             .pipe(takeUntil(this.destroy$))
             .subscribe({
                 next: (notification) => {
-                    console.log("Verification status changed:", notification);
-
-                    // Show notification to user
                     this.messageService.add({
                         severity:
                             notification.status === "verified"
@@ -892,31 +914,27 @@ export class ProfileComponent implements OnInit, OnDestroy {
                         detail: notification.message,
                         life: 8000,
                     });
-
-                    // Reload verification status to update UI
                     this.loadVerificationStatus();
                 },
-                error: (error) => {
+                error: (error) =>
                     console.error(
                         "Error receiving verification notification:",
                         error,
-                    );
-                },
+                    ),
             });
     }
 
     getBalanceAsInteger(): string {
-        const balanceValue = parseFloat(this.balance || "0");
-        return Math.floor(balanceValue).toString();
+        return Math.floor(parseFloat(this.balance() || "0")).toString();
     }
 
     openDepositDialog(): void {
-        this.showDepositDialog = true;
+        this.showDepositDialog.set(true);
     }
 
     closeDepositDialog(): void {
-        this.showDepositDialog = false;
-        this.isDepositing = false;
+        this.showDepositDialog.set(false);
+        this.isDepositing.set(false);
         this.depositForm = {
             amount: null,
             cardNumber: "",
@@ -927,20 +945,17 @@ export class ProfileComponent implements OnInit, OnDestroy {
         };
     }
 
-    formatCardNumber(event: any): void {
+    formatCardNumber(event: { target: { value: string } }): void {
         const value = event.target.value
             .replace(/\s+/g, "")
             .replace(/[^0-9]/gi, "");
-        const formattedValue = value.match(/.{1,4}/g)?.join(" ") || value;
-        this.depositForm.cardNumber = formattedValue;
+        this.depositForm.cardNumber =
+            value.match(/.{1,4}/g)?.join(" ") ?? value;
     }
 
     submitDeposit(): void {
-        if (
-            this.depositForm.amount === null ||
-            this.depositForm.amount === undefined ||
-            this.depositForm.amount <= 0
-        ) {
+        const amount = this.depositForm.amount;
+        if (amount == null || amount <= 0) {
             this.messageService.add({
                 severity: "warn",
                 summary: "Validation",
@@ -948,184 +963,99 @@ export class ProfileComponent implements OnInit, OnDestroy {
             });
             return;
         }
-
-        // Card details are mocked - they're only for UI display
-        // The backend uses a mock payment provider that doesn't require actual card details
-
-        const amount = Math.floor(Number(this.depositForm.amount));
-        this.isDepositing = true;
-
-        // Send deposit request to backend
-        // Currency and paymentMethod are mocked/static values
+        const amt = Math.floor(Number(amount));
+        this.isDepositing.set(true);
         this.walletService
             .deposit({
-                amount: amount.toString(),
+                amount: amt.toString(),
                 currency: "USD",
                 paymentMethod: "card",
             })
             .pipe(takeUntil(this.destroy$))
             .subscribe({
-                next: (response: any) => {
-                    // Update balance from response
-                    this.balance = response.balance || this.balance;
-
-                    // Reload current user to ensure all data is in sync
-                    if (this.isOwnProfile) {
-                        this.loadCurrentUser();
-                    }
-
+                next: (response: { balance?: string }) => {
+                    this.balance.set(response.balance ?? this.balance());
+                    if (this.isOwnProfile()) this.loadCurrentUser();
                     this.messageService.add({
                         severity: "success",
                         summary: "Success",
-                        detail: `Successfully added ${amount} tokens. New balance: ${this.getBalanceAsInteger()} tokens`,
+                        detail: `Successfully added ${amt} tokens. New balance: ${this.getBalanceAsInteger()} tokens`,
                     });
-                    this.isDepositing = false;
+                    this.isDepositing.set(false);
                     this.closeDepositDialog();
                 },
-                error: (error: any) => {
+                error: (error: { error?: { message?: string } }) => {
                     console.error("Error depositing funds:", error);
                     this.messageService.add({
                         severity: "error",
                         summary: "Error",
                         detail:
-                            error.error?.message ||
+                            error.error?.message ??
                             "Failed to add tokens. Please try again.",
                     });
-                    this.isDepositing = false;
+                    this.isDepositing.set(false);
                 },
             });
     }
 
     loadReceivedGifts(): void {
-        this.isLoadingGifts = true;
-
-        if (this.isOwnProfile) {
-            // Load own received gifts
+        this.isLoadingGifts.set(true);
+        if (this.isOwnProfile()) {
             this.giftService
                 .getReceivedGifts(100)
                 .pipe(takeUntil(this.destroy$))
                 .subscribe({
                     next: (gifts) => {
-                        this.receivedGifts = gifts;
-                        this.isLoadingGifts = false;
-
-                        // If no gifts, switch to the Received Gifts tab
-                        if (gifts.length === 0) {
-                            this.activeTabIndex = 6; // Received Gifts tab index
-                        }
+                        this.receivedGifts.set(gifts);
+                        this.isLoadingGifts.set(false);
+                        if (gifts.length === 0) this.activeTabIndex.set(6);
                     },
                     error: (error) => {
                         console.error("Error loading received gifts:", error);
-                        this.isLoadingGifts = false;
+                        this.isLoadingGifts.set(false);
                     },
                 });
-        } else if (this.viewingUserId) {
-            // Load received gifts for the viewed user using the new endpoint
-            const url = `${environment.apiUrl}/gifts/user/${this.viewingUserId}/received`;
-            const params = { limit: 100 };
-
+        } else if (this.viewingUserId()) {
+            const url = `${environment.apiUrl}/gifts/user/${this.viewingUserId()}/received`;
             this.http
-                .get<GiftDTO[]>(url, { params })
+                .get<GiftDTO[]>(url, { params: { limit: 100 } })
                 .pipe(takeUntil(this.destroy$))
                 .subscribe({
                     next: (gifts) => {
-                        this.receivedGifts = gifts || [];
-                        this.isLoadingGifts = false;
+                        this.receivedGifts.set(gifts ?? []);
+                        this.isLoadingGifts.set(false);
                     },
                     error: (error) => {
                         console.error(
                             "Error loading received gifts for user:",
                             error,
                         );
-                        // If error, show empty list
-                        this.receivedGifts = [];
-                        this.isLoadingGifts = false;
+                        this.receivedGifts.set([]);
+                        this.isLoadingGifts.set(false);
                     },
                 });
         } else {
-            this.isLoadingGifts = false;
+            this.isLoadingGifts.set(false);
         }
     }
 
     getSenderName(gift: GiftDTO): string {
         if (!gift.sender) return "Unknown";
-        const firstName = gift.sender.firstname || "";
-        const lastName = gift.sender.lastname || "";
-        return (
-            `${firstName} ${lastName}`.trim() || gift.sender.email || "Unknown"
-        );
+        const first = gift.sender.firstname ?? "";
+        const last = gift.sender.lastname ?? "";
+        return (`${first} ${last}`.trim() || gift.sender.email) ?? "Unknown";
     }
 
     getSenderNameFromSender(sender: GiftDTO["sender"]): string {
         if (!sender) return "Unknown";
-        const firstName = sender.firstname || "";
-        const lastName = sender.lastname || "";
-        return `${firstName} ${lastName}`.trim() || sender.email || "Unknown";
+        const first = sender.firstname ?? "";
+        const last = sender.lastname ?? "";
+        return (`${first} ${last}`.trim() || sender.email) ?? "Unknown";
     }
 
-    /**
-     * Grouped gifts by sender and emoji
-     */
-    get groupedReceivedGifts(): Array<{
-        giftEmoji: string;
-        senderId: number;
-        sender: GiftDTO["sender"];
-        gifts: GiftDTO[];
-        totalAmount: string;
-        latestDate: Date;
-        messages: string[];
-    }> {
-        const grouped = new Map<string, GiftDTO[]>();
-
-        // Group gifts by senderId and giftEmoji
-        this.receivedGifts.forEach((gift) => {
-            const senderId = gift.senderId || gift.sender?.id || 0;
-            const key = `${senderId}_${gift.giftEmoji}`;
-
-            if (!grouped.has(key)) {
-                grouped.set(key, []);
-            }
-            grouped.get(key)!.push(gift);
-        });
-
-        // Convert map to array and calculate totals
-        return Array.from(grouped.entries()).map(([_key, gifts]) => {
-            const firstGift = gifts[0];
-            const senderId = firstGift.senderId || firstGift.sender?.id || 0;
-
-            // Calculate total amount
-            const totalAmount = gifts
-                .reduce((sum, gift) => {
-                    return sum + parseFloat(gift.amount || "0");
-                }, 0)
-                .toFixed(8);
-
-            // Get latest date
-            const latestDate = gifts.reduce((latest, gift) => {
-                const giftDate = new Date(gift.createdAt);
-                return giftDate > latest ? giftDate : latest;
-            }, new Date(gifts[0].createdAt));
-
-            // Collect all non-empty messages
-            const messages = gifts
-                .map((g) => g.message)
-                .filter((msg): msg is string => !!msg && msg.trim() !== "");
-
-            return {
-                giftEmoji: firstGift.giftEmoji,
-                senderId,
-                sender: firstGift.sender,
-                gifts,
-                totalAmount,
-                latestDate,
-                messages,
-            };
-        });
-    }
-
-    // Send Gift methods
     openSendGiftDialog(): void {
-        if (!this.viewingUserId) {
+        const uid = this.viewingUserId();
+        if (!uid) {
             this.messageService.add({
                 severity: "error",
                 summary: "Error",
@@ -1133,29 +1063,26 @@ export class ProfileComponent implements OnInit, OnDestroy {
             });
             return;
         }
-
-        this.recipientUserForGift = {
-            id: this.viewingUserId,
-            fullName: this.viewingUser?.fullName,
-            name: this.viewingUser?.fullName,
-        };
-        this.showSendGiftDialog = true;
+        this.recipientUserForGift.set({
+            id: uid,
+            fullName: this.viewingUser()?.fullName,
+            name: this.viewingUser()?.fullName,
+        });
+        this.showSendGiftDialog.set(true);
     }
 
-    onGiftSent(_response: any): void {
-        // Gift was sent successfully, dialog is already closed
-        this.recipientUserForGift = null;
-        // Reload received gifts for the viewed user
+    onGiftSent(): void {
+        this.recipientUserForGift.set(null);
         this.loadReceivedGifts();
     }
 
     getBalanceAsNumber(): number {
-        return parseFloat(this.balance || "0");
+        return parseFloat(this.balance() || "0");
     }
 
-    // Video Call Methods
     startVideoCall(): void {
-        if (!this.viewingUserId) {
+        const uid = this.viewingUserId();
+        if (!uid) {
             this.messageService.add({
                 severity: "error",
                 summary: "Error",
@@ -1163,15 +1090,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
             });
             return;
         }
-
-        const recipientName = this.viewingUser?.fullName || "Unknown User";
-
-        // Navigate to video call page with recipient info
+        const name = this.viewingUser()?.fullName ?? "Unknown User";
         this.router.navigate(["/video-call"], {
-            queryParams: {
-                recipientId: this.viewingUserId,
-                recipientName: recipientName,
-            },
+            queryParams: { recipientId: uid, recipientName: name },
         });
     }
 }

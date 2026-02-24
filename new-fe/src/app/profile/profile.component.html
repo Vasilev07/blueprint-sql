@@ -2,76 +2,88 @@
   <!-- Profile Header -->
   <div class="profile-header">
     <div class="user-info">
-      <h1 class="user-name">{{ currentUser?.fullName || 'User' }}</h1>
+      <h1 class="user-name">@if (currentUser(); as user) { {{ user.fullName }} } @else { User }</h1>
       <div class="user-details">
         <div class="user-location">
           <i class="pi pi-map-marker"></i>
-          <span>{{ currentUser?.city || 'City not set' }}</span>
+          <span>{{ currentUser()?.city || 'City not set' }}</span>
         </div>
-        <div class="user-gender" *ngIf="currentUser?.gender">
-          <i class="pi pi-user"></i>
-          <span>{{ currentUser?.gender | titlecase }}</span>
+        @if (currentUser()?.gender) {
+          <div class="user-gender">
+            <i class="pi pi-user"></i>
+            <span>{{ currentUser()?.gender | titlecase }}</span>
+          </div>
+        }
+        @if (isOwnProfile()) {
+          <div class="user-balance">
+            <i class="pi pi-heart"></i>
+            <span class="balance-amount">{{ getBalanceAsInteger() }} tokens</span>
+          </div>
+        }
+      </div>
+      @if (isOwnProfile()) {
+        <div class="header-actions">
+          <p-button
+            icon="pi pi-plus-circle"
+            label="Add Tokens"
+            styleClass="p-button-sm p-button-success"
+            (onClick)="openDepositDialog()">
+          </p-button>
+          <p-button
+            icon="pi pi-pencil"
+            label="Edit Profile"
+            styleClass="p-button-sm p-button-outlined"
+            (onClick)="openEditDialog()">
+          </p-button>
         </div>
-        <div class="user-balance" *ngIf="isOwnProfile">
-          <i class="pi pi-heart"></i>
-          <span class="balance-amount">{{ getBalanceAsInteger() }} tokens</span>
+      }
+      @if (!isOwnProfile()) {
+        <div class="header-actions">
+          <p-button
+            icon="pi pi-phone"
+            label="Video Call"
+            styleClass="p-button-sm p-button-info"
+            (onClick)="startVideoCall()">
+          </p-button>
+          <p-button
+            icon="pi pi-gift"
+            label="Send Gift"
+            styleClass="p-button-sm p-button-success"
+            (onClick)="openSendGiftDialog()">
+          </p-button>
         </div>
-      </div>
-      <div class="header-actions" *ngIf="isOwnProfile">
-        <p-button
-          icon="pi pi-plus-circle"
-          label="Add Tokens"
-          styleClass="p-button-sm p-button-success"
-          (onClick)="openDepositDialog()">
-        </p-button>
-        <p-button
-          icon="pi pi-pencil"
-          label="Edit Profile"
-          styleClass="p-button-sm p-button-outlined"
-          (onClick)="openEditDialog()">
-        </p-button>
-      </div>
-      <div class="header-actions" *ngIf="!isOwnProfile">
-        <p-button
-          icon="pi pi-phone"
-          label="Video Call"
-          styleClass="p-button-sm p-button-info"
-          (onClick)="startVideoCall()">
-        </p-button>
-        <p-button
-          icon="pi pi-gift"
-          label="Send Gift"
-          styleClass="p-button-sm p-button-success"
-          (onClick)="openSendGiftDialog()">
-        </p-button>
-      </div>
+      }
     </div>
     <div class="user-avatar">
-      <p-avatar
-        *ngIf="!hasProfilePicture()"
-        [label]="getUserInitials()"
-        size="xlarge"
-        styleClass="profile-avatar">
-      </p-avatar>
-      <p-avatar
-        *ngIf="hasProfilePicture()"
-        [image]="getProfilePictureUrl()"
-        size="xlarge"
-        styleClass="profile-avatar">
-      </p-avatar>
-      <div class="avatar-upload" *ngIf="isOwnProfile">
-        <p-fileUpload
-          mode="basic"
-          name="photo"
-          accept="image/*"
-          maxFileSize="10000000"
-          (onUpload)="onProfilePictureUpload($event)"
-          (onSelect)="onProfilePictureUpload($event)"
-          chooseIcon="pi pi-camera"
-          [chooseLabel]="hasProfilePicture() ? 'Change' : 'Upload'"
-          styleClass="p-button-sm p-button-rounded">
-        </p-fileUpload>
-      </div>
+      @if (!hasProfilePicture()) {
+        <p-avatar
+          [label]="getUserInitials()"
+          size="xlarge"
+          styleClass="profile-avatar">
+        </p-avatar>
+      }
+      @if (hasProfilePicture()) {
+        <p-avatar
+          [image]="getProfilePictureUrl()"
+          size="xlarge"
+          styleClass="profile-avatar">
+        </p-avatar>
+      }
+      @if (isOwnProfile()) {
+        <div class="avatar-upload">
+          <p-fileUpload
+            mode="basic"
+            name="photo"
+            accept="image/*"
+            maxFileSize="10000000"
+            (onUpload)="onProfilePictureUpload($event)"
+            (onSelect)="onProfilePictureUpload($event)"
+            chooseIcon="pi pi-camera"
+            [chooseLabel]="hasProfilePicture() ? 'Change' : 'Upload'"
+            styleClass="p-button-sm p-button-rounded">
+          </p-fileUpload>
+        </div>
+      }
     </div>
   </div>
 
@@ -91,83 +103,20 @@
         <p-tabpanels>
           <p-tabpanel [value]="0">
           <div class="photos-content">
-            <!-- Profile Images Section -->
             <div class="profile-images-section">
               <h3 class="section-title">PROFILE IMAGES</h3>
               <div class="visibility-info">
                 <span class="visibility-label">Public</span>
               </div>
 
-              <!-- Empty State -->
-              <div *ngIf="userPhotos.length === 0" class="empty-gallery">
-                <div class="empty-gallery-content">
-                  <i class="pi pi-camera empty-icon"></i>
-                  <p class="empty-text">
-                    This gallery is still empty. This gallery is only visible to you since it is empty.
-                  </p>
-                  <p-fileUpload
-                    *ngIf="isOwnProfile"
-                    mode="basic"
-                    name="photo"
-                    accept="image/*"
-                    maxFileSize="10000000"
-                    (onUpload)="onPhotoUpload($event)"
-                    (onSelect)="onPhotoUpload($event)"
-                    chooseLabel="Choose Photo"
-                    styleClass="upload-button">
-                  </p-fileUpload>
-                  <p *ngIf="!isOwnProfile" class="viewing-message">
-                    You are viewing {{ currentUser?.fullName }}'s profile
-                  </p>
-                </div>
-              </div>
-
-              <!-- Photos Grid -->
-              <div *ngIf="userPhotos.length > 0" class="photos-grid">
-                  <div *ngFor="let photo of userPhotos" class="photo-item" (click)="openPhotoDialog(photo)">
-                    <img
-                      [src]="getPhotoUrl(photo.id!)"
-                      [alt]="photo.name"
-                      class="photo-image">
-                    <div class="photo-overlay">
-                      <!-- Instagram-like stats overlay -->
-                      <div class="photo-stats">
-                        <div class="stat-item">
-                          <i [class]="photo.isLikedByCurrentUser ? 'pi pi-heart-fill' : 'pi pi-heart'"></i>
-                          <span>{{ photo.likesCount || 0 }}</span>
-                        </div>
-                      </div>
-                      
-                      <!-- Profile picture badge -->
-                      <div *ngIf="currentUser?.profilePictureId === photo.id" class="profile-pic-badge">
-                        <i class="pi pi-check-circle"></i>
-                        <span>Profile Picture</span>
-                      </div>
-                      
-                      <!-- Action buttons (only visible on own profile) -->
-                      <div *ngIf="isOwnProfile" class="photo-actions" (click)="$event.stopPropagation()">
-                        <p-button
-                          *ngIf="currentUser?.profilePictureId !== photo.id"
-                          label="Set as Profile"
-                          icon="pi pi-check-circle"
-                          styleClass="p-button-sm p-button-outlined"
-                          (onClick)="setPhotoAsProfilePicture(photo.id!); $event.stopPropagation()">
-                        </p-button>
-                        <p-button
-                          label="Delete"
-                          icon="pi pi-trash"
-                          styleClass="p-button-sm p-button-outlined p-button-danger"
-                          (onClick)="deletePhoto(photo.id!); $event.stopPropagation()">
-                        </p-button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Add more photos button -->
-                  <div class="add-photo-item" *ngIf="isOwnProfile">
-                    <div class="add-photo-content">
-                      <i class="pi pi-plus"></i>
-                      <span>Add Photo</span>
+              @if (userPhotos().length === 0) {
+                <div class="empty-gallery">
+                  <div class="empty-gallery-content">
+                    <i class="pi pi-camera empty-icon"></i>
+                    <p class="empty-text">
+                      This gallery is still empty. This gallery is only visible to you since it is empty.
+                    </p>
+                    @if (isOwnProfile()) {
                       <p-fileUpload
                         mode="basic"
                         name="photo"
@@ -175,12 +124,84 @@
                         maxFileSize="10000000"
                         (onUpload)="onPhotoUpload($event)"
                         (onSelect)="onPhotoUpload($event)"
-                        chooseLabel="Choose File"
-                        styleClass="p-button-sm">
+                        chooseLabel="Choose Photo"
+                        styleClass="upload-button">
                       </p-fileUpload>
-                    </div>
+                    }
+                    @if (!isOwnProfile()) {
+                      <p class="viewing-message">
+                        You are viewing {{ currentUser()?.fullName }}'s profile
+                      </p>
+                    }
                   </div>
                 </div>
+              }
+
+              @if (userPhotos().length > 0) {
+                <div class="photos-grid">
+                  @for (photo of userPhotos(); track photo.id ?? photo.uploadedAt) {
+                    <div class="photo-item" (click)="openPhotoDialog(photo)">
+                      <img
+                        [src]="getPhotoUrl(photo.id!)"
+                        [alt]="photo.name"
+                        class="photo-image">
+                      <div class="photo-overlay">
+                        <div class="photo-stats">
+                          <div class="stat-item">
+                            <i [class]="photo.isLikedByCurrentUser ? 'pi pi-heart-fill' : 'pi pi-heart'"></i>
+                            <span>{{ photo.likesCount || 0 }}</span>
+                          </div>
+                        </div>
+
+                        @if (currentUser()?.profilePictureId === photo.id) {
+                          <div class="profile-pic-badge">
+                            <i class="pi pi-check-circle"></i>
+                            <span>Profile Picture</span>
+                          </div>
+                        }
+
+                        @if (isOwnProfile()) {
+                          <div class="photo-actions" (click)="$event.stopPropagation()">
+                            @if (currentUser()?.profilePictureId !== photo.id) {
+                              <p-button
+                                label="Set as Profile"
+                                icon="pi pi-check-circle"
+                                styleClass="p-button-sm p-button-outlined"
+                                (onClick)="setPhotoAsProfilePicture(photo.id!); $event.stopPropagation()">
+                              </p-button>
+                            }
+                            <p-button
+                              label="Delete"
+                              icon="pi pi-trash"
+                              styleClass="p-button-sm p-button-outlined p-button-danger"
+                              (onClick)="deletePhoto(photo.id!); $event.stopPropagation()">
+                            </p-button>
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  }
+
+                  @if (isOwnProfile()) {
+                    <div class="add-photo-item">
+                      <div class="add-photo-content">
+                        <i class="pi pi-plus"></i>
+                        <span>Add Photo</span>
+                        <p-fileUpload
+                          mode="basic"
+                          name="photo"
+                          accept="image/*"
+                          maxFileSize="10000000"
+                          (onUpload)="onPhotoUpload($event)"
+                          (onSelect)="onPhotoUpload($event)"
+                          chooseLabel="Choose File"
+                          styleClass="p-button-sm">
+                        </p-fileUpload>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
             </div>
           </div>
           </p-tabpanel>
@@ -211,43 +232,61 @@
           </p-tabpanel>
           <p-tabpanel [value]="6">
           <div class="gifts-content">
-            <p-progressSpinner *ngIf="isLoadingGifts" styleClass="w-4rem h-4rem"></p-progressSpinner>
-            
-            <div *ngIf="!isLoadingGifts && receivedGifts.length === 0" class="empty-gallery">
-              <div class="empty-gallery-content">
-                <i class="pi pi-gift empty-icon"></i>
-                <p class="empty-text">No gifts received yet</p>
-              </div>
-            </div>
+            @if (isLoadingGifts()) {
+              <p-progressSpinner styleClass="w-4rem h-4rem"></p-progressSpinner>
+            }
 
-            <div *ngIf="!isLoadingGifts && receivedGifts.length > 0" class="gifts-grid">
-              <div *ngFor="let groupedGift of groupedReceivedGifts" class="gift-card-received">
-                <div class="gift-emoji-large">
-                  <span>{{ groupedGift.giftEmoji }}</span>
-                  <span *ngIf="groupedGift.gifts.length > 1" class="gift-count-badge">{{ groupedGift.gifts.length }}</span>
-                </div>
-                <div class="gift-details">
-                  <div class="gift-sender">
-                    <i class="pi pi-user"></i>
-                    <span>{{ getSenderNameFromSender(groupedGift.sender) }}</span>
-                  </div>
-                  <div class="gift-amount">
-                    <i class="pi pi-wallet"></i>
-                    <span>{{ groupedGift.totalAmount }} tokens</span>
-                    <span *ngIf="groupedGift.gifts.length > 1" class="gift-count-text">({{ groupedGift.gifts.length }} gifts)</span>
-                  </div>
-                  <div class="gift-date">
-                    <i class="pi pi-calendar"></i>
-                    <span>{{ groupedGift.latestDate | date:'short' }}</span>
-                  </div>
-                  <div *ngIf="groupedGift.messages.length > 0" class="gift-message">
-                    <i class="pi pi-comment"></i>
-                    <span *ngIf="groupedGift.messages.length === 1">"{{ groupedGift.messages[0] }}"</span>
-                    <span *ngIf="groupedGift.messages.length > 1">{{ groupedGift.messages.length }} messages</span>
-                  </div>
+            @if (!isLoadingGifts() && receivedGifts().length === 0) {
+              <div class="empty-gallery">
+                <div class="empty-gallery-content">
+                  <i class="pi pi-gift empty-icon"></i>
+                  <p class="empty-text">No gifts received yet</p>
                 </div>
               </div>
-            </div>
+            }
+
+            @if (!isLoadingGifts() && receivedGifts().length > 0) {
+              <div class="gifts-grid">
+                @for (groupedGift of groupedReceivedGifts(); track groupedGift.senderId + groupedGift.giftEmoji) {
+                  <div class="gift-card-received">
+                    <div class="gift-emoji-large">
+                      <span>{{ groupedGift.giftEmoji }}</span>
+                      @if (groupedGift.gifts.length > 1) {
+                        <span class="gift-count-badge">{{ groupedGift.gifts.length }}</span>
+                      }
+                    </div>
+                    <div class="gift-details">
+                      <div class="gift-sender">
+                        <i class="pi pi-user"></i>
+                        <span>{{ getSenderNameFromSender(groupedGift.sender) }}</span>
+                      </div>
+                      <div class="gift-amount">
+                        <i class="pi pi-wallet"></i>
+                        <span>{{ groupedGift.totalAmount }} tokens</span>
+                        @if (groupedGift.gifts.length > 1) {
+                          <span class="gift-count-text">({{ groupedGift.gifts.length }} gifts)</span>
+                        }
+                      </div>
+                      <div class="gift-date">
+                        <i class="pi pi-calendar"></i>
+                        <span>{{ groupedGift.latestDate | date:'short' }}</span>
+                      </div>
+                      @if (groupedGift.messages.length > 0) {
+                        <div class="gift-message">
+                          <i class="pi pi-comment"></i>
+                          @if (groupedGift.messages.length === 1) {
+                            <span>"{{ groupedGift.messages[0] }}"</span>
+                          }
+                          @if (groupedGift.messages.length > 1) {
+                            <span>{{ groupedGift.messages.length }} messages</span>
+                          }
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            }
           </div>
           </p-tabpanel>
         </p-tabpanels>
@@ -257,7 +296,6 @@
     <!-- Right Sidebar -->
     <div class="right-sidebar">
       <div class="sidebar-content">
-        <!-- Trial Membership -->
         <div class="sidebar-section">
           <div class="section-header">
             <i class="pi pi-star"></i>
@@ -265,137 +303,155 @@
           </div>
         </div>
 
-        <!-- Friends Section -->
-        <div class="sidebar-section" *ngIf="isOwnProfile">
-          <div class="section-header">
-            <h4>FRIENDS {{ friends.length }}</h4>
-            <p-button
-              icon="pi pi-plus"
-              styleClass="p-button-text p-button-sm add-friend-btn">
-            </p-button>
-          </div>
-          <div class="friends-list">
-            <div *ngFor="let friend of friends" class="friend-item">
-              <div class="friend-avatar-container">
-                <p-avatar
-                  [label]="friend.user?.firstname?.charAt(0) || 'F'"
-                  styleClass="friend-avatar">
-                </p-avatar>
-                <span class="online-status" [class.online]="isOnline(friend.friendId)"></span>
-              </div>
-              <div class="friend-info">
-                <span class="friend-name">{{ friend.user?.firstname }}</span>
-                <span class="friend-status" *ngIf="isOnline(friend.friendId)">Online</span>
-              </div>
+        @if (isOwnProfile()) {
+          <div class="sidebar-section">
+            <div class="section-header">
+              <h4>FRIENDS {{ friends().length }}</h4>
               <p-button
-                icon="pi pi-comment"
-                (onClick)="startChat(friend)"
-                [rounded]="true"
-                [text]="true"
-                styleClass="chat-button"
-                pTooltip="Chat"
-                tooltipPosition="left">
+                icon="pi pi-plus"
+                styleClass="p-button-text p-button-sm add-friend-btn">
               </p-button>
             </div>
-            <div *ngIf="friends.length === 0" class="no-friends">
-              <p>No friends yet</p>
+            <div class="friends-list">
+              @for (friend of friends(); track friend.friendId ?? friend.user?.id) {
+                <div class="friend-item">
+                  <div class="friend-avatar-container">
+                    <p-avatar
+                      [label]="friend.user?.firstname?.charAt(0) || 'F'"
+                      styleClass="friend-avatar">
+                    </p-avatar>
+                    <span class="online-status" [class.online]="isOnline(friend.friendId)"></span>
+                  </div>
+                  <div class="friend-info">
+                    <span class="friend-name">{{ friend.user?.firstname }}</span>
+                    @if (isOnline(friend.friendId)) {
+                      <span class="friend-status">Online</span>
+                    }
+                  </div>
+                  <p-button
+                    icon="pi pi-comment"
+                    (onClick)="startChat(friend)"
+                    [rounded]="true"
+                    [text]="true"
+                    styleClass="chat-button"
+                    pTooltip="Chat"
+                    tooltipPosition="left">
+                  </p-button>
+                </div>
+              }
+              @if (friends().length === 0) {
+                <div class="no-friends">
+                  <p>No friends yet</p>
+                </div>
+              }
             </div>
           </div>
-        </div>
+        }
 
-        <!-- Bio Section -->
-        <div class="sidebar-section" *ngIf="userProfile?.bio || isOwnProfile">
-          <div class="section-header">
-            <h4>BIO</h4>
-            <p-button
-              *ngIf="isOwnProfile"
-              label="Edit"
-              icon="pi pi-pencil"
-              (onClick)="openEditDialog()"
-              styleClass="p-button-text p-button-sm">
-            </p-button>
-          </div>
-          <div class="info-content">
-            <i class="pi pi-comment"></i>
-            <span>{{ userProfile?.bio || 'Not specified' }}</span>
-          </div>
-        </div>
-
-        <!-- Location Section -->
-        <div class="sidebar-section" *ngIf="userProfile?.location || isOwnProfile">
-          <div class="section-header">
-            <h4>LOCATION</h4>
-            <p-button
-              *ngIf="isOwnProfile"
-              label="Edit"
-              icon="pi pi-pencil"
-              (onClick)="openEditDialog()"
-              styleClass="p-button-text p-button-sm">
-            </p-button>
-          </div>
-          <div class="info-content">
-            <i class="pi pi-map-marker"></i>
-            <span>{{ userProfile?.location || 'Not specified' }}</span>
-          </div>
-        </div>
-
-        <!-- Interests Section -->
-        <div class="sidebar-section" *ngIf="(userProfile && userProfile.interests && userProfile.interests.length > 0) || isOwnProfile">
-          <div class="section-header">
-            <h4>INTERESTS</h4>
-            <p-button
-              *ngIf="isOwnProfile"
-              label="Edit"
-              icon="pi pi-pencil"
-              (onClick)="openEditDialog()"
-              styleClass="p-button-text p-button-sm">
-            </p-button>
-          </div>
-          <div class="info-content interests-list">
-            <div *ngIf="userProfile && userProfile.interests && userProfile.interests.length > 0" class="interest-chips">
-              <p-chip
-                *ngFor="let interest of userProfile.interests"
-                [label]="interest"
-                styleClass="interest-chip">
-              </p-chip>
+        @if (userProfile()?.bio || isOwnProfile()) {
+          <div class="sidebar-section">
+            <div class="section-header">
+              <h4>BIO</h4>
+              @if (isOwnProfile()) {
+                <p-button
+                  label="Edit"
+                  icon="pi pi-pencil"
+                  (onClick)="openEditDialog()"
+                  styleClass="p-button-text p-button-sm">
+                </p-button>
+              }
             </div>
-            <span *ngIf="!userProfile || !userProfile.interests || userProfile.interests.length === 0">Not specified</span>
+            <div class="info-content">
+              <i class="pi pi-comment"></i>
+              <span>{{ userProfile()?.bio || 'Not specified' }}</span>
+            </div>
           </div>
-        </div>
+        }
 
-        <!-- Gender Section -->
+        @if (userProfile()?.location || isOwnProfile()) {
+          <div class="sidebar-section">
+            <div class="section-header">
+              <h4>LOCATION</h4>
+              @if (isOwnProfile()) {
+                <p-button
+                  label="Edit"
+                  icon="pi pi-pencil"
+                  (onClick)="openEditDialog()"
+                  styleClass="p-button-text p-button-sm">
+                </p-button>
+              }
+            </div>
+            <div class="info-content">
+              <i class="pi pi-map-marker"></i>
+              <span>{{ userProfile()?.location || 'Not specified' }}</span>
+            </div>
+          </div>
+        }
+
+        @if ((userProfile()?.interests?.length ?? 0) > 0 || isOwnProfile()) {
+          <div class="sidebar-section">
+            <div class="section-header">
+              <h4>INTERESTS</h4>
+              @if (isOwnProfile()) {
+                <p-button
+                  label="Edit"
+                  icon="pi pi-pencil"
+                  (onClick)="openEditDialog()"
+                  styleClass="p-button-text p-button-sm">
+                </p-button>
+              }
+            </div>
+            <div class="info-content interests-list">
+              @if (userProfile()?.interests && userProfile()?.interests?.length) {
+                <div class="interest-chips">
+                  @for (interest of userProfile()?.interests ?? []; track interest) {
+                    <p-chip
+                      [label]="interest"
+                      styleClass="interest-chip">
+                    </p-chip>
+                  }
+                </div>
+              }
+              @if (!userProfile()?.interests?.length) {
+                <span>Not specified</span>
+              }
+            </div>
+          </div>
+        }
+
         <div class="sidebar-section">
           <div class="section-header">
             <h4>GENDER</h4>
-            <p-button
-              *ngIf="isOwnProfile"
-              label="Edit"
-              icon="pi pi-pencil"
-              (onClick)="openEditDialog()"
-              styleClass="p-button-text p-button-sm">
-            </p-button>
+            @if (isOwnProfile()) {
+              <p-button
+                label="Edit"
+                icon="pi pi-pencil"
+                (onClick)="openEditDialog()"
+                styleClass="p-button-text p-button-sm">
+              </p-button>
+            }
           </div>
           <div class="info-content">
             <i class="pi pi-user"></i>
-            <span>{{ currentUser?.gender ? (currentUser?.gender | titlecase) : 'Not specified' }}</span>
+            <span>{{ currentUser()?.gender ? (currentUser()?.gender | titlecase) : 'Not specified' }}</span>
           </div>
         </div>
 
-        <!-- City Section -->
         <div class="sidebar-section">
           <div class="section-header">
             <h4>CITY</h4>
-            <p-button
-              *ngIf="isOwnProfile"
-              label="Edit"
-              icon="pi pi-pencil"
-              (onClick)="openEditDialog()"
-              styleClass="p-button-text p-button-sm">
-            </p-button>
+            @if (isOwnProfile()) {
+              <p-button
+                label="Edit"
+                icon="pi pi-pencil"
+                (onClick)="openEditDialog()"
+                styleClass="p-button-text p-button-sm">
+              </p-button>
+            }
           </div>
           <div class="info-content">
             <i class="pi pi-map-marker"></i>
-            <span>{{ currentUser?.city || 'Not specified' }}</span>
+            <span>{{ currentUser()?.city || 'Not specified' }}</span>
           </div>
         </div>
       </div>
@@ -416,7 +472,6 @@
   </ng-template>
 
   <div class="deposit-dialog-content">
-    <!-- Amount Input Section -->
     <div class="amount-input-section">
       <label for="amount" class="amount-label">How many tokens would you like to purchase?</label>
       <div class="amount-input-wrapper">
@@ -432,26 +487,25 @@
       </div>
     </div>
 
-    <!-- Credit Card Preview -->
     <div class="card-preview">
       <div class="card-front">
         <div class="card-chip"></div>
         <div class="card-number-container">
-          <input 
-            id="cardNumber" 
-            type="text" 
-            [(ngModel)]="depositForm.cardNumber" 
-            placeholder="4111 1111 1111 1111" 
+          <input
+            id="cardNumber"
+            type="text"
+            [(ngModel)]="depositForm.cardNumber"
+            placeholder="4111 1111 1111 1111"
             class="card-number-input"
             maxlength="19"
             (input)="formatCardNumber($event)" />
         </div>
         <div class="card-holder-container">
           <label class="card-label">CARDHOLDER NAME</label>
-          <input 
-            type="text" 
-            [(ngModel)]="depositForm.cardHolder" 
-            placeholder="JOHN DOE" 
+          <input
+            type="text"
+            [(ngModel)]="depositForm.cardHolder"
+            placeholder="JOHN DOE"
             class="card-holder-input"
             style="text-transform: uppercase;" />
         </div>
@@ -459,30 +513,30 @@
           <div class="card-expiry">
             <label class="card-label">EXPIRY DATE</label>
             <div class="expiry-inputs">
-              <input 
-                id="expMonth" 
-                type="text" 
-                [(ngModel)]="depositForm.expiryMonth" 
-                placeholder="MM" 
+              <input
+                id="expMonth"
+                type="text"
+                [(ngModel)]="depositForm.expiryMonth"
+                placeholder="MM"
                 class="expiry-input"
                 maxlength="2" />
               <span class="expiry-separator">/</span>
-              <input 
-                id="expYear" 
-                type="text" 
-                [(ngModel)]="depositForm.expiryYear" 
-                placeholder="YY" 
+              <input
+                id="expYear"
+                type="text"
+                [(ngModel)]="depositForm.expiryYear"
+                placeholder="YY"
                 class="expiry-input"
                 maxlength="2" />
             </div>
           </div>
           <div class="card-cvv">
             <label class="card-label">CVV</label>
-            <input 
-              id="cvv" 
-              type="text" 
-              [(ngModel)]="depositForm.cvv" 
-              placeholder="123" 
+            <input
+              id="cvv"
+              type="text"
+              [(ngModel)]="depositForm.cvv"
+              placeholder="123"
               class="cvv-input"
               maxlength="3" />
           </div>
@@ -493,19 +547,19 @@
     <small class="text-muted">Card details are mocked for demo purposes</small>
 
     <div class="dialog-actions">
-      <p-button 
-        label="Cancel" 
-        icon="pi pi-times" 
-        (onClick)="closeDepositDialog()" 
-        [disabled]="isDepositing"
+      <p-button
+        label="Cancel"
+        icon="pi pi-times"
+        (onClick)="closeDepositDialog()"
+        [disabled]="isDepositing()"
         styleClass="p-button-text">
       </p-button>
-      <p-button 
-        label="Add Tokens" 
-        icon="pi pi-check" 
-        (onClick)="submitDeposit()" 
-        [disabled]="!depositForm.amount || depositForm.amount <= 0 || isDepositing" 
-        [loading]="isDepositing"
+      <p-button
+        label="Add Tokens"
+        icon="pi pi-check"
+        (onClick)="submitDeposit()"
+        [disabled]="!depositForm.amount || depositForm.amount <= 0 || isDepositing()"
+        [loading]="isDepositing()"
         styleClass="p-button-success">
       </p-button>
     </div>
@@ -520,7 +574,7 @@
   [style]="{ width: '750px', maxWidth: '90vw' }"
   [draggable]="false"
   [resizable]="false">
-  
+
   <div class="edit-form">
     <p-tabs [value]="0">
       <p-tablist>
@@ -557,15 +611,18 @@
     <div class="field">
       <label for="interests">Interests</label>
       <div class="interests-input">
-        <div class="interests-chips" *ngIf="editForm.interests && editForm.interests.length > 0">
-          <p-chip
-            *ngFor="let interest of editForm.interests"
-            [label]="interest"
-            [removable]="true"
-            (onRemove)="removeInterest(interest)"
-            styleClass="custom-chip">
-          </p-chip>
-        </div>
+        @if (editForm.interests && editForm.interests.length > 0) {
+          <div class="interests-chips">
+            @for (interest of editForm.interests; track interest) {
+              <p-chip
+                [label]="interest"
+                [removable]="true"
+                (onRemove)="removeInterest(interest)"
+                styleClass="custom-chip">
+              </p-chip>
+            }
+          </div>
+        }
         <div class="p-inputgroup">
           <input
             type="text"
@@ -612,63 +669,73 @@
       </div>
     </div>
 
-    <!-- Verification Section -->
     <div class="field">
       <label>Verification</label>
       <div class="verification-section">
-        <div class="verification-status" *ngIf="verificationStatus">
-          <p-message 
-            [severity]="getVerificationStatusSeverity()"
-            [text]="getVerificationStatusText()">
-          </p-message>
-          
-          <div *ngIf="verificationStatus.verificationRequest?.rejectionReason" class="rejection-reason">
-            <strong>Rejection Reason:</strong>
-            <p>{{ verificationStatus.verificationRequest.rejectionReason }}</p>
-          </div>
-        </div>
+        @if (verificationStatus()) {
+          <div class="verification-status">
+            <p-message
+              [severity]="getVerificationStatusSeverity()"
+              [text]="getVerificationStatusText()">
+            </p-message>
 
-        <div class="verification-upload" *ngIf="!verificationStatus?.isVerified && !isVerificationPending()">
-          <p class="verification-description">
-            Upload a clear photo of your ID document or a selfie for verification.
-          </p>
-          
-          <div class="upload-section">
-            <p-fileUpload
-              mode="basic"
-              name="verificationPhoto"
-              accept="image/*"
-              maxFileSize="10000000"
-              (onSelect)="onVerificationPhotoSelect($event)"
-              chooseLabel="Choose Verification Photo"
-              styleClass="p-button-outlined">
-            </p-fileUpload>
-            
-            <div *ngIf="verificationPhoto" class="selected-file">
-              <i class="pi pi-file-image"></i>
-              <span>{{ verificationPhoto.name }}</span>
-              <p-button
-                icon="pi pi-times"
-                styleClass="p-button-text p-button-sm"
-                (onClick)="verificationPhoto = null">
-              </p-button>
+            @if (getVerificationRejectionReason()) {
+              <div class="rejection-reason">
+                <strong>Rejection Reason:</strong>
+                <p>{{ getVerificationRejectionReason() }}</p>
+              </div>
+            }
+          </div>
+        }
+
+        @if (!isVerificationVerified() && !isVerificationPending()) {
+          <div class="verification-upload">
+            <p class="verification-description">
+              Upload a clear photo of your ID document or a selfie for verification.
+            </p>
+
+            <div class="upload-section">
+              <p-fileUpload
+                mode="basic"
+                name="verificationPhoto"
+                accept="image/*"
+                maxFileSize="10000000"
+                (onSelect)="onVerificationPhotoSelect($event)"
+                chooseLabel="Choose Verification Photo"
+                styleClass="p-button-outlined">
+              </p-fileUpload>
+
+              @if (verificationPhoto) {
+                <div class="selected-file">
+                  <i class="pi pi-file-image"></i>
+                  <span>{{ verificationPhoto.name }}</span>
+                  <p-button
+                    icon="pi pi-times"
+                    styleClass="p-button-text p-button-sm"
+                    (onClick)="verificationPhoto = null">
+                  </p-button>
+                </div>
+              }
+
+              @if (verificationPhoto) {
+                <p-button
+                  label="Upload Verification Photo"
+                  icon="pi pi-upload"
+                  (onClick)="uploadVerificationPhoto()"
+                  [loading]="isVerificationUploading()"
+                  styleClass="p-button-success">
+                </p-button>
+              }
             </div>
-            
-            <p-button
-              *ngIf="verificationPhoto"
-              label="Upload Verification Photo"
-              icon="pi pi-upload"
-              (onClick)="uploadVerificationPhoto()"
-              [loading]="isVerificationUploading"
-              styleClass="p-button-success">
-            </p-button>
           </div>
-        </div>
+        }
 
-        <div *ngIf="verificationStatus?.isVerified" class="verified-status">
-          <i class="pi pi-check-circle" style="color: green; font-size: 1.5rem;"></i>
-          <span style="color: green; font-weight: 500;">Account Verified</span>
-        </div>
+        @if (isVerificationVerified()) {
+          <div class="verified-status">
+            <i class="pi pi-check-circle" style="color: green; font-size: 1.5rem;"></i>
+            <span style="color: green; font-weight: 500;">Account Verified</span>
+          </div>
+        }
       </div>
           </div>
         </p-tabpanel>
@@ -680,7 +747,7 @@
     <p-button
       label="Cancel"
       icon="pi pi-times"
-      (onClick)="showEditDialog = false"
+      (onClick)="showEditDialog.set(false)"
       styleClass="p-button-text">
     </p-button>
     <p-button
@@ -698,55 +765,52 @@
   [style]="{ width: '90vw', maxWidth: '900px' }"
   [dismissableMask]="true"
   styleClass="photo-dialog">
-  
+
   <ng-template pTemplate="header">
     <div class="dialog-header">
       <span>Photo Details</span>
     </div>
   </ng-template>
 
-  <div class="photo-dialog-content" *ngIf="selectedPhoto">
-    <div class="photo-display">
-      <img [src]="getPhotoUrl(selectedPhoto.id!)" [alt]="selectedPhoto.name">
-    </div>
-    
-    <div class="photo-info">
-      <div class="photo-actions-bar">
-        <p-button
-          [icon]="selectedPhoto.isLikedByCurrentUser ? 'pi pi-heart-fill' : 'pi pi-heart'"
-          [label]="(selectedPhoto.likesCount || 0).toString()"
-          styleClass="p-button-text p-button-lg like-button"
-          [class.liked]="selectedPhoto.isLikedByCurrentUser"
-          (onClick)="togglePhotoLike(selectedPhoto)">
-        </p-button>
+  @if (selectedPhoto(); as photo) {
+    <div class="photo-dialog-content">
+      <div class="photo-display">
+        <img [src]="getPhotoUrl(photo.id!)" [alt]="photo.name">
       </div>
-      
-      <p-divider></p-divider>
-      
-      <div class="photo-metadata">
-        <p><strong>Uploaded:</strong> {{ selectedPhoto.uploadedAt | date: 'medium' }}</p>
-        <p><strong>Likes:</strong> {{ selectedPhoto.likesCount || 0 }}</p>
+
+      <div class="photo-info">
+        <div class="photo-actions-bar">
+          <p-button
+            [icon]="photo.isLikedByCurrentUser ? 'pi pi-heart-fill' : 'pi pi-heart'"
+            [label]="(photo.likesCount || 0).toString()"
+            styleClass="p-button-text p-button-lg like-button"
+            [class.liked]="photo.isLikedByCurrentUser"
+            (onClick)="togglePhotoLike(photo)">
+          </p-button>
+        </div>
+
+        <p-divider></p-divider>
+
+        <div class="photo-metadata">
+          <p><strong>Uploaded:</strong> {{ photo.uploadedAt | date: 'medium' }}</p>
+          <p><strong>Likes:</strong> {{ photo.likesCount || 0 }}</p>
+        </div>
       </div>
     </div>
-  </div>
+  }
 </p-dialog>
 
-<!-- Loading Spinner -->
-<p-progressSpinner
-  *ngIf="isLoading || isUploading"
-  styleClass="loading-spinner">
-</p-progressSpinner>
+@if (isLoading() || isUploading()) {
+  <p-progressSpinner
+    styleClass="loading-spinner">
+  </p-progressSpinner>
+}
 
-<!-- Toast Messages -->
 <p-toast></p-toast>
-
-<!-- Confirmation Dialog -->
 <p-confirmDialog></p-confirmDialog>
 
-<!-- Send Gift Dialog -->
 <app-send-gift-dialog
   [(visible)]="showSendGiftDialog"
-  [recipientUser]="recipientUserForGift"
-  (giftSent)="onGiftSent($event)">
+  [recipientUser]="recipientUserForGift()"
+  (giftSent)="onGiftSent()">
 </app-send-gift-dialog>
-
