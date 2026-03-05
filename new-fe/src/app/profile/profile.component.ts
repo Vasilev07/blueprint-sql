@@ -8,7 +8,14 @@ import {
     inject,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import { FormsModule, ReactiveFormsModule, FormBuilder } from "@angular/forms";
+import {
+    FormsModule,
+    ReactiveFormsModule,
+    FormBuilder,
+    FormGroup,
+    FormControl,
+    FormArray,
+} from "@angular/forms";
 import { RouterModule } from "@angular/router";
 import { TabsModule } from "primeng/tabs";
 import { ButtonModule } from "primeng/button";
@@ -36,6 +43,7 @@ import { Router, ActivatedRoute } from "@angular/router";
 import { HttpClient } from "@angular/common/http";
 import { OnlineStatusService } from "../services/online-status.service";
 import { WebsocketService } from "../services/websocket.service";
+import { FormChangeService } from "../services/form-change.service";
 import { environment } from "src/environments/environment";
 import {
     UserDTO,
@@ -100,6 +108,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
     readonly onlineStatusService = inject(OnlineStatusService);
     private websocketService = inject(WebsocketService);
+    private formChangeService = inject(FormChangeService);
 
     // Signals – user & profile
     currentUser = signal<UserDTO | null>(null);
@@ -110,7 +119,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
     profilePictureBlobUrl = signal<string | null>(null);
     friends = signal<FriendDTO[]>([]);
 
-    // Signals – loading & UI
     isLoading = signal(false);
     isUploading = signal(false);
     showEditDialog = model(false);
@@ -119,17 +127,23 @@ export class ProfileComponent implements OnInit, OnDestroy {
     isOwnProfile = signal(true);
     viewingUserId = signal<number | null>(null);
 
-    // Edit form state (kept as object for ngModel in dialog)
-    editForm: {
-        gender?: string | null;
-        city?: string;
-        bio?: string;
-        location?: string;
-        interests?: string[];
-        appearsInSearches?: boolean;
-        dateOfBirth?: Date | null;
-    } = {};
-    newInterest = "";
+    editFormGroup!: FormGroup<{
+        gender: FormControl<string | null>;
+        city: FormControl<string | null>;
+        bio: FormControl<string | null>;
+        location: FormControl<string | null>;
+        interests: FormArray<FormControl<string | null>>;
+        appearsInSearches: FormControl<boolean | null>;
+        dateOfBirth: FormControl<Date | null>;
+    }>;
+    newInterestControl!: FormControl<string>;
+
+    get interestsFormArray(): FormArray<FormControl<string | null>> {
+        return this.editFormGroup.controls.interests;
+    }
+
+    /** Snapshot of edit form when dialog was opened; used to detect changes. */
+    private editFormInitialSnapshot: Record<string, unknown> | null = null;
 
     // Verification
     verificationStatus = signal<unknown>(null);
@@ -215,6 +229,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     });
 
     ngOnInit(): void {
+        this.initEditForm();
         this.ensureAuthHeaders();
         this.route.paramMap
             .pipe(takeUntil(this.destroy$))
@@ -238,6 +253,21 @@ export class ProfileComponent implements OnInit, OnDestroy {
             });
     }
 
+    private initEditForm(): void {
+        this.editFormGroup = new FormGroup({
+            gender: new FormControl<string | null>(null),
+            city: new FormControl<string | null>(null),
+            bio: new FormControl<string | null>(null),
+            location: new FormControl<string | null>(null),
+            interests: new FormArray<FormControl<string | null>>([]),
+            appearsInSearches: new FormControl<boolean | null>(true),
+            dateOfBirth: new FormControl<Date | null>(null),
+        });
+        this.newInterestControl = new FormControl<string>("", {
+            nonNullable: true,
+        });
+    }
+
     private ensureAuthHeaders(): void {
         const token = localStorage.getItem("id_token");
         if (token) {
@@ -252,10 +282,22 @@ export class ProfileComponent implements OnInit, OnDestroy {
     ngOnDestroy(): void {
         this.destroy$.next();
         this.destroy$.complete();
-        this.photoBlobUrls().forEach((url) => URL.revokeObjectURL(url));
+        this.photoBlobUrls().forEach((url) => {
+            try {
+                URL.revokeObjectURL(url);
+            } catch {
+                // ignore in tests or when URL was not created by createObjectURL
+            }
+        });
         this.photoBlobUrls.set(new Map());
         const pp = this.profilePictureBlobUrl();
-        if (pp) URL.revokeObjectURL(pp);
+        if (pp) {
+            try {
+                URL.revokeObjectURL(pp);
+            } catch {
+                // ignore in tests or when URL was not created by createObjectURL
+            }
+        }
     }
 
     private loadCurrentUser(): void {
@@ -419,19 +461,54 @@ export class ProfileComponent implements OnInit, OnDestroy {
         }
         const profile = this.userProfile();
         const user = this.currentUser();
-        this.editForm = {
+        this.editFormGroup.patchValue({
             gender: user?.gender ?? null,
             city: profile?.city ?? "",
             bio: profile?.bio ?? "",
             location: profile?.location ?? "",
-            interests: [...(profile?.interests ?? [])],
             appearsInSearches: profile?.appearsInSearches !== false,
             dateOfBirth: profile?.dateOfBirth
                 ? new Date(profile.dateOfBirth)
                 : null,
-        };
+        });
+        this.interestsFormArray.clear();
+        (profile?.interests ?? []).forEach((interest) =>
+            this.interestsFormArray.push(
+                new FormControl(interest, { nonNullable: true }),
+            ),
+        );
+        this.newInterestControl.setValue("");
+        this.editFormInitialSnapshot = this.formChangeService.takeSnapshot(
+            this.getEditFormRawValue(),
+        );
         this.showEditDialog.set(true);
         this.loadVerificationStatus();
+    }
+
+    onEditDialogShow(): void {
+        this.editFormGroup.markAsPristine();
+        setTimeout(() => this.editFormGroup.markAsPristine(), 0);
+        requestAnimationFrame(() => this.editFormGroup.markAsPristine());
+    }
+
+    onEditDialogHide(): void {
+        this.editFormInitialSnapshot = null;
+    }
+
+    private getEditFormRawValue(): Record<string, unknown> {
+        const raw = this.editFormGroup.getRawValue();
+        return {
+            ...raw,
+            interests: (raw.interests ?? []).map((v) => v ?? ""),
+        } as Record<string, unknown>;
+    }
+
+    hasEditFormChanges(): boolean {
+        if (!this.editFormInitialSnapshot) return false;
+        return this.formChangeService.hasChanges(
+            this.getEditFormRawValue(),
+            this.editFormInitialSnapshot,
+        );
     }
 
     saveProfile(): void {
@@ -443,21 +520,26 @@ export class ProfileComponent implements OnInit, OnDestroy {
             });
             return;
         }
+        const raw = this.getEditFormRawValue();
+        const user = this.currentUser();
+        if (!user) return;
+        const profilePayload: UserDTO = {
+            ...user,
+            gender: (raw["gender"] as string) ?? user.gender ?? undefined,
+        } as UserDTO;
         this.userService
-            .updateProfile({ gender: this.editForm.gender } as {
-                gender?: string;
-            })
+            .updateProfile(profilePayload)
             .pipe(takeUntil(this.destroy$))
             .subscribe({
                 next: () => {
                     const update: UpdateUserProfileDTO = {
-                        bio: this.editForm.bio,
-                        city: this.editForm.city,
-                        location: this.editForm.location,
-                        interests: this.editForm.interests,
-                        appearsInSearches: this.editForm.appearsInSearches,
-                        dateOfBirth: this.editForm.dateOfBirth
-                            ? this.editForm.dateOfBirth.toISOString()
+                        bio: (raw["bio"] as string) ?? undefined,
+                        city: (raw["city"] as string) ?? undefined,
+                        location: (raw["location"] as string) ?? undefined,
+                        interests: (raw["interests"] as string[]) ?? undefined,
+                        appearsInSearches: raw["appearsInSearches"] as boolean,
+                        dateOfBirth: raw["dateOfBirth"]
+                            ? (raw["dateOfBirth"] as Date).toISOString()
                             : undefined,
                     };
                     this.userService
@@ -499,22 +581,18 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
 
     addInterest(): void {
-        if (this.newInterest?.trim()) {
-            if (!this.editForm.interests) this.editForm.interests = [];
-            const trimmed = this.newInterest.trim();
-            if (!this.editForm.interests.includes(trimmed)) {
-                this.editForm.interests.push(trimmed);
-            }
-            this.newInterest = "";
-        }
+        const trimmed = this.newInterestControl.value?.trim();
+        if (!trimmed) return;
+        const interests = this.interestsFormArray.value;
+        if (interests.includes(trimmed)) return;
+        this.interestsFormArray.push(
+            new FormControl(trimmed, { nonNullable: true }),
+        );
+        this.newInterestControl.setValue("");
     }
 
-    removeInterest(interest: string): void {
-        if (this.editForm.interests) {
-            this.editForm.interests = this.editForm.interests.filter(
-                (i) => i !== interest,
-            );
-        }
+    removeInterest(index: number): void {
+        this.interestsFormArray.removeAt(index);
     }
 
     isOnline(userId: number | undefined): boolean {
@@ -945,8 +1023,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
         };
     }
 
-    formatCardNumber(event: { target: { value: string } }): void {
-        const value = event.target.value
+    formatCardNumber(event: Event): void {
+        const value = ((event.target as HTMLInputElement)?.value ?? "")
             .replace(/\s+/g, "")
             .replace(/[^0-9]/gi, "");
         this.depositForm.cardNumber =

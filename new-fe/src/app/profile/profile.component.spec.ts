@@ -1,18 +1,29 @@
-import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { ActivatedRoute, Router } from "@angular/router";
 import { HttpClient, HttpHeaders } from "@angular/common/http";
-import { of, Subject } from "rxjs";
-import { ProfileComponent } from "./profile.component";
 import {
-    UserService,
+    ComponentFixture,
+    TestBed,
+    fakeAsync,
+    tick,
+} from "@angular/core/testing";
+import { FormControl } from "@angular/forms";
+import { ActivatedRoute, Router } from "@angular/router";
+import { ConfirmationService, MessageService } from "primeng/api";
+import { BehaviorSubject, of } from "rxjs";
+import {
     FriendsService,
-    WalletService,
     GiftService,
+    UserService,
+    WalletService,
 } from "src/typescript-api-client/src/api/api";
-import { UserDTO } from "src/typescript-api-client/src/model/models";
-import { MessageService, ConfirmationService } from "primeng/api";
 import { OnlineStatusService } from "../services/online-status.service";
 import { WebsocketService } from "../services/websocket.service";
+import {
+    createMockProfile,
+    createMockUser,
+    mockConfirmationService,
+    mockMessageService,
+} from "../testing/mocks";
+import { ProfileComponent } from "./profile.component";
 
 describe("ProfileComponent", () => {
     let fixture: ComponentFixture<ProfileComponent>;
@@ -27,6 +38,7 @@ describe("ProfileComponent", () => {
             | "getUserById"
             | "getUserPhotosByUserId"
             | "getProfilePictureByUserId"
+            | "getVerificationStatus"
             | "defaultHeaders"
         >
     >;
@@ -34,30 +46,20 @@ describe("ProfileComponent", () => {
     let walletService: jest.Mocked<Pick<WalletService, "deposit">>;
     let giftService: jest.Mocked<Pick<GiftService, "getReceivedGifts">>;
     let router: jest.Mocked<Pick<Router, "navigate">>;
-    let routeParamMap: Subject<{ get: (key: string) => string | null }>;
-
-    const mockUser: UserDTO = {
-        id: 1,
-        email: "user@test.com",
-        fullName: "Test User",
-        password: "",
-        confirmPassword: "",
-        gender: "male" as UserDTO.GenderEnum,
-        city: "Sofia",
-        balance: "100",
-    } as UserDTO;
-
-    const mockProfile = {
-        bio: "Hello",
-        city: "Sofia",
-        location: "Sofia, Bulgaria",
-        interests: ["music", "travel"],
-        appearsInSearches: true,
-        dateOfBirth: "1990-01-01",
-    };
+    let routeParamMap: BehaviorSubject<{ get: (key: string) => string | null }>;
+    let mockUser: ReturnType<typeof createMockUser>;
+    let mockProfile: ReturnType<typeof createMockProfile>;
 
     beforeEach(async () => {
-        routeParamMap = new Subject();
+        // Node/Jest has no URL.createObjectURL/revokeObjectURL; component uses them for blob URLs
+        URL.createObjectURL = jest.fn(() => "blob:mock-url");
+        URL.revokeObjectURL = jest.fn();
+
+        mockUser = createMockUser();
+        mockProfile = createMockProfile();
+        routeParamMap = new BehaviorSubject<{
+            get: (key: string) => string | null;
+        }>({ get: () => null });
         const activatedRoute = {
             paramMap: routeParamMap.asObservable(),
         };
@@ -72,6 +74,11 @@ describe("ProfileComponent", () => {
             getUserById: jest.fn(),
             getUserPhotosByUserId: jest.fn(),
             getProfilePictureByUserId: jest.fn(),
+            getVerificationStatus: jest
+                .fn()
+                .mockReturnValue(
+                    of({ verificationRequest: { status: "verified" } }),
+                ),
             defaultHeaders: new HttpHeaders(),
         };
 
@@ -91,10 +98,8 @@ describe("ProfileComponent", () => {
             navigate: jest.fn().mockResolvedValue(true),
         };
 
-        const messageService = { add: jest.fn() };
-        const confirmationService = {
-            confirm: jest.fn((opts) => opts?.accept?.()),
-        };
+        const messageService = mockMessageService();
+        const confirmationService = mockConfirmationService();
         const onlineStatusService = {
             isOnline: jest.fn().mockReturnValue(false),
         };
@@ -124,28 +129,31 @@ describe("ProfileComponent", () => {
 
         fixture = TestBed.createComponent(ProfileComponent);
         component = fixture.componentInstance;
+        fixture.detectChanges();
     });
 
     it("should create", () => {
         expect(component).toBeTruthy();
     });
 
-    it("should have initial signal state", () => {
-        expect(component.currentUser()).toBeNull();
+    it("should have initial signal state", fakeAsync(() => {
+        fixture.detectChanges(); // run ngOnInit (subscribes to route, loads user)
+        tick();
+        expect(component.currentUser()).toEqual(mockUser);
         expect(component.viewingUser()).toBeNull();
-        expect(component.userProfile()).toBeNull();
+        expect(component.userProfile()).toEqual(mockProfile);
         expect(component.userPhotos()).toEqual([]);
         expect(component.friends()).toEqual([]);
         expect(component.isOwnProfile()).toBe(true);
         expect(component.viewingUserId()).toBeNull();
         expect(component.isLoading()).toBe(false);
-        expect(component.balance()).toBe("0");
+        expect(component.balance()).toBe("100");
         expect(component.receivedGifts()).toEqual([]);
-        expect(component.activeTabIndex()).toBe(0);
-    });
+        expect(component.activeTabIndex()).toBe(6);
+    }));
 
-    it("on own profile route should load user, profile, photos, friends, profile picture, gifts", () => {
-        routeParamMap.next({ get: () => null });
+    it("on own profile route should load user, profile, photos, friends, profile picture, gifts", fakeAsync(() => {
+        tick();
         fixture.detectChanges();
 
         expect(component.isOwnProfile()).toBe(true);
@@ -155,10 +163,11 @@ describe("ProfileComponent", () => {
         expect(friendsService.getAcceptedFriends).toHaveBeenCalled();
         expect(userService.getProfilePicture).toHaveBeenCalled();
         expect(giftService.getReceivedGifts).toHaveBeenCalled();
-    });
+    }));
 
-    it("after load should set currentUser and balance from getUser", () => {
+    it("after load should set currentUser and balance from getUser", fakeAsync(() => {
         routeParamMap.next({ get: () => null });
+        tick();
         fixture.detectChanges();
 
         expect(component.currentUser()).toEqual(mockUser);
@@ -166,9 +175,9 @@ describe("ProfileComponent", () => {
         expect(component.userProfile()).toEqual(mockProfile);
         expect(component.userPhotos()).toEqual([]);
         expect(component.friends()).toEqual([]);
-    });
+    }));
 
-    it("on userId route should set isOwnProfile false and load other user profile", () => {
+    it("on userId route should set isOwnProfile false and load other user profile", fakeAsync(() => {
         const otherUser = { ...mockUser, id: 2, fullName: "Other User" };
         const getUserByIdResponse = {
             user: otherUser,
@@ -190,7 +199,10 @@ describe("ProfileComponent", () => {
             >,
         );
 
-        routeParamMap.next({ get: () => "2" });
+        routeParamMap.next({
+            get: (key: string) => (key === "userId" ? "2" : null),
+        });
+        tick();
         fixture.detectChanges();
 
         expect(component.isOwnProfile()).toBe(false);
@@ -198,7 +210,7 @@ describe("ProfileComponent", () => {
         expect(userService.getUserById).toHaveBeenCalledWith(2);
         expect(component.currentUser()).toEqual(otherUser);
         expect(component.userProfile()).toEqual(mockProfile);
-    });
+    }));
 
     it("getUserInitials should return initials from currentUser", () => {
         component.currentUser.set(mockUser);
@@ -238,6 +250,7 @@ describe("ProfileComponent", () => {
     it("getProfilePictureUrl should return profile picture url", () => {
         component.profilePictureBlobUrl.set("blob:photo");
         expect(component.getProfilePictureUrl()).toBe("blob:photo");
+        component.profilePictureBlobUrl.set(null);
     });
 
     it("isOnline should use onlineStatusService", () => {
@@ -280,14 +293,17 @@ describe("ProfileComponent", () => {
         expect(component.depositForm.cardNumber).toBe("");
     });
 
-    it("openEditDialog should set editForm and show edit dialog when own profile", () => {
+    it("openEditDialog should set editFormGroup and show edit dialog when own profile", () => {
         component.currentUser.set(mockUser);
         component.userProfile.set(mockProfile);
         component.isOwnProfile.set(true);
         component.openEditDialog();
-        expect(component.editForm.gender).toBe("male");
-        expect(component.editForm.bio).toBe("Hello");
-        expect(component.editForm.interests).toEqual(["music", "travel"]);
+        expect(component.editFormGroup.get("gender")?.value).toBe("male");
+        expect(component.editFormGroup.get("bio")?.value).toBe("Hello");
+        expect(component.editFormGroup.get("interests")?.value).toEqual([
+            "music",
+            "travel",
+        ]);
         expect(component.showEditDialog()).toBe(true);
     });
 
@@ -306,25 +322,33 @@ describe("ProfileComponent", () => {
         );
     });
 
-    it("addInterest should add trimmed interest to editForm", () => {
-        component.editForm = { interests: [] };
-        component.newInterest = "  hiking  ";
+    it("addInterest should add trimmed interest to interestsFormArray", () => {
+        component.interestsFormArray.clear();
+        component.newInterestControl.setValue("  hiking  ");
         component.addInterest();
-        expect(component.editForm.interests).toEqual(["hiking"]);
-        expect(component.newInterest).toBe("");
+        expect(component.interestsFormArray.value).toEqual(["hiking"]);
+        expect(component.newInterestControl.value).toBe("");
     });
 
     it("addInterest should not duplicate interest", () => {
-        component.editForm = { interests: ["music"] };
-        component.newInterest = "music";
+        component.interestsFormArray.clear();
+        component.interestsFormArray.push(
+            new FormControl("music", { nonNullable: true }),
+        );
+        component.newInterestControl.setValue("music");
         component.addInterest();
-        expect(component.editForm.interests).toEqual(["music"]);
+        expect(component.interestsFormArray.value).toEqual(["music"]);
     });
 
-    it("removeInterest should remove from editForm.interests", () => {
-        component.editForm = { interests: ["a", "b", "c"] };
-        component.removeInterest("b");
-        expect(component.editForm.interests).toEqual(["a", "c"]);
+    it("removeInterest should remove at index from interestsFormArray", () => {
+        component.interestsFormArray.clear();
+        ["a", "b", "c"].forEach((s) =>
+            component.interestsFormArray.push(
+                new FormControl(s, { nonNullable: true }),
+            ),
+        );
+        component.removeInterest(1);
+        expect(component.interestsFormArray.value).toEqual(["a", "c"]);
     });
 
     it("openPhotoDialog should set selectedPhoto and show dialog", () => {
@@ -360,7 +384,7 @@ describe("ProfileComponent", () => {
     });
 
     it("getSenderNameFromSender should return name or Unknown", () => {
-        expect(component.getSenderNameFromSender(null)).toBe("Unknown");
+        expect(component.getSenderNameFromSender(null as any)).toBe("Unknown");
         expect(
             component.getSenderNameFromSender({
                 firstname: "John",
@@ -448,14 +472,16 @@ describe("ProfileComponent", () => {
         expect(fixture.nativeElement.textContent).toContain("Add Tokens");
     });
 
-    it("should render Video Call and Send Gift when not own profile", () => {
+    it("should render Video Call and Send Gift when not own profile", fakeAsync(() => {
+        fixture.detectChanges();
         component.currentUser.set({ ...mockUser, fullName: "Other" });
         component.isOwnProfile.set(false);
+        tick();
         fixture.detectChanges();
 
         expect(fixture.nativeElement.textContent).toContain("Video Call");
         expect(fixture.nativeElement.textContent).toContain("Send Gift");
-    });
+    }));
 
     it("should render photos tab content with empty state when no photos", () => {
         routeParamMap.next({ get: () => null });
@@ -471,18 +497,20 @@ describe("ProfileComponent", () => {
         );
     });
 
-    it("should render friends list with @for when friends exist", () => {
+    it("should render friends list with @for when friends exist", fakeAsync(() => {
+        fixture.detectChanges();
         component.isOwnProfile.set(true);
         component.friends.set([
             { friendId: 2, user: { id: 2, firstname: "Alice" } },
             { friendId: 3, user: { id: 3, firstname: "Bob" } },
         ] as any[]);
+        tick();
         fixture.detectChanges();
 
         expect(fixture.nativeElement.textContent).toContain("FRIENDS 2");
         expect(fixture.nativeElement.textContent).toContain("Alice");
         expect(fixture.nativeElement.textContent).toContain("Bob");
-    });
+    }));
 
     it("formatCardNumber should format with spaces", () => {
         component.depositForm = { ...component.depositForm, cardNumber: "" };

@@ -573,9 +573,11 @@
   [modal]="true"
   [style]="{ width: '750px', maxWidth: '90vw' }"
   [draggable]="false"
-  [resizable]="false">
+  [resizable]="false"
+  (onShow)="onEditDialogShow()"
+  (onHide)="onEditDialogHide()">
 
-  <div class="edit-form">
+  <form [formGroup]="editFormGroup" class="edit-form">
     <p-tabs [value]="0">
       <p-tablist>
         <p-tab [value]="0">Bio</p-tab>
@@ -588,7 +590,7 @@
         id="bio"
         rows="3"
         pInputTextarea
-        [(ngModel)]="editForm.bio"
+        formControlName="bio"
         placeholder="Looking for fun connections 💕"
         [style]="{ width: '100%' }">
       </textarea>
@@ -602,7 +604,7 @@
           id="location"
           type="text"
           pInputText
-          [(ngModel)]="editForm.location"
+          formControlName="location"
           placeholder="Los Angeles, CA"
           [style]="{ width: '100%' }" />
       </div>
@@ -611,13 +613,13 @@
     <div class="field">
       <label for="interests">Interests</label>
       <div class="interests-input">
-        @if (editForm.interests && editForm.interests.length > 0) {
+        @if (interestsFormArray.length > 0) {
           <div class="interests-chips">
-            @for (interest of editForm.interests; track interest) {
+            @for (ctrl of interestsFormArray.controls; track ctrl; let i = $index) {
               <p-chip
-                [label]="interest"
+                [label]="ctrl.value ?? ''"
                 [removable]="true"
-                (onRemove)="removeInterest(interest)"
+                (onRemove)="removeInterest(i)"
                 styleClass="custom-chip">
               </p-chip>
             }
@@ -627,8 +629,8 @@
           <input
             type="text"
             pInputText
-            [(ngModel)]="newInterest"
-            (keyup.enter)="addInterest()"
+            [formControl]="newInterestControl"
+            (keyup.enter)="addInterest(); $event.preventDefault()"
             placeholder="Add interest"
             [style]="{ width: '100%' }" />
           <button
@@ -647,7 +649,7 @@
       <label for="dateOfBirth">Date of Birth</label>
       <p-datepicker
         id="dateOfBirth"
-        [(ngModel)]="editForm.dateOfBirth"
+        formControlName="dateOfBirth"
         [showIcon]="true"
         [maxDate]="maxDate"
         dateFormat="mm/dd/yy"
@@ -664,7 +666,7 @@
             <strong>Show in Search</strong>
             <p class="privacy-description">Appear in browse results</p>
           </div>
-          <p-toggleswitch [(ngModel)]="editForm.appearsInSearches"></p-toggleswitch>
+          <p-toggleswitch formControlName="appearsInSearches"></p-toggleswitch>
         </div>
       </div>
     </div>
@@ -741,7 +743,7 @@
         </p-tabpanel>
       </p-tabpanels>
     </p-tabs>
-  </div>
+  </form>
 
   <ng-template pTemplate="footer">
     <p-button
@@ -753,7 +755,9 @@
     <p-button
       label="Save"
       icon="pi pi-check"
-      (onClick)="saveProfile()">
+      [disabled]="!hasEditFormChanges()"
+      (onClick)="saveProfile()"
+      pTooltip="{{ hasEditFormChanges() ? 'Save your changes' : 'No changes to save' }}">
     </p-button>
   </ng-template>
 </p-dialog>
