@@ -21,12 +21,12 @@ export function mockConfirmationService(): {
  * Toast's ngOnInit subscribes to messageObserver and clearObserver, so they must be Observables.
  */
 export function mockMessageService(): {
-    add: (...args: unknown[]) => void;
+    add: jest.Mock;
     messageObserver: Observable<unknown>;
     clearObserver: Observable<unknown>;
 } {
     return {
-        add: () => {},
+        add: jest.fn(),
         messageObserver: new Subject().asObservable(),
         clearObserver: new Subject().asObservable(),
     };

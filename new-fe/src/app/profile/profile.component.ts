@@ -43,7 +43,6 @@ import { Router, ActivatedRoute } from "@angular/router";
 import { HttpClient } from "@angular/common/http";
 import { OnlineStatusService } from "../services/online-status.service";
 import { WebsocketService } from "../services/websocket.service";
-import { FormChangeService } from "../services/form-change.service";
 import { environment } from "src/environments/environment";
 import {
     UserDTO,
@@ -108,7 +107,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
     readonly onlineStatusService = inject(OnlineStatusService);
     private websocketService = inject(WebsocketService);
-    private formChangeService = inject(FormChangeService);
 
     // Signals – user & profile
     currentUser = signal<UserDTO | null>(null);
@@ -141,9 +139,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
     get interestsFormArray(): FormArray<FormControl<string | null>> {
         return this.editFormGroup.controls.interests;
     }
-
-    /** Snapshot of edit form when dialog was opened; used to detect changes. */
-    private editFormInitialSnapshot: Record<string, unknown> | null = null;
 
     // Verification
     verificationStatus = signal<unknown>(null);
@@ -478,9 +473,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
             ),
         );
         this.newInterestControl.setValue("");
-        this.editFormInitialSnapshot = this.formChangeService.takeSnapshot(
-            this.getEditFormRawValue(),
-        );
         this.showEditDialog.set(true);
         this.loadVerificationStatus();
     }
@@ -489,10 +481,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
         this.editFormGroup.markAsPristine();
         setTimeout(() => this.editFormGroup.markAsPristine(), 0);
         requestAnimationFrame(() => this.editFormGroup.markAsPristine());
-    }
-
-    onEditDialogHide(): void {
-        this.editFormInitialSnapshot = null;
     }
 
     private getEditFormRawValue(): Record<string, unknown> {
@@ -504,11 +492,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
 
     hasEditFormChanges(): boolean {
-        if (!this.editFormInitialSnapshot) return false;
-        return this.formChangeService.hasChanges(
-            this.getEditFormRawValue(),
-            this.editFormInitialSnapshot,
-        );
+        return this.editFormGroup.dirty;
     }
 
     saveProfile(): void {
