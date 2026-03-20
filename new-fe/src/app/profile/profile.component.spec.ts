@@ -98,7 +98,10 @@ describe("ProfileComponent", () => {
             navigate: jest.fn().mockResolvedValue(true),
         };
 
-        const messageService = mockMessageService();
+        const messageService = {
+            ...mockMessageService(),
+            add: jest.fn(),
+        };
         const confirmationService = mockConfirmationService();
         const onlineStatusService = {
             isOnline: jest.fn().mockReturnValue(false),

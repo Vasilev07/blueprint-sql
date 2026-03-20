@@ -1,8 +1,15 @@
-import { Component, OnInit, OnDestroy } from "@angular/core";
+import {
+    Component,
+    OnInit,
+    OnDestroy,
+    signal,
+    model,
+    inject,
+} from "@angular/core";
 import { CommonModule, DatePipe } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { DomSanitizer, SafeUrl } from "@angular/platform-browser";
-import { Subject, takeUntil } from "rxjs";
+import { Subject, takeUntil, finalize } from "rxjs";
 import { MessageService, ConfirmationService } from "primeng/api";
 import { UserService } from "src/typescript-api-client/src/api/api";
 
@@ -41,14 +48,14 @@ import { ToastModule } from "primeng/toast";
 export class AdminVerificationComponent implements OnInit, OnDestroy {
     private destroy$ = new Subject<void>();
 
-    verificationRequests: VerificationRequestDTO[] = [];
-    filteredRequests: VerificationRequestDTO[] = [];
-    isLoading = false;
-    selectedRequest: VerificationRequestDTO | null = null;
-    showPhotoDialog = false;
-    showReviewDialog = false;
-    showRejectionDialog = false;
-    showRevokeDialog = false;
+    verificationRequests = signal<VerificationRequestDTO[]>([]);
+    filteredRequests = signal<VerificationRequestDTO[]>([]);
+    isLoading = signal(false);
+    selectedRequest = signal<VerificationRequestDTO | null>(null);
+    showPhotoDialog = model(false);
+    showReviewDialog = model(false);
+    showRejectionDialog = model(false);
+    showRevokeDialog = model(false);
 
     // Photo URL cache
     photoUrlCache = new Map<number, SafeUrl>();
@@ -71,12 +78,11 @@ export class AdminVerificationComponent implements OnInit, OnDestroy {
         { label: "Rejected", value: "rejected" },
     ];
 
-    constructor(
-        private userService: UserService,
-        private messageService: MessageService,
-        private confirmationService: ConfirmationService,
-        private sanitizer: DomSanitizer,
-    ) {}
+    private userService = inject(UserService);
+    private messageService = inject(MessageService);
+    // kept for future use if/when confirmations are reintroduced
+    private confirmationService = inject(ConfirmationService);
+    private sanitizer = inject(DomSanitizer);
 
     ngOnInit(): void {
         this.loadVerificationRequests();
@@ -88,17 +94,19 @@ export class AdminVerificationComponent implements OnInit, OnDestroy {
     }
 
     loadVerificationRequests(): void {
-        this.isLoading = true;
+        this.isLoading.set(true);
 
         this.userService
             .getAllVerificationRequests(this.statusFilter || "")
-            .pipe(takeUntil(this.destroy$))
+            .pipe(
+                takeUntil(this.destroy$),
+                finalize(() => this.isLoading.set(false)),
+            )
             .subscribe({
                 next: (requests: VerificationRequestDTO[]) => {
                     console.log("Loaded verification requests:", requests);
-                    this.verificationRequests = requests || [];
+                    this.verificationRequests.set(requests || []);
                     this.applyFilters();
-                    this.isLoading = false;
                 },
                 error: (error) => {
                     console.error(
@@ -110,15 +118,14 @@ export class AdminVerificationComponent implements OnInit, OnDestroy {
                         summary: "Error",
                         detail: "Failed to load verification requests",
                     });
-                    this.verificationRequests = [];
-                    this.filteredRequests = [];
-                    this.isLoading = false;
+                    this.verificationRequests.set([]);
+                    this.filteredRequests.set([]);
                 },
             });
     }
 
     applyFilters(): void {
-        let filtered = [...this.verificationRequests];
+        let filtered = [...this.verificationRequests()];
 
         // Apply status filter
         if (this.statusFilter && this.statusFilter.trim() !== "") {
@@ -141,12 +148,12 @@ export class AdminVerificationComponent implements OnInit, OnDestroy {
             );
         }
 
-        this.filteredRequests = filtered;
+        this.filteredRequests.set(filtered);
         console.log(
             "Filtered requests:",
-            this.filteredRequests.length,
+            this.filteredRequests().length,
             "out of",
-            this.verificationRequests.length,
+            this.verificationRequests().length,
         );
     }
 
@@ -159,8 +166,8 @@ export class AdminVerificationComponent implements OnInit, OnDestroy {
     }
 
     openPhotoDialog(request: VerificationRequestDTO): void {
-        this.selectedRequest = request;
-        this.showPhotoDialog = true;
+        this.selectedRequest.set(request);
+        this.showPhotoDialog.set(true);
         // Load the photo with authentication
         if (request.id) {
             this.loadVerificationPhoto(request.id);
@@ -168,35 +175,35 @@ export class AdminVerificationComponent implements OnInit, OnDestroy {
     }
 
     openReviewDialog(request: VerificationRequestDTO): void {
-        this.selectedRequest = request;
+        this.selectedRequest.set(request);
         this.reviewForm.status = "";
         this.reviewForm.rejectionReason = "";
-        this.showReviewDialog = true;
+        this.showReviewDialog.set(true);
     }
 
     openRejectionDialog(request: VerificationRequestDTO): void {
-        this.selectedRequest = request;
+        this.selectedRequest.set(request);
         this.reviewForm.status = "rejected";
         this.reviewForm.rejectionReason = "";
-        this.showRejectionDialog = true;
+        this.showRejectionDialog.set(true);
     }
 
     openRevokeDialog(request: VerificationRequestDTO): void {
-        this.selectedRequest = request;
+        this.selectedRequest.set(request);
         this.reviewForm.status = "rejected";
         this.reviewForm.rejectionReason = "";
-        this.showRevokeDialog = true;
+        this.showRevokeDialog.set(true);
     }
 
     approveRequest(request: VerificationRequestDTO): void {
-        this.selectedRequest = request;
+        this.selectedRequest.set(request);
         this.reviewForm.status = "verified";
         this.reviewForm.rejectionReason = "";
         this.submitReview();
     }
 
     submitReview(): void {
-        const request = this.selectedRequest;
+        const request = this.selectedRequest();
         if (!request || request.id === undefined) return;
 
         const reviewData = {
@@ -232,18 +239,18 @@ export class AdminVerificationComponent implements OnInit, OnDestroy {
     }
 
     revokeVerification(): void {
-        if (!this.selectedRequest) return;
+        if (!this.selectedRequest()) return;
 
         this.reviewForm.status = "rejected";
         this.submitReview();
     }
 
     closeDialogs(): void {
-        this.showPhotoDialog = false;
-        this.showReviewDialog = false;
-        this.showRejectionDialog = false;
-        this.showRevokeDialog = false;
-        this.selectedRequest = null;
+        this.showPhotoDialog.set(false);
+        this.showReviewDialog.set(false);
+        this.showRejectionDialog.set(false);
+        this.showRevokeDialog.set(false);
+        this.selectedRequest.set(null);
     }
 
     getStatusSeverity(
